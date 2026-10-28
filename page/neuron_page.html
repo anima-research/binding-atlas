@@ -157,12 +157,23 @@ th[data-k] { cursor: pointer }
 td.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap }
 .bar { height: 6px; background: var(--chip); border-radius: 3px; position: relative; min-width: 60px }
 .bar span { position: absolute; inset: 0 auto 0 0; background: var(--fg2); border-radius: 3px }
+.fixgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; align-items: start }
+.fixcol { display: grid; gap: 10px; min-width: 0 }
+.fixcol > span { font-family: var(--f-mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted);
+  border-bottom: 1px solid var(--line); padding-bottom: 6px }
+.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px; display: grid; gap: 4px; min-width: 0 }
+.tile b { font-size: 14.5px }
+.tile .what { font-size: 13px; color: var(--fg2) }
+.tile .val { font-family: var(--f-display); font-weight: 700; font-size: 22px; font-variant-numeric: tabular-nums; line-height: 1.2 }
+.tile .rnd { font-size: 12px; color: var(--muted) }
+.tile svg { display: block; width: 100%; height: 26px }
 .steps2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px }
 .steps2 div { border-left: 2px solid var(--line); padding-left: 12px; display: grid; gap: 4px; min-width: 0 }
 .steps2 span { font-size: 14px; color: var(--fg2) }
 footer { padding-block: 34px 56px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13.5px }
 footer .wrap { display: grid; gap: 8px }
 @media (max-width: 900px) {
+  .fixgrid { grid-template-columns: minmax(0, 1fr) }
   .stage .vignette { background: linear-gradient(0deg, rgba(8,9,11,.97) 0, rgba(8,9,11,.9) 46%, rgba(8,9,11,0) 64%) }
   .hero .card { gap: 12px }
   .hero h1 span { margin-top: 8px }
@@ -275,6 +286,15 @@ footer .wrap { display: grid; gap: 8px }
   <h2>Every cell of the battery moves the same way</h2>
   <p class="prose note" id="t-cells"></p>
   <div class="figure" id="figCells"></div>
+</div></section>
+
+<section class="read" id="fixes" hidden><div class="wrap">
+  <span class="eyebrow">What the knock-out fixes</span>
+  <h2>It sharpens the binding the model already does. It does not teach it who “you” is.</h2>
+  <p class="prose note" id="t-fixes"></p>
+  <div class="fixgrid" id="figFixes"></div>
+  <p class="prose note" id="t-dose"></p>
+  <div class="figure" id="figDose"></div>
 </div></section>
 
 <section class="read" id="pos8" hidden><div class="wrap">
@@ -845,6 +865,57 @@ function figWhere() {
   document.getElementById('figWhen').innerHTML = t + `<div style="display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;margin-top:8px;color:var(--fg2)">${roles.map(([, n], j) => `<span><span class="dot" style="background:${shade[j]}"></span>${n}</span>`).join('')}</div>`;
 }
 
+function figFixes() {
+  const S = B.suite; if (!S || !S.base || !S.all_neg) return;
+  document.getElementById('fixes').hidden = false;
+  const b = S.base, u = S.all_neg, r = S['random-all_neg-0'] || {}, f3 = v => v.toFixed(3), f2 = v => v.toFixed(2);
+  const dn = c => c && c.nll != null ? c.nll - b.nll : null;
+  document.getElementById('t-fixes').innerHTML = `The binding suite's standard gauges, scored with all three interferer sets removed at once (${u.n_neurons} neurons; next-token loss +${dn(u).toFixed(3)} nats) and, as the control, ${u.n_neurons} random neurons at the same positions (+${dn(r).toFixed(4)} nats). The speaker-swap gauges change only the name on the last line of a conversation, which flips the right answer; a model that binds moves its answer with it. Fluid scores are areas under each family's difficulty ladder.`;
+  const shiftV = k => c => c && c[k] ? c[k].shift : null, aucV = k => c => c ? c[k] : null;
+  const tiles = {
+    'Strengthened': [
+      ['Speaker swap, short chat: “I”', 'two people, objects stated plainly; who is “I”?', shiftV('static_I'), [-0.1, 0.5], f3],
+      ['Speaker swap, short chat: “you”', 'the same, for “you”', shiftV('static_you'), [-0.1, 0.5], f3],
+      ['Symbol algebra in context (F2)', 'new operators learned from three examples each', aucV('F2'), [0, 1], f3],
+      ['Rebinding (F3)', `a value reassigned in prose or code; stale picks ${pct(b.stale)} → ${pct(u.stale)}`, aucV('F3'), [0, 1], f3]],
+    'Unchanged': [
+      ['Nonce morphology (F1)', 'inflection rules for made-up words', aucV('F1'), [0, 1], f3],
+      ['Sequence induction (F4)', 'continue a made-up pattern', aucV('F4'), [0, 1], f3],
+      ['Stored knowledge (C0)', 'facts in the same few-shot frame', aucV('C0'), [0, 1], f3]],
+    'Not fixed': [
+      ['Speaker swap after objects change hands', 'the stage-5 test: “you” must be tracked through the conversation (0-shot)', shiftV('dyn_you_0shot'), [-0.1, 0.5], f3],
+      ['The same, with three examples', '3-shot', shiftV('dyn_you_3shot'), [-0.1, 0.5], f3]],
+  };
+  const track = (lo, hi, vb, vu, vr) => { const x = v => 4 + (v - lo) / (hi - lo) * 292;
+    let t = `<svg viewBox="0 0 300 26" preserveAspectRatio="none" aria-hidden="true"><line x1="4" x2="296" y1="13" y2="13" stroke="var(--line)" stroke-width="2"/>`;
+    if (lo < 0) t += `<line x1="${x(0)}" x2="${x(0)}" y1="6" y2="20" stroke="var(--muted)" stroke-width="1"/>`;
+    if (vr != null) t += `<line x1="${x(vr)}" x2="${x(vr)}" y1="5" y2="21" stroke="var(--muted)" stroke-width="2"/>`;
+    t += `<line x1="${x(vb)}" x2="${x(vu)}" y1="13" y2="13" stroke="var(--ember-ink)" stroke-width="3"/>`;
+    t += `<circle cx="${x(vb)}" cy="13" r="5" fill="var(--surface)" stroke="var(--fg)" stroke-width="2"/><circle cx="${x(vu)}" cy="13" r="5" fill="var(--ember-ink)"/></svg>`;
+    return t; };
+  document.getElementById('figFixes').innerHTML = Object.entries(tiles).map(([head, ts]) => `<div class="fixcol"><span>${head}</span>${ts.map(([name, what, get, [lo, hi], fm]) => {
+    const vb = get(b), vu = get(u), vr = get(r); if (vb == null || vu == null) return '';
+    return `<div class="tile"><b>${name}</b><span class="what">${what}</span><span class="val">${fm(vb)} → ${fm(vu)}</span>${track(lo, hi, vb, vu, vr)}<span class="rnd">random 245: ${vr == null ? '—' : fm(vr)}</span></div>`; }).join('')}</div>`).join('') +
+    `<div style="grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--fg2)"><span><span class="dot" style="background:var(--surface);border:2px solid var(--fg)"></span>baseline</span><span><span class="dot" style="background:var(--ember-ink)"></span>interferers removed</span><span><span style="display:inline-block;width:2px;height:11px;background:var(--muted);margin-right:7px;vertical-align:-1px"></span>random neurons removed</span><span>swap shifts on −0.1 to 0.5 (0 = the answer ignores the swap); fluid scores on 0 to 1</span></div>`;
+  // doses: attribute interferers moved part of the way to their mean
+  const ds = [[0, b], [0.25, S['attr_neg100-dose0.25']], [0.5, S['attr_neg100-dose0.5']], [0.75, S['attr_neg100-dose0.75']], [1, S.attr_neg100]].filter(([, c]) => c);
+  if (ds.length < 3) return;
+  document.getElementById('t-dose').innerHTML = `A partial dose moves each neuron only part of the way to its average. For the 100 attribute interferers, every gauge moves smoothly with the dose; at half strength the cost is +${dn(S['attr_neg100-dose0.5']).toFixed(4)} nats.`;
+  const panels = [['change in next-token loss (nats)', c => c.nll - b.nll, v => '+' + v.toFixed(4)], ['speaker swap, short chat: “I”', c => c.static_I.shift, f2], ['symbol algebra (F2)', c => c.F2, f3]];
+  const w = 1100, pw = 330, gap = 55, h = 200, m = { t: 28, b: 36, l: 8 };
+  let t = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Damage and two gauges against the dose of the attribute-interferer knock-out">`;
+  panels.forEach(([title, get, fm], k) => { const x0 = k * (pw + gap) + 20, vals = ds.map(([, c]) => get(c)), lo = Math.min(...vals), hi = Math.max(...vals), pad = (hi - lo) * 0.15 || 1e-3;
+    const xs = d => x0 + 10 + d * (pw - 40), ys = v => m.t + (h - m.t - m.b) * (1 - (v - lo + pad) / (hi - lo + 2 * pad));
+    t += `<text x="${x0}" y="14" font-size="12.5" font-weight="700" fill="currentColor">${title}</text>`;
+    t += `<line x1="${x0}" x2="${x0 + pw - 20}" y1="${h - m.b}" y2="${h - m.b}" stroke="var(--line)"/>`;
+    ds.forEach(([d]) => { t += `<text x="${xs(d)}" y="${h - m.b + 18}" text-anchor="middle" font-size="11" fill="var(--muted)">${d}</text>`; });
+    t += `<path d="${ds.map(([d, c], j) => `${j ? 'L' : 'M'}${xs(d).toFixed(1)},${ys(get(c)).toFixed(1)}`).join('')}" fill="none" stroke="var(--ember-ink)" stroke-width="2"/>`;
+    ds.forEach(([d, c], j) => { const v = get(c); t += `<circle cx="${xs(d)}" cy="${ys(v)}" r="4.5" fill="${j ? 'var(--ember-ink)' : 'var(--surface)'}" stroke="${j ? 'none' : 'var(--fg)'}" stroke-width="2"><title>dose ${d}: ${fm(v)}</title></circle>`;
+      if (j === 0 || j === ds.length - 1) t += `<text x="${xs(d) + (j ? -6 : 6)}" y="${ys(v) - 9}" text-anchor="${j ? 'end' : 'start'}" font-size="11.5" fill="currentColor">${fm(v)}</text>`; });
+    t += `<text x="${x0 + pw - 20}" y="${h - 4}" text-anchor="end" font-size="11" fill="var(--muted)">dose</text>`; });
+  document.getElementById('figDose').innerHTML = t + '</svg>';
+}
+
 function figPos8() {
   const P8 = B.pos8; if (!P8 || !Object.keys(P8).length) return;
   document.getElementById('pos8').hidden = false;
@@ -923,7 +994,7 @@ function tables() {
     const nb = await get('neurons.bin', 'bin');
     const T = { u8: Uint8Array, i16: Int16Array, i8: Int8Array };
     for (const [k, c] of Object.entries(M.columns)) COL[k] = new T[c.type](nb, c.offset, N);
-    texts(); figMatrix(); figCells(); figWhere(); figPos8(); tables();
+    texts(); figMatrix(); figCells(); figFixes(); figWhere(); figPos8(); tables();
     await loadLayout('meaning');
     story(); explorer();
     loadLayout('depth'); loadLayout('weights-write-pca');

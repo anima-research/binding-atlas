@@ -6,6 +6,9 @@ Inputs (data/inputs/binding/, tracked):
   ablate2_<family>.jsonl       held-out items, each set mean-ablated, and random same-position sets (3 seeds)
   peritem_<family>.jsonl       held-out items, one row per (condition, item): pick, gold, margin, cell
   pos8_<kind>_<family>.jsonl   optional: whole-position and position-8 split knock-outs, with corpus NLL
+  suite/                       optional: the binding suite's readers on knock-out conditions (report.json from
+                               `python -m kotodama.eval.binding report --json`, fluid_auc.json from `… fluid --stat auc
+                               --json`, nll/<model>.json corpus NLL); model names are tsumugi-<condition>
 
   python build/build_binding.py [--inputs data/inputs/binding] [--out data/built/neurons/binding.json]
 """
@@ -71,6 +74,35 @@ def peritem(path: Path) -> dict:
     return out
 
 
+def suite(d: Path) -> dict:
+    """Per condition: the static and dynamic speaker-swap shifts (the scorecard's columns), the fluid families' AUC, the
+    F3 stale-value rate and the corpus NLL."""
+    rep = json.loads((d / "report.json").read_text())
+    fl = json.loads((d / "fluid_auc.json").read_text())
+    out = {}
+    for model, res in rep.items():
+        cond = model.removeprefix("tsumugi-")
+        p2 = res.get("joinlite", {}).get("P2", {})
+        sd = res.get("swapdyn", {})
+        e: dict = {}
+        for key, cell in (("static_I", p2.get("swap_self")), ("static_you", p2.get("swap_addressee")),
+                          ("dyn_you_0shot", sd.get("0shot/addressee")), ("dyn_you_3shot", sd.get("3shot/addressee"))):
+            if cell:
+                e[key] = {"shift": round(cell["shift"], 4), "ci": [round(v, 4) for v in cell["ci"]], "reading": cell["reading"]}
+        summ = fl["summaries"].get(model, {})
+        for fam in ("F1", "F2", "F3", "F4", "C0"):
+            if fam in summ:
+                e[fam] = round(summ[fam]["auc"], 4)
+        if "F3" in summ and "stale" in summ["F3"]:
+            e["stale"] = round(summ["F3"]["stale"]["rate"], 4)
+        nl = d / "nll" / f"{model}.json"
+        if nl.exists():
+            n = json.loads(nl.read_text())
+            e["nll"], e["dose"], e["n_neurons"] = round(n["nll"], 5), n.get("dose", 1.0), n["n_neurons"]
+        out[cond] = e
+    return out
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--inputs", type=Path, default=REPO / "data" / "inputs" / "binding")
@@ -102,6 +134,8 @@ def main() -> None:
             p = a.inputs / f"pos8_{kind}_{f}.jsonl"
             if p.exists():
                 out["pos8"].setdefault(f, {}).update(matrix(p))
+    if (a.inputs / "suite" / "report.json").exists():
+        out["suite"] = suite(a.inputs / "suite")
     a.out.parent.mkdir(parents=True, exist_ok=True)
     a.out.write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")))
     print(f"wrote {a.out}: {len(out['sets'])} sets, matrices {sorted(out['matrix'])}, pos8 {sorted(out['pos8'])}")
