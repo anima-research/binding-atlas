@@ -171,13 +171,22 @@ td.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowra
 .tile .val { font-family: var(--f-display); font-weight: 700; font-size: 22px; font-variant-numeric: tabular-nums; line-height: 1.2 }
 .tile .rnd { font-size: 12px; color: var(--muted) }
 .tile svg { display: block; width: 100%; height: 26px }
+.fluidgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px }
+.fcard { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 14px 16px; display: grid; gap: 9px; align-content: start; min-width: 0 }
+.fcard .what { font-size: 13.5px; color: var(--fg2) }
+.fcard svg { display: block; width: 100%; height: auto }
+.slip { font-family: var(--f-mono); font-size: 13px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; background: var(--chip);
+  border-left: 3px solid var(--fg2); padding: 10px 12px; border-radius: 2px; max-height: 210px; overflow: auto }
+.answers { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 13.5px }
+.answers b { font-family: var(--f-mono) }
+.fcard .tog { justify-self: start; font: inherit; font-size: 12.5px; border: 1px solid var(--line); background: transparent; color: var(--fg2); border-radius: 4px; padding: 3px 9px; cursor: pointer }
 .steps2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px }
 .steps2 div { border-left: 2px solid var(--line); padding-left: 12px; display: grid; gap: 4px; min-width: 0 }
 .steps2 span { font-size: 14px; color: var(--fg2) }
 footer { padding-block: 34px 56px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13.5px }
 footer .wrap { display: grid; gap: 8px }
 @media (max-width: 900px) {
-  .fixgrid { grid-template-columns: minmax(0, 1fr) }
+  .fixgrid, .fluidgrid { grid-template-columns: minmax(0, 1fr) }
   .stage .vignette { background: linear-gradient(0deg, rgba(8,9,11,.97) 0, rgba(8,9,11,.9) 46%, rgba(8,9,11,0) 64%) }
   .hero .card { gap: 12px }
   .hero h1 span { margin-top: 8px }
@@ -297,6 +306,9 @@ footer .wrap { display: grid; gap: 8px }
   <h2>It sharpens the binding the model already does. It does not teach it who “you” is.</h2>
   <p class="prose note" id="t-fixes"></p>
   <div class="fixgrid" id="figFixes"></div>
+  <h3 id="fluidh" hidden>Fluid in-context learning, item by item</h3>
+  <p class="prose note" id="t-fluid"></p>
+  <div class="fluidgrid" id="figFluid"></div>
   <p class="prose note" id="t-dose"></p>
   <div class="figure" id="figDose"></div>
 </div></section>
@@ -347,7 +359,7 @@ footer .wrap { display: grid; gap: 8px }
 <footer><div class="wrap">
   <span>Neuron Atlas · a companion to the <a href="binding-atlas">Binding Atlas</a> · model: kotodama-tsumugi (1.4B, 72 effective layers, looped core, boundary-fitted attention residuals).</span>
   <span>Research, code and development: Luxia (@LuxiaSL) and Claude (Anthropic). Trained on compute provided by Anima Labs. Set in Love Letter Typewriter (© 1994 Blake Haber, Dixie's Delights) with Courier Prime. Data CC-BY-4.0; code Apache-2.0.</span>
-  <span class="num" id="stamp">atlas build 2026-10-28 12:55 UTC</span>
+  <span class="num" id="stamp">atlas build 2026-10-28 13:08 UTC</span>
 </div></footer>
 
 <script>
@@ -920,6 +932,41 @@ function figFixes() {
   document.getElementById('figDose').innerHTML = t + '</svg>';
 }
 
+function figFluid() {
+  const X = B.fluid_examples; if (!X || !X.families) return;
+  document.getElementById('fluidh').hidden = false;
+  const F = X.families, info = {
+    F1: ['Nonce morphology', 'Inflect a made-up word by a rule shown in examples. A control: it needs no binding.'],
+    F2: ['Symbol algebra', 'New operators on made-up symbols, each defined only by three example equations; then a new equation, sometimes nested.'],
+    F3: ['Rebinding', 'Containers or variables are filled, then reassigned; which value is current? The stale (previous) value is the trap.'],
+    F4: ['Sequence induction', 'Continue a made-up pattern from three examples. A control: it needs no binding.'] };
+  const tot = k => Object.values(F).reduce((s, v) => s + v[k], 0);
+  document.getElementById('t-fluid').innerHTML = `Every fluid item scored before and after the knock-out (all ${B.suite.all_neg.n_neurons} interferers). Items that flip from wrong to right are counted as fixed, from right to wrong as broken. The two families that need binding flip mostly toward the right answer (symbol algebra ${F.F2.fixed} fixed, ${F.F2.broken} broken; rebinding ${F.F3.fixed} to ${F.F3.broken}). The two that do not need binding flip both ways about equally, which is what noise looks like here. The examples are the first and a middle fixed item of each family, as the battery generated them.`;
+  const lad = (f, v) => { const keys = Object.keys(v.ladder[X.base]).sort((a, b) => a - b), w = 520, h = 120, m = { l: 34, r: 8, t: 8, b: 22 };
+    const xs = k => m.l + (keys.indexOf(k) + 0.5) / keys.length * (w - m.l - m.r), ys = y => m.t + (1 - y) * (h - m.t - m.b);
+    let t = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="${info[f][0]}: accuracy per rung, before and after the knock-out">`;
+    [0, .5, 1].forEach(y => { t += `<line x1="${m.l}" x2="${w - m.r}" y1="${ys(y)}" y2="${ys(y)}" stroke="var(--line)"/><text x="${m.l - 6}" y="${ys(y) + 4}" text-anchor="end" font-size="10.5" fill="var(--muted)">${y * 100}%</text>`; });
+    keys.forEach(k => { t += `<text x="${xs(k)}" y="${h - 6}" text-anchor="middle" font-size="10.5" fill="var(--muted)">${k}</text>`; });
+    const line = (mdl, col, wd, dash) => { const L = v.ladder[mdl]; if (!L) return '';
+      return `<path d="${keys.map((k, j) => `${j ? 'L' : 'M'}${xs(k).toFixed(1)},${ys(L[k]).toFixed(1)}`).join('')}" fill="none" stroke="${col}" stroke-width="${wd}" ${dash ? 'stroke-dasharray="3 3"' : ''}/>`; };
+    const rnd = Object.keys(v.ladder).find(mm => mm.includes('random'));
+    t += (rnd ? line(rnd, 'var(--muted)', 1.5, true) : '') + line(X.base, 'var(--fg)', 2) + line(X.after, 'var(--ember-ink)', 2.4);
+    return t + '</svg>'; };
+  const ex = (f, e) => { const role = r => e.roles && e.roles[r] ? ` <span style="color:var(--muted)">(${e.roles[r] === 'stale' ? 'the previous value' : e.roles[r] === 'cross_current' ? 'another container’s value' : e.roles[r].replace('_', ' ')})</span>` : '';
+    return `<div class="slip">${esc(e.prompt)}</div><div class="answers"><span>right answer <b>${esc(e.gold)}</b></span><span>before <b>${esc(e.before)}</b>${f === 'F3' ? role(e.before) : ''} · p(right) ${pct(e.p_gold_before)}</span><span>after <b class="ember">${esc(e.after)}</b> · p(right) ${pct(e.p_gold_after)}</span></div>`; };
+  const el = document.getElementById('figFluid');
+  el.innerHTML = ['F2', 'F3', 'F1', 'F4'].filter(f => F[f]).map(f => { const v = F[f], n = v.n;
+    return `<div class="fcard" data-f="${f}"><span class="eyebrow">${f} · ${v.fixed > 1.5 * v.broken ? 'needs binding' : 'control'}</span><h3>${info[f][0]}</h3><p class="what">${info[f][1]}</p>
+      <svg viewBox="0 0 520 22" aria-label="${v.fixed} fixed, ${v.broken} broken, of ${n} items"><rect x="0" y="4" width="${v.fixed / n * 520 * 4}" height="14" fill="var(--ember-ink)"/><rect x="${v.fixed / n * 520 * 4 + 3}" y="4" width="${v.broken / n * 520 * 4}" height="14" fill="var(--muted)"/></svg>
+      <span style="font-size:13px;color:var(--fg2)"><b class="ember">${v.fixed} fixed</b> · ${v.broken} broken · of ${fmt(n)} items (bar ×4)</span>
+      ${lad(f, v)}
+      <div style="display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12.5px;color:var(--fg2)"><span><span class="dot" style="background:var(--fg)"></span>before</span><span><span class="dot" style="background:var(--ember-ink)"></span>interferers removed</span><span><span class="dot" style="background:var(--muted)"></span>random neurons removed</span><span>accuracy by difficulty rung, easiest first</span></div>
+      <div class="exbox">${v.examples.length ? ex(f, v.examples[0]) : ''}</div>
+      ${v.examples.length > 1 ? `<button type="button" class="tog" data-i="0">another example</button>` : ''}</div>`; }).join('');
+  el.querySelectorAll('.tog').forEach(b => b.onclick = () => { const f = b.closest('.fcard').dataset.f, ex2 = F[f].examples, i = (+b.dataset.i + 1) % ex2.length;
+    b.dataset.i = i; b.closest('.fcard').querySelector('.exbox').innerHTML = ex(f, ex2[i]); });
+}
+
 function figPos8() {
   const P8 = B.pos8; if (!P8 || !Object.keys(P8).length) return;
   document.getElementById('pos8').hidden = false;
@@ -998,7 +1045,7 @@ function tables() {
     const nb = await get('neurons.bin', 'bin');
     const T = { u8: Uint8Array, i16: Int16Array, i8: Int8Array };
     for (const [k, c] of Object.entries(M.columns)) COL[k] = new T[c.type](nb, c.offset, N);
-    texts(); figMatrix(); figCells(); figFixes(); figWhere(); figPos8(); tables();
+    texts(); figMatrix(); figCells(); figFixes(); figFluid(); figWhere(); figPos8(); tables();
     await loadLayout('meaning');
     story(); explorer();
     loadLayout('depth'); loadLayout('weights-write-pca');

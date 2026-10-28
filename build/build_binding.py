@@ -8,7 +8,8 @@ Inputs (data/inputs/binding/, tracked):
   pos8_<kind>_<family>.jsonl   optional: whole-position and position-8 split knock-outs, with corpus NLL
   suite/                       optional: the binding suite's readers on knock-out conditions (report.json from
                                `python -m kotodama.eval.binding report --json`, fluid_auc.json from `… fluid --stat auc
-                               --json`, nll/<model>.json corpus NLL); model names are tsumugi-<condition>
+                               --json`, nll/<model>.json corpus NLL); model names are tsumugi-<condition>;
+                               fluid_examples.json from build/fluid_examples.py
 
   python build/build_binding.py [--inputs data/inputs/binding] [--out data/built/neurons/binding.json]
 """
@@ -136,6 +137,8 @@ def main() -> None:
                 out["pos8"].setdefault(f, {}).update(matrix(p))
     if (a.inputs / "suite" / "report.json").exists():
         out["suite"] = suite(a.inputs / "suite")
+    if (a.inputs / "suite" / "fluid_examples.json").exists():   # build/fluid_examples.py
+        out["fluid_examples"] = json.loads((a.inputs / "suite" / "fluid_examples.json").read_text())
     a.out.parent.mkdir(parents=True, exist_ok=True)
     a.out.write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")))
     print(f"wrote {a.out}: {len(out['sets'])} sets, matrices {sorted(out['matrix'])}, pos8 {sorted(out['pos8'])}")
