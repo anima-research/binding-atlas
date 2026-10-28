@@ -10,11 +10,35 @@ reader. It also follows **kotodama-tsumugi**, a 1.4B model run as 72 effective l
 boundary-fitted attention residuals). kotodama-tsumugi reaches stage 3 by 33B tokens, the token cost of OLMo-2 13B,
 against about 420B for OLMo-2 1B. Trained to 110B tokens, it has not reached stage 5.
 
+## Neuron Atlas
+
+A second page, `neuron-atlas.html`, maps every FFN neuron of kotodama-tsumugi: 72 effective positions × 4,096 = 294,912
+neurons. Each one is placed by the meaning of its strongest firing contexts in 24M training tokens, by depth, or by its
+weights. Groups and labels are drafts written by language-model agents and graded by whether three readings agree (firing
+contexts, logit-lens / J-lens output tokens, steering). The page also shows the referent-binding circuit: per-neuron
+attribution of the battery margin, and held-out knock-outs of the supporter and interferer sets. Its data loads at run time
+from `neuron-atlas-data/` next to the page (a directory named like the page would shadow its clean URL on hosts that try the path before `.html`):
+
+| file | what |
+|---|---|
+| `neurons.json` | manifest: families, categories, groups (draft names), draft neuron labels, the hand-validated neurons, layout bounds, column offsets |
+| `neurons.bin` | per-neuron columns (family, group, binding attribution per task as signed int8, causal-set bits) |
+| `layout-<name>.bin` | x then y as uint16 for one layout: `meaning`, `masked` (firing token hidden), `depth`, `weights-read`, `weights-write`, `weights-write-pca` |
+| `binding.json` | attribution by position and token role, the causal sets, the knock-out matrices and per-cell results |
+
+```bash
+make neurons                               # page + data dir into site/ (CONFIG= and SITE= as for make page)
+make neurons-binding                       # data/inputs/binding/*.jsonl -> data/built/neurons/binding.json
+```
+
+`build/build_neurons.py` writes everything in `data/built/neurons/` except `binding.json`, from the compendium build (its
+inputs are named in its docstring).
+
 ## Layout
 
 | path | what |
 |---|---|
-| `site/` | the built site, ready to serve: `binding-atlas.html`, `binding-atlas.md`, `binding-atlas-card.png` |
+| `site/` | the built site, ready to serve: `binding-atlas.html`, `binding-atlas.md`, `binding-atlas-card.png`; `neuron-atlas.html` + `neuron-atlas-data/` + `neuron-atlas-card.png` |
 | `page/` | page builders: `build_page.py` (HTML), `build_md.py` (Markdown twin), `build_card.py` + `build_card.sh` (link card), `atlas_page.html` (template), `meta.json` (findings, gaps), `siteconfig.py` (hosting config) |
 | `build/` | data builders: `build_atlas_v3.py` (raw grids → `atlas.json`), `build_stage.py` (synthesis table → `stage.json`), `facts.py`, `dx_replay.py`; `link_grids.py` (local copies → grids root), `subset_synthesis.py` (cuts `data/inputs/synthesis.jsonl`), `forbidden.py` (the public-content guard) |
 | `data/built/` | what the page shows: `atlas.json`, `stage.json`, `swap.json` |

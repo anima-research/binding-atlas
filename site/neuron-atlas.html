@@ -1,0 +1,935 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Neuron Atlas</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="typeface" content="Love Letter Typewriter (Love Letter TW Luxia build), © 1994 Blake Haber for Dixie's Delights; fallback Courier Prime (OFL)">
+<meta name="description" content="Every FFN neuron of kotodama-tsumugi, a 1.4B model trained from scratch, mapped by what it does, and the circuit that decides who is who: found by attribution, proven by knock-out.">
+<link rel="canonical" href="https://aetherawi.red/kotodama/neuron-atlas">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="aetherawi.red">
+<meta property="og:title" content="Neuron Atlas">
+<meta property="og:description" content="294,912 neurons of a 1.4B model trained from scratch, mapped by what they do. Binding is not a topic in that map; it is a place in depth, and removing 100 neurons there moves attribute binding from 54% to 93%.">
+<meta property="og:url" content="https://aetherawi.red/kotodama/neuron-atlas">
+<meta property="og:image" content="https://aetherawi.red/kotodama/neuron-atlas-card.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Neuron Atlas">
+<meta name="twitter:image" content="https://aetherawi.red/kotodama/neuron-atlas-card.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+/* Love Letter TW Luxia (self-hosted next to the page); Courier Prime fills the glyphs it lacks (→ × ≈ ≥ “ ” …). */
+@font-face { font-family: "LL Luxia"; src: url("fonts/LoveLetterTWLuxia-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "LL Luxia"; src: url("fonts/LoveLetterTWLuxia-Bold.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "LL Luxia"; src: url("fonts/LoveLetterTWLuxia-Italic.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: "LL Luxia"; src: url("fonts/LoveLetterTWLuxia-BoldItalic.woff2") format("woff2"); font-weight: 700; font-style: italic; font-display: swap; }
+/* Two grounds: the plate (always dark: the neurons glow on it) and the page (paper in light, ink in dark).
+   Colour carries meaning only: ice = neurons that support the right answer, ember = neurons that interfere. */
+:root {
+  --bg: #f4f5f6; --surface: #ffffff; --fg: #0b0c0e; --fg2: #3d4652; --muted: #5d6672; --line: #d5d9de; --chip: #eceef1;
+  --plate: #08090b; --plate2: #111317; --plate-fg: #eef0f2; --plate-muted: #8c95a0; --plate-line: #262a31;
+  --steel: #b9c2cc; --ice: #64c9ff; --ember: #ff5a36; --ice-ink: #0b6fa4; --ember-ink: #c23a17;
+  --f-display: "LL Luxia", "Courier Prime", "Courier New", ui-monospace, monospace;
+  --f-body: "LL Luxia", "Courier Prime", "Courier New", ui-monospace, monospace;
+  --f-mono: "Courier Prime", "LL Luxia", "Courier New", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0b0c0e; --surface: #111317; --fg: #eef0f2; --fg2: #b9c1cb; --muted: #8c95a0; --line: #262a31; --chip: #15181c;
+  --ice-ink: #64c9ff; --ember-ink: #ff7a5c; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0b0c0e; --surface: #111317; --fg: #eef0f2; --fg2: #b9c1cb; --muted: #8c95a0; --line: #262a31; --chip: #15181c;
+  --ice-ink: #64c9ff; --ember-ink: #ff7a5c; color-scheme: dark }
+* { box-sizing: border-box }
+[hidden] { display: none !important }
+html, body { margin: 0 }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 16px; line-height: 1.6 }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--plate) }
+a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 3px }
+.wrap { max-width: 1240px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px)) }
+.prose { max-width: 66ch }
+h1, h2, h3 { font-family: var(--f-display); font-weight: 700; margin: 0; text-wrap: balance }
+h2 { font-size: clamp(24px, 3.2vw, 34px); line-height: 1.12 }
+h3 { font-size: 18px; line-height: 1.3 }
+p { margin: 0 }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted) }
+.num { font-variant-numeric: tabular-nums }
+.ice { color: var(--ice-ink) } .ember { color: var(--ember-ink) }
+.plate .ice { color: var(--ice) } .plate .ember { color: var(--ember) }
+
+/* ---------- the plate: sticky map, story steps scrolling over it */
+.plate { background: var(--plate); color: var(--plate-fg) }
+.scrolly { position: relative }
+.stage { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden }
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block }
+.stage .vignette { position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(90deg, rgba(8,9,11,.92) 0, rgba(8,9,11,.7) 30%, rgba(8,9,11,0) 52%),
+    radial-gradient(120% 90% at 70% 45%, transparent 55%, rgba(8,9,11,.75) 100%) }
+.steps { position: relative; margin-top: -100vh; margin-top: -100svh; z-index: 2; pointer-events: none }
+.step { min-height: 100vh; min-height: 100svh; display: flex; align-items: center; padding-block: 18vh }
+.step .card { pointer-events: auto; max-width: 420px; background: rgba(10,11,13,.80); backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px); border: 1px solid var(--plate-line); border-radius: 4px; padding: 20px 22px;
+  display: grid; gap: 12px }
+.step .card p { color: #c9d0d7; font-size: 15.5px }
+.step .card b { color: var(--plate-fg) }
+.step.hero { align-items: flex-end; padding-block: 0 9vh }
+.hero .card { max-width: 760px; background: none; backdrop-filter: none; -webkit-backdrop-filter: none; border: 0; padding: 0; gap: 18px }
+.hero h1 { font-size: clamp(46px, 9vw, 112px); line-height: .92; letter-spacing: -.02em }
+.hero h1 span { display: block; color: var(--plate-muted); font-size: .34em; letter-spacing: .02em; margin-top: 14px; line-height: 1.2 }
+.hero .lede { font-size: clamp(16px, 1.6vw, 19px); color: #d4dae0; max-width: 60ch }
+.hero .figs { display: flex; flex-wrap: wrap; gap: 8px 30px }
+.hero .figs div { display: grid }
+.hero .figs b { font-size: 26px; line-height: 1.1 }
+.hero .figs span { font-size: 12px; color: var(--plate-muted); letter-spacing: .06em; text-transform: uppercase }
+.scrollcue { font-family: var(--f-mono); font-size: 12px; color: var(--plate-muted); letter-spacing: .12em; text-transform: uppercase }
+.scrollcue::after { content: " ↓"; display: inline-block; animation: cue 1.8s ease-in-out infinite }
+@keyframes cue { 50% { transform: translateY(4px) } }
+.counter { position: absolute; right: max(16px, env(safe-area-inset-right, 0px)); top: calc(18px + env(safe-area-inset-top, 0px));
+  text-align: right; z-index: 3; pointer-events: none; opacity: 0; transition: opacity .5s; display: grid; gap: 2px }
+.counter.on { opacity: 1 }
+.counter .k { font-family: var(--f-mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--plate-muted) }
+.counter .v { font-family: var(--f-display); font-weight: 700; font-size: clamp(54px, 9vw, 104px); line-height: .95; font-variant-numeric: tabular-nums }
+.counter .s { font-size: 13px; color: var(--plate-muted) }
+.keyrow { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: #c9d0d7 }
+.keyrow i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: 0 }
+.fallback { position: absolute; inset: 0; display: grid; place-items: center; color: var(--plate-muted); font-size: 14px; padding: 24px; text-align: center }
+
+/* ---------- explorer */
+.explore { padding-block: 56px 40px; border-top: 1px solid var(--plate-line) }
+.explore > .wrap { display: grid; gap: 16px }
+.explore h2 { color: var(--plate-fg) }
+.explore .note { color: #c3cad2; max-width: 74ch }
+.ctrls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: end }
+.ctl { display: grid; gap: 5px; min-width: 0 }
+.ctl > span { font-family: var(--f-mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--plate-muted) }
+.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--plate-line); border-radius: 4px; overflow: hidden }
+.seg button { font: inherit; font-size: 13.5px; border: 0; background: transparent; color: var(--plate-fg); padding: 6px 11px; cursor: pointer; white-space: nowrap }
+.seg button + button { border-left: 1px solid var(--plate-line) }
+.seg button[aria-pressed="true"] { background: var(--plate-fg); color: var(--plate) }
+input[type=search] { font: inherit; font-size: 14px; padding: 7px 10px; border: 1px solid var(--plate-line); border-radius: 4px;
+  background: var(--plate2); color: var(--plate-fg); width: 100%; min-width: 0 }
+.btn { font: inherit; font-size: 13px; border: 1px solid var(--plate-line); border-radius: 4px; background: var(--plate2); color: var(--plate-fg); padding: 6px 11px; cursor: pointer }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--ice); outline-offset: 2px }
+.xgrid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 16px; align-items: start }
+.mapbox { position: relative; border: 1px solid var(--plate-line); border-radius: 4px; overflow: hidden; background: var(--plate);
+  aspect-ratio: 1 / .8; max-width: 100%; touch-action: none }
+.mapbox canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block }
+.mapbox canvas.gl { cursor: crosshair }
+.maphint { position: absolute; right: 10px; top: 8px; font-family: var(--f-mono); font-size: 11px; color: var(--plate-muted); pointer-events: none }
+.tip { position: absolute; pointer-events: none; background: rgba(8,9,11,.94); border: 1px solid var(--plate-line); color: var(--plate-fg);
+  font-size: 12.5px; padding: 7px 10px; border-radius: 4px; max-width: 280px; line-height: 1.4; z-index: 2 }
+.tip .m, .panel .m { font-family: var(--f-mono); font-size: 11.5px; color: var(--plate-muted) }
+.panel { border: 1px solid var(--plate-line); border-radius: 4px; padding: 16px; display: grid; gap: 11px; align-content: start;
+  background: var(--plate2); min-height: 240px; min-width: 0 }
+.panel h3 { color: var(--plate-fg) }
+.panel .desc { font-size: 14px; color: #c3cad2 }
+.pills { display: flex; flex-wrap: wrap; gap: 6px }
+.pill { font-family: var(--f-mono); font-size: 11px; padding: 2px 8px; border-radius: 99px; border: 1px solid var(--plate-line); color: var(--plate-fg) }
+.pill.high { border-color: #4f8f62; color: #9bd8ad } .pill.medium { border-color: #8a7742; color: #e0c98a } .pill.low { border-color: #7f4a43; color: #e4a497 }
+.labs { display: grid; gap: 6px; font-size: 13px; color: #d4dae0 }
+.labs div { display: grid; grid-template-columns: 86px minmax(0, 1fr); gap: 8px }
+.results { display: grid; gap: 1px; max-height: 260px; overflow: auto }
+.results button { text-align: left; font: inherit; font-size: 13px; background: none; border: 0; color: var(--plate-fg); padding: 5px 6px; border-radius: 3px; cursor: pointer }
+.results button:hover { background: #1b1e24 }
+.legend { display: flex; flex-wrap: wrap; gap: 6px }
+.chip { display: inline-flex; align-items: center; gap: 7px; font: inherit; font-size: 12.5px; padding: 3px 10px 3px 8px; border-radius: 99px;
+  border: 1px solid var(--plate-line); background: transparent; color: var(--plate-fg); cursor: pointer }
+.chip i { width: 9px; height: 9px; border-radius: 50%; display: inline-block }
+.chip[aria-pressed="false"] { opacity: .35 }
+.dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: 0 }
+canvas.spark { width: 100%; height: 44px; display: block }
+
+/* ---------- reading sections */
+section.read { padding-block: 56px; border-top: 1px solid var(--line) }
+section.read > .wrap { display: grid; gap: 18px }
+.note { color: var(--fg2); font-size: 15px }
+.figure { overflow-x: auto; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); padding: 14px }
+.figure svg { display: block; width: 100%; min-width: 620px; height: auto }
+.figure svg text { font-family: var(--f-mono) }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 14px }
+.card2 { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 16px 18px; display: grid; gap: 8px; align-content: start; min-width: 0 }
+.card2 p { color: var(--fg2); font-size: 14.5px }
+.card2 .big { font-family: var(--f-display); font-weight: 700; font-size: 34px; line-height: 1; font-variant-numeric: tabular-nums }
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 4px; background: var(--surface) }
+table { border-collapse: collapse; width: 100%; font-size: 14px; min-width: 620px }
+th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top }
+th { font-family: var(--f-mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 700; white-space: nowrap }
+th[data-k] { cursor: pointer }
+td.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap }
+.bar { height: 6px; background: var(--chip); border-radius: 3px; position: relative; min-width: 60px }
+.bar span { position: absolute; inset: 0 auto 0 0; background: var(--fg2); border-radius: 3px }
+.steps2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px }
+.steps2 div { border-left: 2px solid var(--line); padding-left: 12px; display: grid; gap: 4px; min-width: 0 }
+.steps2 span { font-size: 14px; color: var(--fg2) }
+footer { padding-block: 34px 56px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13.5px }
+footer .wrap { display: grid; gap: 8px }
+@media (max-width: 900px) {
+  .stage .vignette { background: linear-gradient(0deg, rgba(8,9,11,.97) 0, rgba(8,9,11,.9) 46%, rgba(8,9,11,0) 64%) }
+  .hero .card { gap: 12px }
+  .hero h1 span { margin-top: 8px }
+  .hero .lede { font-size: 14.5px }
+  .hero .figs b { font-size: 20px }
+  .xgrid { grid-template-columns: minmax(0, 1fr) }
+  .mapbox { aspect-ratio: 1 / 1.05 }
+  .step { align-items: flex-end; padding-block: 0 12vh }
+  .step .card { max-width: none }
+  .counter .v { font-size: 56px }
+}
+@media (prefers-reduced-motion: reduce) { .scrollcue::after { animation: none } }
+</style>
+</head>
+<body>
+
+<div class="plate">
+<div class="scrolly" id="scrolly">
+  <div class="stage" id="stage">
+    <canvas id="storyGL" aria-hidden="true"></canvas>
+    <canvas id="storyOV" aria-hidden="true"></canvas>
+    <div class="vignette"></div>
+    <div class="counter" id="counter"><span class="k" id="counterK">attribute binding · held-out</span><span class="v" id="counterV">54%</span><span class="s" id="counterS"></span></div>
+    <div class="fallback" id="storyFallback" hidden></div>
+  </div>
+  <div class="steps wrap" id="steps">
+    <div class="step hero" data-s="0"><div class="card">
+      <span class="eyebrow" style="color:var(--plate-muted)">kotodama-tsumugi · trained from scratch · 1.4B parameters · 72 effective layers</span>
+      <h1>Neuron Atlas<span>every neuron of one language model, and the circuit that decides who is who</span></h1>
+      <p class="lede">Each point is one FFN neuron at one depth: 294,912 in all. They are placed by what they respond to in 24M tokens of the model's own training text. The model, its training run and every measurement here come from one project, from random initialisation onward.</p>
+      <div class="figs" id="figs"></div>
+      <span class="scrollcue">scroll</span>
+    </div></div>
+    <div class="step" data-s="1"><div class="card">
+      <span class="eyebrow" style="color:var(--plate-muted)">1 · the weights alone</span>
+      <h3>Placed by their weights, the neurons are a featureless cloud</h3>
+      <p id="t-weights"></p>
+    </div></div>
+    <div class="step" data-s="2"><div class="card">
+      <span class="eyebrow" style="color:var(--plate-muted)">2 · what they respond to</span>
+      <h3>Placed by what they fire on, they fall into 400 groups and 9 families</h3>
+      <p>Every neuron was read three ways: the passages that make it fire hardest, the tokens its output pushes toward, and what the model writes when it is pushed. Neurons whose firing contexts mean similar things sit together. Agents then named every group and sorted them into families.</p>
+      <div class="keyrow" id="famkey"></div>
+    </div></div>
+    <div class="step" data-s="3"><div class="card">
+      <span class="eyebrow" style="color:var(--plate-muted)">3 · the binding circuit</span>
+      <h3>The neurons that decide who is who are not a topic</h3>
+      <p id="t-scatter"></p>
+      <div class="keyrow"><span><i style="background:var(--ice)"></i>supporters: push toward the right name</span><span><i style="background:var(--ember)"></i>interferers: push toward a wrong one</span></div>
+    </div></div>
+    <div class="step" data-s="4"><div class="card">
+      <span class="eyebrow" style="color:var(--plate-muted)">4 · sorted by depth</span>
+      <h3>They are a place: the seam between the two passes, and position 8</h3>
+      <p id="t-depth"></p>
+    </div></div>
+    <div class="step" data-s="5"><div class="card">
+      <span class="eyebrow" style="color:var(--plate-muted)">5 · knock out the interferers</span>
+      <h3>Remove 100 interferers and attribute binding jumps</h3>
+      <p id="t-neg"></p>
+    </div></div>
+    <div class="step" data-s="6"><div class="card">
+      <span class="eyebrow" style="color:var(--plate-muted)">6 · knock out the supporters</span>
+      <h3>Remove 100 supporters instead and it collapses below chance</h3>
+      <p id="t-pos"></p>
+    </div></div>
+    <div class="step" data-s="7"><div class="card">
+      <span class="eyebrow" style="color:var(--plate-muted)">7 · every neuron's share</span>
+      <h3>The whole map, lit by its contribution to binding</h3>
+      <p>Brightness is each neuron's average attribution across all eight binding families; ice pushes toward the right answer, ember away from it. The rest of the page has the numbers, and a map to explore.</p>
+    </div></div>
+  </div>
+</div>
+
+<div class="explore" id="explore">
+  <div class="wrap">
+    <span class="eyebrow" style="color:var(--plate-muted)">Explore</span>
+    <h2>All 294,912 neurons</h2>
+    <p class="note">Switch the layout to see the same neurons placed by meaning, by depth or by their weights; points glide between layouts. Click a point to open its group. Group names and neuron labels are drafts written by language-model agents from the three readings, each graded by whether the readings agree.</p>
+    <div class="ctrls">
+      <div class="ctl"><span>Layout</span><div class="seg" id="segLayout" role="group" aria-label="Layout"></div></div>
+      <div class="ctl"><span>Colour</span><div class="seg" id="segColor" role="group" aria-label="Colour"></div></div>
+      <div class="ctl" style="flex:1 1 220px"><span>Search groups</span><input type="search" id="q" placeholder="second person, scripture, footnote…" aria-label="Search groups"></div>
+      <button class="btn" id="reset" type="button">Reset view</button>
+    </div>
+    <div class="legend" id="legend" role="group" aria-label="Families"></div>
+    <div class="xgrid">
+      <div class="mapbox" id="xbox">
+        <canvas class="gl" id="xGL" aria-label="Map of 294,912 neurons"></canvas>
+        <canvas id="xOV" aria-hidden="true" style="pointer-events:none"></canvas>
+        <div class="tip" id="tip" hidden></div>
+        <div class="maphint">scroll or pinch to zoom · drag to pan · click a point</div>
+        <div class="fallback" id="xFallback" hidden></div>
+      </div>
+      <aside class="panel" id="panel" aria-live="polite"></aside>
+    </div>
+  </div>
+</div>
+</div>
+
+<section class="read" id="knockouts"><div class="wrap">
+  <span class="eyebrow">The evidence</span>
+  <h2>Knock-outs on held-out items</h2>
+  <p class="prose note" id="t-method"></p>
+  <div class="figure" id="figMatrix"></div>
+  <div class="cards" id="koCards"></div>
+</div></section>
+
+<section class="read" id="cells"><div class="wrap">
+  <span class="eyebrow">Attribute binding, cell by cell</span>
+  <h2>Every cell of the battery moves the same way</h2>
+  <p class="prose note" id="t-cells"></p>
+  <div class="figure" id="figCells"></div>
+</div></section>
+
+<section class="read" id="pos8" hidden><div class="wrap">
+  <span class="eyebrow">Position 8</span>
+  <h2 id="pos8h"></h2>
+  <p class="prose note" id="t-pos8"></p>
+  <div class="figure" id="figPos8"></div>
+  <div class="figure" id="figSplit"></div>
+</div></section>
+
+<section class="read" id="where"><div class="wrap">
+  <span class="eyebrow">Where and when</span>
+  <h2>All eight binding families use the same depths</h2>
+  <p class="prose note">Share of each family's attribution at each of the 72 effective positions. Positions 19–38 and 39–58 are the same weights run twice. The question tokens at the end of each item carry most of the attribution; the names themselves carry little.</p>
+  <div class="figure" id="figWhere"></div>
+  <div class="figure" id="figWhen"></div>
+</div></section>
+
+<section class="read" id="taxonomy"><div class="wrap">
+  <span class="eyebrow">The compendium</span>
+  <h2>9 families, 40 categories, 400 groups</h2>
+  <p class="prose note" id="summary"></p>
+  <div class="tbl"><table id="cats"><thead><tr><th data-k="fam">Family</th><th data-k="name">Category</th><th data-k="n">Neurons</th><th data-k="high">Readings agree</th></tr></thead><tbody></tbody></table></div>
+</div></section>
+
+<section class="read" id="known"><div class="wrap">
+  <span class="eyebrow">A check on the map</span>
+  <h2>Hand-validated neurons, and where the map put them</h2>
+  <p class="prose note">These neurons were characterised by hand before the map existed (firing screens, steering, forked log-probabilities). The map never saw those results. The loop gives a free test: a neuron's two passes share weights, so if the map tracks function, the two copies should land in the same group.</p>
+  <div class="cards" id="knownCards"></div>
+</div></section>
+
+<section class="read" id="method"><div class="wrap">
+  <span class="eyebrow">Method, and what to trust</span>
+  <h2>How it was made</h2>
+  <div class="steps2">
+    <div><b>Firing pass</b><span>24M tokens of the model's training data through all 72 × 4,096 neurons; the 24 strongest and weakest firings of each, and running means.</span></div>
+    <div><b>Three readings</b><span>Sentence embeddings of each neuron's firing contexts; the tokens its output vector promotes (logit lens and J-lens); the words that appear when it is steered.</span></div>
+    <div><b>Map and names</b><span>400 groups by k-means on the embeddings, a 2-D layout by UMAP, then language-model agents named each group from its exemplars and graded the agreement of the readings.</span></div>
+    <div><b>Binding attribution</b><span>For 4,440 binding-battery items, activation × gradient of the margin between the right candidate and the strongest wrong one, for every neuron at every position.</span></div>
+    <div><b>Knock-outs</b><span>Sets chosen on training items, tested on held-out items: each neuron's activation replaced by its corpus mean. Controls are random neurons at the same positions.</span></div>
+  </div>
+  <p class="prose note" id="trust"></p>
+</div></section>
+
+<footer><div class="wrap">
+  <span>Neuron Atlas · a companion to the <a href="binding-atlas">Binding Atlas</a> · model: kotodama-tsumugi (1.4B, 72 effective layers, looped core, boundary-fitted attention residuals).</span>
+  <span>Research, code and development: Luxia (@LuxiaSL) and Claude (Anthropic). Trained on compute provided by Anima Labs. Set in Love Letter Typewriter (© 1994 Blake Haber, Dixie's Delights) with Courier Prime. Data CC-BY-4.0; code Apache-2.0.</span>
+  <span class="num" id="stamp">atlas build 2026-10-28 12:14 UTC</span>
+</div></footer>
+
+<script>
+(() => {
+'use strict';
+const DATA = 'neuron-atlas-data/', BIN = f => f.replace(/\.bin$/, '.bin');
+const FAMC = ['#6aa8ff', '#ff9d5c', '#46c79a', '#e6c14f', '#f07bb0', '#8fd16a', '#b8a6ff', '#7d8794', '#4b525c'];
+const FAM_SHORT = ['narration & the Other', 'meta-layer', 'genre & register', 'discourse & reasoning', 'grammar & function',
+  'time & number', 'entities & domains', 'machine text', 'artefact & unassigned'];
+const ICE = [0.39, 0.79, 1.0], EMBER = [1.0, 0.35, 0.21], STEEL = [0.73, 0.76, 0.80];
+const BIT = { attr_pos100: 1, attr_neg100: 2, dialogue_pos100: 4, dialogue_neg100: 8, deixis_pos100: 16, deixis_neg100: 32, core28: 64 };
+const SUP = 1 | 4 | 16, INT = 2 | 8 | 32;
+const FAMLABEL = { attr: 'attribute', dialogue: 'dialogue', deixis: 'who-is-you', adjacency: 'adjacency', answer: 'answer',
+  codevar: 'code variables', codevarmut: 'code mutation', setbind: 'set binding' };
+const LAYOUTS = [['meaning', 'meaning'], ['depth', 'depth'], ['masked', 'meaning, word hidden'], ['weights-read', 'weights: read'],
+  ['weights-write', 'weights: write'], ['weights-write-pca', 'weights: PCA']];
+const COLORS = [['steel', 'plain'], ['family', 'family'], ['bind:all', 'binding'], ['bind:attr', 'attribute'], ['bind:dialogue', 'dialogue'],
+  ['bind:deixis', 'who-is-you'], ['sets', 'causal sets']];
+const fmt = n => n.toLocaleString('en-US');
+const pct = v => Math.round(v * 100) + '%';
+const sgn = v => (v > 0 ? '+' : v < 0 ? '−' : '±') + Math.abs(Math.round(v * 100));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const passOf = L => L < 19 ? 'prelude' : L < 39 ? 'core, pass 1' : L < 59 ? 'core, pass 2' : 'coda';
+const twinOf = L => L >= 19 && L < 39 ? L + 20 : L >= 39 && L < 59 ? L - 20 : -1;
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+async function get(path, kind) {
+  const r = await fetch(DATA + (kind === 'bin' ? BIN(path) : path));
+  if (!r.ok) throw new Error(path + ': HTTP ' + r.status);
+  return kind === 'bin' ? r.arrayBuffer() : r.json();
+}
+
+// ------------------------------------------------------------------ data
+let M, B, N, COL = {};
+const layoutCache = {};
+function loadLayout(name) {
+  if (!layoutCache[name]) layoutCache[name] = get(M.layouts[name].file, 'bin').then(buf => {
+    const p = new Uint16Array(buf), out = new Uint16Array(2 * N);
+    for (let i = 0; i < N; i++) { out[2 * i] = p[i]; out[2 * i + 1] = p[N + i]; }
+    return out;
+  });
+  return layoutCache[name];
+}
+
+// ------------------------------------------------------------------ WebGL point map
+const VS = `
+precision highp float;
+attribute vec2 a_pa; attribute vec2 a_pb; attribute float a_L; attribute float a_fam; attribute float a_bind;
+attribute float a_sets; attribute float a_hl;
+uniform vec4 u_ba; uniform vec4 u_bb; uniform vec3 u_view; uniform float u_t; uniform float u_size; uniform float u_mode;
+uniform float u_hlOn; uniform float u_mask; uniform float u_supMask; uniform float u_intMask; uniform float u_rm; uniform float u_rmT; uniform vec3 u_pal[9]; uniform float u_famOn[9];
+uniform vec3 u_ice; uniform vec3 u_ember; uniform vec3 u_steel; uniform float u_gain; uniform float u_minSet;
+varying vec4 v_c;
+float bit(float v, float b) { return mod(floor(v / exp2(b)), 2.0); }
+float anyBit(float v, float m) { float r = 0.0; for (int b = 0; b < 7; b++) { r = max(r, bit(v, float(b)) * bit(m, float(b))); } return r; }
+void main() {
+  float d = a_L / 71.0 * 0.4;
+  float t = clamp((u_t - d) / 0.6, 0.0, 1.0); t = t * t * (3.0 - 2.0 * t);
+  vec2 p = mix(a_pa * u_ba.xy + u_ba.zw, a_pb * u_bb.xy + u_bb.zw, t);
+  gl_Position = vec4(p * u_view.x + u_view.yz, 0.0, 1.0);
+  int fi = int(a_fam + 0.5);
+  float on = 1.0;
+  for (int k = 0; k < 9; k++) { if (k == fi) on = u_famOn[k]; }
+  vec3 c = u_steel; float a = 0.30; float s = 1.0;
+  if (u_mode < 0.5) { c = u_steel * (0.86 + 0.14 * fract(a_fam * 0.618)); a = 0.17; }
+  else if (u_mode < 1.5) { for (int k = 0; k < 9; k++) { if (k == fi) c = u_pal[k]; } a = 0.36; }
+  else if (u_mode < 2.5) {
+    float b = a_bind; float m = smoothstep(0.22, 0.85, abs(b));
+    c = mix(u_steel * 0.45, b > 0.0 ? u_ice : u_ember, m); a = 0.035 + 0.95 * m; s = 1.0 + 1.8 * m;
+  } else {
+    float inInt = anyBit(a_sets, u_intMask), inSup = anyBit(a_sets, u_supMask);
+    float inSet = max(max(inInt, inSup), bit(a_sets, 6.0) * bit(u_mask, 6.0));
+    c = inInt > 0.5 ? u_ember : inSup > 0.5 ? u_ice : inSet > 0.5 ? vec3(1.0) : u_steel * 0.5;
+    a = inSet > 0.5 ? 1.0 : 0.05; s = inSet > 0.5 ? max(3.0, u_minSet / u_size) : 1.0;
+  }
+  if (u_hlOn > 0.5) { if (a_hl > 0.5) { a = max(a, 0.95); s = max(s, 2.2); c = mix(c, vec3(1.0), 0.15); } else { a *= 0.10; } }
+  if (anyBit(a_sets, u_rm) > 0.5) { s *= 1.0 - u_rmT; a *= 1.0 - u_rmT; }
+  v_c = vec4(c, a * u_gain * on);
+  gl_PointSize = on > 0.5 ? u_size * s : 0.0;
+}`;
+const FS = `
+precision mediump float;
+varying vec4 v_c;
+void main() {
+  vec2 q = gl_PointCoord * 2.0 - 1.0; float r = dot(q, q);
+  if (r > 1.0) discard;
+  gl_FragColor = vec4(v_c.rgb, v_c.a * (1.0 - 0.65 * r));
+}`;
+
+class PointMap {
+  constructor(gl, ov, opts = {}) {
+    this.cv = gl; this.ov = ov; this.o = opts; this.ctx2 = ov.getContext('2d');
+    const g = gl.getContext('webgl', { antialias: false, alpha: false, premultipliedAlpha: false, preserveDrawingBuffer: false });
+    if (!g) throw new Error('WebGL is not available');
+    this.g = g;
+    const sh = (type, src) => { const s = g.createShader(type); g.shaderSource(s, src); g.compileShader(s);
+      if (!g.getShaderParameter(s, g.COMPILE_STATUS)) throw new Error(g.getShaderInfoLog(s)); return s; };
+    const pr = g.createProgram(); g.attachShader(pr, sh(g.VERTEX_SHADER, VS)); g.attachShader(pr, sh(g.FRAGMENT_SHADER, FS));
+    g.linkProgram(pr); if (!g.getProgramParameter(pr, g.LINK_STATUS)) throw new Error(g.getProgramInfoLog(pr));
+    g.useProgram(pr); this.pr = pr;
+    this.loc = {}; for (const a of ['a_pa', 'a_pb', 'a_L', 'a_fam', 'a_bind', 'a_sets', 'a_hl']) this.loc[a] = g.getAttribLocation(pr, a);
+    this.u = n => g.getUniformLocation(pr, n);
+    const buf = (data, attr, size, type, norm) => { const b = g.createBuffer(); g.bindBuffer(g.ARRAY_BUFFER, b);
+      g.bufferData(g.ARRAY_BUFFER, data, g.STATIC_DRAW); if (attr) { g.enableVertexAttribArray(this.loc[attr]);
+        g.vertexAttribPointer(this.loc[attr], size, type, norm, 0, 0); } return b; };
+    this.buf = buf;
+    const L = new Uint8Array(N); for (let i = 0; i < N; i++) L[i] = (i / 4096) | 0;
+    buf(L, 'a_L', 1, g.UNSIGNED_BYTE, false);
+    buf(COL.fam, 'a_fam', 1, g.UNSIGNED_BYTE, false);
+    buf(COL.sets, 'a_sets', 1, g.UNSIGNED_BYTE, false);
+    this.bindBufs = {};
+    for (const k of ['all', 'attr', 'dialogue', 'deixis']) this.bindBufs[k] = buf(COL['bind_' + k], null);
+    this.useBind('all');
+    this.hl = new Uint8Array(N); this.hlBuf = buf(this.hl, 'a_hl', 1, g.UNSIGNED_BYTE, false);
+    this.posBufs = {};
+    g.uniform3fv(this.u('u_pal'), FAMC.flatMap(h => [1, 3, 5].map(k => parseInt(h.slice(k, k + 2), 16) / 255)));
+    g.uniform3fv(this.u('u_ice'), ICE); g.uniform3fv(this.u('u_ember'), EMBER); g.uniform3fv(this.u('u_steel'), STEEL);
+    this.famOn = new Array(9).fill(1);
+    g.enable(g.BLEND); g.blendFunc(g.SRC_ALPHA, g.ONE);
+    this.st = { a: null, b: null, t: 1, mode: 0, mask: 0, rm: 0, rmT: 0, hlOn: 0, view: { z: 1, x: 0, y: 0 }, gain: 1 };
+    this.anim = null; this.W = 0; this.H = 0; this.dpr = 1;
+    new ResizeObserver(() => this.resize()).observe(gl);
+  }
+  useBind(k) { const g = this.g; g.bindBuffer(g.ARRAY_BUFFER, this.bindBufs[k]); g.enableVertexAttribArray(this.loc.a_bind);
+    g.vertexAttribPointer(this.loc.a_bind, 1, g.BYTE, true, 0, 0); this.bindKey = k; this.draw(); }
+  async posBuf(name) {
+    if (!this.posBufs[name]) { const d = await loadLayout(name); this.posBufs[name] = { b: this.buf(d, null), d }; }
+    return this.posBufs[name];
+  }
+  attach(attr, pb) { const g = this.g; g.bindBuffer(g.ARRAY_BUFFER, pb.b); g.enableVertexAttribArray(this.loc[attr]);
+    g.vertexAttribPointer(this.loc[attr], 2, g.UNSIGNED_SHORT, true, 0, 0); }
+  box(name) {   // layout 0..1 → clip: [sx, sy, tx, ty]
+    const W = this.W, H = this.H, o = this.o.pad;   // top right bottom left (px), or a function of the layout
+    const pad = (typeof o === 'function' ? o(name) : o) || [24, 24, 24, 24];
+    const lm = M.layouts[name], f = lm.fit, aw = W - pad[1] - pad[3], ah = H - pad[0] - pad[2];
+    let bw = aw, bh = ah;
+    if (lm.aspect > 0) { if (ah / aw > lm.aspect) bh = aw * lm.aspect; else bw = ah / lm.aspect; }
+    const left = pad[3] + (aw - bw) / 2, top = pad[0] + (ah - bh) / 2;
+    const sx = bw / (f[2] - f[0]) / W * 2, sy = bh / (f[3] - f[1]) / H * 2;
+    return [sx, sy, left / W * 2 - 1 - f[0] * sx, 1 - (top + bh) / H * 2 - f[1] * sy];
+  }
+  async setLayout(name, animate = true) {
+    if (this.st.b === name && !this.anim) return;
+    const pb = await this.posBuf(name);
+    // a new layout starts from the last one asked for (a morph cut short jumps to its end first)
+    this.attach('a_pa', this.st.b ? this.posBufs[this.st.b] : pb);
+    this.st.a = this.st.b || name;
+    this.attach('a_pb', pb); this.st.b = name;
+    this.grid = null;
+    if (!animate || reduced || this.st.a === name) { this.st.t = 1; this.draw(); this.onSettle && this.onSettle(); return; }
+    this.tween('t', 0, 1, 1700, () => { this.onSettle && this.onSettle(); });
+  }
+  tween(key, from, to, ms, done) {
+    const t0 = performance.now(); this.st[key] = from;
+    const id = Symbol(); this['_tw_' + key] = id;
+    const step = now => { if (this['_tw_' + key] !== id) return;
+      const k = Math.min(1, (now - t0) / ms); this.st[key] = from + (to - from) * k; this.draw();
+      if (k < 1) requestAnimationFrame(step); else done && done(); };
+    if (reduced) { this.st[key] = to; this.draw(); done && done(); } else requestAnimationFrame(step);
+  }
+  setMode(mode, mask = 0) { this.st.mode = { steel: 0, family: 1, bind: 2, sets: 3 }[mode]; this.st.mask = mask; this.draw(); }
+  setRemoved(mask, on) { if (mask !== this.st.rm) { this.st.rm = mask; this.st.rmT = 0; }
+    this.tween('rmT', this.st.rmT, on ? 1 : 0, 900); }
+  setHighlight(fn) { const g = this.g;
+    if (!fn) { this.st.hlOn = 0; this.draw(); return; }
+    let any = 0; for (let i = 0; i < N; i++) { const v = fn(i) ? 1 : 0; this.hl[i] = v; any |= v; }
+    g.bindBuffer(g.ARRAY_BUFFER, this.hlBuf); g.bufferSubData(g.ARRAY_BUFFER, 0, this.hl); this.st.hlOn = any; this.draw(); }
+  resize() {
+    const r = this.cv.getBoundingClientRect(); this.dpr = Math.min(2, devicePixelRatio || 1);
+    this.W = r.width; this.H = r.height; if (!this.W || !this.H) return;
+    for (const c of [this.cv, this.ov]) { c.width = Math.round(this.W * this.dpr); c.height = Math.round(this.H * this.dpr); }
+    this.grid = null; this.draw();
+  }
+  draw() {
+    if (this._raf) return;
+    this._raf = requestAnimationFrame(() => { this._raf = 0; this.render(); });
+  }
+  render() {
+    const g = this.g, s = this.st; if (!this.W || !s.b) return;
+    g.viewport(0, 0, this.cv.width, this.cv.height); g.clearColor(0.031, 0.035, 0.043, 1); g.clear(g.COLOR_BUFFER_BIT);
+    g.uniform4fv(this.u('u_ba'), this.box(s.a || s.b)); g.uniform4fv(this.u('u_bb'), this.box(s.b));
+    g.uniform3f(this.u('u_view'), s.view.z, s.view.x, s.view.y);
+    g.uniform1f(this.u('u_t'), s.t);
+    const base = Math.max(1.1, Math.min(4, Math.sqrt(this.W * this.H / N) * 0.95)) * Math.min(3, Math.sqrt(s.view.z));
+    g.uniform1f(this.u('u_size'), base * this.dpr); g.uniform1f(this.u('u_minSet'), 5.5 * this.dpr);
+    g.uniform1f(this.u('u_mode'), s.mode); g.uniform1f(this.u('u_mask'), s.mask);
+    g.uniform1f(this.u('u_supMask'), s.mask & SUP); g.uniform1f(this.u('u_intMask'), s.mask & INT);
+    g.uniform1f(this.u('u_rm'), s.rm); g.uniform1f(this.u('u_rmT'), s.rmT); g.uniform1f(this.u('u_hlOn'), s.hlOn);
+    g.uniform1fv(this.u('u_famOn'), this.famOn);
+    g.uniform1f(this.u('u_gain'), s.gain * Math.min(1.6, Math.max(0.55, Math.sqrt(N / (this.W * this.H) * 2.2))));
+    g.drawArrays(g.POINTS, 0, N);
+    this.overlay();
+  }
+  toPx(name, x01, y01) { const b = this.box(name), v = this.st.view;
+    const cx = (x01 * b[0] + b[2]) * v.z + v.x, cy = (y01 * b[1] + b[3]) * v.z + v.y;
+    return [(cx + 1) / 2 * this.W, (1 - cy) / 2 * this.H]; }
+  fromPx(name, px, py) { const b = this.box(name), v = this.st.view;
+    const cx = ((px / this.W) * 2 - 1 - v.x) / v.z, cy = ((1 - py / this.H * 2) - v.y) / v.z;
+    return [(cx - b[2]) / b[0], (cy - b[3]) / b[1]]; }
+  overlay() {
+    const c = this.ctx2; c.setTransform(this.dpr, 0, 0, this.dpr, 0, 0); c.clearRect(0, 0, this.W, this.H);
+    if (this.o.overlay) this.o.overlay(c, this);
+  }
+  nearest(px, py) {
+    const name = this.st.b, pb = this.posBufs[name]; if (!pb || this.st.t < 1) return -1;
+    if (!this.grid) { const G = 256, grid = new Array(G * G);
+      for (let i = 0; i < N; i++) { const k = (pb.d[2 * i + 1] >> 8) * G + (pb.d[2 * i] >> 8); (grid[k] = grid[k] || []).push(i); }
+      this.grid = grid; }
+    const [ux, uy] = this.fromPx(name, px, py), gx = Math.floor(ux * 256), gy = Math.floor(uy * 256);
+    const r = Math.max(1, Math.ceil(10 / (this.W * this.box(name)[0] / 2 * this.st.view.z / 256)));
+    let best = -1, bd = 144;
+    for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) {
+      const cx = gx + dx, cy = gy + dy; if (cx < 0 || cy < 0 || cx > 255 || cy > 255) continue;
+      const cell = this.grid[cy * 256 + cx]; if (!cell) continue;
+      for (const i of cell) { if (!this.famOn[COL.fam[i]]) continue;
+        const [qx, qy] = this.toPx(name, pb.d[2 * i] / 65535, pb.d[2 * i + 1] / 65535), d = (qx - px) ** 2 + (qy - py) ** 2;
+        if (d < bd) { bd = d; best = i; } }
+    }
+    return best;
+  }
+  pos(i) { const pb = this.posBufs[this.st.b]; return this.toPx(this.st.b, pb.d[2 * i] / 65535, pb.d[2 * i + 1] / 65535); }
+}
+
+// depth-layout axis: positions and passes along x, family bands down the side
+function depthAxis(c, map, alpha) {
+  if (alpha <= 0.01) return;
+  const lm = M.layouts.depth, x01 = L => (L - lm.lo[0]) / lm.span[0];
+  c.save(); c.globalAlpha = alpha; c.font = '11px ' + getComputedStyle(document.body).fontFamily;
+  const top = map.toPx('depth', 0, 1)[1], bot = map.toPx('depth', 0, 0)[1];
+  [[0, 19, 'prelude'], [19, 39, 'core · pass 1'], [39, 59, 'core · pass 2'], [59, 72, 'coda']].forEach(([a, b, t], k) => {
+    const xa = map.toPx('depth', x01(a), 0)[0], xb = map.toPx('depth', x01(b), 0)[0];
+    c.fillStyle = k % 2 ? 'rgba(255,255,255,.035)' : 'rgba(255,255,255,0)'; c.fillRect(xa, top, xb - xa, bot - top);
+    c.fillStyle = '#8c95a0'; c.textAlign = 'center'; c.fillText(t, (xa + xb) / 2, bot + 16);
+  });
+  c.strokeStyle = 'rgba(255,255,255,.18)'; c.fillStyle = '#c9d0d7';
+  for (const L of [0, 8, 19, 38, 45, 59, 71]) { const x = map.toPx('depth', x01(L + 0.5), 0)[0];
+    c.beginPath(); c.moveTo(x, bot); c.lineTo(x, bot + 4); c.stroke(); c.textAlign = 'center'; c.fillText(String(L), x, bot + 30); }
+  c.textAlign = 'right'; c.fillStyle = '#8c95a0';
+  if (map.famBands && map.toPx('depth', 0, 0)[0] > 130) map.famBands.forEach((y01, f) => { if (y01 == null) return; const y = map.toPx('depth', 0, y01)[1];
+    c.fillText(FAM_SHORT[f], map.toPx('depth', 0, 0)[0] - 8, y + 4); });
+  c.restore();
+}
+function famBands(pb) {   // median y of each family in the depth layout
+  const acc = Array.from({ length: 9 }, () => []);
+  for (let i = 0; i < N; i += 7) acc[COL.fam[i]].push(pb.d[2 * i + 1] / 65535);
+  return acc.map(a => { if (!a.length) return null; a.sort((x, y) => x - y); return a[a.length >> 1]; });
+}
+
+// ------------------------------------------------------------------ story
+function story() {
+  const stage = document.getElementById('stage');
+  let map;
+  try {
+    map = new PointMap(document.getElementById('storyGL'), document.getElementById('storyOV'), {
+      pad: null, overlay: (c, m) => { depthAxis(c, m, m.st.b === 'depth' ? (m.st.t >= 1 ? 1 : Math.max(0, m.st.t * 2 - 1)) : 0); }
+    });
+  } catch (e) { const fb = document.getElementById('storyFallback'); fb.hidden = false; fb.textContent = 'This map needs WebGL. ' + e.message; return; }
+  const narrow = () => innerWidth < 900;
+  const setPad = () => { map.o.pad = name => narrow() ? [64, 12, Math.round(innerHeight * 0.5), 12]
+    : [60, 40, 70, Math.min(520, innerWidth * 0.38) + (name === 'depth' ? 150 : 0)]; };
+  setPad(); addEventListener('resize', () => { setPad(); map.draw(); });
+  map.posBuf('depth').then(pb => { map.famBands = famBands(pb); });
+  const counter = document.getElementById('counter'), cv = document.getElementById('counterV'), ck = document.getElementById('counterK'), cs = document.getElementById('counterS');
+  let shown = null;
+  const count = (to, label, sub) => { counter.classList.add('on'); ck.textContent = label; cs.textContent = sub;
+    const from = shown == null ? to : shown, t0 = performance.now(); shown = to;
+    const step = now => { const k = reduced ? 1 : Math.min(1, (now - t0) / 1100), e = 1 - (1 - k) ** 3;
+      cv.textContent = Math.round((from + (to - from) * e) * 100) + '%'; if (k < 1) requestAnimationFrame(step); };
+    requestAnimationFrame(step); };
+  const P = B.peritem.attr;
+  const states = [
+    () => { map.setLayout('meaning'); map.setMode('steel'); map.setRemoved(0, false); counter.classList.remove('on'); },
+    () => { map.setLayout('weights-write-pca'); map.setMode('steel'); map.setRemoved(0, false); counter.classList.remove('on'); },
+    () => { map.setLayout('meaning'); map.setMode('family'); map.setRemoved(0, false); counter.classList.remove('on'); },
+    () => { map.setLayout('meaning'); map.setMode('sets', 127); map.setRemoved(0, false); counter.classList.remove('on'); },
+    () => { map.setLayout('depth'); map.setMode('sets', 127); map.setRemoved(0, false); counter.classList.remove('on'); },
+    () => { map.setLayout('depth'); map.setMode('sets', BIT.attr_pos100 | BIT.attr_neg100); count(P.base.acc, 'attribute binding · held-out', 'baseline');
+      setTimeout(() => { if (cur === 5) { map.setRemoved(BIT.attr_neg100, true); count(P.attr_neg100.acc, 'attribute binding · held-out', '100 interferers removed'); } }, 700); },
+    () => { map.setLayout('depth'); map.setMode('sets', BIT.attr_pos100 | BIT.attr_neg100); map.setRemoved(BIT.attr_pos100, true);
+      count(P.attr_pos100.acc, 'attribute binding · held-out', '100 supporters removed'); },
+    () => { map.setLayout('depth'); map.setMode('bind'); map.useBind('all'); map.setRemoved(0, false); counter.classList.remove('on'); },
+  ];
+  let cur = -1;
+  const apply = k => { if (k === cur) return; cur = k; states[k](); };
+  apply(0);
+  const io = new IntersectionObserver(es => { for (const e of es) if (e.isIntersecting) apply(+e.target.dataset.s); },
+    { rootMargin: '-45% 0px -45% 0px' });
+  document.querySelectorAll('.step').forEach(s => io.observe(s));
+  // the bind mode needs the 'all' column: switching modes elsewhere keeps it
+}
+
+// ------------------------------------------------------------------ explorer
+function explorer() {
+  let map;
+  const box = document.getElementById('xbox');
+  try {
+    map = new PointMap(document.getElementById('xGL'), document.getElementById('xOV'), {
+      pad: name => name === 'depth' ? [16, 16, 46, 150] : [20, 20, 20, 20], overlay: (c, m) => {
+        depthAxis(c, m, m.st.b === 'depth' && m.st.t >= 1 ? 1 : 0);
+        if (m.st.t < 1) return;
+        c.font = '600 11px ' + getComputedStyle(document.body).fontFamily; c.textBaseline = 'middle';
+        if (showKnown) { const seen = new Set();
+          for (const k of M.known) { const [x, y] = m.pos(k.i); c.beginPath(); c.arc(x, y, 5, 0, 7); c.lineWidth = 1.5; c.strokeStyle = '#eef0f2'; c.stroke();
+            const tag = k.id.replace(/^L\d+ /, ''); if (!seen.has(tag)) { seen.add(tag); c.fillStyle = '#eef0f2'; c.fillText(tag, x + 8, y); } } }
+        if (hover >= 0) { const [x, y] = m.pos(hover); c.beginPath(); c.arc(x, y, 7, 0, 7); c.strokeStyle = '#64c9ff'; c.lineWidth = 2; c.stroke(); }
+      }
+    });
+  } catch (e) { const fb = document.getElementById('xFallback'); fb.hidden = false; fb.textContent = 'This map needs WebGL. ' + e.message; return; }
+  map.onSettle = () => map.draw();
+  map.posBuf('depth').then(pb => { map.famBands = famBands(pb); map.draw(); });
+  let showKnown = true, hover = -1, selected = -1, query = '';
+  const CL = M.clusters, cluster = COL.cluster;
+  const labelOf = new Map(M.labels.map(([i, lab, pole, conf]) => [i, { lab, pole, conf }]));
+  const segL = document.getElementById('segLayout'), segC = document.getElementById('segColor');
+  const mkSeg = (el, items, on) => { el.innerHTML = items.map(([k, t]) => `<button type="button" data-k="${k}" aria-pressed="false">${t}</button>`).join('');
+    el.querySelectorAll('button').forEach(b => b.onclick = () => { el.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b)); on(b.dataset.k); }); };
+  const press = (el, k) => el.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x.dataset.k === k));
+  mkSeg(segL, LAYOUTS.filter(([k]) => M.layouts[k]), k => { map.st.view = { z: 1, x: 0, y: 0 }; map.setLayout(k); });
+  mkSeg(segC, COLORS, k => setColor(k));
+  function setColor(k) {
+    if (k.startsWith('bind:')) { map.useBind(k.slice(5)); map.setMode('bind'); }
+    else if (k === 'sets') map.setMode('sets', 127); else map.setMode(k);
+  }
+  press(segL, 'meaning'); press(segC, 'family');
+  map.setLayout('meaning', false); map.setMode('family');
+  // legend: family toggles
+  const legend = document.getElementById('legend');
+  M.families.forEach((f, i) => { const b = document.createElement('button'); b.className = 'chip'; b.type = 'button';
+    b.setAttribute('aria-pressed', 'true'); b.innerHTML = `<i style="background:${FAMC[i]}"></i>${esc(f)}`;
+    b.onclick = () => { map.famOn[i] = map.famOn[i] ? 0 : 1; b.setAttribute('aria-pressed', !!map.famOn[i]); map.draw(); };
+    legend.appendChild(b); });
+  const kb = document.createElement('button'); kb.className = 'chip'; kb.type = 'button'; kb.setAttribute('aria-pressed', 'true');
+  kb.innerHTML = '<i style="background:transparent;border:1.5px solid #eef0f2"></i>hand-validated'; legend.appendChild(kb);
+  kb.onclick = () => { showKnown = !showKnown; kb.setAttribute('aria-pressed', showKnown); map.draw(); };
+  // interaction: pan / zoom / pinch / hover / click
+  const cv = map.cv, tip = document.getElementById('tip');
+  const pts = new Map(); let drag = null, pinch = null;
+  const rel = e => { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  const zoomAt = (px, py, k) => { const v = map.st.view, z2 = Math.min(60, Math.max(1, v.z * k)), f = z2 / v.z;
+    const cx = px / map.W * 2 - 1, cy = 1 - py / map.H * 2; v.x = cx - (cx - v.x) * f; v.y = cy - (cy - v.y) * f; v.z = z2; map.draw(); };
+  cv.addEventListener('pointerdown', e => { cv.setPointerCapture(e.pointerId); pts.set(e.pointerId, rel(e));
+    if (pts.size === 1) drag = { p: rel(e), v: { ...map.st.view }, moved: false };
+    if (pts.size === 2) { const [a, b] = [...pts.values()]; pinch = { d: Math.hypot(a[0] - b[0], a[1] - b[1]) }; drag = null; } });
+  cv.addEventListener('pointermove', e => {
+    const p = rel(e);
+    if (pts.has(e.pointerId)) pts.set(e.pointerId, p);
+    if (pinch && pts.size === 2) { const [a, b] = [...pts.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]);
+      zoomAt((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, d / pinch.d); pinch.d = d; return; }
+    if (drag) { const dx = p[0] - drag.p[0], dy = p[1] - drag.p[1];
+      if (Math.abs(dx) + Math.abs(dy) > 3) drag.moved = true;
+      if (drag.moved) { map.st.view.x = drag.v.x + dx / map.W * 2; map.st.view.y = drag.v.y - dy / map.H * 2; map.draw(); tip.hidden = true; return; } }
+    if (e.pointerType === 'touch') return;
+    const i = map.nearest(p[0], p[1]); hover = i; map.draw();
+    if (i < 0) { tip.hidden = true; return; }
+    tip.innerHTML = tipHTML(i); tip.hidden = false;
+    tip.style.left = Math.min(p[0] + 14, map.W - 290) + 'px'; tip.style.top = Math.min(p[1] + 14, map.H - 120) + 'px';
+  });
+  const up = e => { const wasDrag = drag && drag.moved; pts.delete(e.pointerId); if (pts.size < 2) pinch = null;
+    if (pts.size === 0) { if (!wasDrag && e.type === 'pointerup') { const [x, y] = rel(e), i = map.nearest(x, y); select(i >= 0 ? cluster[i] : -1, i); } drag = null; } };
+  cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+  cv.addEventListener('pointerleave', () => { tip.hidden = true; hover = -1; map.draw(); });
+  cv.addEventListener('wheel', e => { e.preventDefault(); const [x, y] = rel(e); zoomAt(x, y, Math.exp(-e.deltaY * 0.0015)); }, { passive: false });
+  document.getElementById('reset').onclick = () => { map.st.view = { z: 1, x: 0, y: 0 }; document.getElementById('q').value = ''; setQuery(''); select(-1); };
+  function tipHTML(i) {
+    const L = (i / 4096) | 0, n = i % 4096, c = CL[cluster[i]], lab = labelOf.get(i), bits = COL.sets[i];
+    const sets = Object.entries(BIT).filter(([, b]) => bits & b).map(([k]) => k.replace('_pos100', ' supporter').replace('_neg100', ' interferer').replace('deixis', 'who-is-you').replace('attr', 'attribute'));
+    return `<b>${esc(c.name)}</b><br><span class="m">position ${L} · neuron ${n} · ${passOf(L)}</span>` +
+      (lab ? `<br>${esc(lab.lab)}` : '') + (sets.length ? `<br><span style="color:${bits & SUP ? '#64c9ff' : '#ff7a5c'}">${esc(sets.join(', '))}</span>` : '');
+  }
+  // panel
+  const panel = document.getElementById('panel');
+  function panelDefault() {
+    const res = query ? CL.filter(c => matches.has(c.id)).sort((a, b) => b.size - a.size).slice(0, 60) : [];
+    panel.innerHTML = query
+      ? `<span class="eyebrow" style="color:var(--plate-muted)">${res.length} group${res.length === 1 ? '' : 's'} match “${esc(query)}”</span><div class="results">${res.map(c =>
+          `<button type="button" data-c="${c.id}"><span class="dot" style="background:${FAMC[c.fam]}"></span>${esc(c.name)} <span class="m">· ${fmt(c.size)}</span></button>`).join('') || '<p class="desc">No group names or descriptions match.</p>'}</div>`
+      : `<span class="eyebrow" style="color:var(--plate-muted)">Click any point</span><h3>Open a neuron and its group</h3>
+         <p class="desc">Colour by <b>binding</b> to light every neuron by its share in choosing the right name (ice) or a wrong one (ember). <b>Causal sets</b> shows the 600 neurons used in the knock-outs.</p>
+         <p class="desc">Try searching <i>second person</i>, <i>dialogue</i>, <i>scripture</i>, <i>footnote</i> or <i>gesture</i>.</p>`;
+    panel.querySelectorAll('[data-c]').forEach(b => b.onclick = () => select(+b.dataset.c));
+  }
+  function select(id, neuron = -1) {
+    selected = id;
+    if (id < 0) { map.setHighlight(query ? i => matches.has(cluster[i]) : null); return panelDefault(); }
+    map.setHighlight(i => cluster[i] === id);
+    const c = CL[id], cat = M.categories[c.cat], h = new Array(72).fill(0);
+    for (let i = 0; i < N; i++) if (cluster[i] === id) h[(i / 4096) | 0]++;
+    const labs = M.labels.filter(([i]) => cluster[i] === id).slice(0, 8);
+    let nhtml = '';
+    if (neuron >= 0) { const L = (neuron / 4096) | 0, tw = twinOf(L), lab = labelOf.get(neuron);
+      const bv = k => COL['bind_' + k][neuron] / 127, bs = v => `<span class="${v > 0 ? 'ice' : v < 0 ? 'ember' : ''}">${v > 0 ? '+' : ''}${v.toFixed(2)}</span>`;
+      nhtml = `<div style="border-top:1px solid var(--plate-line);padding-top:10px;display:grid;gap:6px">
+        <span class="eyebrow" style="color:var(--plate-muted)">this neuron</span>
+        <span class="m">position ${L} · neuron ${neuron % 4096} · ${passOf(L)}${tw >= 0 ? ` · same weights as position ${tw}` : ''}</span>
+        ${lab ? `<span style="font-size:14px">${esc(lab.lab)} <span class="m">(${lab.conf})</span></span>` : ''}
+        <span class="m">binding attribution (scaled): attribute ${bs(bv('attr'))} · dialogue ${bs(bv('dialogue'))} · who-is-you ${bs(bv('deixis'))}</span></div>`; }
+    panel.innerHTML = `<span class="eyebrow" style="color:var(--plate-muted)"><span class="dot" style="background:${FAMC[c.fam]}"></span>${esc(M.families[c.fam])} · ${esc(cat.name)}</span>
+      <h3>${esc(c.name)}</h3>
+      <div class="pills"><span class="pill ${c.agree}">readings agree: ${c.agree}</span><span class="pill">${fmt(c.size)} neurons</span><span class="pill">${esc(c.kind)}</span><span class="pill">group ${c.id}</span></div>
+      <p class="desc">${esc(c.desc)}</p>
+      <div><span class="eyebrow" style="color:var(--plate-muted)">depth, positions 0–71</span><canvas class="spark" id="spk"></canvas></div>
+      ${labs.length ? `<div><span class="eyebrow" style="color:var(--plate-muted)">draft labels</span><div class="labs">${labs.map(([i, lab]) =>
+        `<div><span class="m">${(i / 4096) | 0} · ${i % 4096}</span><span>${esc(lab)}</span></div>`).join('')}</div></div>` : ''}
+      ${nhtml}
+      <button class="btn" type="button" id="clr">Show all groups</button>`;
+    document.getElementById('clr').onclick = () => select(-1);
+    const sc = document.getElementById('spk'), w = sc.clientWidth, hh = 44, g = sc.getContext('2d'), d = Math.min(2, devicePixelRatio || 1), mx = Math.max(...h);
+    sc.width = w * d; sc.height = hh * d; g.setTransform(d, 0, 0, d, 0, 0);
+    [[19, 39], [39, 59]].forEach(([a, b], k) => { g.fillStyle = k ? 'rgba(255,255,255,.07)' : 'rgba(255,255,255,.035)'; g.fillRect(a / 72 * w, 0, (b - a) / 72 * w, hh); });
+    g.fillStyle = FAMC[c.fam]; h.forEach((v, l) => { const bh = mx ? v / mx * (hh - 4) : 0; g.fillRect(l / 72 * w + .5, hh - bh, Math.max(1, w / 72 - 1), bh); });
+  }
+  const matches = new Set();
+  function setQuery(q) { query = q.trim().toLowerCase(); matches.clear();
+    if (query) CL.forEach(c => { if ((c.name + ' ' + c.desc + ' ' + c.themes.join(' ') + ' ' + M.categories[c.cat].name).toLowerCase().includes(query)) matches.add(c.id); });
+    select(-1); }
+  document.getElementById('q').addEventListener('input', e => setQuery(e.target.value));
+  panelDefault();
+  window.__openCluster = id => { select(id); document.getElementById('xbox').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'center' }); };
+}
+
+// ------------------------------------------------------------------ text and figures
+function texts() {
+  const W = M.weights || {}, ev = W.write_raw_explained, P = B.peritem.attr, X = B.matrix;
+  const sets = 127 & ~64, inSets = []; for (let i = 0; i < N; i++) if (COL.sets[i] & sets) inSets.push(i);
+  const nCl = new Set(inSets.map(i => COL.cluster[i])).size, nSet = inSets.length;
+  const at8 = inSets.filter(i => ((i / 4096) | 0) === 8).length, seam = inSets.filter(i => { const L = (i / 4096) | 0; return L === 38 || (L >= 42 && L <= 45); }).length;
+  document.getElementById('figs').innerHTML = [[fmt(N), 'neurons'], ['72', 'effective layers'], ['400', 'named groups'], [pct(P.base.acc).replace('%', '') + '→' + pct(P.attr_neg100.acc), 'binding, 100 neurons removed']]
+    .map(([b, s]) => `<div><b class="num">${b}</b><span>${s}</span></div>`).join('');
+  document.getElementById('famkey').innerHTML = FAM_SHORT.map((f, i) => `<span><i style="background:${FAMC[i]}"></i>${f}</span>`).join('');
+  document.getElementById('t-weights').innerHTML = ev ? `Here each neuron sits where the direction it writes into the model falls on the two main axes of all ${fmt(W.unique ? W.unique.length * 4096 : 212992)} distinct write vectors. The first axis explains <b>${(ev[0] * 100).toFixed(2)}%</b> of their variance, about five times what an even cloud in 1,536 dimensions would give, and depth explains ${(W.write_depth_share * 100).toFixed(2)}%. The weights carry almost no low-dimensional structure. The model was trained with Muon, which orthogonalises every update.` : '';
+  document.getElementById('t-scatter').innerHTML = `Attribution picked the 100 neurons that most help and the 100 that most hurt on each of three binding tasks: attribute (who holds what), dialogue (who said what) and who-is-you. These <b>${fmt(nSet)}</b> neurons fall in <b>${nCl}</b> of the 400 groups. No group is about binding.`;
+  document.getElementById('t-depth').innerHTML = `Now x is depth. Positions 19–38 and 39–58 are the same layers run twice, so the dark band is pass 1 and the lighter band pass 2. <b>${seam}</b> of the ${fmt(nSet)} sit at position 38, the last layer of pass 1, or at 42–45, early in pass 2. <b>${at8}</b> sit at position 8, the last layer before the attention-residual boundary at 9.`;
+  document.getElementById('t-neg').innerHTML = `On held-out items, setting these 100 neurons to their average lifts attribute binding from <b>${pct(P.base.acc)}</b> to <b class="ember">${pct(P.attr_neg100.acc)}</b>. Picks of the last-mentioned name fall from ${pct(P.base.last)} to ${pct(P.attr_neg100.last)}: the interferers carry a recency pull. 100 random neurons at the same positions move accuracy by ${Math.abs(Math.round((X.attr.attr_neg100.r || 0) * 100))} points.`;
+  document.getElementById('t-pos').innerHTML = `Accuracy falls to <b class="ice">${pct(P.attr_pos100.acc)}</b>, below the chance line, and last-mention picks rise to ${pct(P.attr_pos100.last)}. Binding is built against the recency prior, by a few hundred neurons in two places.`;
+  document.getElementById('t-method').innerHTML = `Sets were chosen on training items and tested on ${X.attr.n} held-out items per task. Each cell is the change in accuracy when 100 neurons are set to their corpus mean; the grey tick is the mean of three random sets at the same positions (largest random shift: ${Math.round(Math.max(...Object.values(X).flatMap(m => Object.values(m).filter(v => v && v.rs != null).map(v => v.rs))) * 100)} points). Removing a task's own interferers helps it and removing its own supporters hurts it, in all three tasks.`;
+  const cellsAll = Object.values(P.attr_neg100.cells).map(c => c.acc);
+  const baseAll = Object.values(P.base.cells).map(c => c.acc);
+  document.getElementById('t-cells').innerHTML = `The attribute battery varies the number of entities (2–8) and where the asked-about entity was mentioned (first, middle, last). At baseline the model does well on the first-mentioned and poorly on the last (${pct(Math.min(...baseAll))}–${pct(Math.max(...baseAll))}). With the 100 interferers removed every one of the ${cellsAll.length} cells rises, to ${pct(Math.min(...cellsAll))}–${pct(Math.max(...cellsAll))}; with the 100 supporters removed every cell falls.`;
+  document.getElementById('summary').textContent = M.summary;
+  document.getElementById('trust').innerHTML = `Group names and neuron labels are agent drafts. The readings agree strongly for ${pct(M.clusters.filter(c => c.agree === 'high').reduce((a, c) => a + c.size, 0) / N)} of neurons; part of the map is an artefact (a J-lens direction toward British spellings pulls unrelated neurons together) and part is unassigned. The knock-outs are causal on the battery's held-out items; they say what these neurons do to the margin, not everything they do. Binding attribution is a first-order estimate; the knock-outs are the test.`;
+}
+
+function figMatrix() {
+  const X = B.matrix, tasks = [['attr', 'attribute'], ['dialogue', 'dialogue'], ['deixis', 'who-is-you']];
+  const rows = [['attr_neg100', 'attribute interferers', 'e'], ['attr_pos100', 'attribute supporters', 'i'], ['dialogue_neg100', 'dialogue interferers', 'e'],
+    ['dialogue_pos100', 'dialogue supporters', 'i'], ['deixis_neg100', 'who-is-you interferers', 'e'], ['deixis_pos100', 'who-is-you supporters', 'i'], ['core28', 'shared core (28)', 'c']];
+  const w = 1100, rh = 34, top = 56, left = 200, colw = (w - left - 20) / 3, h = top + rows.length * rh + 20;
+  const sc = v => v * (colw - 30);   // accuracy 0..1 → px
+  let s = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Accuracy after each knock-out, per task">`;
+  tasks.forEach(([t, name], k) => { const x0 = left + k * colw, base = X[t].base;
+    s += `<text x="${x0}" y="20" font-size="13" font-weight="700" fill="currentColor">${name}</text>`;
+    s += `<text x="${x0}" y="38" font-size="11" fill="var(--muted)">baseline ${pct(base)} · 0–100%</text>`;
+    s += `<line x1="${x0 + sc(base)}" x2="${x0 + sc(base)}" y1="${top - 6}" y2="${h - 14}" stroke="var(--muted)" stroke-dasharray="2 3"/>`;
+    s += `<line x1="${x0}" x2="${x0 + sc(1)}" y1="${h - 14}" y2="${h - 14}" stroke="var(--line)"/>`;
+    rows.forEach(([key, , kind], r) => { const e = X[t][key]; if (!e) return; const y = top + r * rh + rh / 2, v = base + e.d;
+      const col = kind === 'e' ? 'var(--ember-ink)' : kind === 'i' ? 'var(--ice-ink)' : 'var(--fg2)';
+      s += `<line x1="${x0 + sc(base)}" x2="${x0 + sc(v)}" y1="${y}" y2="${y}" stroke="${col}" stroke-width="5" stroke-linecap="round" opacity="${t === key.split('_')[0] ? 1 : .45}"/>`;
+      if (e.r != null) s += `<line x1="${x0 + sc(base + e.r)}" x2="${x0 + sc(base + e.r)}" y1="${y - 7}" y2="${y + 7}" stroke="var(--muted)" stroke-width="2"/>`;
+      s += `<text x="${x0 + sc(Math.max(v, base)) + 8}" y="${y + 4}" font-size="12" fill="currentColor" font-weight="${t === key.split('_')[0] ? 700 : 400}">${sgn(e.d)}</text>`; });
+  });
+  rows.forEach(([, name], r) => { s += `<text x="0" y="${top + r * rh + rh / 2 + 4}" font-size="12.5" fill="currentColor">${name}</text>`; });
+  document.getElementById('figMatrix').innerHTML = s + '</svg>';
+  const P = B.peritem, ov = B.overlap;
+  document.getElementById('koCards').innerHTML = [
+    ['Attribute', `${pct(P.attr.base.acc)} → ${pct(P.attr.attr_neg100.acc)}`, `with its 100 interferers removed; ${pct(P.attr.attr_pos100.acc)} with its 100 supporters removed.`],
+    ['Dialogue', `${pct(P.dialogue.base.acc)} → ${pct(P.dialogue.dialogue_neg100.acc)}`, `with its interferers removed. Part of this gain is a shift toward the last-mentioned name (${pct(P.dialogue.base.last)} → ${pct(P.dialogue.dialogue_neg100.last)}).`],
+    ['Who-is-you', `${pct(P.deixis.base.acc)} → ${pct(P.deixis.deixis_neg100.acc)}`, `with its interferers removed. Dialogue and who-is-you share one circuit: their supporter sets overlap by ${ov.dialogue_deixis_supporters} of 100 and their interferer sets by ${ov.dialogue_deixis_interferers}.`],
+  ].map(([t, big, p]) => `<div class="card2"><span class="eyebrow">${t}</span><span class="big">${big}</span><p>${p}</p></div>`).join('');
+}
+
+function figCells() {
+  const P = B.peritem.attr, keys = Object.keys(P.base.cells).sort((a, b) => { const [na, qa] = a.split('/'), [nb, qb] = b.split('/');
+    const o = { first: 0, middle: 1, last: 2 }; return na - nb || o[qa] - o[qb]; });
+  const w = 1100, h = 300, m = { l: 46, r: 20, t: 20, b: 60 }, iw = w - m.l - m.r, ih = h - m.t - m.b;
+  const xs = k => m.l + (k + 0.5) / keys.length * iw, ys = v => m.t + ih - v * ih;
+  let s = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Attribute binding accuracy per battery cell: baseline, interferers removed, supporters removed">`;
+  [0, .25, .5, .75, 1].forEach(v => { s += `<line x1="${m.l}" x2="${w - m.r}" y1="${ys(v)}" y2="${ys(v)}" stroke="var(--line)"/><text x="${m.l - 8}" y="${ys(v) + 4}" text-anchor="end" font-size="11" fill="var(--muted)">${v * 100}%</text>`; });
+  keys.forEach((k, j) => { const x = xs(j), b = P.base.cells[k].acc, ng = P.attr_neg100.cells[k].acc, ps = P.attr_pos100.cells[k].acc;
+    s += `<line x1="${x}" x2="${x}" y1="${ys(ps)}" y2="${ys(ng)}" stroke="var(--line)" stroke-width="2"/>`;
+    s += `<circle cx="${x}" cy="${ys(ng)}" r="6.5" fill="var(--ember-ink)" stroke="var(--surface)" stroke-width="2"><title>${k}: ${pct(ng)} with interferers removed</title></circle>`;
+    s += `<circle cx="${x}" cy="${ys(ps)}" r="6.5" fill="var(--ice-ink)" stroke="var(--surface)" stroke-width="2"><title>${k}: ${pct(ps)} with supporters removed</title></circle>`;
+    s += `<circle cx="${x}" cy="${ys(b)}" r="6.5" fill="var(--surface)" stroke="var(--fg)" stroke-width="2"><title>${k}: baseline ${pct(b)}</title></circle>`;
+    const [n, q] = k.split('/');
+    s += `<text x="${x}" y="${h - m.b + 20}" text-anchor="middle" font-size="12" fill="currentColor">${q}</text>`;
+    if (j === keys.findIndex(z => z.startsWith(n + '/'))) s += `<text x="${x - 20}" y="${h - m.b + 42}" font-size="11" fill="var(--muted)">${n} entities</text>`;
+  });
+  s += '</svg>';
+  const key = `<div style="display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;margin-top:8px;color:var(--fg2)"><span><span class="dot" style="background:var(--surface);border:2px solid var(--fg)"></span>baseline</span><span><span class="dot" style="background:var(--ember-ink)"></span>100 interferers removed</span><span><span class="dot" style="background:var(--ice-ink)"></span>100 supporters removed</span></div>`;
+  document.getElementById('figCells').innerHTML = s + key;
+}
+
+function figWhere() {
+  const fams = Object.keys(B.families), hi = { attr: 'var(--ember-ink)', dialogue: 'var(--fg)', deixis: 'var(--ice-ink)' };
+  const w = 1100, h = 250, m = { l: 48, r: 16, t: 14, b: 36 }, iw = w - m.l - m.r, ih = h - m.t - m.b;
+  const mx = Math.max(...fams.flatMap(f => B.families[f].where)), xs = l => m.l + (l + 0.5) / 72 * iw, ys = v => m.t + ih - v / mx * ih;
+  let s = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Share of binding attribution at each effective position, per family">`;
+  [[0, 19, 'prelude'], [19, 39, 'core · pass 1'], [39, 59, 'core · pass 2'], [59, 72, 'coda']].forEach(([a, b, t], k) => {
+    s += `<rect x="${m.l + a / 72 * iw}" y="${m.t}" width="${(b - a) / 72 * iw}" height="${ih}" fill="var(--chip)" opacity="${k % 2 ? 1 : .4}"/>`;
+    s += `<text x="${m.l + (a + b) / 144 * iw}" y="${h - 10}" text-anchor="middle" font-size="11" fill="var(--muted)">${t}</text>`; });
+  [[8, 'pos 8'], [38, '38'], [43.5, '42–45']].forEach(([l, t]) => { s += `<line x1="${xs(l)}" x2="${xs(l)}" y1="${m.t}" y2="${m.t + ih}" stroke="var(--fg2)" stroke-dasharray="2 3"/><text x="${xs(l) + 4}" y="${m.t + 12}" font-size="10.5" fill="var(--fg2)">${t}</text>`; });
+  [0, .5, 1].forEach(f => s += `<text x="${m.l - 6}" y="${ys(f * mx) + 4}" text-anchor="end" font-size="10.5" fill="var(--muted)">${(f * mx * 100).toFixed(1)}%</text>`);
+  fams.sort((a, b) => (a in hi) - (b in hi)).forEach(f => { const d = B.families[f].where.map((v, l) => `${l ? 'L' : 'M'}${xs(l).toFixed(1)},${ys(v).toFixed(1)}`).join('');
+    s += `<path d="${d}" fill="none" stroke="${hi[f] || 'var(--muted)'}" stroke-width="${hi[f] ? 2.2 : 1}" opacity="${hi[f] ? 1 : .5}"><title>${FAMLABEL[f]}: battery accuracy ${pct(B.families[f].acc)}</title></path>`; });
+  s += '</svg>';
+  const leg = ['attr', 'dialogue', 'deixis'].map(f => `<span><span class="dot" style="background:${hi[f]}"></span>${FAMLABEL[f]}</span>`).join('') + `<span><span class="dot" style="background:var(--muted)"></span>the other five</span>`;
+  document.getElementById('figWhere').innerHTML = s + `<div style="display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;margin-top:8px;color:var(--fg2)">${leg}</div>`;
+  // when: token roles
+  const roles = [['question', 'question tokens'], ['candidate', 'candidate names'], ['pronoun', 'pronouns'], ['newline', 'line breaks'], ['colon', 'speaker colons'], ['other', 'everything else']];
+  const shade = ['var(--fg)', 'var(--ember-ink)', 'var(--ice-ink)', 'var(--fg2)', 'var(--muted)', 'var(--line)'];
+  const order = Object.keys(B.when).sort((a, b) => B.when[b].question - B.when[a].question);
+  const rh = 26, w2 = 1100, lw = 150, h2 = order.length * rh + 40;
+  let t = `<svg viewBox="0 0 ${w2} ${h2}" role="img" aria-label="Share of attribution by token role, per family">`;
+  order.forEach((f, r) => { let x = lw; const y = r * rh + 4;
+    t += `<text x="0" y="${y + 15}" font-size="12" fill="currentColor">${FAMLABEL[f]}</text>`;
+    roles.forEach(([k, name], j) => { const v = B.when[f][k] || 0, ww = v * (w2 - lw - 10);
+      if (ww > 0.5) t += `<rect x="${x}" y="${y}" width="${Math.max(0, ww - 2)}" height="${rh - 8}" fill="${shade[j]}"><title>${FAMLABEL[f]}: ${name} ${pct(v)}</title></rect>`;
+      if (ww > 34) t += `<text x="${x + 6}" y="${y + 13}" font-size="10.5" fill="${j < 3 ? 'var(--surface)' : 'var(--fg)'}">${pct(v)}</text>`; x += ww; }); });
+  t += '</svg>';
+  document.getElementById('figWhen').innerHTML = t + `<div style="display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;margin-top:8px;color:var(--fg2)">${roles.map(([, n], j) => `<span><span class="dot" style="background:${shade[j]}"></span>${n}</span>`).join('')}</div>`;
+}
+
+function figPos8() {
+  const P8 = B.pos8; if (!P8 || !Object.keys(P8).length) return;
+  document.getElementById('pos8').hidden = false;
+  if (window.__pos8Text) window.__pos8Text(P8);
+  const tasks = Object.keys(P8).filter(t => ['attr', 'dialogue', 'deixis'].includes(t));
+  const layers = Object.keys(P8[tasks[0]]).filter(k => k.startsWith('layer:')).sort((a, b) => +a.slice(7) - +b.slice(7));
+  // whole-position knock-outs: accuracy change per task, one row per position, with the corpus-NLL change beside
+  const w = 1100, rh = 30, top = 56, left = 120, colw = (w - left - 160) / tasks.length, h = top + layers.length * rh + 16;
+  const sc = v => v * (colw - 40) / 0.8;   // ±40 points across the column
+  let s = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Accuracy and next-token loss after removing every neuron at one position">`;
+  tasks.forEach((t, k) => { const x0 = left + k * colw + (colw - 40) / 2;
+    s += `<text x="${x0}" y="20" text-anchor="middle" font-size="13" font-weight="700" fill="currentColor">${FAMLABEL[t]}</text>`;
+    s += `<text x="${x0}" y="38" text-anchor="middle" font-size="11" fill="var(--muted)">Δ accuracy (baseline ${pct(P8[t].base)})</text>`;
+    s += `<line x1="${x0}" x2="${x0}" y1="${top - 6}" y2="${h - 10}" stroke="var(--muted)"/>`;
+    layers.forEach((Lk, r) => { const e = P8[t][Lk]; if (!e) return; const y = top + r * rh + rh / 2;
+      s += `<line x1="${x0}" x2="${x0 + sc(e.d)}" y1="${y}" y2="${y}" stroke="${Lk === 'layer:L8' ? 'var(--ember-ink)' : 'var(--fg2)'}" stroke-width="6" stroke-linecap="round"/>`;
+      s += `<text x="${x0 + sc(e.d) + (e.d >= 0 ? 8 : -8)}" y="${y + 4}" text-anchor="${e.d >= 0 ? 'start' : 'end'}" font-size="11.5" fill="currentColor">${sgn(e.d)}</text>`; }); });
+  const nx = w - 140;
+  s += `<text x="${nx}" y="20" font-size="13" font-weight="700" fill="currentColor">damage</text><text x="${nx}" y="38" font-size="11" fill="var(--muted)">Δ next-token loss</text>`;
+  layers.forEach((Lk, r) => { const y = top + r * rh + rh / 2, e = P8[tasks[0]][Lk];
+    s += `<text x="0" y="${y + 4}" font-size="12.5" fill="currentColor" font-weight="${Lk === 'layer:L8' ? 700 : 400}">position ${Lk.slice(7)}</text>`;
+    if (e && e.dnll != null) s += `<text x="${nx}" y="${y + 4}" font-size="12" fill="currentColor">+${e.dnll.toFixed(3)} nats</text>`; });
+  document.getElementById('figPos8').innerHTML = s + '</svg>';
+  // split: each 100-neuron set, its position-8 members only, and the rest
+  const sets = ['attr_neg100', 'attr_pos100', 'dialogue_neg100', 'dialogue_pos100', 'deixis_neg100', 'deixis_pos100'];
+  const rows = sets.filter(k => P8[k.split('_')[0]] && P8[k.split('_')[0]][k + '_only8']);
+  if (!rows.length) return;
+  const w2 = 1100, h2 = 56 + rows.length * 34 + 16, x0 = 330, scl = v => v * 600;
+  let t = `<svg viewBox="0 0 ${w2} ${h2}" role="img" aria-label="Each set's effect on its own task: whole set, its position-8 members alone, and the rest">`;
+  t += `<text x="${x0}" y="20" font-size="13" font-weight="700" fill="currentColor">Δ accuracy on the set's own task</text>`;
+  t += `<line x1="${x0 + 300}" x2="${x0 + 300}" y1="40" y2="${h2 - 8}" stroke="var(--muted)"/>`;
+  rows.forEach((k, r) => { const task = k.split('_')[0], e = P8[task], y = 56 + r * 34, inter = k.endsWith('neg100');
+    t += `<text x="0" y="${y + 14}" font-size="12.5" fill="currentColor">${FAMLABEL[task]} ${inter ? 'interferers' : 'supporters'}</text>`;
+    [[e[k], 'all 100', 0], [e[k + '_only8'], 'position 8 only', 1], [e[k + '_no8'], 'without position 8', 2]].forEach(([v, lab, j]) => { if (!v) return;
+      const yy = y + j * 9 + 2, col = inter ? 'var(--ember-ink)' : 'var(--ice-ink)';
+      t += `<line x1="${x0 + 300}" x2="${x0 + 300 + scl(v.d) / 2}" y1="${yy}" y2="${yy}" stroke="${col}" stroke-width="7" opacity="${[1, .75, .4][j]}"><title>${lab}: ${sgn(v.d)} points${v.r != null ? `; random ${sgn(v.r)}` : ''}</title></line>`; });
+    const v = e[k], v8 = e[k + '_only8'], vn = e[k + '_no8'];
+    t += `<text x="${w2 - 4}" y="${y + 14}" text-anchor="end" font-size="11.5" fill="var(--fg2)">all ${sgn(v.d)} · pos 8 only ${sgn(v8.d)} · rest ${vn ? sgn(vn.d) : '—'}</text>`; });
+  document.getElementById('figSplit').innerHTML = t + '</svg>';
+}
+
+function tables() {
+  let sortK = 'fam', sortD = 1;
+  const draw = () => {
+    const rows = M.categories.map((c, i) => ({ ...c, i })).sort((a, b) => {
+      const va = sortK === 'fam' ? a.family * 1e7 - a.n : sortK === 'name' ? a.name : a[sortK], vb = sortK === 'fam' ? b.family * 1e7 - b.n : sortK === 'name' ? b.name : b[sortK];
+      return (va > vb ? 1 : va < vb ? -1 : 0) * sortD * (sortK === 'n' || sortK === 'high' ? -1 : 1); });
+    document.querySelector('#cats tbody').innerHTML = rows.map(c => `<tr><td><span class="dot" style="background:${FAMC[c.family]}"></span>${esc(M.families[c.family])}</td>
+      <td><b>${esc(c.name)}</b><br><span class="note" style="font-size:13.5px">${esc(c.desc)}</span></td><td class="n">${fmt(c.n)}</td>
+      <td><div style="display:flex;gap:8px;align-items:center"><div class="bar" style="flex:1"><span style="width:${(c.high * 100).toFixed(0)}%"></span></div><span class="n" style="color:var(--muted);font-size:12px">${Math.round(c.high * 100)}%</span></div></td></tr>`).join('');
+  };
+  document.querySelectorAll('#cats th[data-k]').forEach(th => th.onclick = () => { const k = th.dataset.k; sortD = sortK === k ? -sortD : 1; sortK = k; draw(); });
+  draw();
+  const by = {};
+  M.known.forEach(k => { const key = k.id.replace(/^L\d+ /, ''); (by[key] = by[key] || { name: k.name, at: [] }).at.push(k); });
+  const cards = Object.entries(by).map(([id, v]) => { const twin = v.at.length === 2 && v.at[0].cluster === v.at[1].cluster;
+    const rows = v.at.map(k => `<button type="button" class="kbtn" data-c="${k.cluster}" style="display:grid;grid-template-columns:44px minmax(0,1fr);gap:8px;text-align:left;font:inherit;font-size:13.5px;background:none;border:0;border-top:1px solid var(--line);padding:6px 0 3px;color:inherit;cursor:pointer"><span style="color:var(--muted)">pos ${(k.i / 4096) | 0}</span><span>${esc(M.clusters[k.cluster].name)}</span></button>`).join('');
+    return { twin, html: `<div class="card2"><span class="eyebrow">${esc(id)}${twin ? ' · both passes in one group' : ''}</span><h3>${esc(v.name)}</h3><div>${rows}</div></div>` }; });
+  cards.sort((a, b) => b.twin - a.twin);
+  document.getElementById('knownCards').innerHTML = cards.map(c => c.html).join('');
+  document.querySelectorAll('#knownCards [data-c]').forEach(b => b.onclick = () => window.__openCluster && window.__openCluster(+b.dataset.c));
+}
+
+// ------------------------------------------------------------------ boot
+(async () => {
+  try {
+    [M, B] = await Promise.all([get('neurons.json'), get('binding.json')]);
+    N = M.n;
+    const nb = await get('neurons.bin', 'bin');
+    const T = { u8: Uint8Array, i16: Int16Array, i8: Int8Array };
+    for (const [k, c] of Object.entries(M.columns)) COL[k] = new T[c.type](nb, c.offset, N);
+    texts(); figMatrix(); figCells(); figWhere(); figPos8(); tables();
+    await loadLayout('meaning');
+    story(); explorer();
+    loadLayout('depth'); loadLayout('weights-write-pca');
+  } catch (e) {
+    for (const id of ['storyFallback', 'xFallback']) { const el = document.getElementById(id); el.hidden = false; el.textContent = 'The atlas data did not load: ' + e.message; }
+    console.error(e);
+  }
+})();
+})();
+</script>
+</body>
+</html>

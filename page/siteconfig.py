@@ -142,10 +142,11 @@ class SiteConfig:
                 "__FONT_CREDIT__": html.escape(self.font_credit or DEFAULT_FONT_CREDIT, quote=False)}
 
 
-def render_hosting(template: str, cfg: SiteConfig) -> str:
+def render_hosting(template: str, cfg: SiteConfig, overrides: dict[str, str] | None = None) -> str:
     """Fill the hosting placeholders. A line holding a placeholder whose value is empty is dropped, except for the
-    inline ones (__BACK_LINK__, __FONT__), which simply vanish."""
-    vals = cfg.placeholder_values()
+    inline ones (__BACK_LINK__, __FONT__), which simply vanish. `overrides` replaces values (another page's canonical
+    and card URLs)."""
+    vals = cfg.placeholder_values() | (overrides or {})
     out: list[str] = []
     for line in template.splitlines(keepends=True):
         drop = False
