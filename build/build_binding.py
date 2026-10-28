@@ -137,6 +137,8 @@ def main() -> None:
                 out["pos8"].setdefault(f, {}).update(matrix(p))
     if (a.inputs / "suite" / "report.json").exists():
         out["suite"] = suite(a.inputs / "suite")
+    if (a.inputs / "suite" / "generative.json").exists():      # blind reads of generated dialogue under the act lever
+        out["generative"] = json.loads((a.inputs / "suite" / "generative.json").read_text())
     if (a.inputs / "suite" / "fluid_examples.json").exists():   # build/fluid_examples.py
         out["fluid_examples"] = json.loads((a.inputs / "suite" / "fluid_examples.json").read_text())
     a.out.parent.mkdir(parents=True, exist_ok=True)

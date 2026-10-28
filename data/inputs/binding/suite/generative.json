@@ -1,0 +1,11 @@
+{
+ "what": "Blind pairwise reads of 40-turn generated dialogues (48-dialogue panel, 576 games, Claude judge), the act lever at alpha 1 on every token; Bradley-Terry score vs the unedited model with 90% CI; damage = teacher-forced next-token loss rise on the panel's continuations",
+ "cells": [
+  {"cell": "all_neg", "label": "all 245 interferers", "neurons": 245, "damage": 0.021, "bt": -0.533, "ci": [-1.18, -0.01]},
+  {"cell": "damage_matched_all_neg_s0", "label": "random, damage-matched (seed 0)", "neurons": 3430, "damage": 0.016, "bt": -0.700, "ci": [-1.27, -0.23]},
+  {"cell": "damage_matched_all_neg_s1", "label": "random, damage-matched (seed 1)", "neurons": 3920, "damage": 0.031, "bt": -0.330, "ci": [-1.01, 0.19]},
+  {"cell": "random_all_neg_s0", "label": "random, same size (seed 0)", "neurons": 245, "damage": 0.000, "bt": 0.124, "ci": [-0.42, 0.67]},
+  {"cell": "random_all_neg_s1", "label": "random, same size (seed 1)", "neurons": 245, "damage": 0.001, "bt": -0.110, "ci": [-0.62, 0.33]},
+  {"cell": "dialogue_neg100", "label": "100 dialogue interferers", "neurons": 100, "damage": 0.006, "bt": -0.041, "ci": [-0.61, 0.46]}
+ ]
+}

@@ -307,6 +307,9 @@ footer .wrap { display: grid; gap: 8px }
   <div class="fluidgrid" id="figFluid"></div>
   <p class="prose note" id="t-dose"></p>
   <div class="figure" id="figDose"></div>
+  <h3 id="genh" hidden>In long generated dialogue: nothing beyond damage</h3>
+  <p class="prose note" id="t-gen"></p>
+  <div class="figure" id="figGen"></div>
 </div></section>
 
 <section class="read" id="pos8" hidden><div class="wrap">
@@ -963,6 +966,27 @@ function figFluid() {
     b.dataset.i = i; b.closest('.fcard').querySelector('.exbox').innerHTML = ex(f, ex2[i]); });
 }
 
+function figGen() {
+  const G = B.generative; if (!G || !G.cells) return;
+  document.getElementById('genh').hidden = false;
+  const c = k => G.cells.find(x => x.cell === k) || {};
+  document.getElementById('t-gen').innerHTML = `The same edit, applied while the model writes 40-turn dialogues, judged blind in pairs against the unedited model (Bradley–Terry score, 0 = no difference, with 90% intervals). Removing all ${c('all_neg').neurons} interferers reads worse (${c('all_neg').bt.toFixed(2)}), but so do random neurons sized to cost the same next-token loss (${c('damage_matched_all_neg_s0').bt.toFixed(2)} and ${c('damage_matched_all_neg_s1').bt.toFixed(2)}): that cost is generic damage. Random neurons of the same number read like the original, and the 100 dialogue interferers alone are a null. The gains above are real on the batteries and in-context tasks; in free-running dialogue they do not show.`;
+  const w = 1100, rh = 32, top = 34, left = 300, h = top + G.cells.length * rh + 30, lo = -1.4, hi = 0.9;
+  const x = v => left + (v - lo) / (hi - lo) * (w - left - 150);
+  let t = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Blind-read score of generated dialogue for each edit, with 90% intervals">`;
+  t += `<line x1="${x(0)}" x2="${x(0)}" y1="${top - 10}" y2="${h - 22}" stroke="var(--muted)" stroke-dasharray="2 3"/><text x="${x(0)}" y="${top - 16}" text-anchor="middle" font-size="11" fill="var(--muted)">unedited</text>`;
+  [-1, -0.5, 0.5].forEach(v => { t += `<text x="${x(v)}" y="${h - 6}" text-anchor="middle" font-size="10.5" fill="var(--muted)">${v > 0 ? '+' : ''}${v}</text>`; });
+  t += `<text x="${w - 4}" y="${top - 16}" text-anchor="end" font-size="11" fill="var(--muted)">loss cost (nats)</text>`;
+  t += `<text x="${left - 12}" y="${top - 16}" text-anchor="end" font-size="11" fill="var(--muted)">neurons</text>`;
+  G.cells.forEach((e, i) => { const y = top + i * rh + rh / 2, isSet = !e.cell.includes('random') && !e.cell.includes('damage_matched'), col = isSet ? 'var(--ember-ink)' : 'var(--fg2)';
+    t += `<text x="0" y="${y + 4}" font-size="12.5" fill="currentColor" font-weight="${isSet ? 700 : 400}">${esc(e.label)}</text>`;
+    t += `<text x="${left - 12}" y="${y + 4}" text-anchor="end" font-size="11" fill="var(--muted)">${fmt(e.neurons)}</text>`;
+    t += `<line x1="${x(e.ci[0])}" x2="${x(e.ci[1])}" y1="${y}" y2="${y}" stroke="${col}" stroke-width="2" opacity=".6"/>`;
+    t += `<circle cx="${x(e.bt)}" cy="${y}" r="5.5" fill="${col}"><title>${esc(e.label)}: ${e.bt.toFixed(2)} [${e.ci[0]}, ${e.ci[1]}]</title></circle>`;
+    t += `<text x="${w - 4}" y="${y + 4}" text-anchor="end" font-size="12" fill="currentColor">+${e.damage.toFixed(3)}</text>`; });
+  document.getElementById('figGen').innerHTML = t + '</svg>';
+}
+
 function figPos8() {
   const P8 = B.pos8; if (!P8 || !Object.keys(P8).length) return;
   document.getElementById('pos8').hidden = false;
@@ -1041,7 +1065,7 @@ function tables() {
     const nb = await get('neurons.bin', 'bin');
     const T = { u8: Uint8Array, i16: Int16Array, i8: Int8Array };
     for (const [k, c] of Object.entries(M.columns)) COL[k] = new T[c.type](nb, c.offset, N);
-    texts(); figMatrix(); figCells(); figFixes(); figFluid(); figWhere(); figPos8(); tables();
+    texts(); figMatrix(); figCells(); figFixes(); figFluid(); figGen(); figWhere(); figPos8(); tables();
     await loadLayout('meaning');
     story(); explorer();
     loadLayout('depth'); loadLayout('weights-write-pca');
