@@ -1,0 +1,10 @@
+Web font: optional, supplied by the host.
+
+The page is set in Courier Prime (SIL OFL, loaded from Google Fonts), falling back to the system monospace. A
+deployment may add its own web font through the [font] section of its site config (page/siteconfig.py): the page
+then loads {stem}-{Regular,Bold,Italic,BoldItalic}.woff2 from the configured URL. No font files are distributed in
+this repository; a host that uses one puts the files at that URL itself.
+
+config/aetherawi.toml names "Love Letter TW Luxia", a modified version of Love Letter Typewriter (© 1994 Blake
+Haber, Dixie's Delights) whose terms for modified redistribution are unconfirmed. The aetherawi.red host serves
+those files itself; they are not part of this repository and fall under neither of its licences.

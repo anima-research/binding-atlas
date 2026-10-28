@@ -1,0 +1,8 @@
+The Binding Atlas data is licensed under the Creative Commons Attribution 4.0 International licence (CC-BY-4.0):
+https://creativecommons.org/licenses/by/4.0/
+
+This covers everything under data/ (the built atlas data in data/built/, the inputs in data/inputs/, the input
+manifest data/INPUTS-MANIFEST.tsv), the data embedded in the built pages in site/, and the raw score grids the
+manifest lists, wherever they are published.
+
+Attribution: Binding Atlas, by Luxia (@LuxiaSL) and Claude (Anthropic).

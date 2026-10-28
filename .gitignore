@@ -1,0 +1,12 @@
+# virtualenvs and caches
+.venv/
+__pycache__/
+*.pyc
+# local-only: the path map to raw grids, and the grids root assembled from it
+config/local-grids.tsv
+.grids/
+# build scratch: verification builds, ledgers, card renders, derived templates
+out/
+config/local-names.tsv
+# host-supplied web font files (not redistributed; see site/fonts/README)
+site/fonts/*.woff2

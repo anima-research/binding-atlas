@@ -1,0 +1,19 @@
+# The aetherawi.red deployment: the page at https://aetherawi.red/kotodama/binding-atlas (clean URL for
+# binding-atlas.html), the card next to it. `make verify` rebuilds site/ with it and checks config/aetherawi.sha256.
+[site]
+name = "aetherawi.red"
+base_url = "https://aetherawi.red/kotodama/"
+clean_urls = true
+card_label = ""        # derived: aetherawi.red/kotodama/binding-atlas
+
+[nav]
+back_url = ""
+back_label = ""
+
+[font]                 # host-supplied: aetherawi.red serves the files at /kotodama/fonts/ (not in this repository)
+name = "Love Letter TW Luxia"
+family = "LL Luxia"
+url = "fonts/"
+stem = "LoveLetterTWLuxia"
+meta = "Love Letter Typewriter (Love Letter TW Luxia build), © 1994 Blake Haber for Dixie's Delights; fallback Courier Prime (OFL)"
+credit = "Set in Love Letter Typewriter (© 1994 Blake Haber, Dixie's Delights) with Courier Prime."

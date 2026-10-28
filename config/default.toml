@@ -1,0 +1,13 @@
+# Neutral hosting: relative URLs only, no canonical link, no site name. Servable from any path prefix.
+# See config/aetherawi.toml for a deployment with a domain, and page/siteconfig.py for every key.
+[site]
+name = ""
+base_url = ""
+clean_urls = true
+card_label = ""
+
+[nav]
+back_url = ""
+back_label = ""
+
+# [font]: none. The page is set in Courier Prime (OFL, Google Fonts), then the system monospace.

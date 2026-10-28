@@ -1,0 +1,1105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Binding Atlas</title>
+<meta name="typeface" content="__FONT_META__">
+<meta name="description" content="Base language models learn who “you” is in five stages. No public model up to 8B reaches the last one zero-shot at any token count measured, and from 14B to 1T it stays weak. Every model × every referent-binding probe, with the raw context behind each cell.">
+<link rel="canonical" href="__CANONICAL_URL__">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="__SITE_NAME__">
+<meta property="og:title" content="Binding Atlas">
+<meta property="og:description" content="Base language models learn who “you” is in five stages. No public model up to 8B reaches the last one zero-shot, at any token count measured; from 14B to 1T it stays weak.">
+<meta property="og:url" content="__CANONICAL_URL__">
+<meta property="og:image" content="__CARD_URL__">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Binding Atlas: dynamic “you” swap shift against parameter count for 30 public base models; zero-shot never binds up to 8B and stays weak from 14B to 1T.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Binding Atlas">
+<meta name="twitter:description" content="Base language models learn who “you” is in five stages. No public model up to 8B reaches the last one zero-shot, at any token count measured; from 14B to 1T it stays weak.">
+<meta name="twitter:image" content="__CARD_URL__">
+<meta name="twitter:image:alt" content="Dynamic “you” swap shift against parameter count for 30 public base models.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+__FONT_FACES__
+:root {
+  --bg: #ffffff; --surface: #ffffff; --surface2: #f3f4f6; --fg: #0b0c0e; --muted: #5a626d; --line: #d5d9de; --rule: #0b0c0e;
+  --pos: #1c2531; --neg: #9aa4b1; --mid: #eceef1; --hatch: #c9ced5; --accent: #0b0c0e; --human: #3d4652;
+  --chip: #f3f4f6; --gold-bg: #e3e7ec; --gold-fg: #0b0c0e; --warn: #3d4652; --shadow: 0 10px 40px rgba(11,12,14,.16);
+  --hatch-neg: rgba(11,12,14,.32);
+  --f-display: __FONT__"Courier Prime", "Courier New", ui-monospace, monospace;
+  --f-body: __FONT__"Courier Prime", "Courier New", ui-monospace, monospace;
+  --f-mono: "Courier Prime", __FONT__"Courier New", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0b0c0e; --surface: #0b0c0e; --surface2: #15181c; --fg: #f2f3f5; --muted: #9aa3ad; --line: #2b3038; --rule: #f2f3f5;
+  --pos: #e9ecf0; --neg: #5d6672; --mid: #1b1f25; --hatch: #39404a; --accent: #f2f3f5; --human: #b9c1cb;
+  --chip: #15181c; --gold-bg: #262c34; --gold-fg: #f2f3f5; --warn: #b9c1cb; --shadow: 0 10px 40px rgba(0,0,0,.6);
+  --hatch-neg: rgba(242,243,245,.30); color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0b0c0e; --surface: #0b0c0e; --surface2: #15181c; --fg: #f2f3f5; --muted: #9aa3ad; --line: #2b3038; --rule: #f2f3f5;
+  --pos: #e9ecf0; --neg: #5d6672; --mid: #1b1f25; --hatch: #39404a; --accent: #f2f3f5; --human: #b9c1cb;
+  --chip: #15181c; --gold-bg: #262c34; --gold-fg: #f2f3f5; --warn: #b9c1cb; --shadow: 0 10px 40px rgba(0,0,0,.6);
+  --hatch-neg: rgba(242,243,245,.30); color-scheme: dark }
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 15px; line-height: 1.55; }
+a { color: var(--fg); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+.wrap { padding: 36px max(16px, env(safe-area-inset-right, 0px)) 72px max(16px, env(safe-area-inset-left, 0px)); max-width: 1560px; margin: 0 auto; display: grid; gap: 22px; grid-template-columns: minmax(0, 1fr); }
+.wrap > * { min-width: 0; }
+header.top { display: grid; gap: 10px; }
+.eyebrow { font-size: 12px; overflow-wrap: anywhere; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(30px, 4.2vw, 46px); line-height: 1.08; margin: 0; letter-spacing: 0; text-wrap: balance; }
+h2 { font-family: var(--f-display); font-weight: 700; font-size: 21px; margin: 0 0 8px; text-wrap: balance; }
+h3 { font-family: var(--f-display); font-weight: 700; font-size: 16.5px; margin: 0 0 6px; }
+.lede { max-width: 78ch; margin: 0; font-size: 16.5px; }
+.lede b { font-weight: 600; }
+.stats { display: flex; gap: 22px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+.stats b { font-family: var(--f-display); font-size: 22px; color: var(--fg); font-weight: 700; display: block; line-height: 1.1; }
+.iconbtn { font: inherit; font-size: 13px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 8px; padding: 5px 10px; cursor: pointer; }
+.iconbtn:hover { border-color: var(--muted); }
+/* controls */
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 3px; padding: 14px 16px; }
+.controls { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: end; }
+.ctl { display: grid; gap: 5px; }
+.ctl > span { font-size: 12px; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.seg button { font: inherit; font-size: 14px; border: 0; background: transparent; color: var(--fg); padding: 6px 12px; cursor: pointer; white-space: nowrap; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
+.seg button:disabled { opacity: .4; cursor: not-allowed; }
+.f5ctl { display: flex; flex-wrap: wrap; gap: 8px 14px; margin: 6px 0 12px; }
+input[type=search] { font: inherit; font-size: 14px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--fg); width: 210px; }
+select { font: inherit; font-size: 14px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--fg); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.chip { font: inherit; font-size: 12.5px; border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; cursor: pointer; background: var(--chip); color: var(--fg); }
+.chip[aria-pressed="false"] { background: transparent; color: var(--muted); text-decoration: line-through; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+/* legend */
+.legend { display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; font-size: 13px; color: var(--muted); margin-top: 12px; }
+.ramp { display: flex; align-items: center; gap: 8px; }
+.ramp canvas { width: 220px; height: 12px; border-radius: 3px; border: 1px solid var(--line); }
+.sw { display: inline-block; width: 16px; height: 12px; border-radius: 3px; vertical-align: -2px; margin-right: 6px; border: 1px solid var(--line); }
+.sw.hatch { background: repeating-linear-gradient(135deg, var(--hatch) 0 2px, transparent 2px 5px); }
+.sw.small { border: 1.5px dashed var(--muted); background: var(--mid); }
+/* grid */
+.gridwrap { width: fit-content; max-width: 100%; overflow: auto; max-height: 78vh; border: 1px solid var(--line); border-radius: 3px; background: var(--surface); }
+table.atlas { border-collapse: separate; border-spacing: 2px; font-variant-numeric: tabular-nums; padding: 0 10px 10px 0; }
+.atlas thead th { position: sticky; z-index: 3; background: var(--surface); }
+.atlas thead tr.r1 th { top: 0; }
+.atlas thead tr.r2 th { top: 22px; }
+.atlas th.corner { position: sticky; left: 0; z-index: 5; background: var(--surface); box-shadow: 2px 0 0 var(--surface); }
+.atlas tr.grp th .grpbtn { position: sticky; left: 12px; }
+.atlas th.rowh { position: sticky; left: 0; z-index: 2; background: var(--surface); box-shadow: 2px 0 0 var(--surface); text-align: right; font-weight: 400; font-size: 13px; padding: 0 10px 0 12px; white-space: nowrap; cursor: pointer; }
+.atlas th.rowh:hover { color: var(--accent); }
+.atlas th.rowh small { color: var(--muted); font-size: 11px; }
+.atlas th.rowh small.tag { font-size: 10.5px; letter-spacing: .03em; border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; margin-left: 4px; }
+.atlas tr.rowsel th.rowh { color: var(--accent); font-weight: 600; }
+.atlas tr.grp th { background: var(--surface); text-align: left; font-family: var(--f-display); font-weight: 500; font-size: 15px; padding: 14px 12px 4px; white-space: nowrap; cursor: pointer; z-index: 2; }
+.grpbtn, .rowbtn { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-align: inherit; }
+.atlas tr.grp th .caret { display: inline-block; width: 14px; color: var(--muted); }
+.atlas thead th.cg { font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 600; text-align: left; padding: 2px 4px; border-bottom: 2px solid var(--line); white-space: nowrap; height: 22px; }
+.atlas thead th.cl { height: 132px; vertical-align: bottom; padding: 0; }
+.atlas thead th.cl button { writing-mode: vertical-rl; transform: rotate(180deg); font: inherit; font-size: 12px; color: var(--fg); background: none; border: 0; cursor: pointer; padding: 4px 0; white-space: nowrap; text-align: left; }
+.atlas thead th.cl button[aria-pressed="true"] { color: var(--accent); font-weight: 600; }
+.atlas thead th.cl button .srt { color: var(--accent); }
+.atlas td { padding: 0; }
+.cellbtn { width: 38px; height: 26px; border: 0; border-radius: 3px; font-family: var(--f-mono); font-size: 10.5px; cursor: pointer; display: grid; place-items: center; padding: 0; }
+.cellbtn.na { background: repeating-linear-gradient(135deg, var(--hatch) 0 2px, transparent 2px 5px); cursor: default; }
+.cellbtn.small { box-shadow: inset 0 0 0 1.5px var(--muted); font-style: italic; }
+.cellbtn.sel { box-shadow: inset 0 0 0 2.5px var(--fg); }
+.colsel .cellbtn:not(.na) { outline: 1px solid var(--accent); }
+.tip { position: fixed; z-index: 40; pointer-events: none; background: var(--fg); color: var(--bg); font-size: 12.5px; padding: 8px 10px; border-radius: 6px; max-width: 320px; line-height: 1.4; display: none; }
+/* drawer */
+.drawer { position: fixed; top: 0; right: 0; height: 100vh; width: min(560px, 100vw); background: var(--surface); border-left: 1px solid var(--line); box-shadow: var(--shadow); transform: translateX(105%); transition: transform .18s ease; z-index: 30; display: flex; flex-direction: column; }
+.drawer.open { transform: none; }
+.drawer .dh { padding: 16px 52px 10px 18px; border-bottom: 1px solid var(--line); display: grid; gap: 4px; }
+.drawer .db { padding: 14px 18px 40px; overflow: auto; overscroll-behavior: contain; display: grid; gap: 16px; align-content: start; }
+.drawer .close { position: absolute; top: 12px; right: 12px; }
+@media (max-width: 720px) {
+  .drawer { top: auto; bottom: 0; height: 82vh; width: 100vw; border-left: 0; border-top: 1px solid var(--line); border-radius: 14px 14px 0 0; transform: translateY(105%); }
+  .drawer.open { transform: none; }
+  input[type=search] { width: 100%; font-size: 16px; }
+  .quiz input { font-size: 16px; }
+  .atlas th.rowh { max-width: 132px; white-space: normal; font-size: 12px; line-height: 1.2; }
+  .atlas thead th.cl button { padding: 4px 8px; min-width: 32px; }
+  .chip { padding: 6px 12px; }
+  .cellbtn { height: 32px; }
+  details.panel summary { padding: 6px 0; }
+}
+.big { display: flex; gap: 22px; flex-wrap: wrap; align-items: baseline; }
+.big .n { font-family: var(--f-display); font-size: 34px; line-height: 1; }
+.big .n small { font-size: 14px; color: var(--muted); font-family: var(--f-body); }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 3px 14px; font-size: 13.5px; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; }
+.note { font-size: 13.5px; color: var(--muted); }
+.warnnote { font-size: 13px; color: var(--warn); }
+pre.ctx { font-family: var(--f-mono); font-size: 12.5px; line-height: 1.55; white-space: pre-wrap; word-break: break-word; background: var(--surface2); border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin: 0; max-height: 46vh; overflow: auto; }
+pre.ctx .q { background: var(--gold-bg); color: var(--gold-fg); border-radius: 3px; padding: 0 2px; }
+.cands { display: flex; flex-wrap: wrap; gap: 6px; font-family: var(--f-mono); font-size: 12.5px; }
+.cands span { border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; background: var(--chip); }
+.cands span.gold { background: var(--gold-bg); color: var(--gold-fg); border-color: var(--gold-fg); font-weight: 600; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.mtabs { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; margin-bottom: 10px; }
+.mtabs button { font: inherit; font-size: 14px; border: 0; background: transparent; color: var(--fg); padding: 6px 14px; cursor: pointer; }
+.mtabs button + button { border-left: 1px solid var(--line); }
+.mtabs button[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
+.iconbtn[aria-pressed="true"] { border-color: var(--fg); font-weight: 600; }
+.quiz { display: grid; gap: 10px; }
+.quiz form { display: flex; gap: 8px; flex-wrap: wrap; }
+.quiz input { font: inherit; font-family: var(--f-mono); font-size: 14px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--fg); flex: 1 1 180px; }
+.verdict { border-radius: 8px; padding: 10px 12px; font-size: 14px; }
+.verdict.ok { background: var(--gold-bg); color: var(--gold-fg); }
+.verdict.no { background: color-mix(in srgb, var(--neg) 18%, var(--surface)); color: var(--fg); }
+.verdict b { font-size: 16px; }
+.tally { font-size: 12.5px; color: var(--muted); }
+.strip { position: relative; height: 66px; border-top: 1px solid var(--line); margin-top: 22px; overflow-x: clip; }
+.strip .dot { position: absolute; top: -5px; width: 9px; height: 9px; border-radius: 50%; transform: translateX(-50%); background: var(--muted); opacity: .55; }
+.strip .dot.me { background: var(--accent); opacity: 1; width: 13px; height: 13px; top: -7px; box-shadow: 0 0 0 2px var(--surface); }
+.strip .dot.hum { background: var(--human); opacity: 1; }
+.strip .lab { position: absolute; top: 10px; font-size: 11px; color: var(--muted); transform: translateX(-50%); white-space: nowrap; }
+.strip .lab.me { color: var(--accent); top: 30px; font-weight: 600; }
+.strip .tick { position: absolute; top: -9px; height: 18px; width: 1px; background: var(--line); }
+svg.scatter { width: 100%; height: auto; display: block; }
+svg.scatter text { font-family: var(--f-body); fill: var(--muted); font-size: 11px; }
+svg.scatter .ax { stroke: var(--line); }
+svg.scatter .zero { stroke: var(--muted); stroke-dasharray: 3 3; }
+.anat { display: grid; gap: 6px; }
+.anat .bar { display: flex; height: 14px; border-radius: 4px; overflow: hidden; background: var(--mid); }
+.anat .bar span { display: block; height: 100%; }
+.anat .bar span + span { box-shadow: -2px 0 0 var(--surface); }
+.anat .keys { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12.5px; color: var(--muted); }
+.anat .keys i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+.rank { display: grid; gap: 2px; font-size: 13px; }
+.rank div { display: grid; grid-template-columns: 1fr 44px 120px; gap: 8px; align-items: center; cursor: pointer; padding: 1px 4px; border-radius: 4px; }
+.rank div:hover { background: var(--surface2); }
+.rank .bar { height: 8px; border-radius: 0 3px 3px 0; }
+.rank .bar.negb { border-radius: 3px 0 0 3px; }
+/* prose sections */
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px; }
+.prose p, .prose li { max-width: 72ch; font-size: 14.5px; }
+.prose ul { padding-left: 20px; margin: 6px 0; }
+details.panel summary { cursor: pointer; font-family: var(--f-display); font-weight: 700; font-size: 16.5px; }
+details.panel[open] summary { margin-bottom: 8px; }
+.log { font-size: 14px; display: grid; gap: 6px; }
+.log time { font-family: var(--f-mono); font-size: 12px; color: var(--muted); margin-right: 8px; }
+footer { color: var(--muted); font-size: 13px; display: flex; gap: 16px; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 14px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+/* ── paper front section ─────────────────────────────────────────── */
+.paper { display: grid; gap: 34px; max-width: 1080px; }
+.paper .claim { font-size: clamp(17px, 2vw, 20px); line-height: 1.5; max-width: 62ch; margin: 0; text-wrap: pretty; }
+.paper .byline { font-size: 13px; color: var(--muted); display: flex; gap: 6px 18px; flex-wrap: wrap; letter-spacing: .02em; }
+.paper .byline a { color: var(--muted); }
+.fig { display: grid; gap: 12px; border-top: 2px solid var(--rule); padding-top: 14px; }
+.fig .fh { display: flex; gap: 10px 16px; align-items: baseline; flex-wrap: wrap; }
+.fig .fh .no { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.fig .fh h2 { margin: 0; }
+.part { display: flex; gap: 10px 16px; align-items: baseline; flex-wrap: wrap; max-width: 1080px; margin: 46px 0 -8px; padding-top: 18px; border-top: 2px solid var(--fg); }
+.part .no { font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+.part h2 { margin: 0; font-size: clamp(22px, 2.6vw, 28px); text-wrap: balance; }
+.fig .cap { font-size: 13.5px; color: var(--muted); max-width: 80ch; margin: 0; }
+.fig .cap b { color: var(--fg); }
+.stairs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; align-items: start; }
+.stairs .st { border-left: 1px solid var(--line); padding: 0 12px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.stairs .st:first-child { border-left: 0; padding-left: 0; }
+.stairs .riser { height: 76px; display: flex; align-items: flex-end; margin-bottom: 6px; }
+.stairs .step { height: calc(var(--k) * 14px); width: 100%; background: var(--pos); }
+.stairs .st.stop .step { background: repeating-linear-gradient(135deg, var(--pos) 0 2px, transparent 2px 5px); border: 1px solid var(--pos); }
+.stairs .n { font-size: 12px; letter-spacing: .12em; color: var(--muted); }
+.stairs .name { font-weight: 700; font-size: 15.5px; line-height: 1.25; }
+.stairs .gloss { font-size: 13px; line-height: 1.45; }
+.stairs code { font-family: var(--f-mono); font-size: 12px; background: var(--surface2); padding: 4px 6px; display: block; white-space: normal; overflow-wrap: anywhere; }
+.stairs .who { font-size: 12px; color: var(--muted); }
+@media (max-width: 860px) { .stairs { grid-template-columns: minmax(0, 1fr); gap: 14px; } .stairs .st { border-left: 0; padding: 0; border-top: 1px solid var(--line); padding-top: 10px; } .stairs .riser { height: auto; } .stairs .step { height: 6px; width: calc(var(--k) * 20%); } }
+.figrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); gap: 26px; }
+.figrow > * { min-width: 0; }
+svg.plot { width: 100%; height: auto; display: block; overflow: visible; }
+svg.plot text { font-family: var(--f-mono); fill: var(--muted); font-size: 11px; }
+svg.plot .ax { stroke: var(--line); }
+svg.plot .zero { stroke: var(--fg); stroke-width: 1; }
+svg.plot .band { fill: var(--surface2); }
+svg.plot .lbl { fill: var(--fg); }
+.plotkey { display: flex; gap: 6px 18px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); }
+.plotkey .k { display: inline-flex; align-items: center; gap: 6px; }
+.plotkey svg { width: 14px; height: 14px; }
+table.levers { border-collapse: collapse; width: 100%; font-size: 14px; }
+table.levers th, table.levers td { text-align: left; padding: 8px 10px 8px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+table.levers th { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 400; border-bottom: 1px solid var(--rule); }
+table.levers td.eff { font-family: var(--f-mono); font-weight: 700; white-space: nowrap; width: 3.5em; }
+table.levers td.cost { color: var(--muted); }
+.tblwrap { overflow-x: auto; }
+.sect { display: grid; gap: 10px; border-top: 2px solid var(--rule); padding-top: 14px; }
+.sect > h2 { margin: 0; }
+.sect > .cap { font-size: 13.5px; color: var(--muted); margin: 0; max-width: 80ch; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="paper" style="gap:14px">
+    <div class="eyebrow"><span>kotodama · referent binding</span>
+      <button class="iconbtn" id="theme" aria-label="toggle light / dark theme">light / dark</button></div>
+    <h1>Binding Atlas</h1>
+    <p class="claim">Base language models acquire the referent of <i>you</i> in five ordered stages. Every base of 0.6B
+      parameters or more trained on trillions of tokens reaches the first three. The fifth stage, tracking <i>you</i>
+      after objects change hands, is <b>never reached zero-shot</b> by a public model up to 8B, at any token count
+      measured up to 36T; at the final checkpoint its swap shift is negative in every one of them. Whether more tokens
+      would get a small model there is unknown. From 14B to 1T parameters it is weak and nearly flat in 10 of the 11
+      bases with a public size: a zero-shot swap shift of +.01 to +.07, against +.27 to
+      +.82 for static <i>you</i> in the seven of them where that is measured. In these models
+      parameter count and depth grow together. <b>kotodama-tsumugi</b>, a 1.4B model run as 72 effective layers
+      (looped depth, boundary-fitted attention residuals), separates them: it reaches stage 3 by <b>33B tokens</b>
+      (annealed; on the constant-LR trunk by 40B), the token cost of OLMo-2 13B, against about 420B for OLMo-2 1B.
+      Trained to 110B tokens, it has not reached stage 5.</p>
+    <div class="byline"><span>kotodama · 2026</span><span>30 public bases · 5 public training trajectories · kotodama-tsumugi (seed 17 to 110B tokens; seed 7 to 11B)</span>
+      <a href="#atlas">full atlas ↓</a><a href="binding-atlas.md">agent view (markdown)</a>__BACK_LINK__</div>
+  </header>
+
+  <div class="part"><span class="no">Part I</span><h2>Where base models fail</h2></div>
+  <div class="paper">
+    <section class="fig" aria-labelledby="f1h">
+      <div class="fh"><span class="no">Figure 1</span><h2 id="f1h">The staircase</h2></div>
+      <div class="stairs" id="stairs"></div>
+      <p class="cap"><b>The stages appear in the same order in every trajectory measured</b>: OLMo-2 1B, 7B and 13B;
+        SmolLM3 3B; Pythia 410M to 6.9B; kotodama-tsumugi. kotodama-tsumugi follows the same order at a
+        fraction of the token cost (Part III). Each stage is read with a speaker swap. Only the
+        speaker's name on the last line changes, and a bound pronoun moves its answer with the speaker. The hatched
+        stage is where most bases stop.</p>
+    </section>
+
+    <div class="figrow">
+      <section class="fig" aria-labelledby="f2h">
+        <div class="fh"><span class="no">Figure 2</span><h2 id="f2h">Not reached at or below 8B; weak above 14B</h2></div>
+        <div id="thresh"></div>
+        <p class="cap"><b>Dynamic <i>you</i> at each model's final checkpoint (OLMo-2 1B: its 4T pre-anneal checkpoint).</b> A positive swap shift means <i>you</i>
+          follows the addressee; a negative one means <i>you</i> resolves to the speaker. Zero-shot (filled) is negative for
+          every model at or below 8B, for token counts up to 36T, and turns positive between 8B and 14B on both Qwen
+          recipes. All of these are standard-shape transformers whose depth grows with their size; depth at a fixed
+          parameter count is a separate, unmeasured axis here. Nor is this evidence that the stage needs more
+          parameters: no model at or below 8B has been trained far enough to rule tokens out, so whether it is
+          token-reachable at small sizes is unknown. Above 14B it changes little: +.022 for Qwen3 14B, +.054 for Llama-3.1 405B, +.045 for Kimi-K2 at about
+          1T. In-context (3-shot, hollow) turns positive at smaller sizes and reaches +.24 for Qwen3 14B. The
+          kotodama-tsumugi release (diamond; 1.4B at 110B tokens) reads −.021 zero-shot. Its
+          interval reaches −.013, so under the gauge rule (inverted only when the whole 95% interval
+          lies below −.02) it is not inverted. Of the 1–2B public bases whose static <i>you</i> binds, only Llama-3.2-1B
+          (−.022) is not inverted too; the rest are (−.047 to −.089). It does not
+          bind either.</p>
+      </section>
+      <section class="fig" aria-labelledby="f3h">
+        <div class="fh"><span class="no">Figure 3</span><h2 id="f3h">Stage cost by model size</h2></div>
+        <div id="cost"></div>
+        <p class="cap"><b>Training tokens until each stage appears, for one data recipe (OLMo-2) at three sizes.</b>
+          Stage 1 costs about the same at 1B, 7B and 13B. Stage 3 takes about ten times fewer tokens at 13B than at 1B.
+          Stage 5 is absent at the last checkpoint of all three (4T to 5T tokens). kotodama-tsumugi, at 1.4B
+          parameters, reaches stage 1 between 3B and 3.75B tokens and stage 3 between 30B and 33B (the 13B model's
+          token cost at a tenth of its size), and has not reached stage 5 by 110B.</p>
+      </section>
+    </div>
+
+    <section class="fig" aria-labelledby="t1h">
+      <div class="fh"><span class="no">Table 1</span><h2 id="t1h">Stage 5, taken apart</h2></div>
+      <div class="tblwrap"><table class="levers" id="decomp"></table></div>
+      <p class="cap"><b>The dynamic-<i>you</i> items, rewritten along one axis at a time</b> (accuracy at 0-shot, self
+        and addressee queries pooled; chance ≈ .29; about ±.024 per cell). <i>Narrated</i> removes deixis from the
+        whole scene. <i>Spoken</i> is the gauge item itself. <i>Spoken, transfer narrated</i> keeps the chat but
+        states the hand-off as a stage direction. <i>Spoken + vocative</i> names the addressee in the query. Three
+        layers show. (1) <b>Possession transfer itself.</b> Every ~1B model is at chance even when the scene is
+        narrated: kotodama-tsumugi through 110B, Pythia-1.4B, OLMo-2 1B at 4T. SmolLM2 1.7B at 11T and Qwen3 1.7B at
+        36T lift off chance; from 4B it is easy (.57–.80). (2) <b>The transfer as a speech act</b> (“here, take my
+        cup”) is the mid-size wall: models from 4B to 70B that pass the narrated version stay at .29–.41 when it is
+        spoken. Narrating only the hand-off recovers part of that gap, from almost none (Qwen3 4B) to about three
+        quarters (Qwen3 30B-A3B). (3) <b>Naming the addressee does not help</b>: the vocative variant is at or below
+        the spoken one for every public model, and within about .01 of it for kotodama-tsumugi.</p>
+    </section>
+
+  </div>
+
+  <section class="sect" id="atlas" aria-labelledby="ah">
+    <h2 id="ah">Full atlas</h2>
+    <p class="cap">Every reachable model against every referent-binding probe, chance-normalized (0 = guessing,
+      1 = perfect). Each cell opens the exact text the model saw.</p>
+    <div class="stats" id="stats"></div>
+  </section>
+
+  <section class="panel" aria-label="controls">
+    <div class="controls">
+      <div class="ctl" role="group" aria-labelledby="lab-view"><span id="lab-view">View</span><div class="seg" id="view">
+        <button data-v="score" aria-pressed="true" title="(acc − chance) / (1 − chance)">Score</button>
+        <button data-v="acc" aria-pressed="false">Accuracy</button>
+        <button data-v="gap" aria-pressed="false" title="3rd-person twin score minus I/you score, per deixis query">Perspective gap</button></div></div>
+      <div class="ctl" role="group" aria-labelledby="lab-cond"><span id="lab-cond">Condition</span><div class="seg" id="cond">
+        <button data-v="0shot" aria-pressed="true">0-shot</button>
+        <button data-v="3shot" aria-pressed="false">3-shot</button>
+        <button data-v="3shot_collide" aria-pressed="false" title="exemplars that reuse the query's names/objects">3-shot collide</button></div></div>
+      <div class="ctl" role="group" aria-labelledby="lab-mode"><span id="lab-mode">Items</span><div class="seg" id="mode">
+        <button data-v="all" aria-pressed="true">All</button>
+        <button data-v="free" aria-pressed="false" title="deixis only: the answer is neither the last-mentioned person nor the last speaker">Shortcut-free</button></div></div>
+      <label class="ctl"><span>Find a model</span><input type="search" id="q" placeholder="e.g. 405B, Claude, Qwen3"></label>
+      <label class="ctl"><span>Sort rows</span><select id="sort"><option value="">by group (default)</option></select></label>
+      <label class="ctl"><span>Parameters</span><select id="psz"><option value="">any size</option><option value="0-2">up to 2B</option><option value="2-10">2B to 10B</option><option value="10-100">10B to 100B</option><option value="100-">100B and up</option><option value="known">published size only</option></select></label>
+      <label class="ctl"><span>&nbsp;</span><span style="display:flex;gap:8px;text-transform:none;letter-spacing:0">
+        <button class="iconbtn" id="share" title="copy a link to this exact view">⧉ copy link</button>
+        <button class="iconbtn" id="dl">⤓ data (JSON)</button></span></label>
+    </div>
+    <div class="chips" id="groups" aria-label="row groups"></div>
+    <div class="legend">
+      <span class="ramp"><span id="rlo">−1</span><canvas id="ramp" width="220" height="12"></canvas><span id="rhi">1</span></span>
+      <span><span class="sw hatch"></span>no data</span>
+      <span><span class="sw small"></span>small sample (n &lt; 30, read loosely)</span>
+      <span id="legnote"></span>
+    </div>
+  </section>
+
+  <div class="gridwrap" id="gridwrap"><table class="atlas" id="grid"></table></div>
+
+  <div class="part"><span class="no">Part II</span><h2>The levers</h2></div>
+  <div class="paper">
+    <section class="fig" aria-labelledby="t2h">
+      <div class="fh"><span class="no">Table 2</span><h2 id="t2h">Levers in the kotodama stack</h2></div>
+      <div class="tblwrap"><table class="levers" id="levers"></table></div>
+      <p class="cap">Each lever measured on 1.4B-parameter arms trained for 4B tokens on one data order; one seed per arm
+        except the fitted boundaries (three seeds). Set binding and attribution are capacity probes from the battery.
+        Depth, looping and fitted boundaries raise these probes; dialogue-heavy early data does not. kotodama-tsumugi
+        (Part III) combines the three positive levers in one model.</p>
+    </section>
+  </div>
+
+  <div class="part"><span class="no">Part III</span><h2>kotodama-tsumugi</h2></div>
+  <div class="paper">
+    <p class="cap" style="max-width:none">A 1.42B-parameter model: 52 unique layers at width 1536, with a 20-layer block
+      in the middle run twice for 72 effective layers, and attention-residual boundaries fitted to the network's own layer
+      geometry. The trunk trains at a constant learning rate to 100B tokens; annealed reads are cooldown branches forked
+      from its checkpoints. The release is the 110B branch from the 100B fork. A second anneal from the same fork, with
+      the same training loss, reads .025 bits/byte worse on held-out text, so every single-anneal number here carries
+      that spread. A second initialization seed (seed 7, same data order) was trained to 11B.</p>
+    <section class="fig" aria-labelledby="f4h">
+      <div class="fh"><span class="no">Figure 4</span><h2 id="f4h">The staircase in one run</h2></div>
+      <div id="moontraj"></div>
+      <p class="cap"><b>Swap shift against training tokens for the three stage gauges</b>, seed 17's trunk (filled
+        markers, constant LR to 100B) and its annealed branches (hollow), with seed 7 (small grey markers, to 11B).
+        Static <i>I</i> binds from 3.75B tokens and plateaus at +.19 to +.31 after about 30B. Static <i>you</i> dips
+        below zero (the <i>you = me</i> stage), first binds at +.073 when annealed at 33B and on the
+        trunk itself at 40B (+.077), and reads +.235 at the 110B release. The second
+        anneal from the same fork reads +.142: a single checkpoint's static-<i>you</i> reading carries
+        about ±.05 of anneal-to-anneal spread. Dynamic <i>you</i> (0-shot) inverts from about 4B, deepest at 11B
+        (−.047), and shallows to −.020 at 88B and −.016 / −.021 at 110B,
+        no longer inverted under the gauge rule; it never binds. The markers along the top show where OLMo-2 reaches stage 3 at 13B, 7B
+        and 1B parameters.</p>
+    </section>
+    <section class="fig" aria-labelledby="f5h">
+      <div class="fh"><span class="no">Figure 5</span><h2 id="f5h">The run against its peers</h2></div>
+      <div class="f5ctl">
+        <div class="seg" id="f5m" role="group" aria-label="metric"><button data-k="avg9" aria-pressed="true">9-task average</button><button data-k="ubpb" aria-pressed="false">held-out text</button><button data-k="I" aria-pressed="false">static <i>I</i></button><button data-k="you" aria-pressed="false">static <i>you</i></button></div>
+        <div class="seg" id="f5x" role="group" aria-label="x axis"><button data-k="tok" aria-pressed="true">tokens</button><button data-k="flops" aria-pressed="false">training FLOPs</button></div>
+      </div>
+      <div id="f5"></div>
+      <p class="cap"><b>Every same-harness checkpoint of kotodama-tsumugi and its peers, matched on the x-axis.</b>
+        The white line is tsumugi's constant-LR trunk; hollow markers are its annealed reads, the 110B release among them.
+        Grey lines are public checkpoints of Pythia-1.4B, OLMo-2 1B, OLMo-1 1B and SmolLM2-1.7B. Held-out text is
+        bits per byte, drawn with lower (better) at the top. On the FLOPs axis tsumugi pays for its looped depth
+        (1.13e10 FLOPs per token, about 1.3× the 1–2B bases).</p>
+    </section>
+    <section class="fig" aria-labelledby="t3h">
+      <div class="fh"><span class="no">Table 3</span><h2 id="t3h">Battery at the early annealed reads</h2></div>
+      <div class="tblwrap"><table class="levers" id="moonbat"></table></div>
+      <p class="cap">Accuracy on the binding battery at each annealed branch (chance in brackets where it is fixed). The
+        bookkeeping probes rise steadily from 5B to 33B. The perspective probes hold near their 5B level through 11B and
+        begin to lift at 33B, alongside stage 3. The two seeds differ at 5B (seed 7 forms set binding earlier, seed 17 forms
+        static <i>I</i> earlier) and agree within sampling error at 11B: the seed changes when each circuit forms, not
+        where it settles. This battery was read at the early branches only; Table 4 carries the release.</p>
+    </section>
+    <section class="fig" aria-labelledby="t4h">
+      <div class="fh"><span class="no">Table 4</span><h2 id="t4h">The release against its trajectory and its class</h2></div>
+      <div class="tblwrap"><table class="levers" id="reltab"></table></div>
+      <p class="cap">Stage gauges (swap shifts; above +.02 binds), binding capacity (after arXiv 2609.30634: K50 = how
+        many name–task bindings fit in context before recall falls halfway; the last capacity row is recall of a single
+        binding across 256 tokens of filler) and deixis-v2 accuracy (chance ≈ .33). The two 110B columns are two
+        anneals from the same fork with the same training loss. The spread between them (static <i>you</i> .142 vs
+        .235, K50 3.8 vs 4.8) is the measured anneal-to-anneal variance, so a difference between neighbouring
+        checkpoints on one axis is not a trend. deixis v2 has no SmolLM2 or Qwen3 grid. Capacity tracks recipe and
+        tokens more than parameters on this harness (Pythia is flat from 160M to 6.9B), so no parameter-equivalent
+        size is read from it.</p>
+    </section>
+    <section class="fig" aria-labelledby="t5h">
+      <div class="fh"><span class="no">Table 5</span><h2 id="t5h">Object tracking, with fair examples</h2></div>
+      <div class="tblwrap"><table class="levers" id="riders"></table></div>
+      <p class="cap"><b>Riders v2</b>: boxes go through swaps and moves in narrative or screenplay prose and one box is
+        queried (accuracy; chance .25; about ±.024 per cell). With the <i>same</i> three exemplars for every item
+        (fixed3), accuracy falls well below zero-shot for OLMo-2 1B at 4T and for every kotodama-tsumugi checkpoint
+        (−.05 to −.22): the few-shot penalty seen in training-time probes came from that setup, not from a failure of
+        in-context learning. With exemplars drawn per item (fair1 / fair3 / fair6), few-shot helps every public model
+        here (+.06 to +.11 at fair6) and kotodama-tsumugi through 55B (+.02 to +.08), but not the two 110B anneals
+        (second anneal −.03, release −.045). Zero-shot, the annealed kotodama-tsumugi checkpoints from 33B on (.455–.490)
+        sit above every public checkpoint measured on this harness (best: SmolLM2 1.7B at 8.4T, .420).
+        The public pool is three 1–2B models, so no comparison with larger models is claimed. Object tracking is not
+        stage 5: OLMo-2 1B climbs from .230 at 1B tokens to .385 at 4T while its zero-shot
+        dynamic <i>you</i> never binds.</p>
+    </section>
+  </div>
+
+  <section class="sect" aria-labelledby="apph"><h2 id="apph">Appendix</h2></section>
+  <div class="two">
+    <details class="panel prose"><summary>Reading the grid</summary>
+      <ul>
+        <li><b>Score</b> = (accuracy − chance) / (1 − chance). 0 is guessing among the candidates, 1 is perfect, below 0 is
+          worse than guessing (a systematic wrong answer — usually the shortcut).</li>
+        <li><b>Deixis columns come in pairs</b>: the <i>I/you/my</i> version and a <b>3rd-person twin</b> narrating the same
+          events with names. The twin is the control — same memory load, no perspective. The <b>Perspective gap</b> view is
+          twin minus deictic: how much a model loses purely by having to take a seat.</li>
+        <li><b>Shortcut-free</b> keeps only items where the answer is neither the last-mentioned person nor the last speaker.
+          Most deixis "success" lives in those two shortcuts; with them removed, nearly everything falls to chance on
+          query-side <i>you</i> — up to 405B.</li>
+        <li><b>P3 / P2</b> = three or two people in the scene. P2 <i>you</i> is the structural case: no name tells you who
+          <i>you</i> is; only the turn structure does.</li>
+        <li><b>Open models</b> are scored by log-probability over the candidates. <b>API models</b> (Claude, OpenRouter rows)
+          can't expose that, so they answer in words: <i>reflex</i> = "reply with only the next word", <i>deliberate</i> =
+          "think it through, then answer". Compare within a scoring type first.</li>
+      </ul>
+    </details>
+    <details class="panel prose"><summary>Findings by probe</summary>
+      <ul id="findings"></ul>
+    </details>
+  </div>
+
+  <div class="two">
+    <details class="panel prose"><summary>Caveats</summary><ul id="gaps"></ul></details>
+  </div>
+
+  <details class="panel prose"><summary>Methods and instruments</summary>
+    <ul>
+      <li><b>Core binding</b>: static lookup (N people each keep an object), code variables (assignments, copies, swaps),
+        3rd-person updates (objects change hands, partly via pronouns).</li>
+      <li><b>Deixis v2</b>: chats where ownership is stated only through <i>I/my/you</i> and vocatives; queries ask who
+        has an object (owner), what the speaker holds (self), or what the addressee holds (you). Every deictic item has a
+        name-only twin. Generated procedurally with frozen validity gates; candidates are always the names/objects in play.</li>
+      <li><b>Battery v3</b>: set binding (several objects per person; exact-set scoring), production deixis (answer the
+        question as the answerer would: <i>me</i> / <i>you</i> / a name; read against a body-hidden null to remove the
+        phrase prior), adjacency (<i>yours</i> resolved only by request→grant structure), aliased Python lists (mutate /
+        rebind / copy traps).</li>
+      <li><b>Kotodama models</b>: lever arms at 1.42B parameters and 4B tokens (Table 2), and kotodama-tsumugi
+        (Part III): a constant-LR trunk to 100B tokens with cooldown branches (cosine decay to zero over about 10% of the
+        tokens so far, forked from full checkpoints), read with the stage gauges, the battery, binding capacity, the
+        stage-5 decomposition and riders v2.</li>
+      <li>Cells need n ≥ 8 (the human row is the exception — it is a handful of items per cell, shown as small-sample).</li>
+    </ul>
+  </details>
+
+  <footer><span id="updated"></span><span id="foot"></span><span>Built from the kotodama binding research (2026). Numbers are point
+    estimates; hover a cell for n and ± standard error.</span><span>__FONT_CREDIT__</span><span><a href="binding-atlas.md">Agent view (Markdown)</a>: the same data as plain text, with example prompts and every cell as CSV.</span></footer>
+</div>
+
+<div class="tip" id="tip" role="tooltip"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="false" aria-label="details" inert>
+  <button class="iconbtn close" id="dclose" aria-label="close">✕</button>
+  <div class="dh" id="dh"></div>
+  <div class="db" id="db"></div>
+</aside>
+
+<script type="application/json" id="stage-data">__STAGE_DATA__</script>
+<script>
+(() => {
+"use strict";
+const G = JSON.parse(document.getElementById("stage-data").textContent);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+const f3 = v => (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(3).replace(/^0/, "");
+// Figure 1: the staircase
+document.getElementById("stairs").innerHTML = G.stages.map(st => `
+  <div class="st${st.n === 4 ? " stop" : ""}" style="--k:${st.n}">
+    <div class="riser" aria-hidden="true"><div class="step"></div></div>
+    <div class="n">STAGE ${st.n}</div><div class="name">${esc(st.name)}</div>
+    <div class="gloss">${esc(st.gloss)}</div><code>${esc(st.ex)}</code>
+    <div class="who">${esc(st.ok)}<br>OLMo-2 1B: ${esc(st.olmo1b)}<br>kotodama-tsumugi 1.4B: ${esc(st.ours)}</div></div>`).join("");
+// marker shapes: zero-shot = filled square, 3-shot = hollow square, ours = filled diamond
+const sq = (x, y, fill, r = 4) => `<rect x="${(x - r).toFixed(1)}" y="${(y - r).toFixed(1)}" width="${2 * r}" height="${2 * r}" fill="${fill ? "var(--fg)" : "var(--bg)"}" stroke="var(--fg)" stroke-width="1.3"/>`;
+const dia = (x, y, r = 6) => `<path d="M${x} ${y - r}L${x + r} ${y}L${x} ${y + r}L${x - r} ${y}Z" fill="var(--fg)" stroke="var(--bg)" stroke-width="1.5"/>`;
+// Figure 2: dynamic-you vs params
+(() => {
+  const T = G.threshold, M = T.models, W = 520, H = 300, L = 54, R = 14, Tp = 14, B = 40;
+  const x0 = Math.log10(0.4), x1 = Math.log10(1500), y0 = -0.1, y1 = 0.26;
+  const X = p => L + (Math.log10(p) - x0) / (x1 - x0) * (W - L - R), Y = v => Tp + (y1 - v) / (y1 - y0) * (H - Tp - B);
+  let s = `<svg class="plot" viewBox="0 0 ${W} ${H}" role="img" aria-label="dynamic you swap shift against parameter count">`;
+  s += `<rect class="band" x="${X(8.2)}" y="${Tp}" width="${X(14.8) - X(8.2)}" height="${H - Tp - B}"/><text x="${(X(8.2) + X(14.8)) / 2}" y="${H - B + 30}" text-anchor="middle">↑ 8–14B</text>`;
+  for (const t of [1, 10, 100, 1000]) s += `<line class="ax" x1="${X(t)}" x2="${X(t)}" y1="${Tp}" y2="${H - B}"/><text x="${X(t)}" y="${H - B + 16}" text-anchor="middle">${t >= 1000 ? "1T" : t + "B"}</text>`;
+  for (const v of [-0.1, 0, 0.1, 0.2]) s += `<text x="${L - 7}" y="${Y(v) + 4}" text-anchor="end">${v ? f3(v).slice(0, -1) : "0"}</text>`;
+  s += `<line class="zero" x1="${L}" x2="${W - R}" y1="${Y(0)}" y2="${Y(0)}"/>`;
+  s += `<text x="${W - R}" y="${H - B + 30}" text-anchor="end">parameters (log)</text><text x="12" y="${(Tp + H - B) / 2}" text-anchor="middle" transform="rotate(-90 12 ${(Tp + H - B) / 2})">swap shift</text>`;
+  for (const m of M) {
+    const x = X(m.p);
+    s += `<line x1="${x}" x2="${x}" y1="${Y(m.z)}" y2="${Y(m.t)}" stroke="var(--line)"/>`;
+    s += `<g><title>${esc(m.m)} · ${m.tok} tokens · 0-shot ${f3(m.z)} · 3-shot ${f3(m.t)}</title>${sq(x, Y(m.t), false)}${sq(x, Y(m.z), true)}</g>`;
+  }
+  const o = T.ours; s += `<g><title>${esc(o.m)}: 0-shot ${f3(o.z)} · 3-shot ${f3(o.t)}</title>${dia(X(o.p), Y(o.z))}</g><text class="lbl" x="${X(o.p)}" y="${Y(o.z) + 20}" text-anchor="middle">kotodama</text>`;
+  for (const [name, dx, anchor] of [["Qwen3 14B", 9, "start"], ["Llama-3.1 405B", -8, "end"]]) { const m = M.find(q => q.m === name); if (m) s += `<text class="lbl" x="${X(m.p) + dx}" y="${Y(m.t) + 4}" text-anchor="${anchor}">${esc(name.replace("Llama-3.1 ", "Llama "))}</text>`; }
+  s += `</svg><div class="plotkey"><span class="k"><svg viewBox="0 0 14 14">${sq(7, 7, true)}</svg>zero-shot</span><span class="k"><svg viewBox="0 0 14 14">${sq(7, 7, false)}</svg>3-shot</span><span class="k"><svg viewBox="0 0 14 14">${dia(7, 7, 5)}</svg>kotodama-tsumugi 1.4B at 110B tokens (release)</span></div>`;
+  s += `<p class="cap" style="font-size:12.5px">Also measured, parameter count not public: ${T.unsized.map(u => `${esc(u.m)} ${f3(u.z)} / ${f3(u.t)}`).join(" · ")} (0-shot / 3-shot).</p>`;
+  document.getElementById("thresh").innerHTML = s;
+})();
+// Figure 3: tokens to each stage, OLMo-2 1B/7B/13B (+ ours)
+(() => {
+  const rows = G.cost.rows, W = 520, H = 70 + rows.length * 64, L = 150, R = 18, Tp = 10, B = 40;
+  const x0 = Math.log10(1), x1 = Math.log10(10000), X = t => L + (Math.log10(t) - x0) / (x1 - x0) * (W - L - R);
+  const lanes = ["OLMo-2 1B", "OLMo-2 7B", "OLMo-2 13B", "kotodama-tsumugi"], off = {"OLMo-2 1B": -15, "OLMo-2 7B": -5, "OLMo-2 13B": 5, "kotodama-tsumugi": 15};
+  let s = `<svg class="plot" viewBox="0 0 ${W} ${H}" role="img" aria-label="tokens until each stage appears">`;
+  for (const t of [1, 10, 100, 1000, 10000]) s += `<line class="ax" x1="${X(t)}" x2="${X(t)}" y1="${Tp}" y2="${H - B}"/><text x="${X(t)}" y="${H - B + 16}" text-anchor="middle">${t >= 1000 ? t / 1000 + "T" : t + "B"}</text>`;
+  s += `<text x="${(L + W - R) / 2}" y="${H - 6}" text-anchor="middle">training tokens (log)</text>`;
+  rows.forEach((r, i) => {
+    const yc = Tp + 34 + i * 64;
+    s += `<text class="lbl" x="${L - 12}" y="${yc + 4}" text-anchor="end">${esc(r.stage)}</text>`;
+    for (const p of r.pts) {
+      const y = yc + off[p.m], a = X(p.lo), open = p.hi == null, b = open ? Math.min(W - R, X(p.lo * 2.5)) : X(p.hi);
+      const dash = open ? ` stroke-dasharray="3 3"` : "", w = p.ours ? 2.5 : 1.6;
+      s += `<g><title>${esc(p.m)}: ${p.lo}${open ? "+ (" + esc(p.note || "not reached") + ")" : "–" + p.hi}B tokens</title>`;
+      s += `<line x1="${a}" x2="${b}" y1="${y}" y2="${y}" stroke="var(--fg)" stroke-width="${w}"${dash}/>`;
+      s += p.ours ? dia(a, y, 5) : `<rect x="${a - 3}" y="${y - 3}" width="6" height="6" fill="var(--fg)"/>`;
+      if (open) s += `<path d="M${b - 4} ${y - 3}L${b} ${y}L${b - 4} ${y + 3}" fill="none" stroke="var(--fg)" stroke-width="1.3"/>`;
+      s += `</g>`;
+    }
+  });
+  s += `</svg><div class="plotkey"><span>each line spans the checkpoints that bracket the stage; rows top → bottom = OLMo-2 1B · 7B · 13B · kotodama-tsumugi 1.4B; dashed arrow = not reached by the last checkpoint</span><span class="k"><svg viewBox="0 0 14 14">${dia(7, 7, 5)}</svg>kotodama-tsumugi 1.4B</span></div>`;
+  document.getElementById("cost").innerHTML = s;
+})();
+// Figure 4: kotodama-tsumugi's stage gauges against tokens
+(() => {
+  const M = G.tsumugi, W = 720, H = 320, L = 56, R = 120, Tp = 14, B = 44;
+  const x0 = Math.log10(0.8), x1 = Math.log10(700), y0 = -0.07, y1 = 0.34;
+  const X = t => L + (Math.log10(t) - x0) / (x1 - x0) * (W - L - R), Y = v => Tp + (y1 - v) / (y1 - y0) * (H - Tp - B);
+  const ser = [["I", "static I", ""], ["you", "static you", "6 3"], ["dyn0", "dynamic you (0-shot)", "2 3"]];
+  let s = `<svg class="plot" viewBox="0 0 ${W} ${H}" role="img" aria-label="kotodama-tsumugi stage gauges against training tokens">`;
+  for (const t of [1, 3, 10, 30, 100, 300]) s += `<line class="ax" x1="${X(t)}" x2="${X(t)}" y1="${Tp}" y2="${H - B}"/><text x="${X(t)}" y="${H - B + 16}" text-anchor="middle">${t}B</text>`;
+  for (const v of [-0.05, 0, 0.1, 0.2]) s += `<text x="${L - 7}" y="${Y(v) + 4}" text-anchor="end">${v ? f3(v).slice(0, -1) : "0"}</text>`;
+  s += `<line class="zero" x1="${L}" x2="${W - R}" y1="${Y(0)}" y2="${Y(0)}"/>`;
+  s += `<line x1="${L}" x2="${W - R}" y1="${Y(0.02)}" y2="${Y(0.02)}" stroke="var(--line)" stroke-dasharray="2 4"/><text x="${W - R + 4}" y="${Y(0.02) + 4}" class="lbl">binds (+.02)</text>`;
+  for (const [oi, o] of M.olmo_stage3.entries()) s += `<g><title>${esc(o.m)} reaches stage 3 at ~${o.tok}B tokens</title><line x1="${X(o.tok)}" x2="${X(o.tok)}" y1="${Tp}" y2="${H - B}" stroke="var(--line)" stroke-dasharray="1 3"/><path d="M${X(o.tok) - 5} ${Tp}L${X(o.tok) + 5} ${Tp}L${X(o.tok)} ${Tp + 7}Z" fill="var(--fg)"/><text class="lbl" x="${X(o.tok)}" y="${Tp + 20 + (oi % 2) * 13}" text-anchor="middle">${esc(o.m)}</text></g>`;
+  s += `<text x="${(L + W - R) / 2}" y="${H - 6}" text-anchor="middle">training tokens (log) · ▾ = where OLMo-2 reaches stage 3 at 13B / 7B / 1B parameters</text><text x="12" y="${(Tp + H - B) / 2}" text-anchor="middle" transform="rotate(-90 12 ${(Tp + H - B) / 2})">swap shift</text>`;
+  const pts = (seed, kind) => M.traj[seed].filter(p => p.kind === kind);
+  for (const [k, name, dash] of ser) {
+    const c = pts("s17", "constant"), path = c.map((p, i) => `${i ? "L" : "M"}${X(p.tok).toFixed(1)} ${Y(p[k]).toFixed(1)}`).join("");
+    s += `<path d="${path}" fill="none" stroke="var(--fg)" stroke-width="1.8" stroke-dasharray="${dash}"/>`;
+    for (const p of c) s += `<g><title>seed 17 trunk · ${p.tok}B · ${esc(name)} ${f3(p[k])}</title>${sq(X(p.tok), Y(p[k]), true, 3.5)}</g>`;
+    for (const p of pts("s17", "annealed")) s += `<g><title>seed 17 annealed${p.note ? " (" + esc(p.note) + ")" : ""} · ${p.tok}B · ${esc(name)} ${f3(p[k])}</title>${sq(X(p.tok), Y(p[k]), false, 4.5)}</g>`;
+    for (const p of pts("s7", "constant").concat(pts("s7", "annealed"))) s += `<g><title>seed 7 ${p.kind} · ${p.tok}B · ${esc(name)} ${f3(p[k])}</title><circle cx="${X(p.tok)}" cy="${Y(p[k])}" r="2.4" fill="var(--line)"/></g>`;
+    const last = c[c.length - 1]; s += `<text class="lbl" x="${X(last.tok) + 26}" y="${Y(last[k]) + 4}">${esc(name)}</text>`;
+  }
+  s += `</svg><div class="plotkey"><span class="k"><svg viewBox="0 0 14 14">${sq(7, 7, true, 3.5)}</svg>seed 17 trunk (constant LR)</span><span class="k"><svg viewBox="0 0 14 14">${sq(7, 7, false, 4.5)}</svg>seed 17 annealed branch</span><span class="k"><svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="2.4" fill="var(--line)"/></svg>seed 7</span><span>line style: solid = static I · dashed = static you · dotted = dynamic you</span></div>`;
+  document.getElementById("moontraj").innerHTML = s;
+})();
+// Figure 5: the run against its peers (metric x axis toggles)
+(() => {
+  const RUN = G.run.models, el = document.getElementById("f5"), st = {k: "avg9", x: "tok"};
+  const NAMES = {avg9: "9-task average (lm-eval, 0-shot)", ubpb: "held-out bits per byte (Uncheatable)", I: "static I swap shift", you: "static you swap shift"};
+  const DASH = {ours: "", dash: "6 4", solid: "", dot: "1.5 3", dashdot: "7 3 1.5 3"};
+  function draw() {
+    const W = 720, H = 330, L = 58, R = 128, Tp = 14, B = 46, k = st.k, inv = k === "ubpb";
+    const ser = RUN.map(m => ({...m, pts: m.pts.filter(p => p[k] != null)})).filter(m => m.pts.length);
+    const xs = ser.flatMap(m => m.pts.map(p => p[st.x])), ys = ser.flatMap(m => m.pts.map(p => p[k]));
+    const x0 = Math.log10(Math.min(...xs)) - 0.08, x1 = Math.log10(Math.max(...xs)) + 0.08;
+    let y0 = Math.min(...ys), y1 = Math.max(...ys); const pad = (y1 - y0) * 0.08 || 0.01; y0 -= pad; y1 += pad;
+    if (k === "I" || k === "you") y0 = Math.min(y0, -0.03);
+    const X = v => L + (Math.log10(v) - x0) / (x1 - x0) * (W - L - R);
+    const Y = v => inv ? Tp + (v - y0) / (y1 - y0) * (H - Tp - B) : Tp + (y1 - v) / (y1 - y0) * (H - Tp - B);
+    let s = `<svg class="plot" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(NAMES[k])} against ${st.x === "tok" ? "training tokens" : "training FLOPs"}">`;
+    for (let e = Math.ceil(x0); e <= Math.floor(x1); e++) {
+      const v = 10 ** e, lab = st.x === "tok" ? (v >= 1000 ? v / 1000 + "T" : v + "B") : "1e" + (e);
+      s += `<line class="ax" x1="${X(v)}" x2="${X(v)}" y1="${Tp}" y2="${H - B}"/><text x="${X(v)}" y="${H - B + 16}" text-anchor="middle">${lab}</text>`;
+    }
+    const nt = 5; for (let i = 0; i <= nt; i++) { const v = y0 + (y1 - y0) * i / nt; s += `<text x="${L - 7}" y="${Y(v) + 4}" text-anchor="end">${k === "avg9" ? v.toFixed(0) : k === "ubpb" ? v.toFixed(2) : f3(v).slice(0, -1)}</text>`; }
+    if (k === "I" || k === "you") s += `<line class="zero" x1="${L}" x2="${W - R}" y1="${Y(0)}" y2="${Y(0)}"/><line x1="${L}" x2="${W - R}" y1="${Y(0.02)}" y2="${Y(0.02)}" stroke="var(--line)" stroke-dasharray="2 4"/><text x="${W - R + 4}" y="${Y(0.02) + 4}" class="lbl">binds (+.02)</text>`;
+    s += `<text x="${(L + W - R) / 2}" y="${H - 8}" text-anchor="middle">${st.x === "tok" ? "training tokens (log)" : "training FLOPs (log)"}</text><text x="12" y="${(Tp + H - B) / 2}" text-anchor="middle" transform="rotate(-90 12 ${(Tp + H - B) / 2})">${esc(NAMES[k])}${inv ? " ↑ better" : ""}</text>`;
+    for (const m of ser) {
+      const ours = m.style === "ours", line = ours ? m.pts.filter(p => p.kind === "trunk") : m.pts;
+      const path = line.map((p, i) => `${i ? "L" : "M"}${X(p[st.x]).toFixed(1)} ${Y(p[k]).toFixed(1)}`).join("");
+      if (line.length > 1) s += `<path d="${path}" fill="none" stroke="${ours ? "var(--fg)" : "var(--muted)"}" stroke-width="${ours ? 2.2 : 1.3}" stroke-dasharray="${DASH[m.style]}"/>`;
+      for (const p of m.pts) {
+        const tip = `${esc(m.m)} · ${p.tok >= 1000 ? (p.tok / 1000).toFixed(1) + "T" : p.tok + "B"} tokens${p.note ? " (" + p.note + ")" : ours && p.kind === "annealed" ? " (annealed)" : ""} · ${esc(NAMES[k])} ${k === "avg9" ? p[k].toFixed(1) : k === "ubpb" ? p[k].toFixed(3) : f3(p[k])}`;
+        const mark = ours ? sq(X(p[st.x]), Y(p[k]), p.kind === "trunk", p.note ? 5.5 : 3.6) : `<circle cx="${X(p[st.x])}" cy="${Y(p[k])}" r="2.6" fill="var(--muted)"/>`;
+        s += `<g><title>${tip}</title>${mark}</g>`;
+        if (p.note) s += `<text class="lbl" x="${X(p[st.x]) + 9}" y="${Y(p[k]) - 8}" style="fill:var(--fg)">release</text>`;
+      }
+      const last = line[line.length - 1] || m.pts[m.pts.length - 1];
+      s += `<text class="lbl" x="${Math.min(X(last[st.x]) + 8, W - R + 6)}" y="${Y(last[k]) + 4}"${ours ? ' style="fill:var(--fg);font-weight:700"' : ""}>${esc(m.m)}</text>`;
+    }
+    el.innerHTML = s + "</svg>";
+    for (const b of document.querySelectorAll("#f5m button")) b.setAttribute("aria-pressed", b.dataset.k === st.k);
+    for (const b of document.querySelectorAll("#f5x button")) b.setAttribute("aria-pressed", b.dataset.k === st.x);
+  }
+  for (const b of document.querySelectorAll("#f5m button")) b.addEventListener("click", () => { st.k = b.dataset.k; draw(); });
+  for (const b of document.querySelectorAll("#f5x button")) b.addEventListener("click", () => { st.x = b.dataset.k === "flops" ? "flops" : "tok"; draw(); });
+  draw();
+})();
+// Table 3: kotodama-tsumugi's battery at the early annealed reads
+(() => {
+  const T = G.tsumugi.battery;
+  let h = `<thead><tr><th>Probe</th>${T.cols.map(c => `<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>`;
+  for (const g of T.groups) {
+    h += `<tr><td colspan="${T.cols.length + 1}" class="eff" style="text-align:left;font-style:italic">${esc(g.name)}</td></tr>`;
+    for (const [name, vals] of g.rows) h += `<tr><td>${esc(name)}</td>${vals.map(v => `<td class="cost">${v.toFixed(3).replace(/^0/, "")}</td>`).join("")}</tr>`;
+  }
+  document.getElementById("moonbat").innerHTML = h + `</tbody>`;
+})();
+const pend = v => v == null ? `<span title="not yet scored on this checkpoint">pending</span>` : v.toFixed(3).replace(/^0/, "");
+// Table 1: stage-5 decomposition
+(() => {
+  const D = G.decomp;
+  let h = `<thead><tr><th>Model</th><th>Tokens</th>${D.cols.map(c => `<th title="${esc(c.ex)}">${esc(c.name)}</th>`).join("")}</tr></thead><tbody>`;
+  for (const r of D.rows) h += `<tr${r.ours ? ' style="font-weight:700"' : ""}><td>${esc(r.m)}</td><td class="cost">${esc(r.tok)}</td>${D.cols.map(c => `<td class="cost">${pend(r[c.k])}</td>`).join("")}</tr>`;
+  document.getElementById("decomp").innerHTML = h + `</tbody>`;
+})();
+// Table 4: the release against its trajectory and class
+(() => {
+  const T = G.release;
+  let h = `<thead><tr><th>Probe</th>${T.cols.map(c => `<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>`;
+  for (const [name, vals, signed] of T.rows) h += `<tr><td>${esc(name)}</td>${vals.map((v, i) => `<td class="cost"${T.cols[i].includes("release") ? ' style="font-weight:700;color:var(--fg)"' : ""}>${v == null ? "—" : signed ? f3(v) : v >= 1 ? v.toFixed(1) : v.toFixed(3).replace(/^0/, "")}</td>`).join("")}</tr>`;
+  document.getElementById("reltab").innerHTML = h + `</tbody>`;
+})();
+// Table 5: riders v2, fixed vs fair exemplars
+(() => {
+  const T = G.riders, names = {"0shot": "0-shot", "fixed3": "fixed 3", "fair1": "fair 1", "fair3": "fair 3", "fair6": "fair 6"};
+  let h = `<thead><tr><th>Model · tokens</th>${T.cols.map(c => `<th>${esc(names[c] || c)}</th>`).join("")}</tr></thead><tbody>`;
+  for (const r of T.rows) h += `<tr${r.ours ? ' style="font-weight:700"' : ""}><td>${esc(r.m)}</td>${T.cols.map(c => `<td class="cost">${pend(r[c])}</td>`).join("")}</tr>`;
+  document.getElementById("riders").innerHTML = h + `</tbody>`;
+})();
+// Table 2: levers
+document.getElementById("levers").innerHTML = `<thead><tr><th>Lever</th><th>Effect</th><th>Result</th><th>Cost</th></tr></thead><tbody>` +
+  G.levers.map(l => `<tr><td>${esc(l.lever)}</td><td class="eff">${esc(l.eff)}</td><td>${esc(l.res)}</td><td class="cost">${esc(l.cost)}</td></tr>`).join("") + `</tbody>`;
+})();
+</script>
+<script type="application/json" id="atlas-data">__ATLAS_DATA__</script>
+<script type="application/json" id="atlas-meta">__ATLAS_META__</script>
+<script>
+(() => {
+"use strict";
+const D = JSON.parse(document.getElementById("atlas-data").textContent);
+const META = JSON.parse(document.getElementById("atlas-meta").textContent);
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+const COLS = D.cols, ROWS = D.rows, CELLS = D.cells, EX = D.examples;
+const colById = Object.fromEntries(COLS.map(c => [c.id, c]));
+const rowById = Object.fromEntries(ROWS.map(r => [r.id, r]));
+const GROUPS = [...new Set(ROWS.map(r => r.group))];
+const S = { quiz: false, view: "score", cond: "0shot", mode: "all", q: "", sort: "", psz: "", hidden: new Set(), collapsed: new Set(), sel: null, col: null };
+const SIZE_SORTS = ["size-asc", "size-desc"], PSZ = ["0-2", "2-10", "10-100", "100-", "known"];
+function inSize(r) {   // rows without a published parameter count (closed APIs, the human reader) drop out of any size filter
+  if (!S.psz) return true;
+  if (r.size == null) return false;
+  if (S.psz === "known") return true;
+  const [lo, hi] = S.psz.split("-").map(v => v === "" ? Infinity : Number(v));
+  return r.size >= (lo === Infinity ? 0 : lo) && r.size <= hi;
+}
+
+// ── state <-> URL ─────────────────────────────────────────────
+function readHash() {
+  const h = new URLSearchParams(location.hash.slice(1));
+  const OK = { view: ["score", "acc", "gap"], cond: ["0shot", "3shot", "3shot_collide"], mode: ["all", "free"] };
+  for (const k of ["view", "cond", "mode", "q", "sort"]) { const v = h.get(k); if (v !== null && (!OK[k] || OK[k].includes(v))) S[k] = v; }
+  if (S.sort && !colById[S.sort] && !SIZE_SORTS.includes(S.sort)) S.sort = "";
+  if (PSZ.includes(h.get("psz") || "")) S.psz = h.get("psz");
+  if (h.get("hide")) S.hidden = new Set(h.get("hide").split("~").filter(Boolean));
+  if (h.get("cell")) { const [r, c] = h.get("cell").split("~"); if (rowById[r] && colById[c]) S.sel = {r, c}; }
+  if (h.get("col") && colById[h.get("col")]) S.col = h.get("col");
+}
+function writeHash() {
+  const h = new URLSearchParams();
+  if (S.view !== "score") h.set("view", S.view);
+  if (S.cond !== "0shot") h.set("cond", S.cond);
+  if (S.mode !== "all") h.set("mode", S.mode);
+  if (S.q) h.set("q", S.q);
+  if (S.sort) h.set("sort", S.sort);
+  if (S.psz) h.set("psz", S.psz);
+  if (S.hidden.size) h.set("hide", [...S.hidden].join("~"));
+  if (S.sel) h.set("cell", S.sel.r + "~" + S.sel.c);
+  else if (S.col) h.set("col", S.col);
+  history.replaceState(null, "", h.toString() ? "#" + h.toString() : location.pathname);
+}
+
+// ── colour (diverging: neg ↔ neutral ↔ pos) ──────────────────
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function hex2rgb(h) { h = h.replace("#", ""); return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16)); }
+function mix(a, b, t) { return a.map((x, i) => Math.round(x + (b[i] - x) * t)); }
+function lum([r, g, b]) { const f = v => { v /= 255; return v <= .03928 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4; }; return .2126 * f(r) + .7152 * f(g) + .0722 * f(b); }
+let PAL, writing = false;
+function pal() { PAL = { pos: hex2rgb(css("--pos")), neg: hex2rgb(css("--neg")), mid: hex2rgb(css("--mid")), fg: css("--fg"), bg: css("--bg") }; }
+function colour(v, lo, hi) {        // v in [lo, hi], 0 = neutral
+  if (v == null || isNaN(v)) return null;
+  const t = v >= 0 ? Math.min(1, v / hi) : Math.min(1, v / lo);
+  const rgb = mix(PAL.mid, v >= 0 ? PAL.pos : PAL.neg, Math.pow(t, .85));
+  const L = lum(rgb); return { bg: `rgb(${rgb})`, ink: (L + .05) / (.0070 + .05) > 1.05 / (L + .05) ? "#000000" : "#ffffff" };
+}
+function range() { return S.view === "acc" ? [0, 1] : S.view === "gap" ? [-0.6, 0.6] : [-0.5, 1]; }
+function drawRamp() {
+  const c = $("#ramp"), x = c.getContext("2d"), [lo, hi] = range();
+  for (let i = 0; i < c.width; i++) {
+    const v = lo + (hi - lo) * i / (c.width - 1);
+    const k = S.view === "acc" ? colour(v - 0.5, -0.5, 0.5) : colour(v, lo, hi);
+    x.fillStyle = k.bg; x.fillRect(i, 0, 1, c.height);
+  }
+  $("#rlo").textContent = S.view === "acc" ? "below chance" : S.view === "gap" ? "twin worse" : "below chance";
+  $("#rhi").textContent = S.view === "acc" ? "above chance" : S.view === "gap" ? "perspective costs" : "perfect";
+  $("#legnote").textContent = S.view === "gap" ? "Perspective gap = 3rd-person twin score − I/you score (deixis columns only)." :
+    S.view === "acc" ? "Raw accuracy; colour = distance from chance (chance differs by column: 2–8 candidates). Hover for chance." : "";
+}
+
+// ── values ────────────────────────────────────────────────────
+function cell(r, c, cond = S.cond, mode = S.mode) {
+  if (mode === "free" && !colById[c].free_ok) return CELLS[`${r}|${c}|${cond}|all`] ? { ...CELLS[`${r}|${c}|${cond}|all`], fallback: true } : null;
+  return CELLS[`${r}|${c}|${cond}|${mode}`] || null;
+}
+function twinOf(cid) { return cid.endsWith("-deictic") ? cid.replace(/-deictic$/, "-third") : cid === "adj-adj" ? "adj-third" : null; }
+function value(r, c) {
+  if (S.view === "gap") {
+    const t = twinOf(c); if (!t) return null;
+    const a = cell(r, c), b = cell(r, t);
+    return a && b ? { v: b.score - a.score, a, b } : null;
+  }
+  const x = cell(r, c); if (!x) return null;
+  return { v: S.view === "acc" ? x.acc : x.score, x };
+}
+function fmt(v) {
+  if (v == null) return "";
+  if (S.view === "acc") return Math.round(v * 100);
+  const s = (Math.round(v * 100) / 100).toFixed(2).replace(/^(-?)0\./, "$1.");
+  return s === "-.00" ? ".00" : s;
+}
+function visibleCols() { return S.view === "gap" ? COLS.filter(c => twinOf(c.id)) : COLS; }
+
+// ── grid ──────────────────────────────────────────────────────
+function rowLabel(r) { const m = r.label.match(/^(.*) · (reflex|deliberate)$/); return m ? `${esc(m[1])} <small class="tag">${m[2]}</small>` : esc(r.label); }
+function shortGroup(g) { if (g === "Deixis · owner") return "deixis · owner"; return g.replace(/^Deixis · /, "").replace(/ \((vocative|structural)\)/, "").replace(/ \(v3\)/, ""); }
+function rowsInView() {
+  const q = S.q.trim().toLowerCase();
+  let rs = ROWS.filter(r => !S.hidden.has(r.group) && inSize(r) && (!q || (r.label + " " + r.group + " " + (r.note || "")).toLowerCase().includes(q)));
+  if (S.sort && !SIZE_SORTS.includes(S.sort) && !visibleCols().some(c => c.id === S.sort)) S.sort = "";
+  if (SIZE_SORTS.includes(S.sort)) {   // unknown sizes last, either direction
+    const dir = S.sort === "size-asc" ? 1 : -1;
+    rs = [...rs].sort((a, b) => (a.size == null) - (b.size == null) || dir * ((a.size ?? 0) - (b.size ?? 0)));
+  } else if (S.sort && colById[S.sort]) {
+    const key = r => { const v = value(r.id, S.sort); return v ? v.v : -Infinity; };
+    rs = [...rs].sort((a, b) => key(b) - key(a));
+  }
+  return rs;
+}
+function render() {
+  drawRamp();
+  const cols = visibleCols(), [lo, hi] = range();
+  const gap = S.view === "gap";
+  const groups = []; for (const c of cols) { const nm = gap ? "Perspective gap · twin − I/you" : c.group; const g = groups[groups.length - 1]; if (g && g.name === nm) g.n++; else groups.push({name: nm, n: 1}); }
+  let h = `<thead><tr class="r1"><th class="corner" rowspan="2"></th>${groups.map(g => `<th class="cg" colspan="${g.n}" title="${esc(g.name)}"><span style="display:block;max-width:${Math.max(g.n * 40 - 6, 34)}px;overflow:hidden;text-overflow:ellipsis">${esc(gap ? g.name : shortGroup(g.name))}</span></th>`).join("")}</tr>
+    <tr class="r2">${cols.map(c => `<th class="cl"><button data-col="${c.id}" aria-pressed="${S.col === c.id}" title="${esc(c.what)}">${esc(gap ? shortGroup(c.group) : c.label)}${S.sort === c.id ? ' <span class="srt">◀</span>' : ""}</button></th>`).join("")}</tr></thead><tbody>`;
+  const rs = rowsInView();
+  let last = null;
+  for (const r of rs) {
+    if (!S.sort && r.group !== last) {
+      last = r.group;
+      const n = rs.filter(x => x.group === r.group).length;
+      h += `<tr class="grp"><th colspan="${cols.length + 1}" data-grp="${esc(r.group)}"><button class="grpbtn" aria-expanded="${!S.collapsed.has(r.group)}"><span class="caret">${S.collapsed.has(r.group) ? "▸" : "▾"}</span>${esc(r.group)} <small style="color:var(--muted);font-family:var(--f-body)">${n}</small></button></th></tr>`;
+    }
+    if (!S.sort && S.collapsed.has(r.group)) continue;
+    h += `<tr class="${S.sel && S.sel.r === r.id ? "rowsel" : ""}"><th class="rowh" data-row="${r.id}" title="${esc(r.note || "")}"><button class="rowbtn" tabindex="-1">${rowLabel(r)}${S.sort ? ` <small>· ${SIZE_SORTS.includes(S.sort) ? (r.size != null ? r.size + "B" : "size not published") : esc(r.group)}</small>` : ""}</button></th>`;
+    for (const c of cols) {
+      const v = value(r.id, c.id);
+      if (!v) { h += `<td><span class="cellbtn na" aria-hidden="true"></span></td>`; continue; }
+      const k = S.view === "acc" ? colour(v.v - (v.x.chance ?? 0.33), -0.5, 0.67) : colour(v.v, lo, hi);
+      const n = (v.x || v.a).n, small = n < 30 ? " small" : "", sel = S.sel && S.sel.r === r.id && S.sel.c === c.id ? " sel" : "";
+      h += `<td class="${S.col === c.id ? "colsel" : ""}"><button class="cellbtn${small}${sel}" data-r="${r.id}" data-c="${c.id}" style="background:${v.v < 0 && S.view !== "acc" ? `repeating-linear-gradient(135deg, var(--hatch-neg) 0 1.5px, transparent 1.5px 4px), ${k.bg}` : k.bg};color:${k.ink}" tabindex="-1" aria-label="${esc(r.label)}, ${esc(c.group)} ${esc(c.label)}: ${fmt(v.v)}, n ${n}${n < 30 ? ", small sample" : ""}">${fmt(v.v)}</button></td>`;
+    }
+    h += `</tr>`;
+  }
+  if (!rs.length) h += `<tr><td colspan="${cols.length + 1}" style="padding:18px;color:var(--muted)">No models match “${esc(S.q)}”.</td></tr>`;
+  h += `</tbody>`;
+  $("#grid").innerHTML = h;
+  const live = [...document.querySelectorAll("#grid .cellbtn:not(.na)")];
+  const tgt = (S.focusKey && live.find(b => b.dataset.r + "~" + b.dataset.c === S.focusKey)) || live[0];
+  if (tgt) tgt.tabIndex = 0;
+  for (const b of document.querySelectorAll("#view button")) b.setAttribute("aria-pressed", b.dataset.v === S.view);
+  for (const b of document.querySelectorAll("#cond button")) b.setAttribute("aria-pressed", b.dataset.v === S.cond);
+  for (const b of document.querySelectorAll("#mode button")) b.setAttribute("aria-pressed", b.dataset.v === S.mode);
+  for (const b of document.querySelectorAll("#groups .chip")) b.setAttribute("aria-pressed", !S.hidden.has(b.dataset.g));
+  $("#sort").value = S.sort;
+  $("#psz").value = S.psz;
+  writeHash();
+}
+
+// ── tooltip ───────────────────────────────────────────────────
+const tip = $("#tip");
+document.addEventListener("pointermove", e => {
+  const b = e.target.closest(".cellbtn:not(.na)");
+  if (!b) { tip.style.display = "none"; return; }
+  const r = rowById[b.dataset.r], c = colById[b.dataset.c], v = value(r.id, c.id);
+  let t = `<b>${esc(r.label)}</b><br>${esc(c.group)} · ${esc(c.label)}<br>`;
+  if (S.view === "gap") t += `twin ${fmt2(v.b.score)} − deictic ${fmt2(v.a.score)} = <b>${fmt2(v.v)}</b>`;
+  else { const x = v.x; t += `acc <b>${pct(x.acc)}</b> ± ${pct(x.se)} · n ${x.n} · chance ${pct(x.chance)}<br>score <b>${fmt2(x.score)}</b>${x.fallback ? "<br><i>no shortcut split for this column — showing all items</i>" : ""}`; }
+  tip.innerHTML = t + `<br><span style="opacity:.7">click for the raw context</span>`;
+  tip.style.display = "block";
+  const w = tip.offsetWidth, hgt = tip.offsetHeight;
+  tip.style.left = Math.min(window.innerWidth - w - 8, e.clientX + 14) + "px";
+  tip.style.top = Math.min(window.innerHeight - hgt - 8, e.clientY + 14) + "px";
+});
+const pct = v => v == null ? "—" : Math.round(v * 100) + "%";
+const fmt2 = v => v == null ? "—" : (v >= 0 ? "" : "−") + Math.abs(v).toFixed(2);
+
+// ── drawer: cell ──────────────────────────────────────────────
+function markQuery(prompt) {
+  const lines = esc(prompt).split("\n");
+  lines[lines.length - 1] = `<span class="q">${lines[lines.length - 1]}</span> ▁`;
+  return lines.join("\n");
+}
+function exampleBlock(cid, which) {
+  const ex = EX[cid]; if (!ex) return `<p class="note">No example stored for this column.</p>`;
+  let p = ex.prompt, g = ex.gold, cands = ex.candidates, gs = ex.gold_set;
+  if (which === "free" && ex.free) { p = ex.free.prompt; g = ex.free.gold; cands = ex.free.candidates; gs = null; }
+  if (which === "shot3") p = ex.shot3;
+  const golds = new Set((gs || [g]).map(String));
+  return `<pre class="ctx">${markQuery(p)}</pre>
+    <div><div class="note" style="margin-bottom:6px">Candidates (the model ranks these; gold highlighted)${gs ? " — exact-set scoring: all of the gold set must outrank everything else" : ""}:</div>
+    <div class="cands">${cands.map(x => `<span class="${golds.has(String(x)) ? "gold" : ""}">${esc(x)}</span>`).join("")}</div></div>`;
+}
+function stripFor(cid, me) {
+  const pts = ROWS.map(r => ({ r, v: value(r.id, cid) })).filter(p => p.v && !S.hidden.has(p.r.group));
+  if (!pts.length) return "";
+  const vs = pts.map(p => p.v.v), lo = Math.min(0, ...vs), hi = Math.max(1, ...vs) || 1;
+  const X = v => ((v - lo) / (hi - lo) * 100).toFixed(2) + "%";
+  const mine = pts.find(p => p.r.id === me);
+  return `<div><div class="note">This column across ${pts.length} models (${S.view === "acc" ? "accuracy" : S.view === "gap" ? "perspective gap" : "score"}):</div>
+    <div class="strip">${[0, 0.5, 1].filter(t => t >= lo && t <= hi).map(t => `<span class="tick" style="left:${X(t)}"></span><span class="lab" style="left:${X(t)}">${S.view === "acc" ? pct(t) : t}</span>`).join("")}
+    ${pts.map((p, i) => `<span class="dot ${p.r.id === me ? "me" : p.r.group === "Human" ? "hum" : ""}" style="left:${X(p.v.v)};${p.r.id === me ? "" : `top:${-5 - 6 + (i % 3) * 6}px`}" title="${esc(p.r.label)}: ${fmt(p.v.v)}"></span>`).join("")}
+    ${mine ? (() => { const fx = (mine.v.v - lo) / (hi - lo); return `<span class="lab me" style="left:${X(mine.v.v)};transform:translateX(${fx > .85 ? "-100%" : fx < .15 ? "0" : "-50%"})">${esc(mine.r.label)}</span>`; })() : ""}</div></div>`;
+}
+function openCell(rid, cid) {
+  tip.style.display = "none";
+  S.sel = { r: rid, c: cid }; S.col = null;
+  const r = rowById[rid], c = colById[cid];
+  const all = cell(rid, cid), v = value(rid, cid);
+  $("#dh").innerHTML = `<div class="eyebrow">${esc(r.group)}</div><h2>${esc(r.label)}</h2><div class="note">${esc(c.group)} · <b>${esc(c.label)}</b> · ${condLabel()}${S.mode === "free" ? " · shortcut-free" : ""}</div>`;
+  let body = "";
+  if (S.view === "gap" && v) {
+    body += `<div class="big"><div class="n">${fmt2(v.v)} <small>perspective gap</small></div><div class="n">${fmt2(v.a.score)} <small>I/you</small></div><div class="n">${fmt2(v.b.score)} <small>3rd-person twin</small></div></div>`;
+  } else if (all) {
+    body += `<div class="big"><div class="n">${pct(all.acc)} <small>± ${pct(all.se)}</small></div><div class="n">${fmt2(all.score)} <small>score</small></div></div>
+      <dl class="kv"><dt>items</dt><dd>${all.n}${all.n < 30 ? " (small sample)" : ""}</dd><dt>chance</dt><dd>${pct(all.chance)}</dd>
+      ${conds(rid, cid)}</dl>${all.fallback ? `<p class="warnnote">This column has no shortcut split; showing all items.</p>` : ""}
+      ${all.seat_form != null ? `<p class="note" style="margin:0">Referent scoring: <i>me/you</i> or the person's name both count. Of the correct answers, <b>${pct(all.seat_form)}</b> used <i>${cid === "an-me-any" ? "me" : "you"}</i>; the rest named the person.</p>` : ""}
+      ${anatomy(all)}`;
+  }
+  body += `<div><h3>What this measures</h3><p style="margin:0">${esc(c.what)}</p></div>`;
+  if (r.note) body += `<p class="note"><b>About this row:</b> ${esc(r.note)}</p>`;
+  body += stripFor(cid, rid);
+  const ex = EX[cid];
+  body += `<div><h3>Raw context</h3>
+      <div class="mtabs" id="mtabs"><button data-m="see" aria-pressed="${S.quiz ? "false" : "true"}">See the exact query</button>
+        <button data-m="quiz" aria-pressed="${S.quiz ? "true" : "false"}" ${ex && ex.pool && ex.pool.length ? "" : "disabled"}>Take it yourself</button></div>
+      <div id="rawbox"></div></div>`;
+  if (r.sources && r.sources.length) body += `<p class="note">Grids: ${r.sources.map(esc).join(", ")}</p>`;
+  $("#db").innerHTML = body;
+  const drawRaw = (user) => { $("#rawbox").innerHTML = ""; S.quiz ? quiz(cid, r, user) : see(cid, r); };
+  for (const b of document.querySelectorAll("#mtabs button")) b.onclick = () => {
+    S.quiz = b.dataset.m === "quiz";
+    for (const x of document.querySelectorAll("#mtabs button")) x.setAttribute("aria-pressed", x === b);
+    drawRaw(true);
+  };
+  drawRaw(false);
+  showDrawer(rid + "~" + cid);
+}
+function showDrawer(key) {
+  S.focusKey = key || S.focusKey;
+  const d = $("#drawer"); d.classList.add("open"); d.inert = false;
+  render(); $("#dclose").focus({ preventScroll: true });
+}
+function see(cid, r) {
+  const ex = EX[cid], box = $("#rawbox");
+  box.innerHTML = `<div class="tabs" id="extabs">
+      <button class="iconbtn" data-w="main" aria-pressed="true">0-shot item</button>
+      ${ex && ex.free ? `<button class="iconbtn" data-w="free" aria-pressed="false">shortcut-free item</button>` : ""}
+      ${ex && ex.shot3 ? `<button class="iconbtn" data-w="shot3" aria-pressed="false">with 3 exemplars</button>` : ""}</div>
+    <p class="note" style="margin:6px 0">One representative item from this column — the exact text the model is given, ending at the
+      highlighted query. ${r.group.startsWith("API") ? "API rows saw it after a one-line instruction (reflex: “reply with only the next word”; deliberate: “think it through, then answer”)." : "Open models are scored by which candidate gets the highest log-probability as the next word."}</p>
+    <div id="exbox">${exampleBlock(cid, "main")}</div>`;
+  for (const b of box.querySelectorAll("#extabs button")) b.onclick = () => {
+    for (const x of box.querySelectorAll("#extabs button")) x.setAttribute("aria-pressed", x === b);
+    $("#exbox").innerHTML = exampleBlock(cid, b.dataset.w);
+  };
+}
+const QZ = {};                                   // per-column: {i, right, tried}
+const norm = t => String(t).toLowerCase().replace(/[^a-z0-9' ]+/g, " ").replace(/\s+/g, " ").trim();
+const FILLER = new Set(["the", "a", "an", "it's", "its", "it", "is", "with", "holding", "i", "think"]);
+const sing = w => w.length > 3 && w.endsWith("s") && !w.endsWith("ss") ? w.slice(0, -1) : w;
+function quiz(cid, r, user) {
+  const ex = EX[cid], pool = (ex && ex.pool) || [], box = $("#rawbox");
+  const st = QZ[cid] || (QZ[cid] = { i: 0, right: 0, tried: 0 });
+  if (st.i >= pool.length) {
+    box.innerHTML = `<div class="quiz"><div class="verdict ok"><b>That's the pool for this column</b> — you got ${st.right}/${st.tried}.</div>
+      <div><button class="iconbtn" id="qr">start over</button></div></div>`;
+    $("#qr").onclick = () => { QZ[cid] = { i: 0, right: 0, tried: 0 }; quiz(cid, r, true); };
+    if (user) $("#qr").focus(); return;
+  }
+  const it = pool[st.i];
+  const constGold = /^an-(me|you)/.test(cid);
+  const isSet = Array.isArray(it.gold_set) && it.gold_set.length > 1;
+  box.innerHTML = `<div class="quiz">
+    <p class="note" style="margin:0">Read it cold, like a model would: no options, one answer. ${isSet ? `This one wants <b>all ${it.gold_set.length}</b> objects — separate them with spaces or commas.` : "Type the single word that comes next."}
+      ${constGold ? " (Here the answer is about <i>who</i>: say it the way the speaker would.)" : ""}</p>
+    <pre class="ctx">${markQuery(it.prompt)}</pre>
+    <form id="qf" autocomplete="off"><input id="qa" placeholder="${isSet ? "e.g. cup key lamp" : "your answer"}" aria-label="your answer" autofocus>
+      <button class="iconbtn" type="submit">Check</button></form>
+    <div id="qv"></div>
+    <div class="tally" aria-live="polite">item ${st.i + 1} of ${pool.length}${st.tried ? ` · you: ${st.right}/${st.tried}` : ""}</div></div>`;
+  if (user) $("#qa").focus({ preventScroll: true });
+  $("#qf").onsubmit = e => {
+    e.preventDefault();
+    const a = norm($("#qa").value); if (!a) return;
+    let ok;
+    const toks = a.split(" ").filter(w => w && w !== "and" && !FILLER.has(w)).map(sing);
+    if (isSet) { const want = new Set(it.gold_set.map(x => sing(norm(x)))); const got = new Set(toks); ok = got.size === want.size && [...want].every(w => got.has(w)); }
+    else {
+      const g = sing(norm(it.gold)), who = /^an-(me|you)/.test(cid) ? quizWho(cid, it) : null;
+      ok = toks.length === 1 && (toks[0] === g || (who && toks[0] === who));
+    }
+    st.tried++; st.right += ok ? 1 : 0;
+    const x = cell(r.id, cid);
+    const golds = new Set((it.gold_set || [it.gold]).map(String));
+    const whoName = /^an-(me|you)/.test(cid) ? quizWho(cid, it) : null;
+    $("#qv").innerHTML = `<div class="verdict ${ok ? "ok" : "no"}" role="status"><b>${ok ? "✓ right" : "✗ not quite"}</b> — the answer is <b>${esc((it.gold_set || [it.gold]).join(", "))}</b>${whoName ? ` (or the person's name: <b>${esc(whoName)}</b>)` : ""}.
+      ${x ? `<br>${esc(r.label)} gets ${pct(x.acc)} on this column (chance ${pct(x.chance)}).` : ""}</div>
+      <div><div class="note" style="margin:6px 0 4px">The candidates the models ranked:</div><div class="cands">${it.candidates.map(c => `<span class="${golds.has(String(c)) ? "gold" : ""}">${esc(c)}</span>`).join("")}</div></div>
+      <div><button class="iconbtn" id="qn">next item →</button></div>`;
+    $("#qf").querySelector("button").disabled = true; $("#qa").disabled = true;
+    $("#qn").onclick = () => { st.i++; quiz(cid, r); };
+    $("#qn").focus();
+    box.querySelector(".tally").textContent = `item ${st.i + 1} of ${pool.length} · you: ${st.right}/${st.tried}`;
+  };
+}
+const ERR = [["speaker_confusion", "the speaker's own object (you → I)", "var(--fg)"], ["other_participant", "another person's object", "#5a626d"],
+  ["previous_owner", "who held it before", "#7d8691"], ["other_object", "another / last-mentioned object", "#9aa4b1"], ["tie", "tie", "#b6bdc6"],
+  ["format", "not a candidate (format)", "#cfd4da"], ["other", "other", "#e3e6ea"]];
+function anatomy(x) {
+  if (!x || !x.errs || !Object.keys(x.errs).length) return "";
+  const miss = Object.values(x.errs).reduce((a, b) => a + b, 0);
+  const segs = ERR.filter(([k]) => x.errs[k]).map(([k, lab, col]) => ({ k, lab, col, v: x.errs[k] }));
+  return `<div class="anat"><h3 style="margin:6px 0 0">Error anatomy</h3><p class="note" style="margin:0">What the ${pct(miss)} of misses picked instead:</p>
+    <div class="bar" role="img" aria-label="${segs.map(s => `${s.lab} ${pct(s.v)}`).join(", ")}">${segs.map(s => `<span style="width:${(s.v / miss * 100).toFixed(1)}%;background:${s.col}" title="${esc(s.lab)}: ${pct(s.v)} of items"></span>`).join("")}</div>
+    <div class="keys">${segs.map(s => `<span><i style="background:${s.col}"></i>${esc(s.lab)} <b style="color:var(--fg)">${pct(s.v)}</b></span>`).join("")}</div></div>`;
+}
+function quizWho(cid, it) {
+  const ls = it.prompt.trimEnd().split("\n");
+  if (cid === "an-me-any") return norm(ls[ls.length - 1].split(":")[0]);
+  for (let i = ls.length - 1; i >= 0; i--) { const m = ls[i].match(/^(\w+): Who has/); if (m) return norm(m[1]); }
+  return null;
+}
+function condLabel() { return { "0shot": "0-shot", "3shot": "3-shot", "3shot_collide": "3-shot collide" }[S.cond]; }
+function conds(rid, cid) {
+  return ["0shot", "3shot", "3shot_collide"].map(k => { const x = cell(rid, cid, k, S.mode === "free" && colById[cid].free_ok ? "free" : "all");
+    return x ? `<dt>${{"0shot": "0-shot", "3shot": "3-shot", "3shot_collide": "collide"}[k]}</dt><dd>${pct(x.acc)} · score ${fmt2(x.score)} · n ${x.n}</dd>` : ""; }).join("");
+}
+
+// ── drawer: column ────────────────────────────────────────────
+function openCol(cid) {
+  tip.style.display = "none";
+  S.col = cid; S.sel = null;
+  const c = colById[cid];
+  const pts = ROWS.filter(r => !S.hidden.has(r.group)).map(r => ({ r, v: value(r.id, cid) })).filter(p => p.v);
+  $("#dh").innerHTML = `<div class="eyebrow">${esc(c.group)}</div><h2>${S.view === "gap" ? "Perspective gap · " + esc(shortGroup(c.group)) : esc(c.label)}</h2><div class="note">${esc(c.what)}</div>`;
+  const sized = pts.filter(p => p.r.size);
+  let body = `<div><h3>Against scale</h3><p class="note" style="margin:0 0 6px">Score vs parameters (log scale), ${condLabel()}${S.mode === "free" ? ", shortcut-free" : ""}. Unsized rows (closed models, the human) are listed below.</p>${scatter(sized)}</div>`;
+  const sorted = [...pts].sort((a, b) => b.v.v - a.v.v);
+  const [lo, hi] = range();
+  const rel = p => S.view === "acc" ? p.v.v - (p.v.x ? p.v.x.chance : 0) : p.v.v;
+  const rlo = Math.min(0, ...sorted.map(rel)), rhi = Math.max(0.01, ...sorted.map(rel)), z = -rlo / (rhi - rlo) * 100;
+  body += `<div><h3>All models</h3>${S.view === "acc" ? `<p class="note" style="margin:0 0 4px">Bars show accuracy above / below each model's chance level.</p>` : ""}<div class="rank">${sorted.map(p => {
+    const v = rel(p), k = S.view === "acc" ? colour(v, -0.5, 0.67) : colour(p.v.v, lo, hi), w = Math.abs(v) / (rhi - rlo) * 100;
+    const left = v >= 0 ? z : z - w;
+    return `<div data-r="${p.r.id}" title="${esc(p.r.group)}"><span>${rowLabel(p.r)}</span><span style="text-align:right;font-family:var(--f-mono);font-size:12px">${fmt(p.v.v)}</span>
+      <span style="position:relative;height:8px;background:linear-gradient(var(--line),var(--line)) ${z}% 0/1px 100% no-repeat"><span class="bar" style="position:absolute;left:${left}%;width:${w}%;background:${k ? k.bg : "var(--mid)"};border-radius:2px"></span></span></div>`; }).join("")}</div></div>`;
+  body += `<div><h3>Raw context</h3>${exampleBlock(cid, "main")}</div>`;
+  $("#db").innerHTML = body;
+  for (const d of document.querySelectorAll("#db .rank div")) { d.tabIndex = 0; d.onclick = () => openCell(d.dataset.r, cid); d.onkeydown = e => { if (e.key === "Enter") openCell(d.dataset.r, cid); }; }
+  showDrawer(null);
+}
+function scatter(pts) {
+  if (pts.length < 2) return `<p class="note">Not enough sized models here.</p>`;
+  const W = 520, H = 256, L = 40, R = 28, T = 10, B = 40;
+  const xs = pts.map(p => Math.log10(p.r.size)), vs = pts.map(p => p.v.v);
+  const x0 = Math.floor(Math.min(...xs)), x1 = Math.ceil(Math.max(...xs));
+  const y0 = S.view === "acc" ? 0 : Math.min(-0.5, ...vs), y1 = S.view === "acc" ? 1 : Math.max(1, ...vs);
+  const yt = S.view === "acc" ? [0, .25, .5, .75, 1] : [-.5, 0, .5, 1];
+  const X = v => L + (v - x0) / (x1 - x0 || 1) * (W - L - R), Y = v => T + (y1 - v) / (y1 - y0 || 1) * (H - T - B);
+  const GC = { "Pretrained bases": "#5a626d", "OLMo-2 7B trajectory": "#9aa4b1", "Post-trained": "#c3c9d1", "Hybrid & SSM bases": "#7d8691",
+    "Kotodama · 1.42B ladder": "var(--fg)", "API · open weights": "#aab2bc", "API · closed": "#d5d9de", "Human": "var(--human)" };
+  const gcol = {}; GROUPS.forEach(g => gcol[g] = GC[g] || "#9a9a94");
+  let s = `<svg class="scatter" viewBox="0 0 ${W} ${H}" role="img" aria-label="score against parameter count">`;
+  for (let e = x0; e <= x1; e++) s += `<line class="ax" x1="${X(e)}" x2="${X(e)}" y1="${T}" y2="${H - B}"/><text x="${X(e)}" y="${H - 22}" text-anchor="${e === x1 ? "end" : "middle"}">${e < 0 ? (10 ** e).toFixed(1) : (10 ** e).toLocaleString()}B</text>`;
+  const chance = S.view === "acc" ? (pts.map(p => p.v.x && p.v.x.chance).filter(x => x != null).reduce((a, b, _, arr) => a + b / arr.length, 0) || 0.33) : 0;
+  s += `<line class="zero" x1="${L}" x2="${W - R}" y1="${Y(chance)}" y2="${Y(chance)}"/><text x="${W - R}" y="${Y(chance) - 4}" text-anchor="end">${S.view === "acc" ? "chance" : "0 = chance"}</text>`;
+  for (const t of yt) s += `<text x="${L - 6}" y="${Y(t) + 4}" text-anchor="end">${S.view === "acc" ? pct(t) : fmt(t)}</text>`;
+  s += `<text x="${(L + W - R) / 2}" y="${H - 2}" text-anchor="middle">parameters (log scale)</text><text x="12" y="${(T + H - B) / 2}" text-anchor="middle" transform="rotate(-90 12 ${(T + H - B) / 2})">${S.view === "acc" ? "accuracy" : "score"}</text>`;
+  for (const p of pts) s += `<circle cx="${X(Math.log10(p.r.size)).toFixed(1)}" cy="${Y(p.v.v).toFixed(1)}" r="4.5" fill="${gcol[p.r.group]}" stroke="var(--surface)" stroke-width="1.5"><title>${esc(p.r.label)} (${p.r.size}B): ${fmt(p.v.v)}</title></circle>`;
+  s += `</svg><div class="legend" style="margin-top:4px">${[...new Set(pts.map(p => p.r.group))].map(g => `<span><span class="sw" style="background:${gcol[g]}"></span>${esc(g)}</span>`).join("")}</div>`;
+  return s;
+}
+
+// ── events ────────────────────────────────────────────────────
+function seg(id, key) { $(id).addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; S[key] = b.dataset.v;
+  if ($("#drawer").classList.contains("open")) refreshDrawer(); else render(); }); }
+seg("#view", "view"); seg("#cond", "cond"); seg("#mode", "mode");
+function refreshDrawer() { if (!$("#drawer").classList.contains("open")) return; if (S.sel) openCell(S.sel.r, S.sel.c); else if (S.col) openCol(S.col); }
+$("#q").addEventListener("input", e => { S.q = e.target.value; render(); });
+$("#sort").addEventListener("change", e => { S.sort = e.target.value; render(); });
+$("#psz").addEventListener("change", e => { S.psz = e.target.value; render(); });
+$("#grid").addEventListener("click", e => {
+  const b = e.target.closest(".cellbtn:not(.na)"); if (b) return openCell(b.dataset.r, b.dataset.c);
+  const h = e.target.closest("th.cl button"); if (h) return openCol(h.dataset.col);
+  const g = e.target.closest("tr.grp th"); if (g) { S.focusKey = null; const n = g.dataset.grp; S.collapsed.has(n) ? S.collapsed.delete(n) : S.collapsed.add(n); return render(); }
+  const rh = e.target.closest("th.rowh"); if (rh) { const r = rowById[rh.dataset.row]; const c = COLS.find(c => value(r.id, c.id)); if (c) openCell(r.id, c.id); }
+});
+$("#grid").addEventListener("keydown", e => {
+  const b = e.target.closest(".cellbtn"); if (!b) return;
+  const td = b.parentElement, tr = td.parentElement, i = [...tr.children].indexOf(td);
+  let nb = null;
+  if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+    let t = td; do { t = e.key === "ArrowRight" ? t.nextElementSibling : t.previousElementSibling; } while (t && !t.querySelector(".cellbtn:not(.na)"));
+    nb = t && t.querySelector(".cellbtn:not(.na)");
+  }
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    let r = tr; do { r = e.key === "ArrowDown" ? r.nextElementSibling : r.previousElementSibling; } while (r && !(r.children[i] && r.children[i].querySelector(".cellbtn:not(.na)")));
+    nb = r && r.children[i].querySelector(".cellbtn:not(.na)");
+  }
+  if (nb) { e.preventDefault(); b.tabIndex = -1; nb.tabIndex = 0; nb.focus(); S.focusKey = nb.dataset.r + "~" + nb.dataset.c; }
+});
+$("#dclose").onclick = () => {
+  const d = $("#drawer"); d.classList.remove("open"); d.inert = true; S.sel = null; S.col = null; render();
+  const b = S.focusKey && document.querySelector(`.cellbtn[data-r="${CSS.escape(S.focusKey.split("~")[0])}"][data-c="${CSS.escape(S.focusKey.split("~")[1])}"]`);
+  (b || document.querySelector("#grid .cellbtn:not(.na)") || document.body).focus({ preventScroll: true });
+};
+document.addEventListener("keydown", e => { if (e.key === "Escape" && $("#drawer").classList.contains("open")) $("#dclose").click(); });
+$("#share").onclick = async () => { try { await navigator.clipboard.writeText(location.href); $("#share").textContent = "✓ copied"; } catch { $("#share").textContent = "copy failed — use the address bar"; } setTimeout(() => $("#share").textContent = "⧉ copy link", 1600); };
+$("#dl").onclick = () => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(D)], { type: "application/json" })); a.download = "binding-atlas.json"; a.click(); };
+$("#theme").onclick = () => { const r = document.documentElement, cur = r.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  r.dataset.theme = cur === "dark" ? "light" : "dark"; try { localStorage.setItem("atlas-theme", r.dataset.theme); } catch {} pal(); render(); refreshDrawer(); };
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { pal(); render(); });
+
+// ── boot ──────────────────────────────────────────────────────
+try { const t = localStorage.getItem("atlas-theme"); if (t) document.documentElement.dataset.theme = t; } catch {}
+pal(); readHash();
+$("#q").value = S.q;
+$("#sort").innerHTML = `<option value="">by group (default)</option><option value="size-asc">parameters, small to large</option><option value="size-desc">parameters, large to small</option>` + COLS.map(c => `<option value="${c.id}">${esc(c.group)} · ${esc(c.label)}</option>`).join("");
+$("#groups").innerHTML = GROUPS.map(g => `<button class="chip" data-g="${esc(g)}" aria-pressed="true">${esc(g)} <span style="color:var(--muted)">${ROWS.filter(r => r.group === g).length}</span></button>`).join("");
+$("#groups").addEventListener("click", e => { const b = e.target.closest(".chip"); if (!b) return; S.hidden.has(b.dataset.g) ? S.hidden.delete(b.dataset.g) : S.hidden.add(b.dataset.g); render(); });
+$("#updated").textContent = "updated " + META.updated;
+$("#stats").innerHTML = [[ROWS.length, "models & checkpoints"], [COLS.length, "eval columns"], [Object.keys(CELLS).length.toLocaleString(), "cells"], [META.items.toLocaleString(), "scored items"]].map(([n, l]) => `<span><b>${n}</b>${l}</span>`).join("");
+$("#findings").innerHTML = META.findings.map(f => `<li>${f}</li>`).join("");
+$("#gaps").innerHTML = META.gaps.map(f => `<li>${f}</li>`).join("");
+$("#foot").textContent = `atlas build ${META.build}`;
+render();
+if (S.sel) openCell(S.sel.r, S.sel.c); else if (S.col) openCol(S.col);
+window.addEventListener("hashchange", () => {
+  if (location.hash === "#" + new URLSearchParams(location.hash.slice(1)).toString() && writing) return;
+  Object.assign(S, { view: "score", cond: "0shot", mode: "all", q: "", sort: "", sel: null, col: null }); S.hidden = new Set();
+  readHash(); $("#q").value = S.q; render();
+  if (S.sel) openCell(S.sel.r, S.sel.c); else if (S.col) openCol(S.col); else { $("#drawer").classList.remove("open"); $("#drawer").inert = true; }
+});
+})();
+</script>
+</body>
+</html>

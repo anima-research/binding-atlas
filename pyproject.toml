@@ -1,0 +1,17 @@
+[project]
+name = "binding-atlas"
+version = "0.1.0"
+description = "The Binding Atlas: every model x every referent-binding probe, built into one static page"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.11"
+# `make page` needs only the standard library (+ Pillow and Chrome for the link card).
+dependencies = []
+
+[project.optional-dependencies]
+card = ["pillow>=10"]
+# `make data` renders the example prompts with kotodama's bindprobes items (build_prompt / load_items / set_metrics).
+data = ["kotodama @ git+https://github.com/anima-research/kotodama@21f9989ae1cef6b8025b689b3b7ebd09430ca89f"]
+
+[tool.uv]
+package = false

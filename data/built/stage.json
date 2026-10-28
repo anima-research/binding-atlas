@@ -1,0 +1,1796 @@
+{
+ "_source": "Stage gauges of the binding battery. Swap shift = mean[p(gold|orig) - p(gold|swap)] over the candidates; > +.02 binds, < -.02 inverts. dyn = dynamic 'you' (ownership changes hands in the scene); 0-shot and 3-shot.",
+ "stages": [
+  {
+   "n": 1,
+   "name": "I binds",
+   "gloss": "\"I\" resolves to whoever is speaking.",
+   "ex": "Jack: I'm holding the ___",
+   "ok": "every base ≥ 0.5B",
+   "olmo1b": "~21–63B tokens",
+   "ours": "~3–3.75B tokens"
+  },
+  {
+   "n": 2,
+   "name": "you = me",
+   "gloss": "\"you\" is read as the speaker too: the pronoun-reversal phase young children go through.",
+   "ex": "Jack: you're holding the ___  → Jack's object",
+   "ok": "transient in every trajectory",
+   "olmo1b": "~63B → ~500B tokens",
+   "ours": "transient, ~4–20B"
+  },
+  {
+   "n": 3,
+   "name": "static you binds",
+   "gloss": "\"you\" resolves to the addressee, when ownership is simply stated.",
+   "ex": "Carol has the onion. … Jack: you're holding the ___",
+   "ok": "every base ≥ 1.5B at its endpoint, except Pythia-2.8B",
+   "olmo1b": "~525B tokens",
+   "ours": "by 33B tokens annealed (trunk: 40B); +.235 at 110B"
+  },
+  {
+   "n": 4,
+   "name": "you = me, again",
+   "gloss": "once objects change hands in the scene, \"you\" collapses back onto the speaker.",
+   "ex": "Erin gives Paul her cup. … Paul: now you're holding the ___",
+   "ok": "where almost every base stops",
+   "olmo1b": "from ~63B, still there at 4T",
+   "ours": "from ~4B; shallowing (−.047 at 11B → −.021 at 110B, no longer inverted under the gauge rule)"
+  },
+  {
+   "n": 5,
+   "name": "dynamic you binds",
+   "gloss": "\"you\" tracked through transfers. In-context first (3-shot), zero-shot last.",
+   "ex": "same scene, answered correctly without examples",
+   "ok": "zero-shot: never binds at ≤ 8B (any token count measured); weak and nearly flat from 14B to 1T. Token-reachability unknown",
+   "olmo1b": "never (flat to 4T)",
+   "ours": "not reached by 110B"
+  }
+ ],
+ "threshold": {
+  "_note": "endpoint dynamic-you swap shift vs total parameters (B). MoE = total params. Models without a public param count are listed in 'unsized'.",
+  "models": [
+   {
+    "m": "OLMo-2 1B (4T, pre-anneal)",
+    "p": 1.5,
+    "tok": "4T",
+    "fam": "OLMo",
+    "z": -0.047,
+    "t": -0.023
+   },
+   {
+    "m": "SmolLM2 1.7B",
+    "p": 1.7,
+    "tok": "11T",
+    "fam": "other",
+    "z": -0.047,
+    "t": 0.007
+   },
+   {
+    "m": "SmolLM3 3B",
+    "p": 3.1,
+    "tok": "11T",
+    "fam": "other",
+    "z": -0.036,
+    "t": -0.002
+   },
+   {
+    "m": "Qwen3 0.6B",
+    "p": 0.6,
+    "tok": "36T",
+    "fam": "Qwen3",
+    "z": -0.06,
+    "t": -0.003
+   },
+   {
+    "m": "Qwen3 1.7B",
+    "p": 1.7,
+    "tok": "36T",
+    "fam": "Qwen3",
+    "z": -0.089,
+    "t": 0.011
+   },
+   {
+    "m": "Qwen3 4B",
+    "p": 4.0,
+    "tok": "36T",
+    "fam": "Qwen3",
+    "z": -0.068,
+    "t": 0.035
+   },
+   {
+    "m": "Qwen3 8B",
+    "p": 8.2,
+    "tok": "36T",
+    "fam": "Qwen3",
+    "z": -0.079,
+    "t": 0.043
+   },
+   {
+    "m": "Qwen3 14B",
+    "p": 14.8,
+    "tok": "36T",
+    "fam": "Qwen3",
+    "z": 0.022,
+    "t": 0.242
+   },
+   {
+    "m": "Qwen2.5 0.5B",
+    "p": 0.5,
+    "tok": "18T",
+    "fam": "Qwen2.5",
+    "z": -0.083,
+    "t": -0.013
+   },
+   {
+    "m": "Qwen2.5 1.5B",
+    "p": 1.5,
+    "tok": "18T",
+    "fam": "Qwen2.5",
+    "z": -0.085,
+    "t": -0.03
+   },
+   {
+    "m": "Qwen2.5 3B",
+    "p": 3.1,
+    "tok": "18T",
+    "fam": "Qwen2.5",
+    "z": -0.088,
+    "t": -0.017
+   },
+   {
+    "m": "Qwen2.5 7B",
+    "p": 7.6,
+    "tok": "18T",
+    "fam": "Qwen2.5",
+    "z": -0.004,
+    "t": 0.061
+   },
+   {
+    "m": "Qwen2.5 14B",
+    "p": 14.7,
+    "tok": "18T",
+    "fam": "Qwen2.5",
+    "z": 0.011,
+    "t": 0.189
+   },
+   {
+    "m": "OLMo-2 7B",
+    "p": 7.3,
+    "tok": "4T",
+    "fam": "OLMo",
+    "z": -0.023,
+    "t": -0.027
+   },
+   {
+    "m": "OLMo-2 13B",
+    "p": 13.7,
+    "tok": "5T",
+    "fam": "OLMo",
+    "z": -0.014,
+    "t": -0.01
+   },
+   {
+    "m": "Gemma-2 9B",
+    "p": 9.2,
+    "tok": "8T",
+    "fam": "other",
+    "z": -0.042,
+    "t": 0.009
+   },
+   {
+    "m": "Qwen3 30B-A3B",
+    "p": 30.5,
+    "tok": "36T",
+    "fam": "Qwen3",
+    "z": 0.026,
+    "t": 0.041
+   },
+   {
+    "m": "GLM-4 32B",
+    "p": 32,
+    "tok": "15T",
+    "fam": "other",
+    "z": 0.029,
+    "t": 0.013
+   },
+   {
+    "m": "OLMo-3 32B",
+    "p": 32,
+    "tok": "6T",
+    "fam": "OLMo",
+    "z": -0.062,
+    "t": 0.047
+   },
+   {
+    "m": "Llama-3.1 70B",
+    "p": 70.6,
+    "tok": "15T",
+    "fam": "Llama",
+    "z": 0.023,
+    "t": 0.04
+   },
+   {
+    "m": "Qwen2.5 72B",
+    "p": 72.7,
+    "tok": "18T",
+    "fam": "Qwen2.5",
+    "z": 0.033,
+    "t": 0.039
+   },
+   {
+    "m": "Llama-3.1 405B",
+    "p": 405,
+    "tok": "15T",
+    "fam": "Llama",
+    "z": 0.054,
+    "t": 0.145
+   },
+   {
+    "m": "Nemotron-3 Ultra",
+    "p": 550,
+    "tok": "—",
+    "fam": "other",
+    "z": 0.014,
+    "t": 0.068
+   },
+   {
+    "m": "DeepSeek-V3",
+    "p": 671,
+    "tok": "15T",
+    "fam": "DeepSeek",
+    "z": 0.067,
+    "t": 0.065
+   },
+   {
+    "m": "Kimi-K2",
+    "p": 1040,
+    "tok": "15T",
+    "fam": "other",
+    "z": 0.045,
+    "t": 0.07
+   }
+  ],
+  "unsized": [
+   {
+    "m": "DeepSeek-V4 Flash",
+    "z": 0.102,
+    "t": 0.083
+   },
+   {
+    "m": "DeepSeek-V4 Pro",
+    "z": 0.004,
+    "t": 0.032
+   },
+   {
+    "m": "Trinity-Large (base)",
+    "z": 0.0,
+    "t": 0.11
+   },
+   {
+    "m": "MiMo-V2.5 Pro (base)",
+    "z": 0.036,
+    "t": 0.083
+   }
+  ],
+  "ours": {
+   "m": "kotodama-tsumugi 1.4B @ 110B tokens (release)",
+   "p": 1.42,
+   "z": -0.021,
+   "t": 0.018
+  }
+ },
+ "cost": {
+  "_note": "tokens at which each stage first binds (gauge CI rule), OLMo-2 family (one data recipe) + kotodama-tsumugi (1.4B, 72 effective layers). [lo, hi] = bracketing checkpoints.",
+  "rows": [
+   {
+    "stage": "1 · I",
+    "pts": [
+     {
+      "m": "OLMo-2 1B",
+      "lo": 21.0,
+      "hi": 63.0
+     },
+     {
+      "m": "OLMo-2 7B",
+      "lo": 21.0,
+      "hi": 42.0
+     },
+     {
+      "m": "OLMo-2 13B",
+      "lo": 17.0,
+      "hi": 42.0
+     },
+     {
+      "m": "kotodama-tsumugi",
+      "lo": 3.0,
+      "hi": 3.75,
+      "ours": true
+     }
+    ]
+   },
+   {
+    "stage": "3 · static you",
+    "pts": [
+     {
+      "m": "OLMo-2 1B",
+      "lo": 294.0,
+      "hi": 420.0
+     },
+     {
+      "m": "OLMo-2 7B",
+      "lo": 105.0,
+      "hi": 210.0
+     },
+     {
+      "m": "OLMo-2 13B",
+      "lo": 17.0,
+      "hi": 42.0
+     },
+     {
+      "m": "kotodama-tsumugi",
+      "lo": 30.0,
+      "hi": 33.0,
+      "ours": true
+     }
+    ]
+   },
+   {
+    "stage": "5 · dynamic you",
+    "pts": [
+     {
+      "m": "OLMo-2 1B",
+      "lo": 4000,
+      "hi": null,
+      "note": "never, to 4T"
+     },
+     {
+      "m": "OLMo-2 7B",
+      "lo": 3900,
+      "hi": null,
+      "note": "recovering, not crossed by 3.9T"
+     },
+     {
+      "m": "OLMo-2 13B",
+      "lo": 2600,
+      "hi": null,
+      "note": "at threshold (touches + at 2.6T)"
+     },
+     {
+      "m": "kotodama-tsumugi",
+      "lo": 110,
+      "hi": null,
+      "ours": true,
+      "note": "not reached by 110B"
+     }
+    ]
+   }
+  ]
+ },
+ "levers": [
+  {
+   "lever": "Depth (52 vs 28 layers, same params)",
+   "eff": "+",
+   "res": "set-binding .70 vs .41; attribution .83 vs .69",
+   "cost": "≈ same loss, −22% throughput"
+  },
+  {
+   "lever": "Looped depth (shared middle block)",
+   "eff": "+",
+   "res": "matches the deep model at 56–80% of the unique params",
+   "cost": "loss flat when the loop sits inside one fitted block"
+  },
+  {
+   "lever": "Data-fitted AttnRes boundaries",
+   "eff": "+",
+   "res": "a 28-layer model reaches 52-layer set-binding in 2 of 3 seeds (.67/.66 vs .41–.44)",
+   "cost": "no measured cost"
+  },
+  {
+   "lever": "Attention residuals at all",
+   "eff": "+",
+   "res": "stage 1 arrives 1.5–2× sooner; needed for the depth effect",
+   "cost": "−20% throughput"
+  },
+  {
+   "lever": "Dialogue-heavy early data (13–40%)",
+   "eff": "0 / −",
+   "res": "no binding gain at any dose or window; 25% delays stage 1 ~2.3×",
+   "cost": "costs code and structure binding"
+  }
+ ],
+ "lead": "Base language models acquire the referent of *you* in five ordered stages. Every base of 0.6B parameters or more trained on trillions of tokens reaches the first three. The fifth stage, tracking *you* after objects change hands, is **never reached zero-shot** by a public model up to 8B, at any token count measured up to 36T; its swap shift is negative in every one of them. Whether more tokens would get a small model there is unknown. From 14B to 1T parameters it is weak and nearly flat in 10 of the 11 bases with a public size: a zero-shot swap shift of +.01 to +.07, against +.27 to +.82 for static *you* in the seven of them where that is measured. In these models parameter count and depth grow together. **kotodama-tsumugi**, a 1.4B model run as 72 effective layers (looped depth, boundary-fitted attention residuals), separates them: it reaches stage 3 by **33B tokens** (annealed; on the constant-LR trunk by 40B), the token cost of OLMo-2 13B, against about 420B for OLMo-2 1B. Trained to 110B tokens, it still does not reach stage 5, but its zero-shot reading (−.021) is not inverted under the gauge rule, where every 1–2B public base whose static *you* binds, except Llama-3.2-1B, inverts.",
+ "tsumugi": {
+  "_note": "kotodama-tsumugi s17 trunk (constant LR, to 100B) and cooldown branches (annealed), stage gauges = P2 speaker swap (static I, static you) and dynamic swap (addressee, 0-shot / 3-shot). Seed 7 = the seed replicate to 11B. Values from the synthesis table.",
+  "traj": {
+   "s17": [
+    {
+     "tok": 1.0,
+     "kind": "constant",
+     "I": 0.004,
+     "you": -0.003,
+     "dyn0": -0.004,
+     "dyn3": -0.003
+    },
+    {
+     "tok": 2.0,
+     "kind": "constant",
+     "I": 0.001,
+     "you": -0.003,
+     "dyn0": -0.004,
+     "dyn3": 0.002
+    },
+    {
+     "tok": 3.0,
+     "kind": "constant",
+     "I": 0.007,
+     "you": -0.008,
+     "dyn0": -0.005,
+     "dyn3": -0.018
+    },
+    {
+     "tok": 3.75,
+     "kind": "constant",
+     "I": 0.035,
+     "you": -0.02,
+     "dyn0": -0.025,
+     "dyn3": -0.013
+    },
+    {
+     "tok": 10.0,
+     "kind": "constant",
+     "I": 0.075,
+     "you": -0.013,
+     "dyn0": -0.042,
+     "dyn3": -0.015
+    },
+    {
+     "tok": 20.0,
+     "kind": "constant",
+     "I": 0.133,
+     "you": -0.005,
+     "dyn0": -0.036,
+     "dyn3": -0.008
+    },
+    {
+     "tok": 30.0,
+     "kind": "constant",
+     "I": 0.137,
+     "you": 0.017,
+     "dyn0": -0.03,
+     "dyn3": -0.008
+    },
+    {
+     "tok": 40.0,
+     "kind": "constant",
+     "I": 0.182,
+     "you": 0.077,
+     "dyn0": -0.025,
+     "dyn3": 0.011
+    },
+    {
+     "tok": 50.0,
+     "kind": "constant",
+     "I": 0.309,
+     "you": 0.04,
+     "dyn0": -0.029,
+     "dyn3": 0.006
+    },
+    {
+     "tok": 60.0,
+     "kind": "constant",
+     "I": 0.256,
+     "you": 0.072,
+     "dyn0": -0.025,
+     "dyn3": 0.031
+    },
+    {
+     "tok": 80.0,
+     "kind": "constant",
+     "I": 0.213,
+     "you": 0.084,
+     "dyn0": -0.032,
+     "dyn3": 0.022
+    },
+    {
+     "tok": 100.0,
+     "kind": "constant",
+     "I": 0.223,
+     "you": 0.105,
+     "dyn0": -0.018,
+     "dyn3": 0.005
+    },
+    {
+     "tok": 5.0,
+     "kind": "annealed",
+     "I": 0.039,
+     "you": -0.024,
+     "dyn0": -0.023,
+     "dyn3": -0.012
+    },
+    {
+     "tok": 11.0,
+     "kind": "annealed",
+     "I": 0.077,
+     "you": -0.023,
+     "dyn0": -0.047,
+     "dyn3": -0.015
+    },
+    {
+     "tok": 33.0,
+     "kind": "annealed",
+     "I": 0.243,
+     "you": 0.073,
+     "dyn0": -0.022,
+     "dyn3": -0.004
+    },
+    {
+     "tok": 55.0,
+     "kind": "annealed",
+     "I": 0.263,
+     "you": 0.138,
+     "dyn0": -0.029,
+     "dyn3": 0.016
+    },
+    {
+     "tok": 88.0,
+     "kind": "annealed",
+     "I": 0.191,
+     "you": 0.206,
+     "dyn0": -0.02,
+     "dyn3": 0.01
+    },
+    {
+     "tok": 110.0,
+     "kind": "annealed",
+     "note": "release",
+     "I": 0.246,
+     "you": 0.235,
+     "dyn0": -0.021,
+     "dyn3": 0.018
+    },
+    {
+     "tok": 110.0,
+     "kind": "annealed",
+     "note": "second anneal from the same 100B fork",
+     "I": 0.225,
+     "you": 0.142,
+     "dyn0": -0.016,
+     "dyn3": 0.012
+    }
+   ],
+   "s7": [
+    {
+     "tok": 5.0,
+     "kind": "annealed",
+     "I": 0.027,
+     "you": -0.008,
+     "dyn0": -0.017,
+     "dyn3": -0.015
+    },
+    {
+     "tok": 11.0,
+     "kind": "annealed",
+     "I": 0.111,
+     "you": -0.009,
+     "dyn0": -0.043,
+     "dyn3": 0.004
+    },
+    {
+     "tok": 1.0,
+     "kind": "constant",
+     "I": 0.004,
+     "you": -0.006,
+     "dyn0": -0.004,
+     "dyn3": -0.003
+    },
+    {
+     "tok": 2.0,
+     "kind": "constant",
+     "I": 0.004,
+     "you": -0.004,
+     "dyn0": -0.011,
+     "dyn3": 0.002
+    },
+    {
+     "tok": 3.0,
+     "kind": "constant",
+     "I": 0.007,
+     "you": -0.004,
+     "dyn0": -0.018,
+     "dyn3": 0.012
+    },
+    {
+     "tok": 3.75,
+     "kind": "constant",
+     "I": 0.011,
+     "you": -0.006,
+     "dyn0": -0.034,
+     "dyn3": 0.001
+    },
+    {
+     "tok": 10.0,
+     "kind": "constant",
+     "I": 0.099,
+     "you": -0.006,
+     "dyn0": -0.048,
+     "dyn3": -0.001
+    }
+   ]
+  },
+  "olmo_stage3": [
+   {
+    "m": "OLMo-2 13B",
+    "tok": 42
+   },
+   {
+    "m": "OLMo-2 7B",
+    "tok": 210
+   },
+   {
+    "m": "OLMo-2 1B",
+    "tok": 420
+   }
+  ],
+  "battery": {
+   "cols": [
+    "s17 · 5B",
+    "s17 · 11B",
+    "s17 · 33B",
+    "s7 · 5B",
+    "s7 · 11B"
+   ],
+   "groups": [
+    {
+     "name": "who holds what",
+     "rows": [
+      [
+       "set binding, one object (chance .125)",
+       [
+        0.594,
+        0.875,
+        0.906,
+        0.797,
+        0.906
+       ]
+      ],
+      [
+       "set binding, 2–3 objects (chance .25–.38)",
+       [
+        0.637,
+        0.797,
+        0.848,
+        0.73,
+        0.762
+       ]
+      ],
+      [
+       "attribution, 3-shot",
+       [
+        0.882,
+        0.951,
+        0.972,
+        0.932,
+        0.958
+       ]
+      ],
+      [
+       "aliased Python lists (chance .20)",
+       [
+        0.328,
+        0.408,
+        0.427,
+        0.338,
+        0.432
+       ]
+      ],
+      [
+       "dialogue tracking, 0-shot",
+       [
+        0.357,
+        0.415,
+        0.439,
+        0.342,
+        0.424
+       ]
+      ]
+     ]
+    },
+    {
+     "name": "who you is",
+     "rows": [
+      [
+       "deixis, owner query, 0-shot",
+       [
+        0.356,
+        0.303,
+        0.523,
+        0.379,
+        0.326
+       ]
+      ],
+      [
+       "deixis v2, self (P2)",
+       [
+        0.325,
+        0.262,
+        0.389,
+        0.286,
+        0.333
+       ]
+      ],
+      [
+       "deixis v2, addressee (P2)",
+       [
+        0.214,
+        0.159,
+        0.19,
+        0.127,
+        0.214
+       ]
+      ],
+      [
+       "reply adjacency, no vocative (chance .33)",
+       [
+        0.346,
+        0.412,
+        0.458,
+        0.377,
+        0.388
+       ]
+      ],
+      [
+       "deixis-lite, 0-shot",
+       [
+        0.427,
+        0.412,
+        0.395,
+        0.4,
+        0.393
+       ]
+      ],
+      [
+       "production deixis (me / you / name; chance .25)",
+       [
+        0.172,
+        0.252,
+        0.152,
+        0.202,
+        0.152
+       ]
+      ]
+     ]
+    }
+   ]
+  },
+  "desc": "A 1.42B-parameter model: 52 unique layers at width 1536, with a 20-layer block in the middle run twice for 72 effective layers, and attention-residual boundaries fitted to the network's own layer geometry. The trunk trains at a constant learning rate to 100B tokens; annealed reads are cooldown branches forked from its checkpoints (cosine decay to zero over about 10% of the tokens so far). The release is the 110B branch from the 100B fork. A second anneal from the same fork, with identical training loss, reads .025 bits/byte worse on held-out text: single-anneal numbers carry that spread. A second initialization seed (seed 7, same data order) was trained to 11B."
+ },
+ "decomp": {
+  "_note": "stage5-decomp-v1: each dynamic-you gauge item rewritten along one axis. Accuracy pooled over self + addressee queries, 0-shot, 360 items per cell (SE ≈ .024); chance ≈ .29. Endpoints only.",
+  "cols": [
+   {
+    "k": "third",
+    "name": "transfer, narrated",
+    "ex": "Erin gives the cup to Paul. … Right now Paul is holding the"
+   },
+   {
+    "k": "deictic",
+    "name": "transfer, spoken",
+    "ex": "Erin: Here, take my cup. … Paul: Right now I'm holding the"
+   },
+   {
+    "k": "named_transfer",
+    "name": "spoken, transfer narrated",
+    "ex": "[Erin gives the cup to Paul.] … deictic query"
+   },
+   {
+    "k": "vocative",
+    "name": "spoken + vocative",
+    "ex": "Erin: Paul, right now you're holding the"
+   }
+  ],
+  "chance": 0.287,
+  "rows": [
+   {
+    "m": "Pythia-1.4B",
+    "p": 1.41,
+    "tok": "134B",
+    "ours": false,
+    "third": 0.286,
+    "deictic": 0.283,
+    "named_transfer": 0.253,
+    "vocative": 0.242
+   },
+   {
+    "m": "kotodama-tsumugi · 33B",
+    "p": 1.42,
+    "tok": "33B",
+    "ours": true,
+    "third": 0.308,
+    "deictic": 0.297,
+    "named_transfer": 0.3,
+    "vocative": 0.306
+   },
+   {
+    "m": "kotodama-tsumugi · 55B",
+    "p": 1.42,
+    "tok": "55B",
+    "ours": true,
+    "third": 0.297,
+    "deictic": 0.289,
+    "named_transfer": 0.292,
+    "vocative": 0.283
+   },
+   {
+    "m": "kotodama-tsumugi · 88B",
+    "p": 1.42,
+    "tok": "88B",
+    "ours": true,
+    "third": 0.314,
+    "deictic": 0.275,
+    "named_transfer": 0.319,
+    "vocative": 0.264
+   },
+   {
+    "m": "kotodama-tsumugi · 110B, second anneal",
+    "p": 1.42,
+    "tok": "110B",
+    "ours": true,
+    "third": 0.331,
+    "deictic": 0.297,
+    "named_transfer": 0.339,
+    "vocative": 0.292
+   },
+   {
+    "m": "kotodama-tsumugi · 110B, release",
+    "p": 1.42,
+    "tok": "110B",
+    "ours": true,
+    "third": 0.336,
+    "deictic": 0.281,
+    "named_transfer": 0.339,
+    "vocative": 0.292
+   },
+   {
+    "m": "OLMo-2 1B",
+    "p": 1.48,
+    "tok": "4T",
+    "ours": false,
+    "third": 0.306,
+    "deictic": 0.319,
+    "named_transfer": 0.333,
+    "vocative": 0.308
+   },
+   {
+    "m": "SmolLM2 1.7B",
+    "p": 1.71,
+    "tok": "11T",
+    "ours": false,
+    "third": 0.444,
+    "deictic": 0.3,
+    "named_transfer": 0.347,
+    "vocative": 0.281
+   },
+   {
+    "m": "Qwen3 1.7B",
+    "p": 1.72,
+    "tok": "36T",
+    "ours": false,
+    "third": 0.514,
+    "deictic": 0.353,
+    "named_transfer": 0.258,
+    "vocative": 0.325
+   },
+   {
+    "m": "Qwen3 4B",
+    "p": 4.02,
+    "tok": "36T",
+    "ours": false,
+    "third": 0.669,
+    "deictic": 0.4,
+    "named_transfer": 0.406,
+    "vocative": 0.353
+   },
+   {
+    "m": "Qwen2.5 7B",
+    "p": 7.62,
+    "tok": "18T",
+    "ours": false,
+    "third": 0.572,
+    "deictic": 0.4,
+    "named_transfer": 0.514,
+    "vocative": 0.381
+   },
+   {
+    "m": "Llama-3.1 8B",
+    "p": 8.03,
+    "tok": "15T",
+    "ours": false,
+    "third": 0.589,
+    "deictic": 0.289,
+    "named_transfer": 0.436,
+    "vocative": 0.258
+   },
+   {
+    "m": "Qwen3 8B",
+    "p": 8.19,
+    "tok": "36T",
+    "ours": false,
+    "third": 0.714,
+    "deictic": 0.397,
+    "named_transfer": 0.45,
+    "vocative": 0.319
+   },
+   {
+    "m": "Qwen2.5 14B",
+    "p": 14.77,
+    "tok": "18T",
+    "ours": false,
+    "third": 0.725,
+    "deictic": 0.361,
+    "named_transfer": 0.533,
+    "vocative": 0.317
+   },
+   {
+    "m": "Qwen3 14B",
+    "p": 14.77,
+    "tok": "36T",
+    "ours": false,
+    "third": 0.675,
+    "deictic": 0.406,
+    "named_transfer": 0.542,
+    "vocative": 0.358
+   },
+   {
+    "m": "Qwen3 30B-A3B",
+    "p": 30.53,
+    "tok": "36T",
+    "ours": false,
+    "third": 0.592,
+    "deictic": 0.339,
+    "named_transfer": 0.531,
+    "vocative": 0.297
+   },
+   {
+    "m": "Llama-3.1 70B",
+    "p": 70.6,
+    "tok": "15T",
+    "ours": false,
+    "third": 0.797,
+    "deictic": 0.358,
+    "named_transfer": 0.631,
+    "vocative": 0.331
+   }
+  ]
+ },
+ "riders": {
+  "_note": "riders v2, cross-model score_prompts harness; language = narrative + screenplay, 400 items per cell (SE ≈ .024); chance .25. fixed3 = the same three exemplars for every item; fairK = K exemplars drawn per item, sharing none of its letters or objects.",
+  "cols": [
+   "0shot",
+   "fixed3",
+   "fair1",
+   "fair3",
+   "fair6"
+  ],
+  "rows": [
+   {
+    "m": "Pythia-1.4B · 134B",
+    "ours": false,
+    "0shot": 0.362,
+    "fixed3": 0.415,
+    "fair1": 0.385,
+    "fair3": 0.44,
+    "fair6": 0.417
+   },
+   {
+    "m": "OLMo-2 1B · 4T",
+    "ours": false,
+    "0shot": 0.385,
+    "fixed3": 0.275,
+    "fair1": 0.375,
+    "fair3": 0.383,
+    "fair6": 0.453
+   },
+   {
+    "m": "SmolLM2 1.7B · 10.5T",
+    "ours": false,
+    "0shot": 0.398,
+    "fixed3": 0.398,
+    "fair1": 0.472,
+    "fair3": 0.432,
+    "fair6": 0.505
+   },
+   {
+    "m": "kotodama-tsumugi · 11B",
+    "ours": true,
+    "0shot": 0.427,
+    "fixed3": 0.375,
+    "fair1": 0.443,
+    "fair3": 0.49,
+    "fair6": 0.495
+   },
+   {
+    "m": "kotodama-tsumugi · 33B",
+    "ours": true,
+    "0shot": 0.455,
+    "fixed3": 0.325,
+    "fair1": 0.45,
+    "fair3": 0.485,
+    "fair6": 0.53
+   },
+   {
+    "m": "kotodama-tsumugi · 55B",
+    "ours": true,
+    "0shot": 0.49,
+    "fixed3": 0.278,
+    "fair1": 0.455,
+    "fair3": 0.453,
+    "fair6": 0.51
+   },
+   {
+    "m": "kotodama-tsumugi · 110B, second anneal",
+    "ours": true,
+    "0shot": 0.47,
+    "fixed3": 0.338,
+    "fair1": 0.448,
+    "fair3": 0.393,
+    "fair6": 0.438
+   },
+   {
+    "m": "kotodama-tsumugi · 110B, release",
+    "ours": true,
+    "0shot": 0.482,
+    "fixed3": 0.263,
+    "fair1": 0.472,
+    "fair3": 0.388,
+    "fair6": 0.438
+   }
+  ],
+  "chance": 0.25
+ },
+ "release": {
+  "cols": [
+   "33B",
+   "55B",
+   "88B",
+   "110B · 2nd anneal",
+   "110B · release",
+   "OLMo-2 1B · 4T",
+   "SmolLM2 1.7B · 11T",
+   "Qwen3 1.7B · 36T"
+  ],
+  "ours": [
+   true,
+   true,
+   true,
+   true,
+   true,
+   false,
+   false,
+   false
+  ],
+  "rows": [
+   [
+    "static I (swap shift)",
+    [
+     0.243,
+     0.263,
+     0.191,
+     0.225,
+     0.246,
+     0.355,
+     0.378,
+     0.606
+    ],
+    true
+   ],
+   [
+    "static you (swap shift)",
+    [
+     0.073,
+     0.138,
+     0.206,
+     0.142,
+     0.235,
+     0.137,
+     0.197,
+     0.123
+    ],
+    true
+   ],
+   [
+    "dynamic you, 0-shot (swap shift)",
+    [
+     -0.022,
+     -0.029,
+     -0.02,
+     -0.016,
+     -0.021,
+     -0.082,
+     -0.047,
+     -0.089
+    ],
+    true
+   ],
+   [
+    "dynamic you, 3-shot (swap shift)",
+    [
+     -0.004,
+     0.016,
+     0.01,
+     0.012,
+     0.018,
+     -0.016,
+     0.007,
+     0.011
+    ],
+    true
+   ],
+   [
+    "binding capacity K50 (chance .04)",
+    [
+     3.258,
+     3.472,
+     4.201,
+     3.819,
+     4.771,
+     6.555,
+     18.7,
+     44.094
+    ],
+    false
+   ],
+   [
+    "one binding past 256 filler tokens",
+    [
+     0.863,
+     0.983,
+     0.892,
+     0.921,
+     0.908,
+     0.829,
+     0.771,
+     0.958
+    ],
+    false
+   ],
+   [
+    "deixis v2, deictic, 0-shot (acc)",
+    [
+     0.311,
+     0.307,
+     0.314,
+     0.331,
+     0.339,
+     0.344,
+     null,
+     null
+    ],
+    false
+   ],
+   [
+    "deixis v2, third person, 0-shot (acc)",
+    [
+     0.368,
+     0.373,
+     0.392,
+     0.42,
+     0.416,
+     0.411,
+     null,
+     null
+    ],
+    false
+   ]
+  ]
+ },
+ "run": {
+  "_note": "same-harness points per checkpoint (synthesis table): lm-eval avg9, Uncheatable bits/byte, stage-gauge swap shifts. tsumugi trunk = constant LR (trunk-*), annealed = cooldown branches (anneal-*), release = anneal-110B-release. FLOPs = tokens x FLOPs/token (tsumugi 1.13e10 with looped depth; public 6N).",
+  "models": [
+   {
+    "m": "kotodama-tsumugi",
+    "style": "ours",
+    "fpt": 11300000000.0,
+    "pts": [
+     {
+      "ck": "trunk-1.0B",
+      "tok": 1.0,
+      "kind": "trunk",
+      "I": 0.0035,
+      "you": -0.0025,
+      "flops": 1.13e+19
+     },
+     {
+      "ck": "trunk-2.0B",
+      "tok": 2.0,
+      "kind": "trunk",
+      "I": 0.0014,
+      "you": -0.0026,
+      "flops": 2.26e+19
+     },
+     {
+      "ck": "trunk-3.0B",
+      "tok": 3.0,
+      "kind": "trunk",
+      "I": 0.0073,
+      "you": -0.008,
+      "flops": 3.39e+19
+     },
+     {
+      "ck": "trunk-3.75B",
+      "tok": 3.75,
+      "kind": "trunk",
+      "I": 0.0353,
+      "you": -0.0201,
+      "flops": 4.2375e+19
+     },
+     {
+      "ck": "anneal-5B",
+      "tok": 5.0,
+      "kind": "annealed",
+      "I": 0.039,
+      "you": -0.0236,
+      "flops": 5.65e+19
+     },
+     {
+      "ck": "trunk-10B",
+      "tok": 10.0,
+      "kind": "trunk",
+      "avg9": 56.056,
+      "ubpb": 0.939,
+      "I": 0.0754,
+      "you": -0.0127,
+      "flops": 1.13e+20
+     },
+     {
+      "ck": "anneal-11B",
+      "tok": 11.0,
+      "kind": "annealed",
+      "I": 0.0775,
+      "you": -0.0232,
+      "flops": 1.243e+20
+     },
+     {
+      "ck": "trunk-20B",
+      "tok": 20.0,
+      "kind": "trunk",
+      "avg9": 57.708,
+      "ubpb": 0.8983,
+      "I": 0.1327,
+      "you": -0.005,
+      "flops": 2.26e+20
+     },
+     {
+      "ck": "trunk-30B",
+      "tok": 30.0,
+      "kind": "trunk",
+      "avg9": 59.112,
+      "ubpb": 0.889,
+      "I": 0.1369,
+      "you": 0.0174,
+      "flops": 3.39e+20
+     },
+     {
+      "ck": "anneal-33B",
+      "tok": 33.0,
+      "kind": "annealed",
+      "avg9": 61.257,
+      "ubpb": 0.8194,
+      "I": 0.2431,
+      "you": 0.0732,
+      "flops": 3.729e+20
+     },
+     {
+      "ck": "trunk-40B",
+      "tok": 40.0,
+      "kind": "trunk",
+      "avg9": 59.512,
+      "ubpb": 0.8951,
+      "I": 0.1825,
+      "you": 0.077,
+      "flops": 4.52e+20
+     },
+     {
+      "ck": "trunk-50B",
+      "tok": 50.0,
+      "kind": "trunk",
+      "avg9": 59.868,
+      "ubpb": 0.8774,
+      "I": 0.3095,
+      "you": 0.0399,
+      "flops": 5.65e+20
+     },
+     {
+      "ck": "anneal-55B",
+      "tok": 55.0,
+      "kind": "annealed",
+      "avg9": 62.033,
+      "ubpb": 0.8008,
+      "I": 0.2627,
+      "you": 0.1382,
+      "flops": 6.215e+20
+     },
+     {
+      "ck": "trunk-60B",
+      "tok": 60.0,
+      "kind": "trunk",
+      "avg9": 59.354,
+      "ubpb": 0.8839,
+      "I": 0.256,
+      "you": 0.0725,
+      "flops": 6.78e+20
+     },
+     {
+      "ck": "trunk-70B",
+      "tok": 70.0,
+      "kind": "trunk",
+      "avg9": 60.699,
+      "ubpb": 0.8708,
+      "flops": 7.91e+20
+     },
+     {
+      "ck": "trunk-80B",
+      "tok": 80.0,
+      "kind": "trunk",
+      "avg9": 59.984,
+      "ubpb": 0.8682,
+      "I": 0.2128,
+      "you": 0.0839,
+      "flops": 9.04e+20
+     },
+     {
+      "ck": "anneal-88B",
+      "tok": 88.0,
+      "kind": "annealed",
+      "avg9": 63.882,
+      "ubpb": 0.7744,
+      "I": 0.1911,
+      "you": 0.2058,
+      "flops": 9.944e+20
+     },
+     {
+      "ck": "trunk-90B",
+      "tok": 90.0,
+      "kind": "trunk",
+      "avg9": 60.665,
+      "ubpb": 0.8952,
+      "flops": 1.017e+21
+     },
+     {
+      "ck": "trunk-100B",
+      "tok": 100.0,
+      "kind": "trunk",
+      "avg9": 60.216,
+      "ubpb": 0.8653,
+      "I": 0.223,
+      "you": 0.1048,
+      "flops": 1.13e+21
+     },
+     {
+      "ck": "anneal-110B-release",
+      "tok": 110.0,
+      "kind": "annealed",
+      "avg9": 64.149,
+      "ubpb": 0.7683,
+      "I": 0.2457,
+      "you": 0.235,
+      "flops": 1.243e+21,
+      "note": "release"
+     }
+    ]
+   },
+   {
+    "m": "Pythia-1.4B",
+    "style": "dash",
+    "fpt": 8459999999.999999,
+    "pts": [
+     {
+      "ck": "2B tokens",
+      "tok": 2.0,
+      "kind": "base",
+      "I": 0.0024,
+      "you": 0.0009,
+      "flops": 1.6919999999999998e+19
+     },
+     {
+      "ck": "10B tokens",
+      "tok": 10.0,
+      "kind": "base",
+      "I": 0.0112,
+      "you": -0.0079,
+      "flops": 8.459999999999998e+19
+     },
+     {
+      "ck": "step5000 (7ca9aa97)",
+      "tok": 10.5,
+      "kind": "base",
+      "avg9": 50.541,
+      "ubpb": 0.9907,
+      "flops": 8.882999999999998e+19
+     },
+     {
+      "ck": "step14000 (5178dde4)",
+      "tok": 29.4,
+      "kind": "base",
+      "avg9": 54.809,
+      "ubpb": 0.8937,
+      "flops": 2.4872399999999997e+20
+     },
+     {
+      "ck": "step16000 (rescored)",
+      "tok": 33.6,
+      "kind": "base",
+      "avg9": 54.514,
+      "ubpb": 0.8839,
+      "flops": 2.8425599999999997e+20
+     },
+     {
+      "ck": "34B tokens",
+      "tok": 34.0,
+      "kind": "base",
+      "I": 0.0387,
+      "you": -0.0214,
+      "flops": 2.8763999999999997e+20
+     },
+     {
+      "ck": "step19000 (c36825d4)",
+      "tok": 39.8,
+      "kind": "base",
+      "avg9": 55.247,
+      "ubpb": 0.8729,
+      "flops": 3.3670799999999993e+20
+     },
+     {
+      "ck": "step29000 (e14c9106)",
+      "tok": 60.8,
+      "kind": "base",
+      "avg9": 56.309,
+      "ubpb": 0.8503,
+      "flops": 5.1436799999999993e+20
+     },
+     {
+      "ck": "step38000 (3094ff04)",
+      "tok": 79.7,
+      "kind": "base",
+      "avg9": 57.798,
+      "ubpb": 0.8359,
+      "flops": 6.742619999999999e+20
+     },
+     {
+      "ck": "step48000 (b5d0b108)",
+      "tok": 100.7,
+      "kind": "base",
+      "avg9": 59.033,
+      "ubpb": 0.8262,
+      "flops": 8.51922e+20
+     },
+     {
+      "ck": "134B tokens",
+      "tok": 134.0,
+      "kind": "base",
+      "I": 0.1847,
+      "you": -0.0017,
+      "flops": 1.1336399999999999e+21
+     },
+     {
+      "ck": "main (fedc38a1)",
+      "tok": 299.9,
+      "kind": "base",
+      "avg9": 61.353,
+      "ubpb": 0.7781,
+      "flops": 2.5371539999999997e+21
+     },
+     {
+      "ck": "main/final",
+      "tok": 299.9,
+      "kind": "base",
+      "I": 0.2366,
+      "you": 0.0119,
+      "flops": 2.5371539999999997e+21
+     }
+    ]
+   },
+   {
+    "m": "OLMo-2 1B",
+    "style": "solid",
+    "fpt": 8879999999.999998,
+    "pts": [
+     {
+      "ck": "1B tokens",
+      "tok": 1.0,
+      "kind": "base",
+      "I": -0.0001,
+      "you": 0.0001,
+      "flops": 8.879999999999998e+18
+     },
+     {
+      "ck": "21B tokens",
+      "tok": 21.0,
+      "kind": "base",
+      "I": 0.0119,
+      "you": -0.0079,
+      "flops": 1.8647999999999997e+20
+     },
+     {
+      "ck": "stage1-step10000-tokens21B (22f7d18a)",
+      "tok": 21.0,
+      "kind": "base",
+      "avg9": 56.468,
+      "ubpb": 0.9859,
+      "flops": 1.8647999999999997e+20
+     },
+     {
+      "ck": "stage1-step20000-tokens42B (555c6099)",
+      "tok": 42.0,
+      "kind": "base",
+      "avg9": 58.556,
+      "ubpb": 0.9232,
+      "flops": 3.7295999999999993e+20
+     },
+     {
+      "ck": "63B tokens",
+      "tok": 63.0,
+      "kind": "base",
+      "I": 0.155,
+      "you": -0.0198,
+      "flops": 5.594399999999999e+20
+     },
+     {
+      "ck": "stage1-step30000-tokens63B (rescored)",
+      "tok": 63.0,
+      "kind": "base",
+      "avg9": 61.043,
+      "ubpb": 0.8972,
+      "flops": 5.594399999999999e+20
+     },
+     {
+      "ck": "105B tokens",
+      "tok": 105.0,
+      "kind": "base",
+      "I": 0.1613,
+      "you": -0.0048,
+      "flops": 9.323999999999997e+20
+     },
+     {
+      "ck": "stage1-step50000-tokens105B (5d0cce11)",
+      "tok": 105.0,
+      "kind": "base",
+      "avg9": 61.776,
+      "ubpb": 0.8729,
+      "flops": 9.323999999999997e+20
+     },
+     {
+      "ck": "210B tokens",
+      "tok": 210.0,
+      "kind": "base",
+      "I": 0.2337,
+      "you": -0.0062,
+      "flops": 1.8647999999999995e+21
+     },
+     {
+      "ck": "294B tokens",
+      "tok": 294.0,
+      "kind": "base",
+      "I": 0.2814,
+      "you": -0.0088,
+      "flops": 2.6107199999999995e+21
+     },
+     {
+      "ck": "420B tokens",
+      "tok": 420.0,
+      "kind": "base",
+      "I": 0.3495,
+      "you": 0.0351,
+      "flops": 3.729599999999999e+21
+     },
+     {
+      "ck": "525B tokens",
+      "tok": 525.0,
+      "kind": "base",
+      "I": 0.3278,
+      "you": 0.0552,
+      "flops": 4.661999999999999e+21
+     },
+     {
+      "ck": "755B tokens",
+      "tok": 755.0,
+      "kind": "base",
+      "I": 0.307,
+      "you": 0.0805,
+      "flops": 6.704399999999998e+21
+     },
+     {
+      "ck": "1049B tokens",
+      "tok": 1049.0,
+      "kind": "base",
+      "I": 0.3342,
+      "you": 0.0976,
+      "flops": 9.315119999999998e+21
+     },
+     {
+      "ck": "1510B tokens",
+      "tok": 1510.0,
+      "kind": "base",
+      "I": 0.3238,
+      "you": 0.1326,
+      "flops": 1.3408799999999997e+22
+     },
+     {
+      "ck": "2098B tokens",
+      "tok": 2098.0,
+      "kind": "base",
+      "I": 0.3452,
+      "you": 0.1047,
+      "flops": 1.8630239999999997e+22
+     },
+     {
+      "ck": "2999B tokens",
+      "tok": 2999.0,
+      "kind": "base",
+      "I": 0.4576,
+      "you": 0.2117,
+      "flops": 2.6631119999999995e+22
+     },
+     {
+      "ck": "3503B tokens",
+      "tok": 3503.0,
+      "kind": "base",
+      "I": 0.3753,
+      "you": 0.179,
+      "flops": 3.1106639999999995e+22
+     },
+     {
+      "ck": "4001B tokens",
+      "tok": 4001.0,
+      "kind": "base",
+      "I": 0.3932,
+      "you": 0.1616,
+      "flops": 3.5528879999999992e+22
+     },
+     {
+      "ck": "main (a1847dff)",
+      "tok": 4050.0,
+      "kind": "base",
+      "avg9": 69.923,
+      "ubpb": 0.7563,
+      "flops": 3.5963999999999993e+22
+     },
+     {
+      "ck": "main/final",
+      "tok": 4050.0,
+      "kind": "base",
+      "I": 0.3553,
+      "you": 0.1365,
+      "flops": 3.5963999999999993e+22
+     }
+    ]
+   },
+   {
+    "m": "OLMo-1 1B",
+    "style": "dot",
+    "fpt": 7680000000.0,
+    "pts": [
+     {
+      "ck": "step14000-tokens29B (e60a63f3)",
+      "tok": 29.0,
+      "kind": "base",
+      "avg9": 51.831,
+      "ubpb": 0.9682,
+      "flops": 2.2272e+20
+     },
+     {
+      "ck": "step16000-tokens33B (cb65fb32)",
+      "tok": 33.0,
+      "kind": "base",
+      "avg9": 52.571,
+      "ubpb": 0.9526,
+      "flops": 2.5344e+20
+     },
+     {
+      "ck": "main (d7cbab74)",
+      "tok": 3050.0,
+      "kind": "base",
+      "avg9": 66.095,
+      "ubpb": 0.715,
+      "flops": 2.3424e+22
+     },
+     {
+      "ck": "main/final",
+      "tok": 3050.0,
+      "kind": "base",
+      "I": 0.1862,
+      "you": 0.076,
+      "flops": 2.3424e+22
+     }
+    ]
+   },
+   {
+    "m": "SmolLM2-1.7B",
+    "style": "dashdot",
+    "fpt": 10260000000.0,
+    "pts": [
+     {
+      "ck": "262B tokens",
+      "tok": 262.0,
+      "kind": "base",
+      "I": 0.1374,
+      "you": -0.0302,
+      "flops": 2.68812e+21
+     },
+     {
+      "ck": "525B tokens",
+      "tok": 525.0,
+      "kind": "base",
+      "I": 0.1486,
+      "you": -0.0011,
+      "flops": 5.3865e+21
+     },
+     {
+      "ck": "1050B tokens",
+      "tok": 1050.0,
+      "kind": "base",
+      "I": 0.2047,
+      "you": 0.0042,
+      "flops": 1.0773e+22
+     },
+     {
+      "ck": "2100B tokens",
+      "tok": 2100.0,
+      "kind": "base",
+      "I": 0.2137,
+      "you": 0.0119,
+      "flops": 2.1546e+22
+     },
+     {
+      "ck": "4200B tokens",
+      "tok": 4200.0,
+      "kind": "base",
+      "I": 0.2357,
+      "you": 0.024,
+      "flops": 4.3092e+22
+     },
+     {
+      "ck": "6300B tokens",
+      "tok": 6300.0,
+      "kind": "base",
+      "I": 0.3008,
+      "you": 0.0822,
+      "flops": 6.4638e+22
+     },
+     {
+      "ck": "8400B tokens",
+      "tok": 8400.0,
+      "kind": "base",
+      "I": 0.3318,
+      "you": 0.0836,
+      "flops": 8.6184e+22
+     },
+     {
+      "ck": "10500B tokens",
+      "tok": 10500.0,
+      "kind": "base",
+      "I": 0.3492,
+      "you": 0.1213,
+      "flops": 1.0773e+23
+     },
+     {
+      "ck": "11000B tokens",
+      "tok": 11000.0,
+      "kind": "base",
+      "I": 0.3779,
+      "you": 0.1972,
+      "flops": 1.1286e+23
+     },
+     {
+      "ck": "main (effd688a)",
+      "tok": 11000.0,
+      "kind": "base",
+      "avg9": 72.87,
+      "ubpb": 0.6909,
+      "flops": 1.1286e+23
+     }
+    ]
+   }
+  ]
+ }
+}
