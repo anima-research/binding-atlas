@@ -10,14 +10,14 @@ reader. It also follows **kotodama-tsumugi**, a 1.4B model run as 72 effective l
 boundary-fitted attention residuals). kotodama-tsumugi reaches stage 3 by 33B tokens, the token cost of OLMo-2 13B,
 against about 420B for OLMo-2 1B. Trained to 110B tokens, it has not reached stage 5.
 
-## Neuron Atlas
+## Threads
 
-A second page, `neuron-atlas.html`, maps every FFN neuron of kotodama-tsumugi: 72 effective positions × 4,096 = 294,912
+A second page, `threads.html` (*Threads*; 紬 tsumugi, spun thread), maps every FFN neuron of kotodama-tsumugi: 72 effective positions × 4,096 = 294,912
 neurons. Each one is placed by the meaning of its strongest firing contexts in 24M training tokens, by depth, or by its
 weights. Groups and labels are drafts written by language-model agents and graded by whether three readings agree (firing
 contexts, logit-lens / J-lens output tokens, steering). The page also shows the referent-binding circuit: per-neuron
 attribution of the battery margin, and held-out knock-outs of the supporter and interferer sets. Its data loads at run time
-from `neuron-atlas-data/` next to the page (a directory named like the page would shadow its clean URL on hosts that try the path before `.html`):
+from `threads-data/` next to the page (a directory named like the page would shadow its clean URL on hosts that try the path before `.html`). `neuron-atlas.html`, the page's earlier address, is built beside it as a redirect:
 
 | file | what |
 |---|---|
@@ -38,7 +38,7 @@ inputs are named in its docstring).
 
 | path | what |
 |---|---|
-| `site/` | the built site, ready to serve: `binding-atlas.html`, `binding-atlas.md`, `binding-atlas-card.png`; `neuron-atlas.html` + `neuron-atlas-data/` + `neuron-atlas-card.png` |
+| `site/` | the built site, ready to serve: `binding-atlas.html`, `binding-atlas.md`, `binding-atlas-card.png`; `threads.html` + `threads-data/` + `threads-card.png` (+ the `neuron-atlas.html` redirect) |
 | `page/` | page builders: `build_page.py` (HTML), `build_md.py` (Markdown twin), `build_card.py` + `build_card.sh` (link card), `atlas_page.html` (template), `meta.json` (findings, gaps), `siteconfig.py` (hosting config) |
 | `build/` | data builders: `build_atlas_v3.py` (raw grids → `atlas.json`), `build_stage.py` (synthesis table → `stage.json`), `facts.py`, `dx_replay.py`; `link_grids.py` (local copies → grids root), `subset_synthesis.py` (cuts `data/inputs/synthesis.jsonl`), `forbidden.py` (the public-content guard) |
 | `data/built/` | what the page shows: `atlas.json`, `stage.json`, `swap.json` |

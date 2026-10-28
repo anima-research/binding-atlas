@@ -17,7 +17,7 @@ ifndef STAMP
 STAMP := $(shell date -u '+%Y-%m-%d %H:%M UTC')
 endif
 # the build the aetherawi.red deployment serves (config/aetherawi.sha256)
-VERIFY_STAMP := 2026-10-28 01:01 UTC
+VERIFY_STAMP := 2026-10-28 20:45 UTC
 
 DATA_ENV := $(if $(KOTODAMA_SRC),PYTHONPATH=$(KOTODAMA_SRC),)
 PAGE_ARGS = --config $(CONFIG) --stamp "$(STAMP)"
@@ -28,7 +28,7 @@ help:
 	@echo "make page   [CONFIG=config/x.toml] [SITE=dir] [STAMP='YYYY-MM-DD HH:MM UTC']  data/built -> site/"
 	@echo "make data   GRIDS=dir [PY_DATA=python] [KOTODAMA_SRC=dir]  raw grids -> data/built/{stage,atlas}.json"
 	@echo "make stage  refresh every synthesis-derived value in data/built/stage.json (no grids needed)"
-	@echo "make neurons [CONFIG=...] [SITE=dir]  the Neuron Atlas page + its data dir (data/built/neurons -> site/)"
+	@echo "make neurons [CONFIG=...] [SITE=dir]  Threads (the neuron page) + its data dir (data/built/neurons -> site/)"
 	@echo "make neurons-binding   data/inputs/binding -> data/built/neurons/binding.json"
 	@echo "make grids  [GRIDMAP=config/local-grids.tsv]  link local copies into .grids/ (sha256-checked)"
 	@echo "make verify       rebuild the aetherawi.red deployment into out/verify and check its sha256"
@@ -49,10 +49,10 @@ md:
 card:
 	PY=$(PY) FONT_DIR=$(FONT_DIR) bash page/build_card.sh out/card $(SITE)/binding-atlas-card.png --config $(CONFIG)
 
-# ---- the Neuron Atlas (a second page; its data loads at run time from neuron-atlas/ next to it)
+# ---- Threads, the neuron page (its data loads at run time from threads-data/ next to it)
 neurons:
-	$(PY) page/build_neuron_page.py --config $(CONFIG) --stamp "$(STAMP)" --out $(SITE)/neuron-atlas.html
-	PY=$(PY) bash page/build_neuron_card.sh $(SITE) $(SITE)/neuron-atlas-card.png
+	$(PY) page/build_neuron_page.py --config $(CONFIG) --stamp "$(STAMP)" --out $(SITE)/threads.html
+	PY=$(PY) bash page/build_neuron_card.sh $(SITE) $(SITE)/threads-card.png
 
 neurons-binding:
 	$(PY) build/build_binding.py

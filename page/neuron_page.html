@@ -3,23 +3,24 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Neuron Atlas</title>
+<title>Threads</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="typeface" content="__FONT_META__">
-<meta name="description" content="Every FFN neuron of kotodama-tsumugi, a 1.4B model trained from scratch, mapped by what it does, and the circuit that decides who is who: found by attribution, proven by knock-out.">
+<meta name="description" content="Threads: every FFN neuron of kotodama-tsumugi (言霊 紬), a 1.4B model trained from scratch, mapped by what it does, and the circuits that decide who is who, found by attribution and tested by knock-out.">
 <link rel="canonical" href="__CANONICAL_URL__">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="__SITE_NAME__">
-<meta property="og:title" content="Neuron Atlas">
+<meta property="og:title" content="Threads: every neuron of kotodama-tsumugi">
 <meta property="og:description" content="294,912 neurons of a 1.4B model trained from scratch, mapped by what they do. Binding is not a topic in that map; it is a place in depth, and removing 100 neurons there moves attribute binding from 54% to 93%.">
 <meta property="og:url" content="__CANONICAL_URL__">
 <meta property="og:image" content="__CARD_URL__">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Neuron Atlas">
+<meta name="twitter:title" content="Threads: every neuron of kotodama-tsumugi">
 <meta name="twitter:image" content="__CARD_URL__">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&text=%E8%A8%80%E9%9C%8A%E7%B4%AC%E7%B4%A1&display=swap">
 <style>
 __FONT_FACES__
 /* Two grounds: the plate (always dark: the neurons glow on it) and the page (paper in light, ink in dark).
@@ -80,6 +81,21 @@ p { margin: 0 }
 .hero .figs div { display: grid }
 .hero .figs b { font-size: 26px; line-height: 1.1 }
 .hero .figs span { font-size: 12px; color: var(--plate-muted); letter-spacing: .06em; text-transform: uppercase }
+.mark { display: grid; gap: 2px; justify-items: start }
+.kanji { font-family: "Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif; font-weight: 700; letter-spacing: .08em; line-height: 1 }
+.mark .kanji { font-size: clamp(30px, 4.2vw, 46px) }
+.mark .romaji { font-family: var(--f-mono); font-size: 12px; letter-spacing: .16em; color: var(--plate-muted) }
+.gloss { display: grid; gap: 2px; font-size: 12.5px; color: var(--plate-muted); max-width: 62ch }
+.gloss b { font-family: "Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif; color: #c9d0d7; font-weight: 500; margin-right: 4px }
+.watermark { position: absolute; right: max(8px, env(safe-area-inset-right, 0px)); top: -10px; font-size: clamp(160px, 26vw, 360px); line-height: 1;
+  color: var(--plate-fg); opacity: .045; pointer-events: none; user-select: none; z-index: 0 }
+.explore { position: relative; overflow: hidden }
+.explore > .wrap { position: relative; z-index: 1 }
+.heat { overflow-x: auto; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); padding: 14px }
+.heat svg { display: block; width: 100%; min-width: 640px; height: auto }
+.heat svg text { font-family: var(--f-mono) }
+.twocol .figure svg { min-width: 0 }
+.twocol { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 14px; align-items: start }
 .scrollcue { font-family: var(--f-mono); font-size: 12px; color: var(--plate-muted); letter-spacing: .12em; text-transform: uppercase }
 .scrollcue::after { content: " ↓"; display: inline-block; animation: cue 1.8s ease-in-out infinite }
 @keyframes cue { 50% { transform: translateY(4px) } }
@@ -182,11 +198,13 @@ td.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowra
 footer { padding-block: 34px 56px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13.5px }
 footer .wrap { display: grid; gap: 8px }
 @media (max-width: 900px) {
-  .fixgrid, .fluidgrid { grid-template-columns: minmax(0, 1fr) }
-  .stage .vignette { background: linear-gradient(0deg, rgba(8,9,11,.97) 0, rgba(8,9,11,.9) 46%, rgba(8,9,11,0) 64%) }
+  .fixgrid, .fluidgrid, .twocol { grid-template-columns: minmax(0, 1fr) }
+  .stage .vignette { background: linear-gradient(0deg, rgba(8,9,11,.97) 0, rgba(8,9,11,.9) 52%, rgba(8,9,11,0) 62%) }
   .hero .card { gap: 12px }
   .hero h1 span { margin-top: 8px }
-  .hero .lede { font-size: 14.5px }
+  .hero .lede { font-size: 13.5px; line-height: 1.5 }
+  .hero .gloss { display: none }
+  .mark .kanji { font-size: 28px }
   .hero .figs b { font-size: 20px }
   .xgrid { grid-template-columns: minmax(0, 1fr) }
   .mapbox { aspect-ratio: 1 / 1.05 }
@@ -210,10 +228,12 @@ footer .wrap { display: grid; gap: 8px }
   </div>
   <div class="steps wrap" id="steps">
     <div class="step hero" data-s="0"><div class="card">
-      <span class="eyebrow" style="color:var(--plate-muted)">kotodama-tsumugi · trained from scratch · 1.4B parameters · 72 effective layers</span>
-      <h1>Neuron Atlas<span>every neuron of one language model, and the circuit that decides who is who</span></h1>
+      <div class="mark" aria-label="言霊 紬, kotodama-tsumugi"><span class="kanji">言霊 紬</span><span class="romaji">kotodama · tsumugi</span></div>
+      <span class="eyebrow" style="color:var(--plate-muted)">trained from scratch · 1.4B parameters · 72 effective layers</span>
+      <h1>Threads<span>every neuron of one language model, and the circuits that decide who is who</span></h1>
       <p class="lede">Each point is one FFN neuron at one depth: 294,912 in all. They are placed by what they respond to in 24M tokens of the model's own training text. The model, its training run and every measurement here come from one project, from random initialisation onward.</p>
       <div class="figs" id="figs"></div>
+      <div class="gloss"><span><b>言霊</b>kotodama: word-spirit, language as a thing with a life of its own.</span><span><b>紬</b>tsumugi: spun thread, words woven into more than the sum of their parts.</span></div>
       <span class="scrollcue">scroll</span>
     </div></div>
     <div class="step" data-s="1"><div class="card">
@@ -257,6 +277,7 @@ footer .wrap { display: grid; gap: 8px }
 </div>
 
 <div class="explore" id="explore">
+  <span class="watermark kanji" aria-hidden="true">紬</span>
   <div class="wrap">
     <span class="eyebrow" style="color:var(--plate-muted)">Explore</span>
     <h2>All 294,912 neurons</h2>
@@ -312,6 +333,20 @@ footer .wrap { display: grid; gap: 8px }
   <div class="figure" id="figGen"></div>
 </div></section>
 
+<section class="read" id="circuits" hidden><div class="wrap">
+  <span class="eyebrow">Why it does not carry over</span>
+  <h2>Binding is many circuits, not one</h2>
+  <p class="prose note" id="t-circ"></p>
+  <div class="twocol">
+    <div class="heat" id="figHeat"></div>
+    <div style="display:grid;gap:14px;min-width:0">
+      <div class="figure" id="figTransfer"></div>
+      <div class="figure" id="figWithin"></div>
+    </div>
+  </div>
+  <p class="prose note" id="t-circ2"></p>
+</div></section>
+
 <section class="read" id="pos8" hidden><div class="wrap">
   <span class="eyebrow">Position 8</span>
   <h2 id="pos8h"></h2>
@@ -356,7 +391,9 @@ footer .wrap { display: grid; gap: 8px }
 </div></section>
 
 <footer><div class="wrap">
-  <span>Neuron Atlas · a companion to the <a href="__ATLAS_LINK__">Binding Atlas</a> · model: kotodama-tsumugi (1.4B, 72 effective layers, looped core, boundary-fitted attention residuals).</span>
+  <span><span class="kanji" style="font-size:15px">言霊 紬</span> Threads · model: kotodama-tsumugi (1.4B, 72 effective layers, looped core, boundary-fitted attention residuals).</span>
+  <span class="gloss" style="color:var(--muted)"><span><b class="kanji" style="color:var(--fg2)">言霊</b>kotodama: word-spirit, language as a thing with a life of its own.</span><span><b class="kanji" style="color:var(--fg2)">紬</b>tsumugi: spun thread, words woven into more than the sum of their parts.</span></span>
+  <span>Companion pages: <a href="./">Who Is You?</a>, the write-up · <a href="__ATLAS_LINK__">Binding Atlas</a>, every model against every referent-binding probe.</span>
   <span>Research, code and development: Luxia (@LuxiaSL) and Claude (Anthropic). Trained on compute provided by Anima Labs. __FONT_CREDIT__ Data CC-BY-4.0; code Apache-2.0.</span>
   <span class="num" id="stamp">atlas build __STAMP__</span>
 </div></footer>
@@ -364,7 +401,7 @@ footer .wrap { display: grid; gap: 8px }
 <script>
 (() => {
 'use strict';
-const DATA = 'neuron-atlas-data/', BIN = f => f.replace(/\.bin$/, '__BIN_EXT__');
+const DATA = 'threads-data/', BIN = f => f.replace(/\.bin$/, '__BIN_EXT__');
 const FAMC = ['#6aa8ff', '#ff9d5c', '#46c79a', '#e6c14f', '#f07bb0', '#8fd16a', '#b8a6ff', '#7d8794', '#4b525c'];
 const FAM_SHORT = ['narration & the Other', 'meta-layer', 'genre & register', 'discourse & reasoning', 'grammar & function',
   'time & number', 'entities & domains', 'machine text', 'artefact & unassigned'];
@@ -617,7 +654,7 @@ function story() {
     });
   } catch (e) { const fb = document.getElementById('storyFallback'); fb.hidden = false; fb.textContent = 'This map needs WebGL. ' + e.message; return; }
   const narrow = () => innerWidth < 900;
-  const setPad = () => { map.o.pad = name => narrow() ? [64, 12, Math.round(innerHeight * 0.5), 12]
+  const setPad = () => { map.o.pad = name => narrow() ? [56, 12, Math.round(innerHeight * 0.6), 12]
     : [60, 40, 70, Math.min(520, innerWidth * 0.38) + (name === 'depth' ? 150 : 0)]; };
   setPad(); addEventListener('resize', () => { setPad(); map.draw(); });
   map.posBuf('depth').then(pb => { map.famBands = famBands(pb); });
@@ -987,6 +1024,62 @@ function figGen() {
   document.getElementById('figGen').innerHTML = t + '</svg>';
 }
 
+function figCircuits() {
+  const A = B.agreement; if (!A) return;
+  document.getElementById('circuits').hidden = false;
+  const NAME = { dialogue: 'dialogue', adjacency: 'adjacency', deixis: 'who-is-you', attr: 'attribute', setbind: 'set binding', answer: 'answer',
+    codevar: 'code variables', codevarmut: 'code mutation', F2: 'symbol algebra', F3: 'rebinding' };
+  const O = A.order, n = O.length, N = A.neurons, P = A.positions, U = A.units;
+  const rels = O.map(t => U[t].reliability);
+  document.getElementById('t-circ').innerHTML = `Attribution was run for ten binding tasks: the eight battery families and two fluid in-context tasks. Each task's map of which neurons matter is reliable: two random halves of its items agree at ${Math.min(...rels).toFixed(2)}–${Math.max(...rels).toFixed(2)}. Between tasks the maps barely overlap. Below the diagonal: how much two tasks use the same neurons, after correcting for each map's own noise (1 = the same circuit, 0 = unrelated). Above it: how much they use the same depths.`;
+  const w = 760, cs = 52, left = 132, top = 120, h = top + n * cs + 16;
+  let s = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Similarity between the ten binding tasks' circuits: neurons below the diagonal, depths above">`;
+  O.forEach((t, i) => {
+    s += `<text x="${left - 8}" y="${top + i * cs + cs / 2 + 4}" text-anchor="end" font-size="12" fill="currentColor">${NAME[t]}</text>`;
+    s += `<text transform="translate(${left + i * cs + cs / 2 + 4},${top - 8}) rotate(-50)" font-size="12" fill="currentColor">${NAME[t]}</text>`;
+  });
+  O.forEach((y, i) => O.forEach((x, j) => {
+    const X = left + j * cs, Y = top + i * cs;
+    if (i === j) { s += `<rect x="${X + 1}" y="${Y + 1}" width="${cs - 2}" height="${cs - 2}" fill="var(--chip)"/><text x="${X + cs / 2}" y="${Y + cs / 2 + 4}" text-anchor="middle" font-size="10.5" fill="var(--muted)">r ${U[y].reliability.toFixed(2)}</text>`; return; }
+    const v = (j < i ? N : P)[y][x], a = Math.max(0, Math.min(1, v));
+    s += `<rect x="${X + 1}" y="${Y + 1}" width="${cs - 2}" height="${cs - 2}" fill="${j < i ? 'var(--ember-ink)' : 'var(--fg2)'}" fill-opacity="${(0.06 + 0.84 * a).toFixed(2)}"><title>${NAME[y]} · ${NAME[x]}: ${j < i ? 'neurons' : 'depths'} ${v.toFixed(2)}</title></rect>`;
+    s += `<text x="${X + cs / 2}" y="${Y + cs / 2 + 4}" text-anchor="middle" font-size="11" fill="${a > .45 ? 'var(--surface)' : 'currentColor'}">${(v > 0 ? '' : '−') + Math.abs(v).toFixed(2).replace(/^0/, '')}</text>`;
+  }));
+  const box = (a, b) => { const i0 = O.indexOf(a), i1 = O.indexOf(b); s += `<rect x="${left + i0 * cs}" y="${top + i0 * cs}" width="${(i1 - i0 + 1) * cs}" height="${(i1 - i0 + 1) * cs}" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="4 3"/>`; };
+  box('dialogue', 'deixis'); box('attr', 'setbind');
+  document.getElementById('figHeat').innerHTML = s + `</svg><div style="display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;margin-top:8px;color:var(--fg2)"><span><span class="dot" style="background:var(--ember-ink)"></span>same neurons (below the diagonal)</span><span><span class="dot" style="background:var(--fg2)"></span>same depths (above)</span><span>dashed: the two families that share a circuit</span></div>`;
+  // what transfers: own set, a set chosen without this task, random
+  const T = B.transfer || {}, own = { attr: ['attr', 'attr_neg100'], dialogue: ['dialogue', 'dialogue_neg100'], deixis: ['deixis', 'deixis_neg100'], F2: ['F2', 'F2_neg100'], F3: ['F3', 'F3_neg100'] };
+  const rows = Object.keys(own).filter(t => T[t] && T[t]['loo-' + t + '_neg100']).map(t => {
+    const ownv = t in B.matrix ? B.matrix[t][own[t][1]].d : T[t][own[t][1]].d, loo = T[t]['loo-' + t + '_neg100'];
+    const rnd = loo.r != null ? loo.r : (T[t]['random-' + t + '_neg100-0'] || {}).d;
+    return [t, ownv, loo.d, rnd]; });
+  const w2 = 520, rh = 34, top2 = 40, l2 = 128, sc = v => l2 + 8 + Math.max(0, v) / 0.4 * (w2 - l2 - 120);
+  let t2 = `<svg viewBox="0 0 ${w2} ${top2 + rows.length * rh + 20}" role="img" aria-label="Accuracy gain from removing 100 interferers: the task's own set vs a set chosen without the task vs random">`;
+  t2 += `<text x="0" y="16" font-size="12.5" font-weight="700" fill="currentColor">Does removing interferers carry over?</text><text x="0" y="31" font-size="11" fill="var(--muted)">gain in accuracy, held-out items</text>`;
+  t2 += `<line x1="${sc(0)}" x2="${sc(0)}" y1="${top2}" y2="${top2 + rows.length * rh}" stroke="var(--muted)"/>`;
+  rows.forEach(([t, o, l, r], i) => { const y = top2 + i * rh + rh / 2;
+    t2 += `<text x="${l2}" y="${y + 4}" text-anchor="end" font-size="12" fill="currentColor">${NAME[t]}</text>`;
+    t2 += `<rect x="${sc(0)}" y="${y - 9}" width="${Math.max(0, sc(o) - sc(0))}" height="7" fill="var(--ember-ink)"><title>${NAME[t]}: own set ${sgn(o)} points</title></rect>`;
+    t2 += `<rect x="${sc(0)}" y="${y - 1}" width="${Math.max(0, sc(l) - sc(0))}" height="7" fill="var(--fg2)"><title>${NAME[t]}: chosen without this task ${sgn(l)} points</title></rect>`;
+    if (r != null) t2 += `<line x1="${sc(r)}" x2="${sc(r)}" y1="${y - 11}" y2="${y + 8}" stroke="var(--muted)" stroke-width="2"><title>random ${sgn(r)}</title></line>`;
+    t2 += `<text x="${Math.max(sc(o), sc(l)) + 6}" y="${y + 4}" font-size="11" fill="currentColor">${sgn(o)} / ${sgn(l)}</text>`; });
+  document.getElementById('figTransfer').innerHTML = t2 + `</svg><div style="display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;margin-top:6px;color:var(--fg2)"><span><span class="dot" style="background:var(--ember-ink)"></span>its own 100 interferers</span><span><span class="dot" style="background:var(--fg2)"></span>100 chosen on the other tasks</span><span>tick: random</span></div>`;
+  // within a task: do its variants share a circuit?
+  const wt = O.filter(t => A.cells[t] && A.cells[t].within != null).map(t => [t, A.cells[t].within, A.cells[t].n_cells]).sort((a, b) => b[1] - a[1]);
+  const w3 = 520, top3 = 40, rh3 = 22, l3 = 128, sc3 = v => l3 + 8 + Math.max(0, Math.min(1, v)) * (w3 - l3 - 70);
+  let t3 = `<svg viewBox="0 0 ${w3} ${top3 + wt.length * rh3 + 8}" role="img" aria-label="Within each task, how much its variants share a circuit">`;
+  t3 += `<text x="0" y="16" font-size="12.5" font-weight="700" fill="currentColor">Within a task: do its variants share one circuit?</text><text x="0" y="31" font-size="11" fill="var(--muted)">mean similarity between a task's cells (0 to 1)</text>`;
+  wt.forEach(([t, v, k], i) => { const y = top3 + i * rh3 + rh3 / 2;
+    t3 += `<text x="${l3}" y="${y + 4}" text-anchor="end" font-size="11.5" fill="currentColor">${NAME[t]}</text>`;
+    t3 += `<rect x="${sc3(0)}" y="${y - 5}" width="${sc3(v) - sc3(0)}" height="10" fill="var(--fg2)"><title>${NAME[t]}: ${v.toFixed(2)} over ${k} cells</title></rect>`;
+    t3 += `<text x="${sc3(v) + 6}" y="${y + 4}" font-size="11" fill="currentColor">${v >= 1 ? '≥1' : v.toFixed(2)}</text>`; });
+  document.getElementById('figWithin').innerHTML = t3 + '</svg>';
+  const g = (a, b) => N[a][b].toFixed(2);
+  const tr = k => (B.transfer && B.transfer[k] && B.transfer[k]['loo-' + k + '_neg100']) ? B.transfer[k]['loo-' + k + '_neg100'].d : null;
+  document.getElementById('t-circ2').innerHTML = `Two families share a circuit: conversation (dialogue, adjacency and who-is-you; ${g('dialogue', 'adjacency')}, ${g('dialogue', 'deixis')}, ${g('adjacency', 'deixis')}) and holding (attribute and set binding, ${g('attr', 'setbind')}). Symbol algebra, rebinding, code variables, code mutation and answer each use their own. Where the circuits sit agrees more than which neurons they use: attribute and set binding share depths at ${P.attr.setbind.toFixed(2)}, symbol algebra and attribute at ${P.F2.attr.toFixed(2)}. Even one task can switch circuits across its variants: who-is-you for the speaker, the addressee and an owner agree at only ${A.cells.deixis.within.toFixed(2)}. So each task's own interferers do a lot (rebinding gains ${sgn(B.transfer.F3.F3_neg100.d)} points), and a set chosen on the other tasks does a little${tr('attr') != null ? ` (attribute ${sgn(tr('attr'))}, symbol algebra ${sgn(tr('F2'))}, rebinding ${sgn(tr('F3'))})` : ''}. Random neurons do nothing.`;
+}
+
 function figPos8() {
   const P8 = B.pos8; if (!P8 || !Object.keys(P8).length) return;
   document.getElementById('pos8').hidden = false;
@@ -1065,7 +1158,7 @@ function tables() {
     const nb = await get('neurons.bin', 'bin');
     const T = { u8: Uint8Array, i16: Int16Array, i8: Int8Array };
     for (const [k, c] of Object.entries(M.columns)) COL[k] = new T[c.type](nb, c.offset, N);
-    texts(); figMatrix(); figCells(); figFixes(); figFluid(); figGen(); figWhere(); figPos8(); tables();
+    texts(); figMatrix(); figCells(); figFixes(); figFluid(); figGen(); figCircuits(); figWhere(); figPos8(); tables();
     await loadLayout('meaning');
     story(); explorer();
     loadLayout('depth'); loadLayout('weights-write-pca');

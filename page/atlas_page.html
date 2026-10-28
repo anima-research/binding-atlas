@@ -24,6 +24,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&text=%E8%A8%80%E9%9C%8A%E7%B4%AC%E7%B4%A1&display=swap">
 <style>
 __FONT_FACES__
 :root {
@@ -196,6 +197,8 @@ footer { color: var(--muted); font-size: 13px; display: flex; gap: 16px; flex-wr
 .paper .claim { font-size: clamp(17px, 2vw, 20px); line-height: 1.5; max-width: 62ch; margin: 0; text-wrap: pretty; }
 .paper .byline { font-size: 13px; color: var(--muted); display: flex; gap: 6px 18px; flex-wrap: wrap; letter-spacing: .02em; }
 .paper .byline a { color: var(--muted); }
+.kanji { font-family: "Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif; font-weight: 700; letter-spacing: .06em; }
+.part .gloss { font-size: 13px; color: var(--muted); margin: 4px 0 0; }
 .fig { display: grid; gap: 12px; border-top: 2px solid var(--rule); padding-top: 14px; }
 .fig .fh { display: flex; gap: 10px 16px; align-items: baseline; flex-wrap: wrap; }
 .fig .fh .no { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
@@ -257,7 +260,7 @@ table.levers td.cost { color: var(--muted); }
       (annealed; on the constant-LR trunk by 40B), the token cost of OLMo-2 13B, against about 420B for OLMo-2 1B.
       Trained to 110B tokens, it has not reached stage 5.</p>
     <div class="byline"><span>kotodama · 2026</span><span>30 public bases · 5 public training trajectories · kotodama-tsumugi (seed 17 to 110B tokens; seed 7 to 11B)</span>
-      <a href="#atlas">full atlas ↓</a><a href="binding-atlas.md">agent view (markdown)</a>__BACK_LINK__</div>
+      <a href="#atlas">full atlas ↓</a><a href="binding-atlas.md">agent view (markdown)</a><a href="__THREADS_LINK__">tsumugi's neurons: Threads</a>__BACK_LINK__</div>
   </header>
 
   <div class="part"><span class="no">Part I</span><h2>Where base models fail</h2></div>
@@ -369,7 +372,8 @@ table.levers td.cost { color: var(--muted); }
     </section>
   </div>
 
-  <div class="part"><span class="no">Part III</span><h2>kotodama-tsumugi</h2></div>
+  <div class="part"><span class="no">Part III</span><h2><span class="kanji">言霊 紬</span> kotodama-tsumugi</h2>
+    <p class="gloss">言霊 kotodama, word-spirit: language as a thing with a life of its own. 紬 tsumugi, spun thread: words woven into more than the sum of their parts. Every neuron of this model, and the circuits behind these probes: <a href="__THREADS_LINK__">Threads</a>.</p></div>
   <div class="paper">
     <p class="cap" style="max-width:none">A 1.42B-parameter model: 52 unique layers at width 1536, with a 20-layer block
       in the middle run twice for 72 effective layers, and attention-residual boundaries fitted to the network's own layer

@@ -70,6 +70,7 @@ def main() -> None:
     tpl = render_hosting(a.template.read_text(), cfg)
     dump = lambda o: json.dumps(o, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")  # noqa: E731
     stage = json.loads(a.stage.read_text())   # the front-section figures (stage map; curated from records)
+    tpl = tpl.replace("__THREADS_LINK__", "threads" if cfg.clean_urls else "threads.html")   # the neuron page, a sibling file
     html = (tpl.replace("__ATLAS_DATA__", dump(atlas)).replace("__ATLAS_META__", dump(meta))
             .replace("__STAGE_DATA__", dump(stage)))
     bad = sorted({m.group(0) for m in FORBIDDEN.finditer(html)})

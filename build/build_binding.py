@@ -137,6 +137,18 @@ def main() -> None:
                 out["pos8"].setdefault(f, {}).update(matrix(p))
     if (a.inputs / "suite" / "report.json").exists():
         out["suite"] = suite(a.inputs / "suite")
+    tr = a.inputs / "transfer"                                  # make_sets3.py sets: own, leave-one-task-out, random
+    if tr.exists():
+        out["transfer"] = {f: matrix(tr / f"transfer_{f}.jsonl") for f in ("attr", "dialogue", "deixis")
+                           if (tr / f"transfer_{f}.jsonl").exists()}
+        fl = tr / "transfer_fluid_oddseeds.json"
+        if fl.exists():
+            for fam, res in json.loads(fl.read_text()).items():
+                base = res["base"]["acc"]
+                out["transfer"][fam] = {"base": base, "n": res["base"]["n"],
+                                        **{k: {"d": round(v["acc"] - base, 4)} for k, v in res.items() if k != "base"}}
+    if (a.inputs / "agreement.json").exists():                 # agreement.py: reliability and task x task similarity
+        out["agreement"] = json.loads((a.inputs / "agreement.json").read_text())
     if (a.inputs / "suite" / "generative.json").exists():      # blind reads of generated dialogue under the act lever
         out["generative"] = json.loads((a.inputs / "suite" / "generative.json").read_text())
     if (a.inputs / "suite" / "fluid_examples.json").exists():   # build/fluid_examples.py

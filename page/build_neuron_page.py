@@ -1,10 +1,11 @@
-"""Render the Neuron Atlas page: template + site config → neuron-atlas.html, with its data in neuron-atlas-data/ beside it.
+"""Render Threads (the neuron page): template + site config → threads.html, with its data in threads-data/ beside it.
 
-Usage: python page/build_neuron_page.py --out site/neuron-atlas.html [--data data/built/neurons]
+Usage: python page/build_neuron_page.py --out site/threads.html [--data data/built/neurons]
                                         [--config config/default.toml] [--stamp "YYYY-MM-DD HH:MM UTC"]
-The page loads its data at run time from the directory neuron-atlas-data/ next to it (neurons.json, neurons.bin, the
+The page loads its data at run time from the directory threads-data/ next to it (neurons.json, neurons.bin, the
 layout-*.bin files and binding.json), which this copies from --data. Refuses to write if the page or its JSON data
-contain an internal hostname / path (public-page law).
+contain an internal hostname / path (public-page law). The page's earlier address, neuron-atlas.html, is written beside it
+as a redirect.
 """
 from __future__ import annotations
 
@@ -23,7 +24,14 @@ from build_page import build_stamp, load_config  # noqa: E402
 from forbidden import FORBIDDEN  # noqa: E402
 from siteconfig import CLEAN, PAGE, render_hosting  # noqa: E402
 
-NEURON_PAGE, NEURON_CLEAN, NEURON_CARD, NEURON_DATA = "neuron-atlas.html", "neuron-atlas", "neuron-atlas-card.png", "neuron-atlas-data"
+NEURON_PAGE, NEURON_CLEAN, NEURON_CARD, NEURON_DATA = "threads.html", "threads", "threads-card.png", "threads-data"
+OLD_PAGE = "neuron-atlas.html"     # the page's earlier address: a redirect to the clean URL
+REDIRECT = """<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Threads</title>
+<meta http-equiv="refresh" content="0; url={target}"><link rel="canonical" href="{canonical}">
+<meta name="robots" content="noindex"></head>
+<body><p>This page is now <a href="{target}">Threads</a>.</p></body></html>
+"""
 DATA_FILES = ("neurons.json", "neurons.bin", "binding.json")
 
 
@@ -62,6 +70,8 @@ def main() -> None:
     dest.mkdir(exist_ok=True)
     for f in files:
         shutil.copyfile(f, dest / (f.stem + a.bin_ext if f.suffix == ".bin" else f.name))
+    target = NEURON_CLEAN if cfg.clean_urls else NEURON_PAGE
+    (a.out.parent / OLD_PAGE).write_text(REDIRECT.format(target=target, canonical=html.escape(canonical or target)))
     size = sum(f.stat().st_size for f in files)
     print(f"wrote {a.out} ({len(page) / 1e3:.0f} kB) and {len(files)} data files in {dest} ({size / 1e6:.1f} MB)")
 
