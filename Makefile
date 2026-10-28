@@ -22,7 +22,7 @@ VERIFY_STAMP := 2026-10-28 20:45 UTC
 DATA_ENV := $(if $(KOTODAMA_SRC),PYTHONPATH=$(KOTODAMA_SRC),)
 PAGE_ARGS = --config $(CONFIG) --stamp "$(STAMP)"
 
-.PHONY: help page html md card neurons neurons-binding data stage atlas grids verify guard stage-check data-check check clean
+.PHONY: help page html md card neurons neurons-binding data stage atlas grids verify guard stage-check data-check check legibility clean
 
 help:
 	@echo "make page   [CONFIG=config/x.toml] [SITE=dir] [STAMP='YYYY-MM-DD HH:MM UTC']  data/built -> site/"
@@ -36,6 +36,7 @@ help:
 	@echo "make stage-check  rebuild stage.json into out/ and compare with data/built/"
 	@echo "make data-check   GRIDS=dir  rebuild atlas.json + stage.json into out/ and compare with data/built/"
 	@echo "make check        verify + stage-check + guard"
+	@echo "make legibility   KOTODAMA_SRC=dir  legibility report on README.md [LEGIBILITY_FILES=…] (report only)"
 
 # ---- page: data/built -> site/
 page: html md card
@@ -90,6 +91,13 @@ data-check: stage-check
 	cmp out/data/atlas.json data/built/atlas.json && echo "data-check ok: out/data/atlas.json = data/built/atlas.json"
 
 check: verify stage-check guard
+
+# a report, never a gate: kotodama's tools/check_legibility.py (needs spacy + en_core_web_trf + wordfreq in PY_DATA).
+# The Markdown twin is mostly data and slow to parse on a CPU: add it with LEGIBILITY_FILES="README.md site/binding-atlas.md".
+LEGIBILITY_FILES ?= README.md
+legibility:
+	@test -n "$(KOTODAMA_SRC)" || { echo "set KOTODAMA_SRC=/path/to/kotodama/src (the checker is its tools/check_legibility.py)"; exit 2; }
+	$(PY_DATA) $(KOTODAMA_SRC)/../tools/check_legibility.py $(LEGIBILITY_FILES)
 
 clean:
 	rm -rf out

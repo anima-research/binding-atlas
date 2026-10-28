@@ -109,6 +109,7 @@ make grids && make data GRIDS=.grids
 | `make guard` | no tracked file contains an internal hostname, machine path, session id or internal run / checkpoint name (`build/forbidden.py`; the page builders apply the same guard to their output) |
 | `make data-check GRIDS=…` | `atlas.json` and `stage.json` rebuilt from the raw grids equal `data/built/` |
 | `make check` | `verify` + `stage-check` + `guard` (no grids needed) |
+| `make legibility KOTODAMA_SRC=…` | a report, not a check: kotodama's `tools/check_legibility.py` (processing-difficulty features of arXiv 2610.29162 against a Wikipedia reference) on this README (and any files in `LEGIBILITY_FILES`), listing the sentences behind each count |
 
 ## Hosting
 
