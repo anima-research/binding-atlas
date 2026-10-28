@@ -43,6 +43,16 @@ make stage                                 # re-read every number in data/built/
 make data GRIDS=/path/to/grids PY_DATA=.venv/bin/python
 ```
 
+The raw grids are the public dataset
+[`LuxiaSL/binding-atlas-grids`](https://huggingface.co/datasets/LuxiaSL/binding-atlas-grids), laid out as the grids
+root, so a download is ready for `GRIDS=`:
+
+```bash
+hf download LuxiaSL/binding-atlas-grids --repo-type dataset \
+  --revision b45667b7817f723b14359d5abf550ef327e64a63 --local-dir grids
+make data GRIDS=grids PY_DATA=.venv/bin/python
+```
+
 `make data` runs `make stage` and then `build_atlas_v3.py`, which reads the raw score grids under one root
 (`GRIDS=` / `--grids DIR` / `ATLAS_GRIDS`) laid out as `data/INPUTS-MANIFEST.tsv` lists them, and imports
 `kotodama.eval.bindprobes` to render the example prompts. kotodama is pinned in `pyproject.toml`
@@ -121,8 +131,9 @@ config before serving it under another domain. The card carries the canonical UR
 
 - `data/INPUTS-MANIFEST.tsv` lists the 143 files `build_atlas_v3.py` reads (an audit-hook trace of a full build):
   141 raw score grids and item files (1.86 GB) under the grids root, by logical path, and the two human-gauntlet item
-  files tracked here. Each entry carries its size and sha256. The raw grids are to be published as a public
-  dataset (location to be announced); the manifest is the contract that dataset meets.
+  files tracked here. Each entry carries its size and sha256. The raw grids are published as the dataset
+  [`LuxiaSL/binding-atlas-grids`](https://huggingface.co/datasets/LuxiaSL/binding-atlas-grids) (CC-BY-4.0); at
+  revision `b45667b7` every one of the 141 files matches its manifest size and sha256.
 - `data/inputs/synthesis.jsonl` is the subset of the synthesis table (one row per model × checkpoint × metric, with
   value, n, standard error, interval, tokens and FLOPs) that `build_stage.py` reads, under public checkpoint ids
   (kotodama-tsumugi: `trunk-<tokens>` on the constant-LR trunk, `anneal-<tokens>` for cooldown branches,
