@@ -1,0 +1,15 @@
+{"condition": "base", "family": "attr", "n_neurons": 0, "n": 300, "accuracy": 0.5533333333333333, "margin": 0.19914062512417635, "nll": 2.265302626385134}
+{"condition": "layer:L8", "family": "attr", "n_neurons": 4096, "n": 300, "accuracy": 0.57, "margin": 0.4625227849247555, "nll": 2.8996373211067326}
+{"condition": "layer:L7", "family": "attr", "n_neurons": 4096, "n": 300, "accuracy": 0.7633333333333333, "margin": 2.2702547236074073, "nll": 2.4744308039123597}
+{"condition": "layer:L6", "family": "attr", "n_neurons": 4096, "n": 300, "accuracy": 0.5733333333333334, "margin": 0.30729167035470406, "nll": 2.2888029215972097}
+{"condition": "layer:L10", "family": "attr", "n_neurons": 4096, "n": 300, "accuracy": 0.55, "margin": 0.18177083310981593, "nll": 2.2758083399439837}
+{"condition": "layer:L16", "family": "attr", "n_neurons": 4096, "n": 300, "accuracy": 0.49666666666666665, "margin": 0.004244790623585383, "nll": 2.2832575226575864}
+{"condition": "layer:L18", "family": "attr", "n_neurons": 4096, "n": 300, "accuracy": 0.54, "margin": 0.14261718481779098, "nll": 2.293210772591719}
+{"condition": "layer:L38", "family": "attr", "n_neurons": 4096, "n": 300, "accuracy": 0.6, "margin": 0.5322135456651449, "nll": 2.2868290637362154}
+{"condition": "layer:L44", "family": "attr", "n_neurons": 4096, "n": 300, "accuracy": 0.59, "margin": 0.24307291912535825, "nll": 2.2717668490442477}
+{"condition": "attr_pos100", "family": "attr", "n_neurons": 100, "n": 300, "accuracy": 0.08333333333333333, "margin": -2.001822922557282, "nll": 2.2725222113078876}
+{"condition": "attr_neg100", "family": "attr", "n_neurons": 100, "n": 300, "accuracy": 0.9333333333333333, "margin": 2.8540715553953, "nll": 2.2751445900776286}
+{"condition": "dialogue_pos100", "family": "attr", "n_neurons": 100, "n": 300, "accuracy": 0.7266666666666667, "margin": 2.059183959939401, "nll": 2.3887759718610626}
+{"condition": "dialogue_neg100", "family": "attr", "n_neurons": 100, "n": 300, "accuracy": 0.6233333333333333, "margin": 0.4647656326182187, "nll": 2.2693600621973897}
+{"condition": "deixis_pos100", "family": "attr", "n_neurons": 100, "n": 300, "accuracy": 0.5966666666666667, "margin": 0.6467838541076829, "nll": 2.2972171071221283}
+{"condition": "deixis_neg100", "family": "attr", "n_neurons": 100, "n": 300, "accuracy": 0.66, "margin": 0.6249479148567965, "nll": 2.2703280630699}

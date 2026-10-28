@@ -1,0 +1,15 @@
+{"condition": "base", "family": "deixis", "n_neurons": 0, "n": 300, "accuracy": 0.39666666666666667, "margin": -0.2582812541971604, "nll": 2.265329638767336}
+{"condition": "layer:L8", "family": "deixis", "n_neurons": 4096, "n": 300, "accuracy": 0.41, "margin": -0.6787206983814636, "nll": 2.9002447193552205}
+{"condition": "layer:L7", "family": "deixis", "n_neurons": 4096, "n": 300, "accuracy": 0.44666666666666666, "margin": -0.47045410085159045, "nll": 2.4743276019949367}
+{"condition": "layer:L6", "family": "deixis", "n_neurons": 4096, "n": 300, "accuracy": 0.39, "margin": -0.25947916639347873, "nll": 2.2886434128091016}
+{"condition": "layer:L10", "family": "deixis", "n_neurons": 4096, "n": 300, "accuracy": 0.3933333333333333, "margin": -0.2521874974668026, "nll": 2.275760579785061}
+{"condition": "layer:L16", "family": "deixis", "n_neurons": 4096, "n": 300, "accuracy": 0.37666666666666665, "margin": -0.2913020806014538, "nll": 2.2832397431106046}
+{"condition": "layer:L18", "family": "deixis", "n_neurons": 4096, "n": 300, "accuracy": 0.4033333333333333, "margin": -0.24406250295539697, "nll": 2.293198153886394}
+{"condition": "layer:L38", "family": "deixis", "n_neurons": 4096, "n": 300, "accuracy": 0.4, "margin": -0.2425260412444671, "nll": 2.286692271600837}
+{"condition": "layer:L44", "family": "deixis", "n_neurons": 4096, "n": 300, "accuracy": 0.3933333333333333, "margin": -0.29140624615053334, "nll": 2.271819919202102}
+{"condition": "attr_pos100", "family": "deixis", "n_neurons": 100, "n": 300, "accuracy": 0.3933333333333333, "margin": -0.2945833349848787, "nll": 2.2723258308418104}
+{"condition": "attr_neg100", "family": "deixis", "n_neurons": 100, "n": 300, "accuracy": 0.4266666666666667, "margin": -0.18638021171092986, "nll": 2.275039956250382}
+{"condition": "dialogue_pos100", "family": "deixis", "n_neurons": 100, "n": 300, "accuracy": 0.37, "margin": -0.4726106754690409, "nll": 2.388618566190509}
+{"condition": "dialogue_neg100", "family": "deixis", "n_neurons": 100, "n": 300, "accuracy": 0.43, "margin": -0.159999995365118, "nll": 2.269361688011669}
+{"condition": "deixis_pos100", "family": "deixis", "n_neurons": 100, "n": 300, "accuracy": 0.3466666666666667, "margin": -0.5009635366251072, "nll": 2.296988359527737}
+{"condition": "deixis_neg100", "family": "deixis", "n_neurons": 100, "n": 300, "accuracy": 0.45, "margin": -0.07869791781529784, "nll": 2.2704913455370233}

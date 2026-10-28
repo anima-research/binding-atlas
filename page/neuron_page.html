@@ -848,7 +848,12 @@ function figWhere() {
 function figPos8() {
   const P8 = B.pos8; if (!P8 || !Object.keys(P8).length) return;
   document.getElementById('pos8').hidden = false;
-  if (window.__pos8Text) window.__pos8Text(P8);
+  {
+    const d = (t, k) => P8[t] && P8[t][k] ? P8[t][k].d : 0, nl = k => P8.attr[k].dnll, pts = v => Math.round(v * 100);
+    const s8 = ['attr_pos100', 'attr_neg100', 'dialogue_pos100', 'dialogue_neg100', 'deixis_pos100', 'deixis_neg100'].map(k => B.sets[k].by_position[8]);
+    document.getElementById('pos8h').textContent = 'Position 8 is where attribution gathers, not where binding happens';
+    document.getElementById('t-pos8').innerHTML = `Every causal set leans on position 8: ${Math.min(...s8)}–${Math.max(...s8)} of each 100 neurons sit there. Removing all 4,096 neurons at position 8 raises the model's next-token loss by <b>${nl('layer:L8').toFixed(2)} nats</b>, yet binding barely moves (attribute ${sgn(d('attr', 'layer:L8'))}, dialogue ${sgn(d('dialogue', 'layer:L8'))}, who-is-you ${sgn(d('deixis', 'layer:L8'))} points). Inside each set, the position-8 members carry about their share of the effect: the 17 attribute interferers there are worth ${sgn(d('attr', 'attr_neg100_only8'))} points, the other 83 ${sgn(d('attr', 'attr_neg100_no8'))}. The surprise is its neighbour. Removing all of position 7, the first layer of the same two-layer block, lifts attribute binding by <b>${pts(d('attr', 'layer:L7'))} points</b> at ${nl('layer:L7').toFixed(2)} nats, without helping dialogue (${sgn(d('dialogue', 'layer:L7'))}). The 100 attribute interferers do more for ${nl('attr_neg100').toFixed(3)} nats; 100 random neurons at the same positions cost under 0.001.`;
+  }
   const tasks = Object.keys(P8).filter(t => ['attr', 'dialogue', 'deixis'].includes(t));
   const layers = Object.keys(P8[tasks[0]]).filter(k => k.startsWith('layer:')).sort((a, b) => +a.slice(7) - +b.slice(7));
   // whole-position knock-outs: accuracy change per task, one row per position, with the corpus-NLL change beside
@@ -857,13 +862,13 @@ function figPos8() {
   let s = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Accuracy and next-token loss after removing every neuron at one position">`;
   tasks.forEach((t, k) => { const x0 = left + k * colw + (colw - 40) / 2;
     s += `<text x="${x0}" y="20" text-anchor="middle" font-size="13" font-weight="700" fill="currentColor">${FAMLABEL[t]}</text>`;
-    s += `<text x="${x0}" y="38" text-anchor="middle" font-size="11" fill="var(--muted)">Δ accuracy (baseline ${pct(P8[t].base)})</text>`;
+    s += `<text x="${x0}" y="38" text-anchor="middle" font-size="11" fill="var(--muted)">change in accuracy (baseline ${pct(P8[t].base)})</text>`;
     s += `<line x1="${x0}" x2="${x0}" y1="${top - 6}" y2="${h - 10}" stroke="var(--muted)"/>`;
     layers.forEach((Lk, r) => { const e = P8[t][Lk]; if (!e) return; const y = top + r * rh + rh / 2;
       s += `<line x1="${x0}" x2="${x0 + sc(e.d)}" y1="${y}" y2="${y}" stroke="${Lk === 'layer:L8' ? 'var(--ember-ink)' : 'var(--fg2)'}" stroke-width="6" stroke-linecap="round"/>`;
       s += `<text x="${x0 + sc(e.d) + (e.d >= 0 ? 8 : -8)}" y="${y + 4}" text-anchor="${e.d >= 0 ? 'start' : 'end'}" font-size="11.5" fill="currentColor">${sgn(e.d)}</text>`; }); });
   const nx = w - 140;
-  s += `<text x="${nx}" y="20" font-size="13" font-weight="700" fill="currentColor">damage</text><text x="${nx}" y="38" font-size="11" fill="var(--muted)">Δ next-token loss</text>`;
+  s += `<text x="${nx}" y="20" font-size="13" font-weight="700" fill="currentColor">damage</text><text x="${nx}" y="38" font-size="11" fill="var(--muted)">change in next-token loss</text>`;
   layers.forEach((Lk, r) => { const y = top + r * rh + rh / 2, e = P8[tasks[0]][Lk];
     s += `<text x="0" y="${y + 4}" font-size="12.5" fill="currentColor" font-weight="${Lk === 'layer:L8' ? 700 : 400}">position ${Lk.slice(7)}</text>`;
     if (e && e.dnll != null) s += `<text x="${nx}" y="${y + 4}" font-size="12" fill="currentColor">+${e.dnll.toFixed(3)} nats</text>`; });
@@ -874,7 +879,7 @@ function figPos8() {
   if (!rows.length) return;
   const w2 = 1100, h2 = 56 + rows.length * 34 + 16, x0 = 330, scl = v => v * 600;
   let t = `<svg viewBox="0 0 ${w2} ${h2}" role="img" aria-label="Each set's effect on its own task: whole set, its position-8 members alone, and the rest">`;
-  t += `<text x="${x0}" y="20" font-size="13" font-weight="700" fill="currentColor">Δ accuracy on the set's own task</text>`;
+  t += `<text x="${x0}" y="20" font-size="13" font-weight="700" fill="currentColor">change in accuracy on the set's own task</text>`;
   t += `<line x1="${x0 + 300}" x2="${x0 + 300}" y1="40" y2="${h2 - 8}" stroke="var(--muted)"/>`;
   rows.forEach((k, r) => { const task = k.split('_')[0], e = P8[task], y = 56 + r * 34, inter = k.endsWith('neg100');
     t += `<text x="0" y="${y + 14}" font-size="12.5" fill="currentColor">${FAMLABEL[task]} ${inter ? 'interferers' : 'supporters'}</text>`;
@@ -883,7 +888,9 @@ function figPos8() {
       t += `<line x1="${x0 + 300}" x2="${x0 + 300 + scl(v.d) / 2}" y1="${yy}" y2="${yy}" stroke="${col}" stroke-width="7" opacity="${[1, .75, .4][j]}"><title>${lab}: ${sgn(v.d)} points${v.r != null ? `; random ${sgn(v.r)}` : ''}</title></line>`; });
     const v = e[k], v8 = e[k + '_only8'], vn = e[k + '_no8'];
     t += `<text x="${w2 - 4}" y="${y + 14}" text-anchor="end" font-size="11.5" fill="var(--fg2)">all ${sgn(v.d)} · pos 8 only ${sgn(v8.d)} · rest ${vn ? sgn(vn.d) : '—'}</text>`; });
-  document.getElementById('figSplit').innerHTML = t + '</svg>';
+  const op = [1, .75, .4], key = ['all 100 neurons', 'only those at position 8', 'all but position 8'];
+  document.getElementById('figSplit').innerHTML = t + '</svg>' + `<div style="display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;margin-top:8px;color:var(--fg2)">${key.map((k, j) =>
+    `<span><span class="dot" style="background:var(--fg2);opacity:${op[j]}"></span>${k}</span>`).join('')}<span>ember: interferers · ice: supporters</span></div>`;
 }
 
 function tables() {
