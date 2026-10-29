@@ -256,7 +256,9 @@ table.levers td.cost { color: var(--muted); }
       nearly flat (Figure 2). In these models, parameter count and depth grow together. <b>kotodama-tsumugi</b> separates the two. It is a 1.4B model run as 72
       effective layers, with looped depth and boundary-fitted attention residuals. It reaches stage 3 by <b>33B tokens</b>
       (annealed; 40B on the constant-learning-rate trunk), about what OLMo-2 13B needs, where OLMo-2 1B needs about 420B.
-      Trained to 110B tokens, it has not reached stage 5.</p>
+      At 110B tokens its zero-shot dynamic <i>you</i> is not inverted (−.021), where most 1–2B bases invert. In a check
+      of 20 bases, it follows a narrated hand-off better (.336) than every Pythia model up to 6.9B (.275 to .294).
+      For every model of its size, that hand-off is the open step toward stage 5.</p>
     <div class="byline"><span>kotodama · 2026</span><span>30 public bases · 5 public training trajectories · kotodama-tsumugi (seed 17 to 110B tokens; seed 7 to 11B)</span>
       <a href="#atlas">full atlas ↓</a><a href="binding-atlas.md">agent view (markdown)</a><a href="__THREADS_LINK__">tsumugi's neurons: Threads</a>__BACK_LINK__</div>
   </header>
@@ -279,18 +281,16 @@ table.levers td.cost { color: var(--muted); }
           follows the addressee; a negative one means <i>you</i> resolves to the speaker. Zero-shot (filled) is negative for
           every model at or below 8B, for token counts up to 36T, and turns positive between 8B and 14B on both Qwen
           recipes. The same holds with each chat rewritten as a scene (8 of 8 models tested at or below 8B; the
-          highest is +.010, Qwen2.5-7B), so the result does not come from the chat format. All of these are
-          standard-shape transformers whose depth grows with their size; depth at a fixed parameter count is a
-          separate, unmeasured axis here. This is not evidence that the stage needs more parameters. No model at or
-          below 8B has been trained far enough to rule out more tokens. Whether more tokens would bring a small model
-          to stage 5 is unknown. From 14B to 1T parameters, stage 5 is weak and nearly flat. Ten of the 11 bases with
+          highest is +.010, Qwen2.5-7B), so the result does not come from the chat format. In all of these
+          standard-shape transformers, depth grows with size. The chart therefore leaves two routes open for small
+          models: more tokens, and more depth at a fixed size. No model at or below 8B has been trained far enough to
+          rule out the first. From 14B to 1T parameters, stage 5 is weak and nearly flat. Ten of the 11 bases with
           a public size read +.01 to +.07 zero-shot: +.022 for Qwen3 14B, +.054 for Llama-3.1 405B, +.045 for Kimi-K2
           at about 1T. Static <i>you</i> reads +.27 to +.82 in the seven of them where it was measured. In-context (3-shot, hollow) turns positive at smaller sizes and reaches +.24 for Qwen3 14B. The
-          kotodama-tsumugi release (diamond; 1.4B at 110B tokens) reads −.021 zero-shot. Its
-          interval reaches −.013, so under the gauge rule (inverted only when the whole 95% interval
-          lies below −.02) it is not inverted. Of the 1–2B public bases whose static <i>you</i> binds, only Llama-3.2-1B
-          (−.022) is not inverted too; the rest are (−.047 to −.089). It does not
-          bind either.</p>
+          kotodama-tsumugi release (diamond; 1.4B at 110B tokens) reads −.021 zero-shot, not inverted under the gauge rule.
+          Its interval reaches −.013, and the rule calls a reading inverted only when the whole 95% interval lies below
+          −.02. Of the 1–2B public bases whose static <i>you</i> binds, only Llama-3.2-1B (−.022) shares that; the rest
+          invert (−.047 to −.089).</p>
       </section>
       <section class="fig" aria-labelledby="f3h">
         <div class="fh"><span class="no">Figure 3</span><h2 id="f3h">Stage cost by model size</h2></div>
@@ -298,8 +298,8 @@ table.levers td.cost { color: var(--muted); }
         <p class="cap"><b>Training tokens until each stage appears, for one data recipe (OLMo-2) at three sizes.</b>
           Stage 1 costs about the same at 1B, 7B and 13B. Stage 3 takes about ten times fewer tokens at 13B than at 1B.
           Stage 5 is absent at the last checkpoint of all three (4T to 5T tokens). kotodama-tsumugi, at 1.4B
-          parameters, reaches stage 1 between 3B and 3.75B tokens and stage 3 between 30B and 33B (the 13B model's
-          token cost at a tenth of its size), and has not reached stage 5 by 110B.</p>
+          parameters, reaches stage 1 between 3B and 3.75B tokens and stage 3 between 30B and 33B: the 13B model's
+          token cost at a tenth of its size.</p>
       </section>
     </div>
 
@@ -310,7 +310,7 @@ table.levers td.cost { color: var(--muted); }
         and addressee queries pooled; chance ≈ .29; about ±.024 per cell). <i>Narrated</i> removes deixis from the
         whole scene. <i>Spoken</i> is the gauge item itself. <i>Spoken, transfer narrated</i> keeps the chat but
         states the hand-off as a stage direction. <i>Spoken + vocative</i> names the addressee in the query. Three
-        layers show. (1) <b>Possession transfer itself.</b> Every 1.4–1.5B model is at chance even when the scene is
+        layers show. (1) <b>Possession transfer itself.</b> Every 1.4–1.5B model is at or near chance even when the scene is
         narrated: kotodama-tsumugi through 110B, Pythia-1.4B, OLMo-2 1B at 4T. SmolLM2 1.7B at 11T and Qwen3 1.7B at
         36T lift off chance; from 4B it is easy (.57–.80). (2) <b>The transfer as a speech act</b> (“here, take my
         cup”) is the mid-size wall: models from 4B to 70B that pass the narrated version stay at .29–.41 when it is
@@ -336,7 +336,7 @@ table.levers td.cost { color: var(--muted); }
         <button data-v="gap" aria-pressed="false" title="3rd-person twin score minus I/you score, per deixis query">Perspective gap</button></div></div>
       <div class="ctl" role="group" aria-labelledby="lab-cond"><span id="lab-cond">Condition</span><div class="seg" id="cond">
         <button data-v="0shot" aria-pressed="true">0-shot</button>
-        <button data-v="3shot" aria-pressed="false" title="three solved items of the test item's own type; a diagnostic of exemplar sensitivity, not a binding score">3-shot (same type)</button>
+        <button data-v="3shot" aria-pressed="false" title="three solved items of the test item's own type: shows how much a model takes from same-type examples">3-shot (same type)</button>
         <button data-v="3shot_collide" aria-pressed="false" title="exemplars that reuse the query's names/objects">3-shot collide</button></div></div>
       <div class="ctl" role="group" aria-labelledby="lab-mode"><span id="lab-mode">Items</span><div class="seg" id="mode">
         <button data-v="all" aria-pressed="true">All</button>
@@ -387,7 +387,7 @@ table.levers td.cost { color: var(--muted); }
         33B tokens in an annealed read (+.073) and at 40B on the trunk itself (+.077), and reaches +.235 at the 110B
         release. The second anneal from the same fork reads +.142 (Table 4 gives the anneal-to-anneal spread). Dynamic <i>you</i> (0-shot) inverts from about 4B, deepest at 11B
         (−.047), and shallows to −.020 at 88B and −.016 / −.021 at 110B,
-        no longer inverted under the gauge rule; it never binds. The markers along the top show where OLMo-2 reaches stage 3 at 13B, 7B
+        no longer inverted under the gauge rule. The markers along the top show where OLMo-2 reaches stage 3 at 13B, 7B
         and 1B parameters.</p>
     </section>
     <section class="fig" aria-labelledby="f5h">
@@ -406,8 +406,9 @@ table.levers td.cost { color: var(--muted); }
     <section class="fig" aria-labelledby="t3h">
       <div class="fh"><span class="no">Table 3</span><h2 id="t3h">Battery across the annealed reads</h2></div>
       <div class="tblwrap"><table class="levers" id="moonbat"></table></div>
-      <p class="cap">Accuracy on the binding battery at each annealed branch, scored with one harness (the kotodama binding
-        suite). Each item gets four worked examples, balanced so that none of them shows the item's own answer pattern;
+      <p class="cap"><b>By the release, attribution reads .986, level with the 7–8B bases under the same balanced
+        examples (.981 to 1.00).</b> The table gives accuracy on the binding battery at each annealed branch, scored
+        with one harness (the kotodama binding suite). Each item gets four worked examples, balanced so that none of them shows the item's own answer pattern;
         deixis-lite has no such condition and is read zero-shot. Chance is in brackets where it is fixed. The bookkeeping
         probes rise with tokens: attribution from .71 to .99, set binding and dialogue tracking by .13 to .17. Aliased
         Python lists stays at chance through 33B and lifts only after 55B. The perspective probes stay within .15 of their
@@ -432,20 +433,17 @@ table.levers td.cost { color: var(--muted); }
       <div class="fh"><span class="no">Table 5</span><h2 id="t5h">Object tracking, with fair examples</h2></div>
       <div class="tblwrap"><table class="levers" id="riders"></table></div>
       <p class="cap"><b>Riders v2</b>: boxes go through swaps and moves in narrative or screenplay prose and one box is
-        queried (accuracy; chance .25; about ±.024 per cell). fixed3 gives every item the <i>same</i> three
-        exemplars. Under fixed3, accuracy falls well below zero-shot for OLMo-2 1B at 4T and for every
+        queried (accuracy; chance .25; about ±.024 per cell). <b>Zero-shot, the annealed kotodama-tsumugi checkpoints
+        from 33B on (.455–.490) sit above every public checkpoint measured on this harness</b> (best: SmolLM2 1.7B at
+        8.4T, .420). That comparison pools narrative and screenplay prose, and the public pool is three 1–2B models.
+        fixed3 gives every item the <i>same</i> three exemplars. Under fixed3, accuracy falls well below zero-shot for OLMo-2 1B at 4T and for every
         kotodama-tsumugi checkpoint (−.05 to −.22). The few-shot penalty in the probes run during training came from
         that setup, not from a failure of in-context learning. The penalty is not specific to these models. On a
         lighter riders slice, fixed exemplars lower prose accuracy for most of an eight-model panel (chat 8 of 8,
         screenplay 6 of 8, narrative 5 of 8) and raise code accuracy for all eight. With exemplars drawn per item
         (fair1 / fair3 / fair6), few-shot helps every public model here (+.06 to +.11 at fair6) and kotodama-tsumugi
-        through 55B (+.02 to +.08), but not the two 110B anneals (second anneal −.03, release −.045). Zero-shot, the
-        annealed kotodama-tsumugi checkpoints from 33B on (.455–.490) sit above every public checkpoint measured on
-        this harness (best: SmolLM2 1.7B at 8.4T, .420). That comparison pools narrative and screenplay prose.
-        Zero-shot riders accuracy depends on the register: on the lighter slice, it spreads by 20 points or more across
-        the four registers for five of the eight panel models.
-        The public pool is three 1–2B models, so no comparison with larger models is claimed. Object tracking is not
-        stage 5: OLMo-2 1B climbs from .230 at 1B tokens to .385 at 4T while its zero-shot
+        through 55B (+.02 to +.08). The two 110B anneals score highest zero-shot (fair6: second anneal −.03, release
+        −.045). Object tracking is a separate skill from stage 5: OLMo-2 1B climbs from .230 at 1B tokens to .385 at 4T while its zero-shot
         dynamic <i>you</i> never binds.</p>
     </section>
   </div>
@@ -475,7 +473,7 @@ table.levers td.cost { color: var(--muted); }
   </div>
 
   <div class="two">
-    <details class="panel prose"><summary>Caveats</summary><ul id="gaps"></ul></details>
+    <details class="panel prose"><summary>Scoring notes</summary><ul id="gaps"></ul></details>
   </div>
 
   <details class="panel prose"><summary>Methods and instruments</summary>

@@ -3,7 +3,7 @@
 Usage: python page/build_md.py --atlas data/built/atlas.json --stage data/built/stage.json --swap data/built/swap.json
                                --out site/binding-atlas.md [--config config/default.toml] [--stamp "YYYY-MM-DD HH:MM UTC"]
                                [--swap-prompts swap-prompts.jsonl]   (optional: prints one example speaker-swap pair)
-Sections: how to read · findings · caveats · columns (+ verbatim example prompts per column: 0-shot, shortcut-free,
+Sections: how to read · findings · scoring notes · columns (+ verbatim example prompts per column: 0-shot, shortcut-free,
 3-shot, a few more items) · rows · 0-shot wide tables per battery family · speaker-swap table · every cell as CSV.
 Refuses to write if the output contains an internal hostname / path (same law as build_page.py).
 """
@@ -150,9 +150,9 @@ def main() -> None:
     P("")
     P("No model at or below 8B binds zero-shot dynamic *you* at any token count measured (to 36T). The same holds with "
       "each chat rewritten as a scene (8 of 8 models tested at or below 8B; the highest is +.010, Qwen2.5-7B), so the "
-      "result does not come from the chat format. This is not evidence that the stage needs more parameters. No model "
-      "at or below 8B has been trained far enough to rule out more tokens. Whether more tokens would bring a small "
-      "model to stage 5 is unknown. From 14B to 1T parameters, stage 5 is weak and nearly flat. Ten of the 11 bases "
+      "result does not come from the chat format. In these models depth grows with size, so the table leaves two "
+      "routes open for small models: more tokens, and more depth at a fixed size. No model at or below 8B has been "
+      "trained far enough to rule out the first. From 14B to 1T parameters, stage 5 is weak and nearly flat. Ten of the 11 bases "
       "with a public size read +.01 to +.07 zero-shot. Static *you* reads +.27 to +.82 in the seven of them where it "
       "was measured.")
     P("")
@@ -176,7 +176,7 @@ def main() -> None:
     for r in dec["rows"]:
         P(f"| {r['m']} | {r['tok']} | " + " | ".join(pend(r[c['k']]) for c in dec["cols"]) + " |")
     P("")
-    P("Three layers: (1) possession transfer itself: every 1.4–1.5B model is at chance even narrated (kotodama-tsumugi "
+    P("Three layers: (1) possession transfer itself: every 1.4–1.5B model is at or near chance even narrated (kotodama-tsumugi "
       "through 110B, Pythia-1.4B, OLMo-2 1B at 4T); SmolLM2 1.7B at 11T and Qwen3 1.7B at 36T lift off chance; from 4B "
       "it is easy. (2) The transfer as a speech act is the mid-size wall: 4B–70B models that pass the narrated version "
       "stay at .29–.41 spoken; narrating only the hand-off recovers part of the gap. (3) Naming the addressee does not "
@@ -227,7 +227,8 @@ def main() -> None:
         for name, vals in g["rows"]:
             P(f"| {name} | " + " | ".join(f"{v:.3f}".lstrip("0") for v in vals) + " |")
     P("")
-    P("Scored with one harness (the kotodama binding suite). Each item gets four worked examples, balanced so that none "
+    P("By the release, attribution reads .986, level with the 7–8B bases under the same balanced examples (.981 to "
+      "1.00). Scored with one harness (the kotodama binding suite). Each item gets four worked examples, balanced so that none "
       "of them shows the item's own answer pattern; deixis-lite has no such condition and is read zero-shot. The "
       "bookkeeping probes rise with tokens: attribution from .71 to .99, set binding and dialogue tracking by .13 to .17. "
       "Aliased Python lists stays at chance through 33B and lifts only after 55B. The perspective probes stay within .15 "
@@ -257,14 +258,14 @@ def main() -> None:
     for r in rid["rows"]:
         P(f"| {r['m']} | " + " | ".join("pending" if r[c] is None else f"{r[c]:.3f}".lstrip("0") for c in rid["cols"]) + " |")
     P("")
-    P("fixed3 = the same three exemplars for every item; fairK = K exemplars drawn per item. Fixed exemplars push "
-      "accuracy well below zero-shot (a setup artifact). The penalty is not specific to these models. On a lighter "
-      "riders slice, fixed exemplars lower prose accuracy for most of an eight-model panel (chat 8 of 8, screenplay 6 "
-      "of 8, narrative 5 of 8) and raise code accuracy for all eight. Fair exemplars help every public model here and "
-      "kotodama-tsumugi through 55B, but not the two 110B anneals (second anneal −.03, release −.045). The zero-shot "
-      "column pools narrative and screenplay prose. Zero-shot riders accuracy depends on the register: on the lighter "
-      "slice, it spreads by 20 points or more across the four registers for five of the eight panel models. The public "
-      "pool is three 1–2B models; no larger model has been run on this harness.")
+    P("Zero-shot, the annealed kotodama-tsumugi checkpoints from 33B on (.455–.490) sit above every public checkpoint "
+      "measured on this harness (best: SmolLM2 1.7B at 8.4T, .420). The zero-shot column pools narrative and screenplay "
+      "prose, and the public pool is three 1–2B models. fixed3 = the same three exemplars for every item; fairK = K "
+      "exemplars drawn per item. Fixed exemplars push accuracy well below zero-shot (a setup artifact). The penalty is "
+      "not specific to these models. On a lighter riders slice, fixed exemplars lower prose accuracy for most of an "
+      "eight-model panel (chat 8 of 8, screenplay 6 of 8, narrative 5 of 8) and raise code accuracy for all eight. Fair "
+      "exemplars help every public model here and kotodama-tsumugi through 55B. The two 110B anneals score highest "
+      "zero-shot (fair6: second anneal −.03, release −.045).")
     P("")
     P("## How to read the full atlas")
     P("")
@@ -272,7 +273,7 @@ def main() -> None:
       "the gold answer is the model's top choice among the item's candidates, with `n` items and the `chance` rate "
       "(mean 1/#candidates). `score` = (acc − chance)/(1 − chance); `se` = binomial standard error.")
     P("- **Conditions:** `0shot` = the item alone; `3shot` = three solved items of the test item's own type first (a diagnostic: on aliased lists it teaches the "
-      "answer's role; see Caveats); `3shot_collide` "
+      "answer's role; see Scoring notes); `3shot_collide` "
       "= the three exemplars reuse the test item's names/objects in other roles (interference test).")
     P("- **Modes:** `all` = every item; `free` = shortcut-free subset (deixis columns only): the answer is neither the "
       "last-mentioned candidate nor the last speaker.")
@@ -295,7 +296,7 @@ def main() -> None:
     for t, d in GLOSSARY:
         P(f"| {t} | {d} |")
     P("")
-    P("## Caveats")
+    P("## Scoring notes")
     P("")
     for g in meta["gaps"]:
         P(f"- {md_text(g)}")

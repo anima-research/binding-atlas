@@ -8,7 +8,8 @@ for each column, error anatomy for each deixis cell, and a plain-text Markdown t
 The atlas covers 30 public base models, 5 public training trajectories, post-trained and API models, and one human
 reader. It also follows **kotodama-tsumugi**, a 1.4B model run as 72 effective layers (looped depth,
 boundary-fitted attention residuals). kotodama-tsumugi reaches stage 3 by 33B tokens, about what OLMo-2 13B needs,
-where OLMo-2 1B needs about 420B. Trained to 110B tokens, it has not reached stage 5.
+where OLMo-2 1B needs about 420B. At 110B tokens its zero-shot dynamic *you* is not inverted (−.021), where most
+1–2B bases invert, and it follows a narrated hand-off better than every Pythia model up to 6.9B.
 
 ## Threads
 
@@ -17,7 +18,7 @@ neurons. Each one is placed by the meaning of its strongest firing contexts in 2
 weights. Language-model agents wrote the groups and labels and graded each by how well three readings match: the contexts a
 neuron fires on, the tokens its output favours (logit lens and J-lens), and what steering it does. They are drafts. The page also shows the referent-binding circuit: per-neuron
 attribution of the battery margin on bare items, held-out knock-outs of the supporter and interferer sets, and which parts
-of the circuit hold when the items come with balanced worked examples (attribute binding's wiring does not). The page loads its data at run
+of the circuit hold when the items come with balanced worked examples (246 neurons stay in a top-100 set under both formats). The page loads its data at run
 time from `threads-data/` beside it. The directory is named differently from the page on purpose: some hosts try a path
 before adding `.html`, and a directory with the page's name would hide the page. `neuron-atlas.html`, the page's earlier address, is built beside it as a redirect:
 

@@ -35,14 +35,14 @@
    "ex": "Erin gives Paul her cup. … Paul: now you're holding the ___",
    "ok": "where almost every base stops",
    "olmo1b": "from ~63B, still there at 4T",
-   "ours": "from ~4B; shallowing (−.047 at 11B → −.021 at 110B, no longer inverted under the gauge rule)"
+   "ours": "from ~4B; no longer inverted at 110B under the gauge rule (−.047 at 11B → −.021)"
   },
   {
    "n": 5,
    "name": "dynamic you binds",
    "gloss": "\"you\" tracked through transfers. In-context first (3-shot), zero-shot last.",
    "ex": "same scene, answered correctly without examples",
-   "ok": "zero-shot: never binds at ≤ 8B (any token count measured); weak and nearly flat from 14B to 1T. Token-reachability unknown",
+   "ok": "zero-shot: reached by no public base ≤ 8B at any token count measured; weak and nearly flat from 14B to 1T; open whether more tokens reach it",
    "olmo1b": "never (flat to 4T)",
    "ours": "not reached by 110B"
   }
@@ -399,7 +399,7 @@
    "cost": "costs code and structure binding"
   }
  ],
- "lead": "Base language models acquire the referent of *you* in five ordered stages. Every base of 0.6B parameters or more trained on trillions of tokens reaches the first three. The fifth stage, tracking *you* after objects change hands, is **never reached zero-shot** (with no worked examples) by a public model up to 8B, at any token count measured up to 36T; its swap shift is negative in every one of them. From 14B to 1T parameters, stage 5 is weak and nearly flat. In these models, parameter count and depth grow together. **kotodama-tsumugi**, a 1.4B model run as 72 effective layers (looped depth, boundary-fitted attention residuals), separates them: it reaches stage 3 by **33B tokens** (annealed; on the constant-LR trunk by 40B), the token cost of OLMo-2 13B, against about 420B for OLMo-2 1B. Trained to 110B tokens, it still does not reach stage 5, but its zero-shot reading (−.021) is not inverted under the gauge rule, where every 1–2B public base whose static *you* binds, except Llama-3.2-1B, inverts. Most bases up to 1.5B barely follow a hand-off even when it is told in the third person. In a check of 20 bases, 7 of the 10 up to 1.5B score .26 to .34, against about .29 by chance. So at this scale the missing inversion is not yet a step toward stage 5. In the same check, kotodama-tsumugi (.336) follows such a hand-off better than every Pythia model up to 6.9B (.275 to .294) and Llama-3.2-1B (.303).",
+ "lead": "Base language models acquire the referent of *you* in five ordered stages. Every base of 0.6B parameters or more trained on trillions of tokens reaches the first three. The fifth stage, tracking *you* after objects change hands, is **never reached zero-shot** (with no worked examples) by a public model up to 8B, at any token count measured up to 36T; its swap shift is negative in every one of them. From 14B to 1T parameters, stage 5 is weak and nearly flat. In these models, parameter count and depth grow together. **kotodama-tsumugi**, a 1.4B model run as 72 effective layers (looped depth, boundary-fitted attention residuals), separates them: it reaches stage 3 by **33B tokens** (annealed; on the constant-LR trunk by 40B), the token cost of OLMo-2 13B, against about 420B for OLMo-2 1B. At 110B tokens its zero-shot stage-5 reading (−.021) is not inverted under the gauge rule, where every 1–2B public base whose static *you* binds, except Llama-3.2-1B, inverts. In a check of 20 bases, kotodama-tsumugi (.336) follows a hand-off told in the third person better than every Pythia model up to 6.9B (.275 to .294) and Llama-3.2-1B (.303). Most bases up to 1.5B barely follow one: 7 of those 10 score .26 to .34, against about .29 by chance. For every model of this size, that hand-off is the open step toward stage 5.",
  "tsumugi": {
   "_note": "kotodama-tsumugi s17 trunk (constant LR, to 100B) and cooldown branches (annealed), stage gauges = P2 speaker swap (static I, static you) and dynamic swap (addressee, 0-shot / 3-shot). Seed 7 = the seed replicate to 11B. Values from the synthesis table.",
   "traj": {

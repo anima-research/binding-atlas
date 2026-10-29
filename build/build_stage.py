@@ -166,9 +166,9 @@ S[2]["ours"] = "transient, ~4–20B"
 S[3]["ok"] = "every base ≥ 0.6B trained on trillions of tokens"
 S[3]["olmo1b"] = "~420B tokens"
 S[3]["ours"] = f"by 33B tokens annealed (trunk: 40B); {fmt3(you_rel, True)} at 110B"
-S[4]["ours"] = f"from ~4B; shallowing ({fmt3(dyn11)} at 11B → {fmt3(rel_g['dyn0'])} at 110B, no longer inverted under the gauge rule)"
-S[5]["ok"] = ("zero-shot: never binds at ≤ 8B (any token count measured); weak and nearly flat from 14B to 1T. "
-              "Token-reachability unknown")
+S[4]["ours"] = f"from ~4B; no longer inverted at 110B under the gauge rule ({fmt3(dyn11)} at 11B → {fmt3(rel_g['dyn0'])})"
+S[5]["ok"] = ("zero-shot: reached by no public base ≤ 8B at any token count measured; weak and nearly flat from 14B to 1T; "
+              "open whether more tokens reach it")
 S[5]["ours"] = "not reached by 110B"
 new["lead"] = (
     "Base language models acquire the referent of *you* in five ordered stages. Every base of 0.6B parameters or more "
@@ -177,13 +177,12 @@ new["lead"] = (
     "swap shift is negative in every one of them. From 14B to 1T parameters, stage 5 is weak and nearly flat. In "
     "these models, parameter count and depth grow together. **kotodama-tsumugi**, a 1.4B model run as 72 effective layers (looped depth, "
     "boundary-fitted attention residuals), separates them: it reaches stage 3 by **33B tokens** (annealed; on the "
-    "constant-LR trunk by 40B), the token cost of OLMo-2 13B, against about 420B for OLMo-2 1B. Trained to 110B "
-    "tokens, it still does not reach stage 5, but its zero-shot reading "
-    f"({fmt3(rel_g['dyn0'])}) is not inverted under the gauge rule, where every 1–2B public base whose static *you* "
-    "binds, except Llama-3.2-1B, inverts. Most bases up to 1.5B barely follow a hand-off even when it is told in the "
-    "third person. In a check of 20 bases, 7 of the 10 up to 1.5B score .26 to .34, against about .29 by chance. So at "
-    "this scale the missing inversion is not yet a step toward stage 5. In the same check, kotodama-tsumugi (.336) "
-    "follows such a hand-off better than every Pythia model up to 6.9B (.275 to .294) and Llama-3.2-1B (.303).")
+    "constant-LR trunk by 40B), the token cost of OLMo-2 13B, against about 420B for OLMo-2 1B. At 110B tokens its "
+    f"zero-shot stage-5 reading ({fmt3(rel_g['dyn0'])}) is not inverted under the gauge rule, where every 1–2B public "
+    "base whose static *you* binds, except Llama-3.2-1B, inverts. In a check of 20 bases, kotodama-tsumugi (.336) "
+    "follows a hand-off told in the third person better than every Pythia model up to 6.9B (.275 to .294) and "
+    "Llama-3.2-1B (.303). Most bases up to 1.5B barely follow one: 7 of those 10 score .26 to .34, against about .29 "
+    "by chance. For every model of this size, that hand-off is the open step toward stage 5.")
 
 # ------------------------------------------------------------------ NEW: stage-5 decomposition (endpoints, full battery)
 DEC_COLS = [("third", "third/0shot acc (self+addressee)"), ("deictic", "deictic/0shot acc (self+addressee)"),
