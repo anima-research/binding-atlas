@@ -1,6 +1,6 @@
 # Binding Atlas — agent view
 
-Plain-text twin of the [Binding Atlas page](https://aetherawi.red/kotodama/binding-atlas). Same data, same build. Built 2026-10-28 20:45 UTC: 117 rows (models + one human), 28 columns, 7,919 cells, 1,285,239 scored items.
+Plain-text twin of the [Binding Atlas page](https://aetherawi.red/kotodama/binding-atlas). Same data, same build. Built 2026-10-29 00:59 UTC: 117 rows (models + one human), 28 columns, 7,919 cells, 1,285,239 scored items.
 
 ## Summary
 

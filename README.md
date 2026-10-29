@@ -7,17 +7,18 @@ for each column, error anatomy for each deixis cell, and a plain-text Markdown t
 
 The atlas covers 30 public base models, 5 public training trajectories, post-trained and API models, and one human
 reader. It also follows **kotodama-tsumugi**, a 1.4B model run as 72 effective layers (looped depth,
-boundary-fitted attention residuals). kotodama-tsumugi reaches stage 3 by 33B tokens, the token cost of OLMo-2 13B,
-against about 420B for OLMo-2 1B. Trained to 110B tokens, it has not reached stage 5.
+boundary-fitted attention residuals). kotodama-tsumugi reaches stage 3 by 33B tokens, about what OLMo-2 13B needs,
+where OLMo-2 1B needs about 420B. Trained to 110B tokens, it has not reached stage 5.
 
 ## Threads
 
 A second page, `threads.html` (*Threads*; 紬 tsumugi, spun thread), maps every FFN neuron of kotodama-tsumugi: 72 effective positions × 4,096 = 294,912
 neurons. Each one is placed by the meaning of its strongest firing contexts in 24M training tokens, by depth, or by its
-weights. Groups and labels are drafts written by language-model agents and graded by whether three readings agree (firing
-contexts, logit-lens / J-lens output tokens, steering). The page also shows the referent-binding circuit: per-neuron
-attribution of the battery margin, and held-out knock-outs of the supporter and interferer sets. Its data loads at run time
-from `threads-data/` next to the page (a directory named like the page would shadow its clean URL on hosts that try the path before `.html`). `neuron-atlas.html`, the page's earlier address, is built beside it as a redirect:
+weights. Language-model agents wrote the groups and labels and graded each by how well three readings match: the contexts a
+neuron fires on, the tokens its output favours (logit lens and J-lens), and what steering it does. They are drafts. The page also shows the referent-binding circuit: per-neuron
+attribution of the battery margin, and held-out knock-outs of the supporter and interferer sets. The page loads its data at run
+time from `threads-data/` beside it. The directory is named differently from the page on purpose: some hosts try a path
+before adding `.html`, and a directory with the page's name would hide the page. `neuron-atlas.html`, the page's earlier address, is built beside it as a redirect:
 
 | file | what |
 |---|---|
@@ -159,8 +160,8 @@ config before serving it under another domain. The card carries the canonical UR
   files tracked here. Each entry carries its size and sha256. The raw grids are published as the dataset
   [`LuxiaSL/binding-atlas-grids`](https://huggingface.co/datasets/LuxiaSL/binding-atlas-grids) (CC-BY-4.0); at
   revision `b45667b7` every one of the 141 files matches its manifest size and sha256.
-- `data/inputs/synthesis.jsonl` is the subset of the synthesis table (one row per model × checkpoint × metric, with
-  value, n, standard error, interval, tokens and FLOPs) that `build_stage.py` reads, under public checkpoint ids
+- `data/inputs/synthesis.jsonl` holds the rows of the synthesis table that `build_stage.py` reads: one row per model,
+  checkpoint and metric, with value, n, standard error, interval, tokens and FLOPs. Checkpoints carry public ids
   (kotodama-tsumugi: `trunk-<tokens>` on the constant-LR trunk, `anneal-<tokens>` for cooldown branches,
   `anneal-110B-release` for the released checkpoint, `s7-…` for the seed-7 replicate). `build/subset_synthesis.py`
   cuts it from the full table, given a local map from the table's checkpoint ids to the public ones.

@@ -249,15 +249,15 @@ table.levers td.cost { color: var(--muted); }
       <button class="iconbtn" id="theme" aria-label="toggle light / dark theme">light / dark</button></div>
     <h1>Binding Atlas</h1>
     <p class="claim">Base language models acquire the referent of <i>you</i> in five ordered stages. Every base of 0.6B
-      parameters or more trained on trillions of tokens reaches the first three. The fifth stage, tracking <i>you</i>
-      after objects change hands, is <b>never reached zero-shot</b> by a public model up to 8B, at any token count
-      measured up to 36T; at the final checkpoint its swap shift is negative in every one of them. Whether more tokens
+      parameters or more trained on trillions of tokens reaches the first three. <b>No public model up to 8B reaches the fifth stage zero-shot</b>:
+      tracking <i>you</i> after objects change hands. That holds at every token count measured, up to 36T, and at their
+      final checkpoints every one of them has a negative swap shift. Whether more tokens
       would get a small model there is unknown. From 14B to 1T parameters it is weak and nearly flat in 10 of the 11
       bases with a public size: a zero-shot swap shift of +.01 to +.07, against +.27 to
       +.82 for static <i>you</i> in the seven of them where that is measured. In these models
-      parameter count and depth grow together. <b>kotodama-tsumugi</b>, a 1.4B model run as 72 effective layers
-      (looped depth, boundary-fitted attention residuals), separates them: it reaches stage 3 by <b>33B tokens</b>
-      (annealed; on the constant-LR trunk by 40B), the token cost of OLMo-2 13B, against about 420B for OLMo-2 1B.
+      parameter count and depth grow together. <b>kotodama-tsumugi</b> separates the two. It is a 1.4B model run as 72
+      effective layers, with looped depth and boundary-fitted attention residuals. It reaches stage 3 by <b>33B tokens</b>
+      (annealed; 40B on the constant-learning-rate trunk), about what OLMo-2 13B needs, where OLMo-2 1B needs about 420B.
       Trained to 110B tokens, it has not reached stage 5.</p>
     <div class="byline"><span>kotodama · 2026</span><span>30 public bases · 5 public training trajectories · kotodama-tsumugi (seed 17 to 110B tokens; seed 7 to 11B)</span>
       <a href="#atlas">full atlas ↓</a><a href="binding-atlas.md">agent view (markdown)</a><a href="__THREADS_LINK__">tsumugi's neurons: Threads</a>__BACK_LINK__</div>
@@ -325,7 +325,7 @@ table.levers td.cost { color: var(--muted); }
   <section class="sect" id="atlas" aria-labelledby="ah">
     <h2 id="ah">Full atlas</h2>
     <p class="cap">Every reachable model against every referent-binding probe, chance-normalized (0 = guessing,
-      1 = perfect). Each cell opens the exact text the model saw.</p>
+      1 = perfect). Click a cell to read the exact text the model was given.</p>
     <div class="stats" id="stats"></div>
   </section>
 
@@ -386,9 +386,10 @@ table.levers td.cost { color: var(--muted); }
       <div id="moontraj"></div>
       <p class="cap"><b>Swap shift against training tokens for the three stage gauges</b>, seed 17's trunk (filled
         markers, constant LR to 100B) and its annealed branches (hollow), with seed 7 (small grey markers, to 11B).
-        Static <i>I</i> binds from 3.75B tokens and plateaus at +.19 to +.31 after about 30B. Static <i>you</i> dips
-        below zero (the <i>you = me</i> stage), first binds at +.073 when annealed at 33B and on the
-        trunk itself at 40B (+.077), and reads +.235 at the 110B release. The second
+        Static <i>I</i> starts to bind at 3.75B tokens and levels off at +.19 to +.31 after about 30B. Static
+        <i>you</i> first dips below zero, the stage where the model treats <i>you</i> as <i>me</i>. It first binds at
+        33B tokens in an annealed read (+.073) and at 40B on the trunk itself (+.077), and reaches +.235 at the 110B
+        release. The second
         anneal from the same fork reads +.142: a single checkpoint's static-<i>you</i> reading carries
         about ±.05 of anneal-to-anneal spread. Dynamic <i>you</i> (0-shot) inverts from about 4B, deepest at 11B
         (−.047), and shallows to −.020 at 88B and −.016 / −.021 at 110B,
@@ -420,9 +421,9 @@ table.levers td.cost { color: var(--muted); }
     <section class="fig" aria-labelledby="t4h">
       <div class="fh"><span class="no">Table 4</span><h2 id="t4h">The release against its trajectory and its class</h2></div>
       <div class="tblwrap"><table class="levers" id="reltab"></table></div>
-      <p class="cap">Stage gauges (swap shifts; above +.02 binds), binding capacity (after arXiv 2609.30634: K50 = how
-        many name–task bindings fit in context before recall falls halfway; the last capacity row is recall of a single
-        binding across 256 tokens of filler) and deixis-v2 accuracy (chance ≈ .33). The two 110B columns are two
+      <p class="cap">Three kinds of column: stage gauges (swap shifts; above +.02 counts as binding); binding capacity,
+        after arXiv 2609.30634 (K50 is how many name–task bindings fit in context before recall falls by half, and the
+        last capacity row is recall of one binding across 256 tokens of filler); and deixis-v2 accuracy (chance ≈ .33). The two 110B columns are two
         anneals from the same fork with the same training loss. The spread between them (static <i>you</i> .142 vs
         .235, K50 3.8 vs 4.8) is the measured anneal-to-anneal variance, so a difference between neighbouring
         checkpoints on one axis is not a trend. deixis v2 has no SmolLM2 or Qwen3 grid. Capacity tracks recipe and

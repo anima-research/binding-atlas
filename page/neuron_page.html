@@ -244,7 +244,7 @@ footer .wrap { display: grid; gap: 8px }
     <div class="step" data-s="2"><div class="card">
       <span class="eyebrow" style="color:var(--plate-muted)">2 · what they respond to</span>
       <h3>Placed by what they fire on, they fall into 400 groups and 9 families</h3>
-      <p>Every neuron was read three ways: the passages that make it fire hardest, the tokens its output pushes toward, and what the model writes when it is pushed. Neurons whose firing contexts mean similar things sit together. Agents then named every group and sorted them into families.</p>
+      <p>Every neuron was read three ways: which passages make it fire hardest, which tokens its output favours, and what the model writes when that neuron is pushed. Neurons whose firing contexts mean similar things sit together. Agents then named every group and sorted them into families.</p>
       <div class="keyrow" id="famkey"></div>
     </div></div>
     <div class="step" data-s="3"><div class="card">
@@ -281,7 +281,7 @@ footer .wrap { display: grid; gap: 8px }
   <div class="wrap">
     <span class="eyebrow" style="color:var(--plate-muted)">Explore</span>
     <h2>All 294,912 neurons</h2>
-    <p class="note">Switch the layout to see the same neurons placed by meaning, by depth or by their weights; points glide between layouts. Click a point to open its group. Group names and neuron labels are drafts written by language-model agents from the three readings, each graded by whether the readings agree.</p>
+    <p class="note">Switch the layout to see the same neurons placed by meaning, by depth or by their weights; points glide between layouts. Click a point to open its group. Language-model agents wrote the group names and neuron labels from the three readings, and graded each one by how well the readings match. Treat them as drafts.</p>
     <div class="ctrls">
       <div class="ctl"><span>Layout</span><div class="seg" id="segLayout" role="group" aria-label="Layout"></div></div>
       <div class="ctl"><span>Colour</span><div class="seg" id="segColor" role="group" aria-label="Colour"></div></div>
@@ -825,7 +825,7 @@ function texts() {
   document.getElementById('figs').innerHTML = [[fmt(N), 'neurons'], ['72', 'effective layers'], ['400', 'named groups'], [pct(P.base.acc).replace('%', '') + '→' + pct(P.attr_neg100.acc), 'binding, 100 neurons removed']]
     .map(([b, s]) => `<div><b class="num">${b}</b><span>${s}</span></div>`).join('');
   document.getElementById('famkey').innerHTML = FAM_SHORT.map((f, i) => `<span><i style="background:${FAMC[i]}"></i>${f}</span>`).join('');
-  document.getElementById('t-weights').innerHTML = ev ? `Here each neuron sits where the direction it writes into the model falls on the two main axes of all ${fmt(W.unique ? W.unique.length * 4096 : 212992)} distinct write vectors. The first axis explains <b>${(ev[0] * 100).toFixed(2)}%</b> of their variance, about five times what an even cloud in 1,536 dimensions would give, and depth explains ${(W.write_depth_share * 100).toFixed(2)}%. The weights carry almost no low-dimensional structure. The model was trained with Muon, which orthogonalises every update.` : '';
+  document.getElementById('t-weights').innerHTML = ev ? `Each neuron adds a fixed direction to the model's running state. Here each neuron is placed by where that direction falls on the two main axes of all ${fmt(W.unique ? W.unique.length * 4096 : 212992)} such directions. The first axis explains <b>${(ev[0] * 100).toFixed(2)}%</b> of their variance, about five times what an even cloud in 1,536 dimensions would give, and depth explains ${(W.write_depth_share * 100).toFixed(2)}%. The weights carry almost no low-dimensional structure. The model was trained with Muon, which orthogonalises every update.` : '';
   document.getElementById('t-scatter').innerHTML = `Attribution picked the 100 neurons that most help and the 100 that most hurt on each of three binding tasks: attribute (who holds what), dialogue (who said what) and who-is-you. These <b>${fmt(nSet)}</b> neurons fall in <b>${nCl}</b> of the 400 groups. No group is about binding.`;
   document.getElementById('t-depth').innerHTML = `Now x is depth. Positions 19–38 and 39–58 are the same layers run twice, so the dark band is pass 1 and the lighter band pass 2. <b>${seam}</b> of the ${fmt(nSet)} sit at position 38, the last layer of pass 1, or at 42–45, early in pass 2. <b>${at8}</b> sit at position 8, the last layer before the attention-residual boundary at 9.`;
   document.getElementById('t-neg').innerHTML = `On held-out items, setting these 100 neurons to their average lifts attribute binding from <b>${pct(P.base.acc)}</b> to <b class="ember">${pct(P.attr_neg100.acc)}</b>. Picks of the last-mentioned name fall from ${pct(P.base.last)} to ${pct(P.attr_neg100.last)}: the interferers carry a recency pull. 100 random neurons at the same positions move accuracy by ${Math.abs(Math.round((X.attr.attr_neg100.r || 0) * 100))} points.`;
@@ -922,7 +922,7 @@ function figFixes() {
   document.getElementById('fixes').hidden = false;
   const b = S.base, u = S.all_neg, r = S['random-all_neg-0'] || {}, f3 = v => v.toFixed(3), f2 = v => v.toFixed(2);
   const dn = c => c && c.nll != null ? c.nll - b.nll : null;
-  document.getElementById('t-fixes').innerHTML = `The binding suite's standard gauges, scored with all three interferer sets removed at once (${u.n_neurons} neurons; next-token loss +${dn(u).toFixed(3)} nats) and, as the control, ${u.n_neurons} random neurons at the same positions (+${dn(r).toFixed(4)} nats). The speaker-swap gauges change only the name on the last line of a conversation, which flips the right answer; a model that binds moves its answer with it. Fluid scores are areas under each family's difficulty ladder.`;
+  document.getElementById('t-fixes').innerHTML = `These are the binding suite's standard gauges. Each was scored twice: once with all three interferer sets removed (${u.n_neurons} neurons, costing ${dn(u).toFixed(3)} nats of next-token loss), and once with ${u.n_neurons} random neurons at the same depths removed instead (${dn(r).toFixed(4)} nats). The speaker-swap gauges change only the name on the last line of a conversation, which flips the right answer; a model that binds moves its answer with it. Fluid scores are areas under each family's difficulty ladder.`;
   const shiftV = k => c => c && c[k] ? c[k].shift : null, aucV = k => c => c ? c[k] : null;
   const tiles = {
     'Strengthened': [
@@ -1031,7 +1031,7 @@ function figCircuits() {
     codevar: 'code variables', codevarmut: 'code mutation', F2: 'symbol algebra', F3: 'rebinding' };
   const O = A.order, n = O.length, N = A.neurons, P = A.positions, U = A.units;
   const rels = O.map(t => U[t].reliability);
-  document.getElementById('t-circ').innerHTML = `Attribution was run for ten binding tasks: the eight battery families and two fluid in-context tasks. Each task's map of which neurons matter is reliable: two random halves of its items agree at ${Math.min(...rels).toFixed(2)}–${Math.max(...rels).toFixed(2)}. Between tasks the maps barely overlap. Below the diagonal: how much two tasks use the same neurons, after correcting for each map's own noise (1 = the same circuit, 0 = unrelated). Above it: how much they use the same depths.`;
+  document.getElementById('t-circ').innerHTML = `Attribution was run for ten binding tasks: the eight battery families and two fluid in-context tasks. Each task's map is reliable: split its items into two random halves, and both halves give nearly the same map (${Math.min(...rels).toFixed(2)}–${Math.max(...rels).toFixed(2)} on a scale where 1 is identical). Between tasks the maps barely overlap. Below the diagonal: how much two tasks use the same neurons, after correcting for each map's own noise (1 = the same circuit, 0 = unrelated). Above it: how much they use the same depths.`;
   const w = 760, cs = 52, left = 132, top = 120, h = top + n * cs + 16;
   let s = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Similarity between the ten binding tasks' circuits: neurons below the diagonal, depths above">`;
   O.forEach((t, i) => {
@@ -1077,7 +1077,7 @@ function figCircuits() {
   document.getElementById('figWithin').innerHTML = t3 + '</svg>';
   const g = (a, b) => N[a][b].toFixed(2);
   const tr = k => (B.transfer && B.transfer[k] && B.transfer[k]['loo-' + k + '_neg100']) ? B.transfer[k]['loo-' + k + '_neg100'].d : null;
-  document.getElementById('t-circ2').innerHTML = `Two families share a circuit: conversation (dialogue, adjacency and who-is-you; ${g('dialogue', 'adjacency')}, ${g('dialogue', 'deixis')}, ${g('adjacency', 'deixis')}) and holding (attribute and set binding, ${g('attr', 'setbind')}). Symbol algebra, rebinding, code variables, code mutation and answer each use their own. Where the circuits sit agrees more than which neurons they use: attribute and set binding share depths at ${P.attr.setbind.toFixed(2)}, symbol algebra and attribute at ${P.F2.attr.toFixed(2)}. Even one task can switch circuits across its variants: who-is-you for the speaker, the addressee and an owner agree at only ${A.cells.deixis.within.toFixed(2)}. So each task's own interferers do a lot (rebinding gains ${sgn(B.transfer.F3.F3_neg100.d)} points), and a set chosen on the other tasks does a little${tr('attr') != null ? ` (attribute ${sgn(tr('attr'))}, symbol algebra ${sgn(tr('F2'))}, rebinding ${sgn(tr('F3'))})` : ''}. Random neurons do nothing.`;
+  document.getElementById('t-circ2').innerHTML = `Two families share a circuit: conversation (dialogue, adjacency and who-is-you; ${g('dialogue', 'adjacency')}, ${g('dialogue', 'deixis')}, ${g('adjacency', 'deixis')}) and holding (attribute and set binding, ${g('attr', 'setbind')}). Symbol algebra, rebinding, code variables, code mutation and answer each use their own. Where the circuits sit agrees more than which neurons they use: attribute and set binding share depths at ${P.attr.setbind.toFixed(2)}, symbol algebra and attribute at ${P.F2.attr.toFixed(2)}. Even one task can switch circuits across its variants: who-is-you for the speaker, the addressee and an owner agree at only ${A.cells.deixis.within.toFixed(2)}. So removing a task's own interferers helps a lot: rebinding gains ${sgn(B.transfer.F3.F3_neg100.d)} points. A set chosen on the other tasks helps a little${tr('attr') != null ? `: attribute ${sgn(tr('attr'))}, symbol algebra ${sgn(tr('F2'))}, rebinding ${sgn(tr('F3'))}` : ''}. Random neurons do nothing.`;
 }
 
 function figPos8() {
