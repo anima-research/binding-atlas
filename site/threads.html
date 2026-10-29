@@ -169,6 +169,34 @@ section.read > .wrap { display: grid; gap: 18px }
 .card2 { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 16px 18px; display: grid; gap: 8px; align-content: start; min-width: 0 }
 .card2 p { color: var(--fg2); font-size: 14.5px }
 .card2 .big { font-family: var(--f-display); font-weight: 700; font-size: 34px; line-height: 1; font-variant-numeric: tabular-nums }
+/* ---------- the wiring plate (246 neurons that hold across formats): drawn on the dark plate like the map */
+.wp-controls { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; font-family: var(--f-mono); font-size: 13.5px }
+.wp-seg { display: inline-flex; border: 1px solid var(--line); border-radius: 4px; overflow: hidden }
+.wp-seg button { font: inherit; background: var(--surface); color: var(--fg2); border: 0; padding: 5px 11px; cursor: pointer }
+.wp-seg button + button { border-left: 1px solid var(--line) }
+.wp-seg button[aria-pressed="true"] { background: var(--fg); color: var(--bg) }
+.wp-seg button:focus-visible, .wp-btn:focus-visible { outline: 2px solid var(--ice-ink); outline-offset: 2px }
+.wp-btn { font: inherit; background: var(--surface); color: var(--fg2); border: 1px solid var(--line); border-radius: 4px; padding: 5px 11px; cursor: pointer }
+.wp-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-family: var(--f-mono); font-size: 12.5px; color: var(--fg2) }
+.wp-sw { display: inline-block; width: 18px; height: 3px; vertical-align: middle; margin-right: 6px }
+.wp-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: -1px; margin-right: 6px }
+.wp-grid { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 14px; align-items: start }
+@media (max-width: 960px) { .wp-grid { grid-template-columns: minmax(0, 1fr) } }
+.wp-fig { background: var(--plate); border: 1px solid var(--plate-line); border-radius: 4px; overflow-x: auto; min-height: 120px }
+.wp-fig svg { display: block; width: 100%; min-width: 760px; height: auto; font-family: var(--f-mono) }
+.wp-detail { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 14px 16px; display: grid; gap: 10px; min-width: 0; font-size: 14.5px }
+.wp-detail .id { font-family: var(--f-display); font-size: 22px; font-weight: 700 }
+.wp-detail dl { display: grid; grid-template-columns: max-content 1fr; gap: 3px 12px; margin: 0 }
+.wp-detail dt { font-family: var(--f-mono); font-size: 12px; color: var(--muted) }
+.wp-detail dd { margin: 0; color: var(--fg2); min-width: 0; overflow-wrap: anywhere }
+.wp-detail table { min-width: 0; font-size: 12.5px; font-family: var(--f-mono); font-variant-numeric: tabular-nums }
+.wp-detail th, .wp-detail td { padding: 1px 4px; border: 0; text-align: right; text-transform: none; letter-spacing: 0 }
+.wp-detail th:first-child, .wp-detail td:first-child { text-align: left }
+.wp-edges { display: grid; gap: 2px; font-family: var(--f-mono); font-size: 12.5px; font-variant-numeric: tabular-nums }
+.wp-edges button { all: unset; cursor: pointer; display: flex; justify-content: space-between; gap: 8px; padding: 1px 3px; border-radius: 3px }
+.wp-edges button:hover, .wp-edges button:focus-visible { background: var(--chip) }
+.wp-tip { position: fixed; pointer-events: none; background: var(--fg); color: var(--bg); font-family: var(--f-mono); font-size: 12.5px;
+  padding: 5px 8px; border-radius: 4px; max-width: 300px; z-index: 20 }
 .tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 4px; background: var(--surface) }
 table { border-collapse: collapse; width: 100%; font-size: 14px; min-width: 620px }
 th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top }
@@ -362,6 +390,43 @@ footer .wrap { display: grid; gap: 8px }
     <div class="card2"><span class="eyebrow">in a top-100 set under both formats</span><span class="big">246</span><p>distinct neurons, from 315 of 1,400 places</p></div>
     <div class="card2"><span class="eyebrow">links that pass in both formats</span><span class="big">23–27%</span><p>against 12.5% for two unrelated maps</p></div>
   </div>
+  <h3 id="wiring">The wiring that holds</h3>
+  <p class="prose note">Each dot is one of the 246 neurons, placed by depth (left to right over the 72 effective layers) and by the task
+    where it held. Each line is a link that passes in both formats. Hover a neuron for its name; click it to pin its strongest links.
+    All eight hubs of the first map hold, among them 19/3306, the pass-1 neuron whose removal lifts attribute binding by +.57 nats.
+    With balanced worked examples, the word-problem chain that starts at 14/1390 keeps its links, and the net push of the 246 neurons
+    on dialogue goes from <b>−.43</b> to <b>+.06</b>.</p>
+  <div class="wp-controls">
+    <span class="eyebrow">task</span>
+    <span class="wp-seg" role="group" aria-label="task">
+      <button data-t="attr" aria-pressed="false">attribute</button><button data-t="dialogue" aria-pressed="true">dialogue</button><button data-t="codevar" aria-pressed="false">code variables</button>
+    </span>
+    <span class="eyebrow">neurons read with</span>
+    <span class="wp-seg" role="group" aria-label="format for neuron attribution">
+      <button data-r="af" aria-pressed="true">worked examples</button><button data-r="a0" aria-pressed="false">bare items</button>
+    </span>
+    <span class="eyebrow">links</span>
+    <span class="wp-seg" role="group" aria-label="which links">
+      <button data-e="robust" aria-pressed="true">hold in both</button><button data-e="both" aria-pressed="false">+ bare items only</button>
+    </span>
+    <label for="wp-k"><span class="eyebrow">count</span> <input id="wp-k" type="range" min="100" max="1500" step="100" value="500"> <span id="wp-kv" class="num">500</span></label>
+    <button class="wp-btn" id="wp-clear">clear</button>
+  </div>
+  <div class="wp-legend">
+    <span><span class="wp-sw" style="background:var(--ember)"></span>link pushes toward the wrong answer</span>
+    <span><span class="wp-sw" style="background:var(--ice)"></span>toward the right one</span>
+    <span><span class="wp-sw" style="background:var(--plate-muted)"></span>link seen on bare items only</span>
+    <span><span class="wp-dot" style="background:var(--ember)"></span>neuron interferes</span>
+    <span><span class="wp-dot" style="background:var(--ice)"></span>supports</span>
+    <span>dot size = strength</span>
+  </div>
+  <div class="wp-grid">
+    <div class="wp-fig"><svg id="wp-plot" viewBox="0 0 1200 520" role="img" aria-label="links among the 246 neurons that hold across prompt formats, by depth and task"></svg></div>
+    <aside class="wp-detail" id="wp-detail" aria-live="polite"><span class="note">Loading the wiring…</span></aside>
+  </div>
+  <p class="note">Depth bands: prelude (0–18), the looped core's first pass (19–38), the same weights on the second pass (39–58), coda (59–71).
+    Rows group neurons by the task where they held; "shared" means two or more tasks. Links: measured attribution graph on 40 held-out items per task in both formats.</p>
+  <div class="wp-tip" id="wp-tip" hidden></div>
 </div></section>
 
 <section class="read" id="passes"><div class="wrap">
@@ -421,7 +486,7 @@ footer .wrap { display: grid; gap: 8px }
   <span><span class="kanji" style="font-size:15px">言霊 紬</span> Threads · model: kotodama-tsumugi.</span>
   <span>Companion pages: <a href="./">Who Is You?</a>, the write-up · <a href="binding-atlas">Binding Atlas</a>, every model against every referent-binding probe.</span>
   <span>Research, code and development: Luxia (@LuxiaSL) and Claude (Anthropic). Trained on compute provided by Anima Labs. Set in Love Letter Typewriter (© 1994 Blake Haber, Dixie's Delights) with Courier Prime. Data CC-BY-4.0; code Apache-2.0.</span>
-  <span class="num" id="stamp">atlas build 2026-10-29 19:39 UTC</span>
+  <span class="num" id="stamp">atlas build 2026-10-29 21:43 UTC</span>
 </div></footer>
 
 <script>
@@ -1195,5 +1260,138 @@ function tables() {
 })();
 })();
 </script>
+<script>
+// The wiring plate: loads threads-data/wiring.json when the section nears the viewport.
+(() => {
+'use strict';
+const svg = document.getElementById('wp-plot'), box = document.getElementById('wp-detail'), tipEl = document.getElementById('wp-tip');
+if (!svg) return;
+const NS = 'http://www.w3.org/2000/svg';
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const NAMES = { attr: 'attribute', dialogue: 'dialogue', codevar: 'code variables', codevarmut: 'code mutation', setbind: 'set binding', answer: 'answer', adjacency: 'adjacency' };
+const LANES = ['shared', 'attribute · set', 'dialogue · reply · answer', 'code'];
+const W = 1200, H = 520, X0 = 92, X1 = 1180, TOP = 28, LANE_H = (H - TOP - 20) / LANES.length;
+const xOf = L => X0 + (X1 - X0) * L / 71;
+const pass = L => L < 19 ? 'prelude' : L < 39 ? 'core, pass 1' : L < 59 ? 'core, pass 2' : 'coda';
+const f = (x, d = 3) => (x > 0 ? '+' : x < 0 ? '−' : '') + Math.abs(x).toFixed(d);
+const clip = (s, n) => s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s;
+let D, F, FI, N, byId, task = 'dialogue', rend = 'af', layer = 'robust', K = 500, pinned = null;
+const el = (t, a, p) => { const e = document.createElementNS(NS, t); for (const k in a) e.setAttribute(k, a[k]); (p || svg).appendChild(e); return e; };
+function layout() {
+  const groups = {};
+  N.forEach(n => { const k = n.lane + ':' + n.L; (groups[k] = groups[k] || []).push(n); });
+  Object.values(groups).forEach(g => {
+    g.sort((a, b) => Math.abs(b.af[FI[task]]) - Math.abs(a.af[FI[task]]));
+    const cy = TOP + LANE_H * g[0].lane + LANE_H / 2, step = Math.min(8, (LANE_H - 16) / Math.max(1, g.length));
+    g.forEach((n, j) => { n.x = xOf(n.L) + (j % 2 ? 2.4 : -2.4); n.y = cy + (j % 2 ? 1 : -1) * Math.ceil(j / 2) * step; });
+  });
+}
+function bands() {
+  [[0, 18.5, 'prelude'], [18.5, 38.5, 'core · pass 1'], [38.5, 58.5, 'core · pass 2'], [58.5, 71.5, 'coda']].forEach(([a, b, t], k) => {
+    el('rect', { x: xOf(a), y: TOP - 6, width: xOf(b) - xOf(a), height: H - TOP - 8, fill: k % 2 ? 'var(--plate2)' : 'var(--plate)' });
+    el('text', { x: (xOf(a) + xOf(b)) / 2, y: 16, 'text-anchor': 'middle', 'font-size': 12, fill: 'var(--plate-muted)' }).textContent = t;
+  });
+  LANES.forEach((name, k) => {
+    el('line', { x1: X0 - 8, x2: X1, y1: TOP + LANE_H * (k + 1) - 4, y2: TOP + LANE_H * (k + 1) - 4, stroke: 'var(--plate-line)', 'stroke-width': 1 });
+    el('text', { x: 6, y: TOP + LANE_H * k + 14, 'font-size': 11.5, fill: 'var(--plate-fg)' }).textContent = name.length > 12 ? name.split(' · ')[0] : name;
+  });
+  [0, 8, 19, 39, 59, 71].forEach(L => { el('text', { x: xOf(L), y: H - 4, 'text-anchor': 'middle', 'font-size': 11, fill: 'var(--plate-muted)' }).textContent = L; });
+}
+function shown() {
+  const r = D.edges[task].robust.slice(0, K).map(e => [...e, 'r']);
+  return layer === 'both' ? D.edges[task].only0.slice(0, K).map(e => [...e, 'z']).concat(r) : r;
+}
+let gE, gN;
+function draw() {
+  layout(); svg.innerHTML = ''; bands(); gE = el('g', {}); gN = el('g', {});
+  const edges = shown(), maxW = Math.max(...edges.map(e => Math.abs(e[2])));
+  edges.forEach(([u, v, w, kind]) => {
+    const a = N[u], b = N[v], mx = (a.x + b.x) / 2, my = Math.min(a.y, b.y) - 18 - Math.abs(b.x - a.x) * 0.08, s = Math.abs(w) / maxW;
+    el('path', { d: `M${a.x},${a.y} Q${mx},${my} ${b.x},${b.y}`, fill: 'none',
+      stroke: kind === 'z' ? 'var(--plate-muted)' : w < 0 ? 'var(--ember)' : 'var(--ice)', 'stroke-width': 0.4 + 2.4 * s,
+      'stroke-opacity': kind === 'z' ? 0.14 + 0.3 * s : 0.32 + 0.6 * s, 'stroke-dasharray': kind === 'z' ? '3 3' : 'none',
+      'data-u': u, 'data-v': v }, gE);
+  });
+  const fi = FI[task], maxA = Math.max(...N.map(n => Math.max(Math.abs(n.af[fi]), Math.abs(n.a0[fi])))) || 1;
+  N.forEach(n => {
+    const a = n[rend][fi];
+    const c = el('circle', { cx: n.x, cy: n.y, r: 1.6 + 7 * Math.sqrt(Math.abs(a) / maxA), fill: a < 0 ? 'var(--ember)' : 'var(--ice)',
+      'fill-opacity': 0.88, stroke: 'var(--plate)', 'stroke-width': 0.8, tabindex: 0, 'data-i': n.i, role: 'button', 'aria-label': `neuron ${n.id}` }, gN);
+    c.addEventListener('mouseenter', ev => { focus(n.i, false); tip(ev, n); });
+    c.addEventListener('mouseleave', () => { tipEl.hidden = true; focus(pinned, false); });
+    c.addEventListener('click', () => { pinned = n.i; focus(n.i, true); });
+    c.addEventListener('keydown', ev => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); pinned = n.i; focus(n.i, true); } });
+  });
+  focus(pinned, true);
+}
+function tip(ev, n) {
+  tipEl.textContent = `${n.id} · ${n.cl || 'unnamed'}`; tipEl.hidden = false;
+  tipEl.style.left = Math.min(ev.clientX + 12, innerWidth - 310) + 'px'; tipEl.style.top = (ev.clientY + 14) + 'px';
+}
+function focus(i, show) {
+  const nb = new Set();
+  gE.querySelectorAll('path').forEach(p => {
+    const u = +p.dataset.u, v = +p.dataset.v, on = i === null || u === i || v === i;
+    if (i !== null && on) { nb.add(u); nb.add(v); }
+    p.style.opacity = on ? 1 : 0.05;
+  });
+  gN.querySelectorAll('circle').forEach(c => {
+    const k = +c.dataset.i, on = i === null || k === i || nb.has(k);
+    c.style.opacity = on ? 1 : 0.18;
+    c.setAttribute('stroke', k === i ? 'var(--plate-fg)' : 'var(--plate)'); c.setAttribute('stroke-width', k === i ? 2 : 0.8);
+  });
+  if (show) detail(i);
+}
+function detail(i) {
+  if (i === null || i === undefined) { box.innerHTML = start(); wire(); return; }
+  const n = N[i], all = D.edges[task].robust;
+  const outs = all.filter(e => e[0] === i).slice(0, 6), ins = all.filter(e => e[1] === i).slice(0, 6);
+  const row = (e, j) => `<button data-go="${e[j]}"><span>${esc(N[e[j]].id)} <span class="note">· ${esc(clip(N[e[j]].cl || '', 24))}</span></span><span class="${e[2] < 0 ? 'ember' : 'ice'}">${f(e[2], 4)}</span></button>`;
+  const tL = n.L >= 19 && n.L < 39 ? n.L + 20 : n.L >= 39 && n.L < 59 ? n.L - 20 : -1;
+  const twin = tL >= 0 && byId[tL + '/' + n.id.split('/')[1]];
+  const rows = F.map((fam, k) => `<tr><td>${NAMES[fam]}</td><td class="${n.a0[k] < 0 ? 'ember' : 'ice'}">${f(n.a0[k])}</td><td class="${n.af[k] < 0 ? 'ember' : 'ice'}">${f(n.af[k])}</td></tr>`).join('');
+  box.innerHTML = `<span class="eyebrow">neuron · position / index</span><div class="id">${esc(n.id)}</div>
+    <dl><dt>where</dt><dd>${pass(n.L)}, effective position ${n.L}</dd><dt>group</dt><dd>${esc(n.cl || '—')}</dd>
+    <dt>held in</dt><dd>${n.fams.map(x => NAMES[x]).join(', ')}</dd>
+    ${twin ? `<dt>loop twin</dt><dd><button class="wp-btn" data-go="${twin.i}" style="padding:0 6px">${esc(twin.id)}</button> same weights, other pass</dd>` : ''}</dl>
+    <table><tr><th>attribution</th><th>bare</th><th>examples</th></tr>${rows}</table>
+    <span class="eyebrow">strongest links into it (${NAMES[task]})</span><div class="wp-edges">${ins.map(e => row(e, 0)).join('') || '<span class="note">none among the links that hold</span>'}</div>
+    <span class="eyebrow">strongest links out of it</span><div class="wp-edges">${outs.map(e => row(e, 1)).join('') || '<span class="note">none among the links that hold</span>'}</div>`;
+  wire();
+}
+function wire() { box.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => { pinned = +b.dataset.go; focus(pinned, true); })); }
+function start() {
+  const hubs = [['19/3306', 'pass-1 hub; removing it lifts attribute binding'], ['39/3306', 'its pass-2 twin'], ['14/1390', 'root of the word-problem chain'],
+    ['17/1287', 'relay in that chain'], ['57/4058', 'dialogue sink'], ['48/1597', 'attribute receiver with worked examples'], ['68/3914', 'coda attribute neuron'], ['8/797', 'position-8 brake']].filter(h => byId[h[0]]);
+  return `<span class="eyebrow">start here</span><p class="note">Click a neuron, or one of the hubs below, to pin its links.</p>
+    <div class="wp-edges">${hubs.map(([h, t]) => `<button data-go="${byId[h].i}"><span>${h}</span><span class="note">${t}</span></button>`).join('')}</div>`;
+}
+function seg(attr, set) {
+  document.querySelectorAll(`.wp-seg button[${attr}]`).forEach(b => b.addEventListener('click', () => {
+    set(b.getAttribute(attr)); document.querySelectorAll(`.wp-seg button[${attr}]`).forEach(x => x.setAttribute('aria-pressed', x === b));
+    if (D) draw();
+  }));
+}
+seg('data-t', v => task = v); seg('data-r', v => rend = v); seg('data-e', v => layer = v);
+const kIn = document.getElementById('wp-k');
+kIn.addEventListener('input', () => { K = +kIn.value; document.getElementById('wp-kv').textContent = K; if (D) draw(); });
+document.getElementById('wp-clear').addEventListener('click', () => { pinned = null; if (D) focus(null, true); });
+let started = false;
+function load() {
+  if (started) return; started = true;
+  fetch('threads-data/wiring.json').then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }).then(d => {
+    D = d; F = d.F; FI = Object.fromEntries(F.map((x, i) => [x, i]));
+    N = d.nodes.map((r, i) => ({ i, id: r[0], L: r[1], lane: r[2], cl: r[3], a0: r[4], af: r[5], fams: r[6] }));
+    byId = Object.fromEntries(N.map(n => [n.id, n]));
+    draw();
+  }).catch(err => { box.innerHTML = `<span class="note">The wiring data did not load (${esc(err.message)}).</span>`; });
+}
+if ('IntersectionObserver' in window) {
+  const io = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) { io.disconnect(); load(); } }, { rootMargin: '600px 0px' });
+  io.observe(svg);
+} else load();
+})();
+</script>
+
 </body>
 </html>

@@ -32,7 +32,7 @@ REDIRECT = """<!doctype html>
 <meta name="robots" content="noindex"></head>
 <body><p>This page is now <a href="{target}">Threads</a>.</p></body></html>
 """
-DATA_FILES = ("neurons.json", "neurons.bin", "binding.json")
+DATA_FILES = ("neurons.json", "neurons.bin", "binding.json", "wiring.json")
 
 
 def main() -> None:
