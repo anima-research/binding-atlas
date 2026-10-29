@@ -1,8 +1,10 @@
 # Binding Atlas — agent view
 
-Plain-text twin of the [Binding Atlas page](https://aetherawi.red/kotodama/binding-atlas). Same data, same build. Built 2026-10-29 19:39 UTC: 117 rows (models + one human), 28 columns, 7,919 cells, 1,285,239 scored items.
+Plain-text twin of the [Binding Atlas page](https://aetherawi.red/kotodama/binding-atlas). Same data, same build. Built 2026-10-29 21:39 UTC: 117 rows (models + one human), 28 columns, 7,919 cells, 1,285,239 scored items.
 
 ## Summary
+
+This atlas scores 116 models and checkpoints, plus one human reader, on 28 tests of tracking who *I* and *you* refer to. "Example items per column" quotes the exact prompts that the models were given.
 
 Base language models acquire the referent of *you* in five ordered stages. Every base of 0.6B parameters or more trained on trillions of tokens reaches the first three. The fifth stage, tracking *you* after objects change hands, is **never reached zero-shot** (with no worked examples) by a public model up to 8B, at any token count measured up to 36T; its swap shift is negative in every one of them. From 14B to 1T parameters, stage 5 is weak and nearly flat. In these models, parameter count and depth grow together. **kotodama-tsumugi**, a 1.4B model run as 72 effective layers (looped depth, boundary-fitted attention residuals), separates them: it reaches stage 3 by **33B tokens** (annealed; on the constant-LR trunk by 40B), the token cost of OLMo-2 13B, against about 420B for OLMo-2 1B. At 110B tokens its zero-shot stage-5 reading (−.021) is not inverted under the gauge rule, where every 1–2B public base whose static *you* binds, except Llama-3.2-1B, inverts. In a check of 20 bases, kotodama-tsumugi (.336) follows a hand-off told in the third person better than every Pythia model up to 6.9B (.275 to .294) and Llama-3.2-1B (.303). Most bases up to 1.5B barely follow one: 7 of those 10 score .26 to .34, against about .29 by chance. For every model of this size, that hand-off is the open step toward stage 5.
 
