@@ -85,13 +85,11 @@ ts = {
     "traj": {"s17": s17, "s7": s7},
     "olmo_stage3": olmo_stage3,
     "battery": st["tsumugi"]["battery"],         # curated in the base: the earlier battery path, 5B–33B
-    "desc": ("A 1.42B-parameter model: 52 unique layers at width 1536, with a 20-layer block in the middle run twice "
-             "for 72 effective layers, and attention-residual boundaries fitted to the network's own layer geometry. "
-             "The trunk trains at a constant learning rate to 100B tokens; annealed reads are cooldown branches forked "
-             "from its checkpoints (cosine decay to zero over about 10% of the tokens so far). The release is the "
-             "110B branch from the 100B fork. A second anneal from the same fork, with identical training loss, reads "
-             ".025 bits/byte worse on held-out text: single-anneal numbers carry that spread. A second initialization "
-             "seed (seed 7, same data order) was trained to 11B."),
+    "desc": ("A 1.42B-parameter model with a looped core, run as 72 effective layers. Its trunk trains at a constant "
+             "learning rate to 100B tokens, and annealed reads are cooldown branches forked from its checkpoints "
+             "(cosine decay to zero over about 10% of the tokens so far); the release is the 110B branch from the 100B "
+             "fork. The architecture and training run are described in Who Is You?, the companion write-up, and the "
+             "release table below gives the spread between two anneals."),
 }
 new["tsumugi"] = ts
 
@@ -165,7 +163,7 @@ you_rel = F.get(T, REL, "static you shift", tag="stage3 tsumugi static you relea
 pyth28 = F.row("Pythia-2.8B", "main/final (via step300B branch)", "static you shift", tag="stage3 Pythia-2.8B static you (does not bind)")
 S[1]["ours"] = "~3–3.75B tokens"
 S[2]["ours"] = "transient, ~4–20B"
-S[3]["ok"] = "every base ≥ 1.5B at its endpoint, except Pythia-2.8B"
+S[3]["ok"] = "every base ≥ 0.6B trained on trillions of tokens"
 S[3]["ours"] = f"by 33B tokens annealed (trunk: 40B); {fmt3(you_rel, True)} at 110B"
 S[4]["ours"] = f"from ~4B; shallowing ({fmt3(dyn11)} at 11B → {fmt3(rel_g['dyn0'])} at 110B, no longer inverted under the gauge rule)"
 S[5]["ok"] = ("zero-shot: never binds at ≤ 8B (any token count measured); weak and nearly flat from 14B to 1T. "
@@ -175,10 +173,8 @@ new["lead"] = (
     "Base language models acquire the referent of *you* in five ordered stages. Every base of 0.6B parameters or more "
     "trained on trillions of tokens reaches the first three. The fifth stage, tracking *you* after objects change "
     "hands, is **never reached zero-shot** by a public model up to 8B, at any token count measured up to 36T; its "
-    "swap shift is negative in every one of them. Whether more tokens would get a small model there is unknown. From "
-    "14B to 1T parameters it is weak and nearly flat in 10 of the 11 bases with a public size: a zero-shot swap shift "
-    "of +.01 to +.07, against +.27 to +.82 for static *you* in the seven of them where that is measured. In these models parameter count and "
-    "depth grow together. **kotodama-tsumugi**, a 1.4B model run as 72 effective layers (looped depth, "
+    "swap shift is negative in every one of them. From 14B to 1T parameters, stage 5 is weak and nearly flat. In "
+    "these models, parameter count and depth grow together. **kotodama-tsumugi**, a 1.4B model run as 72 effective layers (looped depth, "
     "boundary-fitted attention residuals), separates them: it reaches stage 3 by **33B tokens** (annealed; on the "
     "constant-LR trunk by 40B), the token cost of OLMo-2 13B, against about 420B for OLMo-2 1B. Trained to 110B "
     "tokens, it still does not reach stage 5, but its zero-shot reading "

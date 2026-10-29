@@ -148,9 +148,13 @@ def main() -> None:
     o = stage["threshold"]["ours"]
     P(f"| {o['m']} | {o['p']} | 110B | {f3(o['z'])} | {f3(o['t'])} |")
     P("")
-    P("No model at or below 8B binds zero-shot dynamic *you* at any token count measured (to 36T). That is not evidence "
-      "that the stage needs more parameters: no small model has been trained far enough to rule tokens out, so whether "
-      "it is token-reachable at small sizes is unknown.")
+    P("No model at or below 8B binds zero-shot dynamic *you* at any token count measured (to 36T). The same holds with "
+      "each chat rewritten as a scene (8 of 8 models tested at or below 8B; the highest is +.010, Qwen2.5-7B), so the "
+      "result does not come from the chat format. This is not evidence that the stage needs more parameters. No model "
+      "at or below 8B has been trained far enough to rule out more tokens. Whether more tokens would bring a small "
+      "model to stage 5 is unknown. From 14B to 1T parameters, stage 5 is weak and nearly flat. Ten of the 11 bases "
+      "with a public size read +.01 to +.07 zero-shot. Static *you* reads +.27 to +.82 in the seven of them where it "
+      "was measured.")
     P("")
     P("### Training tokens until each stage appears (the range spans the checkpoints that bracket the stage)")
     P("")
@@ -227,7 +231,8 @@ def main() -> None:
       "of them shows the item's own answer pattern; deixis-lite has no such condition and is read zero-shot. The "
       "bookkeeping probes rise with tokens: attribution from .71 to .99, set binding and dialogue tracking by .13 to .17. "
       "Aliased Python lists stays at chance through 33B and lifts only after 55B. The perspective probes stay within .15 "
-      "of their 5B level. The two seeds differ at 5B and agree within .05 on seven of the ten rows at 11B.")
+      "of their 5B level. The two seeds differ at 5B (seed 7 forms set binding earlier) and agree within .05 on seven "
+      "of the ten rows at 11B.")
     P("")
     rel = stage["release"]
     P("### The release against its trajectory and its class")
@@ -237,8 +242,10 @@ def main() -> None:
     for name, vals, signed in rel["rows"]:
         P(f"| {name} | " + " | ".join("—" if v is None else f3(v) if signed else (f"{v:.1f}" if v >= 1 else f"{v:.3f}".lstrip("0")) for v in vals) + " |")
     P("")
-    P("The two 110B columns are two anneals from the same fork with the same training loss; their spread is the "
-      "measured anneal-to-anneal variance. Capacity (K50, after arXiv 2609.30634) tracks recipe and tokens more than "
+    P("The two 110B columns are two anneals from the same fork with the same training loss. Their spread (static *you* "
+      ".142 vs .235, K50 3.8 vs 4.8, and .025 bits/byte on held-out text) is the measured anneal-to-anneal variance, "
+      "and every single-anneal number here carries it. A second initialization seed (seed 7, same data order) was "
+      "trained to 11B. Capacity (K50, after arXiv 2609.30634) tracks recipe and tokens more than "
       "parameters on this harness, so no parameter-equivalent size is read from it.")
     P("")
     rid = stage["riders"]
@@ -250,16 +257,21 @@ def main() -> None:
         P(f"| {r['m']} | " + " | ".join("pending" if r[c] is None else f"{r[c]:.3f}".lstrip("0") for c in rid["cols"]) + " |")
     P("")
     P("fixed3 = the same three exemplars for every item; fairK = K exemplars drawn per item. Fixed exemplars push "
-      "accuracy well below zero-shot (a setup artifact); fair exemplars help every public model here and "
-      "kotodama-tsumugi through 55B, but not the second 110B anneal. The public pool is three 1–2B models; no larger "
-      "model has been run on this harness.")
+      "accuracy well below zero-shot (a setup artifact). The penalty is not specific to these models. On a lighter "
+      "riders slice, fixed exemplars lower prose accuracy for most of an eight-model panel (chat 8 of 8, screenplay 6 "
+      "of 8, narrative 5 of 8) and raise code accuracy for all eight. Fair exemplars help every public model here and "
+      "kotodama-tsumugi through 55B, but not the two 110B anneals (second anneal −.03, release −.045). The zero-shot "
+      "column pools narrative and screenplay prose. Zero-shot riders accuracy depends on the register: on the lighter "
+      "slice, it spreads by 20 points or more across the four registers for five of the eight panel models. The public "
+      "pool is three 1–2B models; no larger model has been run on this harness.")
     P("")
     P("## How to read the full atlas")
     P("")
     P("- **A cell** = one model (row) on one probe type (column) under one condition, as `acc` = share of items where "
       "the gold answer is the model's top choice among the item's candidates, with `n` items and the `chance` rate "
       "(mean 1/#candidates). `score` = (acc − chance)/(1 − chance); `se` = binomial standard error.")
-    P("- **Conditions:** `0shot` = the item alone; `3shot` = three solved items of the same type first; `3shot_collide` "
+    P("- **Conditions:** `0shot` = the item alone; `3shot` = three solved items of the test item's own type first (a diagnostic: on aliased lists it teaches the "
+      "answer's role; see Caveats); `3shot_collide` "
       "= the three exemplars reuse the test item's names/objects in other roles (interference test).")
     P("- **Modes:** `all` = every item; `free` = shortcut-free subset (deixis columns only): the answer is neither the "
       "last-mentioned candidate nor the last speaker.")
@@ -331,8 +343,8 @@ def main() -> None:
             P(fence(fr["prompt"]))
             P("")
         if e.get("shot3") and first_of_family:
-            P(f"**3-shot form** (same test item, three solved exemplars first; shown once per family — every {fam} "
-              "column uses this layout)")
+            P(f"**3-shot form** (same test item, three solved exemplars of its own type first; shown once per family — "
+              f"every {fam} column uses this layout)")
             P("")
             P(fence(e["shot3"]))
             P("")

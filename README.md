@@ -16,7 +16,8 @@ A second page, `threads.html` (*Threads*; 紬 tsumugi, spun thread), maps every 
 neurons. Each one is placed by the meaning of its strongest firing contexts in 24M training tokens, by depth, or by its
 weights. Language-model agents wrote the groups and labels and graded each by how well three readings match: the contexts a
 neuron fires on, the tokens its output favours (logit lens and J-lens), and what steering it does. They are drafts. The page also shows the referent-binding circuit: per-neuron
-attribution of the battery margin, and held-out knock-outs of the supporter and interferer sets. The page loads its data at run
+attribution of the battery margin on bare items, held-out knock-outs of the supporter and interferer sets, and the core
+of the circuit that holds when the items come with balanced worked examples. The page loads its data at run
 time from `threads-data/` beside it. The directory is named differently from the page on purpose: some hosts try a path
 before adding `.html`, and a directory with the page's name would hide the page. `neuron-atlas.html`, the page's earlier address, is built beside it as a redirect:
 
