@@ -180,7 +180,10 @@ new["lead"] = (
     "constant-LR trunk by 40B), the token cost of OLMo-2 13B, against about 420B for OLMo-2 1B. Trained to 110B "
     "tokens, it still does not reach stage 5, but its zero-shot reading "
     f"({fmt3(rel_g['dyn0'])}) is not inverted under the gauge rule, where every 1–2B public base whose static *you* "
-    "binds, except Llama-3.2-1B, inverts.")
+    "binds, except Llama-3.2-1B, inverts. Most bases up to 1.5B barely follow a hand-off even when it is told in the "
+    "third person. In a check of 20 bases, 7 of the 10 up to 1.5B score .26 to .34, against about .29 by chance. So at "
+    "this scale the missing inversion is not yet a step toward stage 5. In the same check, kotodama-tsumugi (.336) "
+    "follows such a hand-off better than every Pythia model up to 6.9B (.275 to .294) and Llama-3.2-1B (.303).")
 
 # ------------------------------------------------------------------ NEW: stage-5 decomposition (endpoints, full battery)
 DEC_COLS = [("third", "third/0shot acc (self+addressee)"), ("deictic", "deictic/0shot acc (self+addressee)"),
