@@ -17,7 +17,7 @@ ifndef STAMP
 STAMP := $(shell date -u '+%Y-%m-%d %H:%M UTC')
 endif
 # the build the aetherawi.red deployment serves (config/aetherawi.sha256)
-VERIFY_STAMP := 2026-10-29 19:39 UTC
+VERIFY_STAMP := 2026-10-29 21:39 UTC
 
 DATA_ENV := $(if $(KOTODAMA_SRC),PYTHONPATH=$(KOTODAMA_SRC),)
 PAGE_ARGS = --config $(CONFIG) --stamp "$(STAMP)"

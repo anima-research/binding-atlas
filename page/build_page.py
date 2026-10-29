@@ -71,6 +71,8 @@ def main() -> None:
     dump = lambda o: json.dumps(o, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")  # noqa: E731
     stage = json.loads(a.stage.read_text())   # the front-section figures (stage map; curated from records)
     tpl = tpl.replace("__THREADS_LINK__", "threads" if cfg.clean_urls else "threads.html")   # the neuron page, a sibling file
+    n_models = sum(1 for r in atlas["rows"] if r["group"] != "Human")   # the first-screen counts: models + checkpoints, tests
+    tpl = tpl.replace("__N_MODELS__", str(n_models)).replace("__N_TESTS__", str(len(atlas["cols"])))
     html = (tpl.replace("__ATLAS_DATA__", dump(atlas)).replace("__ATLAS_META__", dump(meta))
             .replace("__STAGE_DATA__", dump(stage)))
     bad = sorted({m.group(0) for m in FORBIDDEN.finditer(html)})

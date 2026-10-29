@@ -249,6 +249,9 @@ table.levers td.cost { color: var(--muted); }
     <div class="eyebrow"><span>kotodama · referent binding</span>
       <button class="iconbtn" id="theme" aria-label="toggle light / dark theme">light / dark</button></div>
     <h1>Binding Atlas</h1>
+    <p class="claim">This atlas scores <b>__N_MODELS__ models and checkpoints</b>, plus one human reader, on <b>__N_TESTS__ tests</b>
+      of tracking who <i>I</i> and <i>you</i> refer to. Click any cell in the <a href="#atlas">full atlas</a> to read the
+      exact prompt that the model was given.</p>
     <p class="claim">Base language models acquire the referent of <i>you</i> in five ordered stages. Every base of 0.6B
       parameters or more trained on trillions of tokens reaches the first three. <b>No public model up to 8B reaches the fifth stage zero-shot</b> (with no worked examples):
       tracking <i>you</i> after objects change hands. That holds at every token count measured, up to 36T, and at their

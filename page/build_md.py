@@ -122,6 +122,10 @@ def main() -> None:
     f3 = lambda v: ("+" if v > 0 else "−" if v < 0 else "") + f"{abs(v):.3f}".lstrip("0")
     P("## Summary")
     P("")
+    P(f"This atlas scores {sum(1 for r in rows if r['group'] != 'Human')} models and checkpoints, plus one human reader, "
+      f"on {len(cols)} tests of tracking who *I* and *you* refer to. \"Example items per column\" quotes the exact prompts "
+      "that the models were given.")
+    P("")
     P(stage["lead"])
     P("")
     P("Swap shift = mean[p(gold | original) − p(gold | speaker swapped)] over the candidates: above +.02 a pronoun binds "
