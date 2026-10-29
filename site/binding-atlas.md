@@ -1,10 +1,10 @@
 # Binding Atlas — agent view
 
-Plain-text twin of the [Binding Atlas page](https://aetherawi.red/kotodama/binding-atlas). Same data, same build. Built 2026-10-29 00:59 UTC: 117 rows (models + one human), 28 columns, 7,919 cells, 1,285,239 scored items.
+Plain-text twin of the [Binding Atlas page](https://aetherawi.red/kotodama/binding-atlas). Same data, same build. Built 2026-10-29 13:06 UTC: 117 rows (models + one human), 28 columns, 7,919 cells, 1,285,239 scored items.
 
 ## Summary
 
-Base language models acquire the referent of *you* in five ordered stages. Every base of 0.6B parameters or more trained on trillions of tokens reaches the first three. The fifth stage, tracking *you* after objects change hands, is **never reached zero-shot** by a public model up to 8B, at any token count measured up to 36T; its swap shift is negative in every one of them. Whether more tokens would get a small model there is unknown. From 14B to 1T parameters it is weak and nearly flat in 10 of the 11 bases with a public size: a zero-shot swap shift of +.01 to +.07, against +.27 to +.82 for static *you* in the seven of them where that is measured. In these models parameter count and depth grow together. **kotodama-tsumugi**, a 1.4B model run as 72 effective layers (looped depth, boundary-fitted attention residuals), separates them: it reaches stage 3 by **33B tokens** (annealed; on the constant-LR trunk by 40B), the token cost of OLMo-2 13B, against about 420B for OLMo-2 1B. Trained to 110B tokens, it still does not reach stage 5, but its zero-shot reading (−.021) is not inverted under the gauge rule, where every 1–2B public base whose static *you* binds, except Llama-3.2-1B, inverts.
+Base language models acquire the referent of *you* in five ordered stages. Every base of 0.6B parameters or more trained on trillions of tokens reaches the first three. The fifth stage, tracking *you* after objects change hands, is **never reached zero-shot** by a public model up to 8B, at any token count measured up to 36T; its swap shift is negative in every one of them. From 14B to 1T parameters, stage 5 is weak and nearly flat. In these models, parameter count and depth grow together. **kotodama-tsumugi**, a 1.4B model run as 72 effective layers (looped depth, boundary-fitted attention residuals), separates them: it reaches stage 3 by **33B tokens** (annealed; on the constant-LR trunk by 40B), the token cost of OLMo-2 13B, against about 420B for OLMo-2 1B. Trained to 110B tokens, it still does not reach stage 5, but its zero-shot reading (−.021) is not inverted under the gauge rule, where every 1–2B public base whose static *you* binds, except Llama-3.2-1B, inverts.
 
 Swap shift = mean[p(gold | original) − p(gold | speaker swapped)] over the candidates: above +.02 a pronoun binds (its answer moves with the speaker), below −.02 it inverts (it resolves to the speaker).
 
@@ -16,7 +16,7 @@ Swap shift = mean[p(gold | original) − p(gold | speaker swapped)] over the can
 |---|---|---|---|---|---|---|
 | 1 | I binds | "I" resolves to whoever is speaking. | `Jack: I'm holding the ___` | every base ≥ 0.5B | ~21–63B tokens | ~3–3.75B tokens |
 | 2 | you = me | "you" is read as the speaker too: the pronoun-reversal phase young children go through. | `Jack: you're holding the ___  → Jack's object` | transient in every trajectory | ~63B → ~500B tokens | transient, ~4–20B |
-| 3 | static you binds | "you" resolves to the addressee, when ownership is simply stated. | `Carol has the onion. … Jack: you're holding the ___` | every base ≥ 1.5B at its endpoint, except Pythia-2.8B | ~525B tokens | by 33B tokens annealed (trunk: 40B); +.235 at 110B |
+| 3 | static you binds | "you" resolves to the addressee, when ownership is simply stated. | `Carol has the onion. … Jack: you're holding the ___` | every base ≥ 0.6B trained on trillions of tokens | ~525B tokens | by 33B tokens annealed (trunk: 40B); +.235 at 110B |
 | 4 | you = me, again | once objects change hands in the scene, "you" collapses back onto the speaker. | `Erin gives Paul her cup. … Paul: now you're holding the ___` | where almost every base stops | from ~63B, still there at 4T | from ~4B; shallowing (−.047 at 11B → −.021 at 110B, no longer inverted under the gauge rule) |
 | 5 | dynamic you binds | "you" tracked through transfers. In-context first (3-shot), zero-shot last. | `same scene, answered correctly without examples` | zero-shot: never binds at ≤ 8B (any token count measured); weak and nearly flat from 14B to 1T. Token-reachability unknown | never (flat to 4T) | not reached by 110B |
 
@@ -55,7 +55,7 @@ Swap shift = mean[p(gold | original) − p(gold | speaker swapped)] over the can
 | MiMo-V2.5 Pro (base) | not public | — | +.036 | +.083 |
 | kotodama-tsumugi 1.4B @ 110B tokens (release) | 1.42 | 110B | −.021 | +.018 |
 
-No model at or below 8B binds zero-shot dynamic *you* at any token count measured (to 36T). That is not evidence that the stage needs more parameters: no small model has been trained far enough to rule tokens out, so whether it is token-reachable at small sizes is unknown.
+No model at or below 8B binds zero-shot dynamic *you* at any token count measured (to 36T). The same holds with each chat rewritten as a scene (8 of 8 models tested at or below 8B; the highest is +.010, Qwen2.5-7B), so the result does not come from the chat format. This is not evidence that the stage needs more parameters. No model at or below 8B has been trained far enough to rule out more tokens. Whether more tokens would bring a small model to stage 5 is unknown. From 14B to 1T parameters, stage 5 is weak and nearly flat. Ten of the 11 bases with a public size read +.01 to +.07 zero-shot. Static *you* reads +.27 to +.82 in the seven of them where it was measured.
 
 ### Training tokens until each stage appears (the range spans the checkpoints that bracket the stage)
 
@@ -102,13 +102,13 @@ Three layers: (1) possession transfer itself: every ~1B model is at chance even 
 
 ### Findings
 
-1. **Scale solves who holds what; it does not solve who *you* is.** Across 26 pretrained bases from 1B to ~1T parameters (Llama-3.1 405B, Kimi-K2, DeepSeek-V3 and V4, MiMo-V2.5 and V2.5-Pro, Trinity-Large, Qwen2.5 72B, Gemma-4, GLM-4 and others), the 3rd-person twin of the shortcut-free *you* query rises with scale to .72–.99 at ≥30B. The 0-shot *you* version stays at .15–.33, around the 29% chance line, with no trend in size.
-2. **The items are unambiguous.** An independent solver that reads only the prompt text (*I* = the speaker; *you* = the named addressee, or the other person in a two-person chat) gives every one of the 900 deixis items and 540 twins a unique answer, and every answer matches the gold label. The cleanest contrast is *I* against *you* on the same transcripts, with the same format, bookkeeping and question: bases ≥30B score .21–.60 on “I'm holding the” and .15–.33 on “you're holding the”. Part of the gap to the 3rd-person twin is transcript bookkeeping, which the *I* version also pays. The part that belongs to *you* alone is about .2.
+1. **Scale solves who holds what; it does not solve who *you* is.** The atlas includes 26 pretrained bases from 1B to ~1T parameters (Llama-3.1 405B, Kimi-K2, DeepSeek-V3 and V4, MiMo-V2.5 and V2.5-Pro, Trinity-Large, Qwen2.5 72B, Gemma-4, GLM-4 and others). On the 3rd-person twin of the shortcut-free *you* query, their accuracy rises with scale, to .72–.99 at ≥30B. The 0-shot *you* version stays at .15–.33, around the 29% chance line, with no trend in size.
+2. **The items are unambiguous.** An independent solver reads only the prompt text. Its rules: *I* is the speaker, and *you* is the named addressee, or the other person in a two-person chat. It finds a unique answer for every one of the 900 deixis items and 540 twins. Every answer matches the gold label. The cleanest contrast is *I* against *you* on the same transcripts, with the same format, bookkeeping and question: bases ≥30B score .21–.60 on “I'm holding the” and .15–.33 on “you're holding the”. Part of the gap to the 3rd-person twin is the cost of tracking the transcript. The *I* version pays that cost too. The part that belongs to *you* alone is about .2.
 3. **Bases bind *I* to the speaker and leave *you* unbound.** A speaker-swap test changes only the name on the last line of a two-person chat (“Neil: Right now you're holding the” → “Kevin: …”), which flips the right answer. For “I'm holding the”, all 18 bases tested move their answer with the speaker given three examples (+.14 to +.58 in gold probability), and 17 of 18 already do at 0-shot (+.06 to +.17; Kimi-K2 +.03). For “you're holding the”, 11 of 18 do not move (within ±.04). Three move the wrong way and read *you* as the speaker (Gemma-2 9B, Gemma-4 31B, OLMo-3 32B). Four of the largest move slightly the right way (DeepSeek-V3 +.07, DeepSeek-V4 Flash +.10, Kimi-K2 +.05, Llama-3.1 405B +.05), a fraction of their *I* shift with examples. The base-model failure is therefore mostly an unattached *you*, not a misread speaker.
 4. **The residual signal comes from the shortcut.** On all structural-*you* items 405B scores 32%, just over chance. Restricted to items where the answer is neither the last-mentioned person nor the last speaker, it scores 21%, and the remaining errors point the wrong way. The Shortcut-free toggle shows the drop.
 5. **The reflex/deliberate split holds across vendors, and the reflex error has one direction.** Asked for only the next word, frontier models are near chance on structural *you* (all items, 0-shot: GPT-5.5 48%, GPT-5 mini 30%, Grok 4.3 33%, DeepSeek V3.2 21%). Allowed to reason, they reach 100%, 96%, 89% and 70%. Most reflex misses pick **the speaker's own object**, reading “you're holding” as “I'm holding”. For open bases the speaker-swap test shows mostly non-binding rather than inversion. Each deixis cell opens its error anatomy.
 6. **Frontier models resolve the referent and name it.** Asked to finish a line spoken *to* the person holding the object, GPT-5.5 names that person every time instead of saying *you*. The answer columns use **referent scoring** (the name counts as correct) and show how often the seat form (*you/me*) appears: frontier models resolve the referent ~100% of the time on reflex. In a frame ablation the deliberate frame (“work out the answer”) biases answers toward names, and GPT-5.5 still names the asker when told “you are Ted”.
-7. **More tokens and anneals grow bookkeeping, not perspective.** Three training runs are measured at two or more points: Trinity-Large TrueBase (10T tokens, pre-anneal) → Base (17T, with anneals); OLMo-3 32B stage 1 → final; OLMo-2 7B from 2.9T tokens through mid-training. The later checkpoints gain code aliasing (copy-then-mutate: Trinity 36 → 98, OLMo-3 3 → 35; rebind: OLMo-3 14 → 69) and set binding (OLMo-3 45 → 76). Two-person *you* stays at or below the 29% chance line throughout (Trinity 21 → 17, OLMo-3 23 → 29, OLMo-2 27 → 22).
+7. **More tokens and anneals grow bookkeeping, not perspective.** Three training runs are measured at two or more points: Trinity-Large TrueBase (10T tokens, pre-anneal) → Base (17T, with anneals); OLMo-3 32B stage 1 → final; OLMo-2 7B from 2.9T tokens through mid-training. The later checkpoints gain code aliasing at 0-shot (copy-then-mutate: Trinity 36 → 98, OLMo-3 3 → 35; rebind: OLMo-3 14 → 69) and set binding (OLMo-3 45 → 76). Two-person *you* stays at or below the 29% chance line throughout (Trinity 21 → 17, OLMo-3 23 → 29, OLMo-2 27 → 22).
 8. **A human reader solves these on reflex.** The human row reads every item cold, once, without options, and is at ceiling on the perspective columns where 405B is at chance. It is one reader and a handful of items per cell: a reference point, not an estimate.
 
 ## Part II · The levers
@@ -125,7 +125,7 @@ Each lever measured on 1.4B-parameter arms trained for 4B tokens on one data ord
 
 ## Part III · kotodama-tsumugi
 
-A 1.42B-parameter model: 52 unique layers at width 1536, with a 20-layer block in the middle run twice for 72 effective layers, and attention-residual boundaries fitted to the network's own layer geometry. The trunk trains at a constant learning rate to 100B tokens; annealed reads are cooldown branches forked from its checkpoints (cosine decay to zero over about 10% of the tokens so far). The release is the 110B branch from the 100B fork. A second anneal from the same fork, with identical training loss, reads .025 bits/byte worse on held-out text: single-anneal numbers carry that spread. A second initialization seed (seed 7, same data order) was trained to 11B.
+A 1.42B-parameter model with a looped core, run as 72 effective layers. Its trunk trains at a constant learning rate to 100B tokens, and annealed reads are cooldown branches forked from its checkpoints (cosine decay to zero over about 10% of the tokens so far); the release is the 110B branch from the 100B fork. The architecture and training run are described in Who Is You?, the companion write-up, and the release table below gives the spread between two anneals.
 
 ### Stage gauges against training tokens
 
@@ -162,25 +162,24 @@ A 1.42B-parameter model: 52 unique layers at width 1536, with a 20-layer block i
 
 For reference, OLMo-2 reaches stage 3 at about 42B tokens (OLMo-2 13B), 210B tokens (OLMo-2 7B), 420B tokens (OLMo-2 1B).
 
-### Binding battery at the early annealed reads (accuracy)
+### Binding battery across the annealed reads (accuracy)
 
-| probe | s17 · 5B | s17 · 11B | s17 · 33B | s7 · 5B | s7 · 11B |
-|---|---|---|---|---|---|
-| *who holds what* | | | | | |
-| set binding, one object (chance .125) | .594 | .875 | .906 | .797 | .906 |
-| set binding, 2–3 objects (chance .25–.38) | .637 | .797 | .848 | .730 | .762 |
-| attribution, 3-shot | .882 | .951 | .972 | .932 | .958 |
-| aliased Python lists (chance .20) | .328 | .408 | .427 | .338 | .432 |
-| dialogue tracking, 0-shot | .357 | .415 | .439 | .342 | .424 |
-| *who you is* | | | | | |
-| deixis, owner query, 0-shot | .356 | .303 | .523 | .379 | .326 |
-| deixis v2, self (P2) | .325 | .262 | .389 | .286 | .333 |
-| deixis v2, addressee (P2) | .214 | .159 | .190 | .127 | .214 |
-| reply adjacency, no vocative (chance .33) | .346 | .412 | .458 | .377 | .388 |
-| deixis-lite, 0-shot | .427 | .412 | .395 | .400 | .393 |
-| production deixis (me / you / name; chance .25) | .172 | .252 | .152 | .202 | .152 |
+| probe | s17 · 5B | s17 · 11B | s17 · 33B | s7 · 5B | s7 · 11B | s17 · 55B | s17 · 88B | 110B · release |
+|---|---|---|---|---|---|---|---|---|
+| *who holds what* | | | | | | | | |
+| set binding, one object (chance .125) | .422 | .492 | .469 | .453 | .484 | .516 | .547 | .562 |
+| set binding, 2–3 objects | .555 | .697 | .682 | .596 | .633 | .758 | .744 | .729 |
+| attribution | .713 | .904 | .940 | .826 | .915 | .976 | .976 | .986 |
+| aliased Python lists (chance .20) | .207 | .223 | .210 | .228 | .240 | .263 | .318 | .317 |
+| dialogue tracking | .490 | .534 | .514 | .517 | .551 | .632 | .638 | .618 |
+| *who you is* | | | | | | | | |
+| deixis v2, owner query | .311 | .411 | .422 | .306 | .367 | .372 | .422 | .383 |
+| deixis v2, self (P2) | .244 | .361 | .361 | .239 | .283 | .306 | .306 | .344 |
+| deixis v2, addressee (P2) | .250 | .306 | .333 | .228 | .278 | .328 | .283 | .311 |
+| reply adjacency, no vocative (chance .33) | .453 | .400 | .445 | .384 | .299 | .461 | .427 | .411 |
+| deixis-lite (0-shot) | .430 | .433 | .431 | .421 | .435 | .458 | .475 | .502 |
 
-The bookkeeping probes rise steadily from 5B to 33B; the perspective probes hold near their 5B level through 11B and begin to lift at 33B, alongside stage 3. The two seeds differ at 5B and agree within sampling error at 11B: the seed changes when each circuit forms, not where it settles. This battery was read at the early branches only; the next table carries the release.
+Scored with one harness (the kotodama binding suite). Each item gets four worked examples, balanced so that none of them shows the item's own answer pattern; deixis-lite has no such condition and is read zero-shot. The bookkeeping probes rise with tokens: attribution from .71 to .99, set binding and dialogue tracking by .13 to .17. Aliased Python lists stays at chance through 33B and lifts only after 55B. The perspective probes stay within .15 of their 5B level. The two seeds differ at 5B (seed 7 forms set binding earlier) and agree within .05 on seven of the ten rows at 11B.
 
 ### The release against its trajectory and its class
 
@@ -195,7 +194,7 @@ The bookkeeping probes rise steadily from 5B to 33B; the perspective probes hold
 | deixis v2, deictic, 0-shot (acc) | .311 | .307 | .314 | .331 | .339 | .344 | — | — |
 | deixis v2, third person, 0-shot (acc) | .368 | .373 | .392 | .420 | .416 | .411 | — | — |
 
-The two 110B columns are two anneals from the same fork with the same training loss; their spread is the measured anneal-to-anneal variance. Capacity (K50, after arXiv 2609.30634) tracks recipe and tokens more than parameters on this harness, so no parameter-equivalent size is read from it.
+The two 110B columns are two anneals from the same fork with the same training loss. Their spread (static *you* .142 vs .235, K50 3.8 vs 4.8, and .025 bits/byte on held-out text) is the measured anneal-to-anneal variance, and every single-anneal number here carries it. A second initialization seed (seed 7, same data order) was trained to 11B. Capacity (K50, after arXiv 2609.30634) tracks recipe and tokens more than parameters on this harness, so no parameter-equivalent size is read from it.
 
 ### Object tracking with fixed vs fair exemplars (riders v2, prose; accuracy, chance .25)
 
@@ -210,12 +209,12 @@ The two 110B columns are two anneals from the same fork with the same training l
 | kotodama-tsumugi · 110B, second anneal | .470 | .338 | .448 | .393 | .438 |
 | kotodama-tsumugi · 110B, release | .482 | .263 | .472 | .388 | .438 |
 
-fixed3 = the same three exemplars for every item; fairK = K exemplars drawn per item. Fixed exemplars push accuracy well below zero-shot (a setup artifact); fair exemplars help every public model here and kotodama-tsumugi through 55B, but not the second 110B anneal. The public pool is three 1–2B models; no larger model has been run on this harness.
+fixed3 = the same three exemplars for every item; fairK = K exemplars drawn per item. Fixed exemplars push accuracy well below zero-shot (a setup artifact). The penalty is not specific to these models. On a lighter riders slice, fixed exemplars lower prose accuracy for most of an eight-model panel (chat 8 of 8, screenplay 6 of 8, narrative 5 of 8) and raise code accuracy for all eight. Fair exemplars help every public model here and kotodama-tsumugi through 55B, but not the two 110B anneals (second anneal −.03, release −.045). The zero-shot column pools narrative and screenplay prose. Zero-shot riders accuracy depends on the register: on the lighter slice, it spreads by 20 points or more across the four registers for five of the eight panel models. The public pool is three 1–2B models; no larger model has been run on this harness.
 
 ## How to read the full atlas
 
 - **A cell** = one model (row) on one probe type (column) under one condition, as `acc` = share of items where the gold answer is the model's top choice among the item's candidates, with `n` items and the `chance` rate (mean 1/#candidates). `score` = (acc − chance)/(1 − chance); `se` = binomial standard error.
-- **Conditions:** `0shot` = the item alone; `3shot` = three solved items of the same type first; `3shot_collide` = the three exemplars reuse the test item's names/objects in other roles (interference test).
+- **Conditions:** `0shot` = the item alone; `3shot` = three solved items of the test item's own type first (a diagnostic: on aliased lists it teaches the answer's role; see Caveats); `3shot_collide` = the three exemplars reuse the test item's names/objects in other roles (interference test).
 - **Modes:** `all` = every item; `free` = shortcut-free subset (deixis columns only): the answer is neither the last-mentioned candidate nor the last speaker.
 - **Open models** (bases, hybrids, post-trained) are scored by log-probability over the candidate set (vLLM or HF transformers, never mixed within a row; parity-checked to ±.01). **API models** are scored by generation: `reflex` rows = single next word with reasoning off (calls that reasoned anyway are excluded); `deliberate` rows = think, then answer. **Human** row = one person reading items cold, typed answers.
 - **Answer-deixis columns** (`an-*`) use a calibrated read for open models (argmax of logp(item) − logp(body hidden)); API rows use referent scoring (the person's name counts as correct as well as me/you). Per-role cells mix skill with each model's standing preference — compare a model's answer columns together.
@@ -242,6 +241,8 @@ fixed3 = the same three exemplars for every item; fairK = K exemplars drawn per 
 
 ## Caveats
 
+- In the 3-shot (same type) condition, all three examples share the test item's type. On the aliased-list columns, that shows the model the answer's role. In a check on eight models, the examples' answers were flipped to the wrong role. Every model that had gained 20 points or more from the examples then fell to near zero (Qwen2.5-7B: 98% → 2%). Balanced examples carry almost none of the role. Read those 3-shot cells as copying the shown role. The same check finds that code variables are partly shortcut (balanced examples keep 39% of the 3-shot gain) and static lookup mostly format (85%). Table 3, the battery across kotodama-tsumugi's annealed reads, uses four balanced examples.
+- Static lookup at 0-shot is bare prose with no frame. All eight models in a check panel gain 19 to 46 points from three worked examples of the item's type. Balanced examples keep most of that gain (28 of 33 points on average). The 0-shot cells in this column therefore mostly show whether a model infers the task's format. For aliased lists, 0-shot sits close to the balanced reading (7.5 points below it on average) and is a fair floor.
 - Open-model rows are scored with either vLLM or HF transformers, noted per row and never mixed within a row. A parity check finds the two engines agree within ±.01 accuracy, with no systematic bias.
 - Answer-deixis cells are calibrated reads over four candidates (me / you / two names), and each model has a strong standing preference (one base answers “me” 59% of the time). A single per-role cell mixes skill with that preference, so a model's three answer columns read together, not one alone.
 - API rows (Claude and others via OpenRouter) are scored by generation: the first word for reflex, the last word for deliberate. Open models are scored by log-probability over the candidate set. Answer columns use referent scoring for API rows (me/you or the person's name). For open models the name is not a candidate, so me/you is the only way to name the right person.
@@ -299,7 +300,7 @@ N people each keep an object; query one. Pure retrieval under distractors.
 Jack keeps the switch. A needle lies on the shelf. Larry keeps the clock. Betty keeps the towel. John keeps the pencil. So Jack keeps the
 ```
 
-**3-shot form** (same test item, three solved exemplars first; shown once per family — every Core binding column uses this layout)
+**3-shot form** (same test item, three solved exemplars of its own type first; shown once per family — every Core binding column uses this layout)
 
 ```text
 A book lies on the shelf. Hugo has the shell. Lucy has the stone. A candle lies on the shelf. Jane has the bell. Adam has the button. So Hugo has the shell.
@@ -400,7 +401,7 @@ Jim: Rosa, my lantern is yours now.
 Now the ticket is with
 ```
 
-**3-shot form** (same test item, three solved exemplars first; shown once per family — every Deixis column uses this layout)
+**3-shot form** (same test item, three solved exemplars of its own type first; shown once per family — every Deixis column uses this layout)
 
 ```text
 A chat between Adam, Ruth and Owen.
@@ -739,7 +740,7 @@ Static, one object per queried person (baseline).
 Kevin has the tape and the nail. Neil has the carrot and the boot. A mirror lies on the shelf. A letter lies on the shelf. Steve has the wallet. Jerry has the onion. So Jerry has the
 ```
 
-**3-shot form** (same test item, three solved exemplars first; shown once per family — every Set binding column uses this layout)
+**3-shot form** (same test item, three solved exemplars of its own type first; shown once per family — every Set binding column uses this layout)
 
 ```text
 Paul has the brush and the ring. Ivan has the button. A candle lies on the shelf. Hugo has the map and the cup. Jane has the pen. A stone lies on the shelf. So Jane has the pen.
@@ -829,7 +830,7 @@ Tim: Nina, my soap is yours now.
 Now the soap is with
 ```
 
-**3-shot form** (same test item, three solved exemplars first; shown once per family — every Answer deixis column uses this layout)
+**3-shot form** (same test item, three solved exemplars of its own type first; shown once per family — every Answer deixis column uses this layout)
 
 ```text
 A chat between Mary, Emma, Ivan and Kate.
@@ -1016,7 +1017,7 @@ Kurt: Sure, the nail is yours.
 Now the nail is with
 ```
 
-**3-shot form** (same test item, three solved exemplars first; shown once per family — every Adjacency column uses this layout)
+**3-shot form** (same test item, three solved exemplars of its own type first; shown once per family — every Adjacency column uses this layout)
 
 ```text
 A chat between Leo, Adam and Ivan.
@@ -1129,7 +1130,7 @@ k.append("lantern")
 print(d[-1])  # output:
 ```
 
-**3-shot form** (same test item, three solved exemplars first; shown once per family — every Aliased lists column uses this layout)
+**3-shot form** (same test item, three solved exemplars of its own type first; shown once per family — every Aliased lists column uses this layout)
 
 ```text
 # python
