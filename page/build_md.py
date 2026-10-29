@@ -213,7 +213,7 @@ def main() -> None:
     P("")
     P("For reference, OLMo-2 reaches stage 3 at about " + ", ".join(f"{o['tok']}B tokens ({o['m']})" for o in stage["tsumugi"]["olmo_stage3"]) + ".")
     P("")
-    P("### Binding battery at the early annealed reads (accuracy)")
+    P("### Binding battery across the annealed reads (accuracy)")
     P("")
     bat = stage["tsumugi"]["battery"]
     P("| probe | " + " | ".join(bat["cols"]) + " |")
@@ -223,10 +223,11 @@ def main() -> None:
         for name, vals in g["rows"]:
             P(f"| {name} | " + " | ".join(f"{v:.3f}".lstrip("0") for v in vals) + " |")
     P("")
-    P("The bookkeeping probes rise steadily from 5B to 33B; the perspective probes hold near their 5B level through 11B "
-      "and begin to lift at 33B, alongside stage 3. The two seeds differ at 5B and agree within sampling error at 11B: "
-      "the seed changes when each circuit forms, not where it settles. This battery was read at the early branches "
-      "only; the next table carries the release.")
+    P("Scored with one harness (the kotodama binding suite). Each item gets four worked examples, balanced so that none "
+      "of them shows the item's own answer pattern; deixis-lite has no such condition and is read zero-shot. The "
+      "bookkeeping probes rise with tokens: attribution from .71 to .99, set binding and dialogue tracking by .13 to .17. "
+      "Aliased Python lists stays at chance through 33B and lifts only after 55B. The perspective probes stay within .15 "
+      "of their 5B level. The two seeds differ at 5B and agree within .05 on seven of the ten rows at 11B.")
     P("")
     rel = stage["release"]
     P("### The release against its trajectory and its class")

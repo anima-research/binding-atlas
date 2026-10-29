@@ -410,13 +410,15 @@ table.levers td.cost { color: var(--muted); }
         (1.13e10 FLOPs per token, about 1.3× the 1–2B bases).</p>
     </section>
     <section class="fig" aria-labelledby="t3h">
-      <div class="fh"><span class="no">Table 3</span><h2 id="t3h">Battery at the early annealed reads</h2></div>
+      <div class="fh"><span class="no">Table 3</span><h2 id="t3h">Battery across the annealed reads</h2></div>
       <div class="tblwrap"><table class="levers" id="moonbat"></table></div>
-      <p class="cap">Accuracy on the binding battery at each annealed branch (chance in brackets where it is fixed). The
-        bookkeeping probes rise steadily from 5B to 33B. The perspective probes hold near their 5B level through 11B and
-        begin to lift at 33B, alongside stage 3. The two seeds differ at 5B (seed 7 forms set binding earlier, seed 17 forms
-        static <i>I</i> earlier) and agree within sampling error at 11B: the seed changes when each circuit forms, not
-        where it settles. This battery was read at the early branches only; Table 4 carries the release.</p>
+      <p class="cap">Accuracy on the binding battery at each annealed branch, scored with one harness (the kotodama binding
+        suite). Each item gets four worked examples, balanced so that none of them shows the item's own answer pattern;
+        deixis-lite has no such condition and is read zero-shot. Chance is in brackets where it is fixed. The bookkeeping
+        probes rise with tokens: attribution from .71 to .99, set binding and dialogue tracking by .13 to .17. Aliased
+        Python lists stays at chance through 33B and lifts only after 55B. The perspective probes stay within .15 of their
+        5B level. The two seeds differ at 5B (seed 7 forms set binding earlier) and agree within .05 on seven of the ten
+        rows at 11B.</p>
     </section>
     <section class="fig" aria-labelledby="t4h">
       <div class="fh"><span class="no">Table 4</span><h2 id="t4h">The release against its trajectory and its class</h2></div>
@@ -636,7 +638,7 @@ const dia = (x, y, r = 6) => `<path d="M${x} ${y - r}L${x + r} ${y}L${x} ${y + r
   for (const b of document.querySelectorAll("#f5x button")) b.addEventListener("click", () => { st.x = b.dataset.k === "flops" ? "flops" : "tok"; draw(); });
   draw();
 })();
-// Table 3: kotodama-tsumugi's battery at the early annealed reads
+// Table 3: kotodama-tsumugi's battery across the annealed reads
 (() => {
   const T = G.tsumugi.battery;
   let h = `<thead><tr><th>Probe</th>${T.cols.map(c => `<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>`;
