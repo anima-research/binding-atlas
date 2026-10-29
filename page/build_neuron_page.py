@@ -12,6 +12,8 @@ from __future__ import annotations
 import argparse
 import html
 import re
+import hashlib
+import json
 import shutil
 import sys
 from pathlib import Path
@@ -70,6 +72,17 @@ def main() -> None:
     dest.mkdir(exist_ok=True)
     for f in files:
         shutil.copyfile(f, dest / (f.stem + a.bin_ext if f.suffix == ".bin" else f.name))
+    conn = a.data / "conn"   # the connections panel's shards (not in git; conn.json, tracked, holds each one's sha256)
+    if (conn / "conn.json").exists():
+        meta = json.loads((conn / "conn.json").read_text())
+        (dest / "conn").mkdir(exist_ok=True)
+        for name, digest in meta["files"].items():
+            blob = (conn / name).read_bytes()
+            if hashlib.sha256(blob).hexdigest() != digest:
+                raise SystemExit(f"conn/{name} does not match its sha256 in conn.json")
+            (dest / "conn" / (Path(name).stem + a.bin_ext)).write_bytes(blob)
+        shutil.copyfile(conn / "conn.json", dest / "conn" / "conn.json")
+        print(f"copied {len(meta['files'])} connection shards (sha256-checked)")
     target = NEURON_CLEAN if cfg.clean_urls else NEURON_PAGE
     (a.out.parent / OLD_PAGE).write_text(REDIRECT.format(target=target, canonical=html.escape(canonical or target)))
     size = sum(f.stat().st_size for f in files)

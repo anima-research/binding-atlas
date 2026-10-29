@@ -10,3 +10,6 @@ out/
 config/local-names.tsv
 # host-supplied web font files (not redistributed; see site/fonts/README)
 site/fonts/*.woff2
+# the connections panel shards (~47 MB, regenerated from the corpus graph; data/built/neurons/conn/conn.json holds their sha256)
+data/built/neurons/conn/*.bin
+site/threads-data/conn/*.bin

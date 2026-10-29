@@ -157,6 +157,22 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
 .chip[aria-pressed="false"] { opacity: .35 }
 .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: 0 }
 canvas.spark { width: 100%; height: 44px; display: block }
+/* connections: a neuron's strongest inputs and outputs over the corpus, weighted by its total flow */
+.conn { border-top: 1px solid var(--plate-line); padding-top: 10px; display: grid; gap: 8px; min-width: 0 }
+.conn .hd { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 10px; align-items: baseline }
+.conn .hd b { font-family: var(--f-mono); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--plate-fg) }
+.fan { display: flex; height: 12px; border-radius: 2px; overflow: hidden; background: var(--plate-line); gap: 1px }
+.fan i { display: block; height: 100%; min-width: 1px }
+.clist { display: grid; gap: 1px }
+.clist button { all: unset; cursor: pointer; display: grid; grid-template-columns: 62px minmax(0, 1fr) 54px 46px; gap: 6px; align-items: center;
+  font-size: 12.5px; color: #d4dae0; padding: 2px 4px; border-radius: 3px }
+.clist button:hover, .clist button:focus-visible { background: #1b1e24 }
+.clist .id { font-family: var(--f-mono); font-size: 11.5px; color: var(--plate-muted) }
+.clist .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.clist .bw { height: 5px; background: var(--plate-line); border-radius: 2px; position: relative }
+.clist .bw span { position: absolute; inset: 0 auto 0 0; border-radius: 2px }
+.clist .v { font-family: var(--f-mono); font-size: 11.5px; text-align: right; font-variant-numeric: tabular-nums }
+.pill.rel-hi { border-color: #4f8f62; color: #9bd8ad } .pill.rel-mid { border-color: #8a7742; color: #e0c98a } .pill.rel-lo { border-color: #7f4a43; color: #e4a497 }
 
 /* ---------- reading sections */
 section.read { padding-block: 56px; border-top: 1px solid var(--line) }
@@ -486,7 +502,7 @@ footer .wrap { display: grid; gap: 8px }
   <span><span class="kanji" style="font-size:15px">言霊 紬</span> Threads · model: kotodama-tsumugi.</span>
   <span>Companion pages: <a href="./">Who Is You?</a>, the write-up · <a href="binding-atlas">Binding Atlas</a>, every model against every referent-binding probe.</span>
   <span>Research, code and development: Luxia (@LuxiaSL) and Claude (Anthropic). Trained on compute provided by Anima Labs. Set in Love Letter Typewriter (© 1994 Blake Haber, Dixie's Delights) with Courier Prime. Data CC-BY-4.0; code Apache-2.0.</span>
-  <span class="num" id="stamp">atlas build 2026-10-29 21:43 UTC</span>
+  <span class="num" id="stamp">atlas build 2026-10-29 22:30 UTC</span>
 </div></footer>
 
 <script>
@@ -778,6 +794,58 @@ function story() {
   // the bind mode needs the 'all' column: switching modes elsewhere keeps it
 }
 
+// ------------------------------------------------------------------ connections (threads-data/conn/: one shard per position)
+const CONN = { meta: null, shard: {} };
+const pctS = v => v < .1 ? (v * 100).toFixed(1) + '%' : pct(v);
+const f16 = h => { const s = h & 0x8000 ? -1 : 1, e = (h >> 10) & 31, m = h & 1023;
+  return e === 0 ? s * m * 2 ** -24 : e === 31 ? (m ? NaN : s * Infinity) : s * (1 + m / 1024) * 2 ** (e - 15); };
+function connShard(p) {
+  if (!CONN.meta) CONN.meta = get('conn/conn.json');
+  if (!CONN.shard[p]) CONN.shard[p] = Promise.all([CONN.meta, get('conn/p' + String(p).padStart(2, '0') + '.bin', 'bin')]).then(([meta, buf]) => {
+    const n = meta.n, K = meta.K; let o = 0;
+    const take = (Ctor, len, bytes) => { const a = new Ctor(buf, o, len); o += len * bytes; return a; };
+    return { meta, K, stats: take(Uint16Array, n * 8, 2), inSrc: take(Uint32Array, n * K, 4), inVal: take(Uint16Array, n * K, 2),
+      outTgt: take(Uint32Array, n * K, 4), outVal: take(Uint16Array, n * K, 2) };
+  });
+  return CONN.shard[p];
+}
+function connections(g, box, open, light) {
+  const p = (g / 4096) | 0, r = g % 4096;
+  connShard(p).then(S => {
+    if (!box.isConnected) return;
+    const K = S.K, st = i => f16(S.stats[r * 8 + i]);
+    const finA = st(0), foutA = st(2), rho = st(4), ov = st(5);
+    const name = j => { const c = M.clusters[COL.cluster[j]]; return c ? c.name : ''; };
+    const clip = CONN.clip || (CONN.clip = new Set((S.meta.clipped || []).map(c => c.join('|'))));
+    const list = (src, val, tot, which) => {
+      const rows = [];
+      for (let k = 0; k < K; k++) { const j = src[r * K + k]; if (j === 0xFFFFFFFF) break; rows.push([j, f16(val[r * K + k])]); }
+      const mx = Math.max(1e-30, ...rows.map(x => Math.abs(x[1])));
+      const share = rows.reduce((a, x) => a + Math.abs(x[1]), 0) / tot;
+      const bar = rows.map(([, v]) => `<i style="width:${(Math.abs(v) / tot * 100).toFixed(2)}%;background:${v < 0 ? 'var(--ember)' : 'var(--ice)'}"></i>`).join('');
+      const items = rows.slice(0, 8).map(([j, v]) => `<button type="button" data-g="${j}" title="${esc(name(j))}"><span class="id">${(j / 4096) | 0}/${j % 4096}</span>`
+        + `<span class="nm">${esc(name(j))}</span><span class="bw"><span style="width:${(Math.abs(v) / mx * 100).toFixed(1)}%;background:${v < 0 ? 'var(--ember)' : 'var(--ice)'}"></span></span>`
+        + `<span class="v" style="color:${v < 0 ? 'var(--ember)' : 'var(--ice)'}" ${clip.has(g + '|' + j + '|' + which) ? 'title="at least this: the value passed the stored range"' : ''}>${clip.has(g + '|' + j + '|' + which) ? '≥' : ''}${v < 0 ? '−' : '+'}${(Math.abs(v) / tot * 100).toFixed(1)}%</span></button>`).join('');
+      return { rows, share, html: `<div class="fan" role="img" aria-label="the ${rows.length} strongest carry ${pctS(share)} of the total">${bar}</div><div class="clist">${items}</div>` };
+    };
+    const ins = finA > 0 ? list(S.inSrc, S.inVal, finA, 'in') : null, outs = foutA > 0 ? list(S.outTgt, S.outVal, foutA, 'out') : null;
+    const relCls = rho >= .8 ? 'rel-hi' : rho >= .6 ? 'rel-mid' : 'rel-lo';
+    const relPill = Number.isFinite(rho) ? `<span class="pill ${relCls}" title="Spearman correlation of its input weights between two halves of the corpus; ${Math.round(ov * 64)} of its top 64 inputs recur">inputs reproduce across corpus halves: ρ ${rho.toFixed(2).replace(/^0/, '')}</span>` : '';
+    const partners = new Set([g, ...(ins ? ins.rows.map(x => x[0]) : []), ...(outs ? outs.rows.map(x => x[0]) : [])]);
+    box.innerHTML = `<span class="eyebrow" style="color:var(--plate-muted)">connections, measured over a text corpus</span>
+      <p class="desc" style="font-size:13px">How much each earlier neuron's activity drives this one (activation × gradient), and what this one drives in turn. Bars and percentages are shares of its total input or output.</p>
+      <div class="pills">${relPill}</div>
+      <div class="hd"><b>inputs</b><span class="m">${ins ? `the ${ins.rows.length} strongest carry ${pctS(ins.share)}` : ''}</span></div>
+      ${ins ? ins.html : `<span class="m">${p === 0 ? 'Position 0 reads the token embedding directly; no neuron feeds it.' : 'Not measured yet.'}</span>`}
+      <div class="hd"><b>outputs</b><span class="m">${outs ? `the ${outs.rows.length} strongest carry ${pctS(outs.share)}` : ''}</span></div>
+      ${outs ? outs.html : `<span class="m">${p === 71 ? 'The last position writes straight to the output; no neuron reads it.' : 'Not measured yet.'}</span>`}
+      <button class="btn" type="button" data-light="0">Light these on the map</button>`;
+    box.querySelectorAll('[data-g]').forEach(b => b.onclick = () => open(+b.dataset.g));
+    const lb = box.querySelector('[data-light]');
+    lb.onclick = () => { const on = lb.dataset.light === '0'; lb.dataset.light = on ? '1' : '0'; lb.textContent = on ? 'Show its group again' : 'Light these on the map'; light(on ? partners : null); };
+  }).catch(e => { if (box.isConnected) box.innerHTML = `<span class="m">Connections did not load (${esc(e.message)}).</span>`; });
+}
+
 // ------------------------------------------------------------------ explorer
 function explorer() {
   let map;
@@ -788,16 +856,18 @@ function explorer() {
         depthAxis(c, m, m.st.b === 'depth' && m.st.t >= 1 ? 1 : 0);
         if (m.st.t < 1) return;
         c.font = '600 11px ' + getComputedStyle(document.body).fontFamily; c.textBaseline = 'middle';
-        if (showKnown) { const seen = new Set();
+        if (showKnown && !lit) { const seen = new Set();
           for (const k of M.known) { const [x, y] = m.pos(k.i); c.beginPath(); c.arc(x, y, 5, 0, 7); c.lineWidth = 1.5; c.strokeStyle = '#eef0f2'; c.stroke();
             const tag = k.id.replace(/^L\d+ /, ''); if (!seen.has(tag)) { seen.add(tag); c.fillStyle = '#eef0f2'; c.fillText(tag, x + 8, y); } } }
+        if (lit) for (const i of lit) { const [x, y] = m.pos(i); c.beginPath(); c.arc(x, y, i === litFrom ? 8 : 5.5, 0, 7);
+          c.strokeStyle = i === litFrom ? '#eef0f2' : '#64c9ff'; c.lineWidth = i === litFrom ? 2.5 : 1.6; c.stroke(); }
         if (hover >= 0) { const [x, y] = m.pos(hover); c.beginPath(); c.arc(x, y, 7, 0, 7); c.strokeStyle = '#64c9ff'; c.lineWidth = 2; c.stroke(); }
       }
     });
   } catch (e) { const fb = document.getElementById('xFallback'); fb.hidden = false; fb.textContent = 'This map needs WebGL. ' + e.message; return; }
   map.onSettle = () => map.draw();
   map.posBuf('depth').then(pb => { map.famBands = famBands(pb); map.draw(); });
-  let showKnown = true, hover = -1, selected = -1, query = '';
+  let showKnown = true, hover = -1, selected = -1, query = '', lit = null, litFrom = -1;
   const CL = M.clusters, cluster = COL.cluster;
   const labelOf = new Map(M.labels.map(([i, lab, pole, conf]) => [i, { lab, pole, conf }]));
   const segL = document.getElementById('segLayout'), segC = document.getElementById('segColor');
@@ -869,7 +939,7 @@ function explorer() {
     panel.querySelectorAll('[data-c]').forEach(b => b.onclick = () => select(+b.dataset.c));
   }
   function select(id, neuron = -1) {
-    selected = id;
+    selected = id; lit = null;
     if (id < 0) { map.setHighlight(query ? i => matches.has(cluster[i]) : null); return panelDefault(); }
     map.setHighlight(i => cluster[i] === id);
     const c = CL[id], cat = M.categories[c.cat], h = new Array(72).fill(0);
@@ -891,12 +961,15 @@ function explorer() {
       ${labs.length ? `<div><span class="eyebrow" style="color:var(--plate-muted)">draft labels</span><div class="labs">${labs.map(([i, lab]) =>
         `<div><span class="m">${(i / 4096) | 0} · ${i % 4096}</span><span>${esc(lab)}</span></div>`).join('')}</div></div>` : ''}
       ${nhtml}
+      ${neuron >= 0 ? '<div class="conn" id="conn"><span class="m">Loading its connections…</span></div>' : ''}
       <button class="btn" type="button" id="clr">Show all groups</button>`;
     document.getElementById('clr').onclick = () => select(-1);
     const sc = document.getElementById('spk'), w = sc.clientWidth, hh = 44, g = sc.getContext('2d'), d = Math.min(2, devicePixelRatio || 1), mx = Math.max(...h);
     sc.width = w * d; sc.height = hh * d; g.setTransform(d, 0, 0, d, 0, 0);
     [[19, 39], [39, 59]].forEach(([a, b], k) => { g.fillStyle = k ? 'rgba(255,255,255,.07)' : 'rgba(255,255,255,.035)'; g.fillRect(a / 72 * w, 0, (b - a) / 72 * w, hh); });
     g.fillStyle = FAMC[c.fam]; h.forEach((v, l) => { const bh = mx ? v / mx * (hh - 4) : 0; g.fillRect(l / 72 * w + .5, hh - bh, Math.max(1, w / 72 - 1), bh); });
+    if (neuron >= 0) connections(neuron, document.getElementById('conn'), g => select(cluster[g], g),
+      set => { lit = set; litFrom = neuron; map.setHighlight(set ? i => set.has(i) : i => cluster[i] === id); map.draw(); });
   }
   const matches = new Set();
   function setQuery(q) { query = q.trim().toLowerCase(); matches.clear();
@@ -904,6 +977,7 @@ function explorer() {
     select(-1); }
   document.getElementById('q').addEventListener('input', e => setQuery(e.target.value));
   panelDefault();
+  window.__openNeuron = g => { select(cluster[g], g); document.getElementById('xbox').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'center' }); };
   window.__openCluster = id => { select(id); document.getElementById('xbox').scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'center' }); };
 }
 
@@ -1353,13 +1427,15 @@ function detail(i) {
   box.innerHTML = `<span class="eyebrow">neuron · position / index</span><div class="id">${esc(n.id)}</div>
     <dl><dt>where</dt><dd>${pass(n.L)}, effective position ${n.L}</dd><dt>group</dt><dd>${esc(n.cl || '—')}</dd>
     <dt>held in</dt><dd>${n.fams.map(x => NAMES[x]).join(', ')}</dd>
+    <dt>corpus links</dt><dd><button class="wp-btn" data-open="${n.L * 4096 + +n.id.split('/')[1]}" style="padding:0 6px">open in the explorer ↑</button></dd>
     ${twin ? `<dt>loop twin</dt><dd><button class="wp-btn" data-go="${twin.i}" style="padding:0 6px">${esc(twin.id)}</button> same weights, other pass</dd>` : ''}</dl>
     <table><tr><th>attribution</th><th>bare</th><th>examples</th></tr>${rows}</table>
     <span class="eyebrow">strongest links into it (${NAMES[task]})</span><div class="wp-edges">${ins.map(e => row(e, 0)).join('') || '<span class="note">none among the links that hold</span>'}</div>
     <span class="eyebrow">strongest links out of it</span><div class="wp-edges">${outs.map(e => row(e, 1)).join('') || '<span class="note">none among the links that hold</span>'}</div>`;
   wire();
 }
-function wire() { box.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => { pinned = +b.dataset.go; focus(pinned, true); })); }
+function wire() { box.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => { pinned = +b.dataset.go; focus(pinned, true); })); 
+  box.querySelectorAll('[data-open]').forEach(b => b.addEventListener('click', () => { if (window.__openNeuron) window.__openNeuron(+b.dataset.open); })); }
 function start() {
   const hubs = [['19/3306', 'pass-1 hub; removing it lifts attribute binding'], ['39/3306', 'its pass-2 twin'], ['14/1390', 'root of the word-problem chain'],
     ['17/1287', 'relay in that chain'], ['57/4058', 'dialogue sink'], ['48/1597', 'attribute receiver with worked examples'], ['68/3914', 'coda attribute neuron'], ['8/797', 'position-8 brake']].filter(h => byId[h[0]]);
