@@ -66,16 +66,16 @@ h3 { font-family: var(--f-display); font-weight: 700; font-size: 16.5px; margin:
 /* controls */
 .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 3px; padding: 14px 16px; }
 .controls { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: end; }
-.ctl { display: grid; gap: 5px; }
+.ctl { display: grid; grid-template-columns: minmax(0, 1fr); gap: 5px; min-width: 0; max-width: 100%; }
 .ctl > span { font-size: 12px; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
-.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.seg { display: inline-flex; flex-wrap: wrap; max-width: 100%; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface); }
 .seg button { font: inherit; font-size: 14px; border: 0; background: transparent; color: var(--fg); padding: 6px 12px; cursor: pointer; white-space: nowrap; }
 .seg button + button { border-left: 1px solid var(--line); }
 .seg button[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
 .seg button:disabled { opacity: .4; cursor: not-allowed; }
 .f5ctl { display: flex; flex-wrap: wrap; gap: 8px 14px; margin: 6px 0 12px; }
 input[type=search] { font: inherit; font-size: 14px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--fg); width: 210px; }
-select { font: inherit; font-size: 14px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--fg); }
+select { max-width: 100%; font: inherit; font-size: 14px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--fg); }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
 .chip { font: inherit; font-size: 12.5px; border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; cursor: pointer; background: var(--chip); color: var(--fg); }
 .chip[aria-pressed="false"] { background: transparent; color: var(--muted); text-decoration: line-through; }
@@ -200,6 +200,7 @@ footer { color: var(--muted); font-size: 13px; display: flex; gap: 16px; flex-wr
 .kanji { font-family: "Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif; font-weight: 700; letter-spacing: .06em; }
 .part .gloss { font-size: 13px; color: var(--muted); margin: 4px 0 0; }
 .fig { display: grid; gap: 12px; border-top: 2px solid var(--rule); padding-top: 14px; }
+.fig > * { min-width: 0; }
 .fig .fh { display: flex; gap: 10px 16px; align-items: baseline; flex-wrap: wrap; }
 .fig .fh .no { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
 .fig .fh h2 { margin: 0; }
@@ -249,7 +250,7 @@ table.levers td.cost { color: var(--muted); }
       <button class="iconbtn" id="theme" aria-label="toggle light / dark theme">light / dark</button></div>
     <h1>Binding Atlas</h1>
     <p class="claim">Base language models acquire the referent of <i>you</i> in five ordered stages. Every base of 0.6B
-      parameters or more trained on trillions of tokens reaches the first three. <b>No public model up to 8B reaches the fifth stage zero-shot</b>:
+      parameters or more trained on trillions of tokens reaches the first three. <b>No public model up to 8B reaches the fifth stage zero-shot</b> (with no worked examples):
       tracking <i>you</i> after objects change hands. That holds at every token count measured, up to 36T, and at their
       final checkpoints every one of them has a negative swap shift. From 14B to 1T parameters, stage 5 is weak and
       nearly flat (Figure 2). In these models, parameter count and depth grow together. <b>kotodama-tsumugi</b> separates the two. It is a 1.4B model run as 72
@@ -309,7 +310,7 @@ table.levers td.cost { color: var(--muted); }
         and addressee queries pooled; chance ≈ .29; about ±.024 per cell). <i>Narrated</i> removes deixis from the
         whole scene. <i>Spoken</i> is the gauge item itself. <i>Spoken, transfer narrated</i> keeps the chat but
         states the hand-off as a stage direction. <i>Spoken + vocative</i> names the addressee in the query. Three
-        layers show. (1) <b>Possession transfer itself.</b> Every ~1B model is at chance even when the scene is
+        layers show. (1) <b>Possession transfer itself.</b> Every 1.4–1.5B model is at chance even when the scene is
         narrated: kotodama-tsumugi through 110B, Pythia-1.4B, OLMo-2 1B at 4T. SmolLM2 1.7B at 11T and Qwen3 1.7B at
         36T lift off chance; from 4B it is easy (.57–.80). (2) <b>The transfer as a speech act</b> (“here, take my
         cup”) is the mid-size wall: models from 4B to 70B that pass the narrated version stay at .29–.41 when it is
@@ -370,7 +371,7 @@ table.levers td.cost { color: var(--muted); }
   </div>
 
   <div class="part"><span class="no">Part III</span><h2><span class="kanji">言霊 紬</span> kotodama-tsumugi</h2>
-    <p class="gloss">言霊 kotodama, word-spirit: language as a thing with a life of its own. 紬 tsumugi, spun thread: words woven into more than the sum of their parts. Every neuron of this model, and the circuits that drive these probes on bare items and across prompt formats: <a href="__THREADS_LINK__">Threads</a>.</p></div>
+    <p class="gloss">言霊 kotodama, word-spirit: language as a thing with a life of its own. 紬 tsumugi, spun thread: words woven into more than the sum of their parts. Every neuron of this model, the circuits behind these probes on items with no worked examples, and which parts of them hold when the format changes: <a href="__THREADS_LINK__">Threads</a>.</p></div>
   <div class="paper">
     <p class="cap" style="max-width:none">A 1.42B-parameter model with a looped core, run as 72 effective layers. Its
       trunk trains at a constant learning rate to 100B tokens, and annealed reads are cooldown branches forked from its
@@ -417,8 +418,8 @@ table.levers td.cost { color: var(--muted); }
       <div class="fh"><span class="no">Table 4</span><h2 id="t4h">The release against its trajectory and its class</h2></div>
       <div class="tblwrap"><table class="levers" id="reltab"></table></div>
       <p class="cap">The table has three kinds of column. The stage gauges are swap shifts, and a shift above +.02
-        counts as binding. The capacity columns follow arXiv 2609.30634. K50 is the number of name–task bindings that
-        fit in context before recall falls by half. The last capacity row is the recall of one binding across 256
+        counts as binding. The capacity columns follow arXiv 2609.30634. K50 is how many name–task pairs fit in context
+        before recall falls halfway to chance. The last capacity row is the recall of one binding across 256
         tokens of filler. The deixis-v2 columns are accuracies (chance ≈ .33). The two 110B columns are two anneals
         from the same fork with the same training loss. The spread between them (static <i>you</i> .142 vs .235, K50
         3.8 vs 4.8, and .025 bits/byte on held-out text) is the measured anneal-to-anneal variance. Every

@@ -324,7 +324,7 @@ footer .wrap { display: grid; gap: 8px }
 
 <section class="read" id="fixes" hidden><div class="wrap">
   <span class="eyebrow">What the knock-out fixes</span>
-  <h2>It sharpens the binding the model already does. It does not teach it who “you” is.</h2>
+  <h2>It sharpens the binding the model already does. It does not make “you” follow a hand-off.</h2>
   <p class="prose note" id="t-fixes"></p>
   <div class="fixgrid" id="figFixes"></div>
   <h3 id="fluidh" hidden>Fluid in-context learning, item by item</h3>
@@ -355,15 +355,23 @@ footer .wrap { display: grid; gap: 8px }
 
 <section class="read" id="core"><div class="wrap">
   <span class="eyebrow">Across prompt formats</span>
-  <h2>The core that holds across formats</h2>
-  <p class="prose note">The circuits above were found on bare items, with no worked examples. Attribution was run again on the same items, each shown after four balanced worked examples. For each of seven battery families, the top 100 supporters and the top 100 interferers were compared between the two formats. 246 neurons sit in a top-100 set under both formats. Counted per family, that is 133 interferers and 134 supporters; some neurons survive in more than one family.</p>
-  <p class="prose note">The wiring among these survivors was then measured under both formats for attribute binding, dialogue and code variables. Between 23% and 27% of the edges pass the same test in both formats (same sign, strength above the family's median), against 12.5% if the two maps were unrelated. For dialogue and code variables, the wiring is about as stable across formats as it is between two halves of one format's items. Attribute binding's wiring is not. Its edges agree at .17 across formats, against .33 to .47 within one format.</p>
+  <h2>What holds across formats, and what does not</h2>
+  <p class="prose note">The circuits above were found on bare items, with no worked examples. Attribution was run again on the same items, each shown after four balanced worked examples. For each of seven battery tasks, the top 100 supporters and the top 100 interferers were compared between the two formats. That makes 1,400 places per format, and <b>315</b> of them hold under both formats. They belong to <b>246</b> distinct neurons: 133 interferers and 134 supporters. Of these, 21 support one task and interfere with another.</p>
+  <p class="prose note">Attribution also scores each link between two of these neurons: how much one neuron's activity feeds the other's effect on the answer. The links among the 246 were measured under both formats for attribute binding, dialogue and code variables. Between <b>23% and 27%</b> of the links pass the same test in both formats (same sign, strength above the task's median), against 12.5% if the two maps were unrelated. For dialogue and code variables, the links are about as stable across formats as between two halves of one format's items. Attribute binding is the task whose wiring does not hold. Its links have a rank correlation of <b>.17</b> across formats, against .33 to .47 between two halves of one format.</p>
+  <div class="cards">
+    <div class="card2"><span class="eyebrow">in a top-100 set under both formats</span><span class="big">246</span><p>distinct neurons, from 315 of 1,400 places</p></div>
+    <div class="card2"><span class="eyebrow">attribute binding's links, across formats</span><span class="big">.17</span><p>rank correlation, against .33 to .47 within one format</p></div>
+  </div>
 </div></section>
 
 <section class="read" id="passes"><div class="wrap">
   <span class="eyebrow">The looped core</span>
   <h2>One neuron, two passes</h2>
-  <p class="prose note">Positions 19–38 and 39–58 run the same weights, so every neuron of the core has one copy on each pass. Neuron 3306 at position 19, on pass 1, is causal for attribute binding. Setting it alone to its average raises the attribute margin by +.57 nats with balanced worked examples, and by +.34 on bare items. Ten random single neurons at the same position move it by .013 or less. With balanced examples, removing it slightly lowers the dialogue and code-variable margins (−.014 and −.016). Its pass-2 copy at position 39 has the same weights and no measurable effect: it moves each task's margin by .013 or less. Attribution had ranked both copies among the top senders, so the edges of an attribution graph stay hypotheses until a knock-out tests them.</p>
+  <p class="prose note">Positions 19–38 and 39–58 run the same weights, so every neuron of the looped core has one copy on each pass. Neuron 3306 at position 19, on pass 1, works against attribute binding: removing it helps. Setting it alone to its average raises the attribute margin by <b>+.57 nats</b> with balanced worked examples, and by +.34 on bare items. Ten random single neurons at the same position move it by .013 or less. With balanced examples, removing it slightly lowers the dialogue and code-variable margins (−.014 and −.016). Its pass-2 copy at position 39 has no measurable effect: it moves each task's margin by <b>.013 or less</b>. Attribution had ranked both copies among the neurons with the strongest links to later neurons. Links in an attribution graph therefore stay hypotheses until a knock-out tests them.</p>
+  <div class="cards">
+    <div class="card2"><span class="eyebrow">pass 1 · position 19 · removed</span><span class="big">+.57</span><p>nats on the attribute margin, with balanced worked examples</p></div>
+    <div class="card2"><span class="eyebrow">pass 2 · position 39 · removed</span><span class="big">≤ .013</span><p>nats on any task's margin: no measurable effect</p></div>
+  </div>
 </div></section>
 
 <section class="read" id="pos8" hidden><div class="wrap">
@@ -413,7 +421,7 @@ footer .wrap { display: grid; gap: 8px }
   <span><span class="kanji" style="font-size:15px">言霊 紬</span> Threads · model: kotodama-tsumugi.</span>
   <span>Companion pages: <a href="./">Who Is You?</a>, the write-up · <a href="binding-atlas">Binding Atlas</a>, every model against every referent-binding probe.</span>
   <span>Research, code and development: Luxia (@LuxiaSL) and Claude (Anthropic). Trained on compute provided by Anima Labs. Set in Love Letter Typewriter (© 1994 Blake Haber, Dixie's Delights) with Courier Prime. Data CC-BY-4.0; code Apache-2.0.</span>
-  <span class="num" id="stamp">atlas build 2026-10-29 13:06 UTC</span>
+  <span class="num" id="stamp">atlas build 2026-10-29 13:32 UTC</span>
 </div></footer>
 
 <script>
@@ -840,20 +848,20 @@ function texts() {
   const sets = 127 & ~64, inSets = []; for (let i = 0; i < N; i++) if (COL.sets[i] & sets) inSets.push(i);
   const nCl = new Set(inSets.map(i => COL.cluster[i])).size, nSet = inSets.length;
   const at8 = inSets.filter(i => ((i / 4096) | 0) === 8).length, seam = inSets.filter(i => { const L = (i / 4096) | 0; return L === 38 || (L >= 42 && L <= 45); }).length;
-  document.getElementById('figs').innerHTML = [[fmt(N), 'neurons'], ['72', 'effective layers'], ['400', 'named groups'], [pct(P.base.acc).replace('%', '') + '→' + pct(P.attr_neg100.acc), 'bare-item binding, 100 neurons removed']]
+  document.getElementById('figs').innerHTML = [[fmt(N), 'neurons'], ['72', 'effective layers'], ['400', 'named groups'], [pct(P.base.acc).replace('%', '') + '→' + pct(P.attr_neg100.acc), 'attribute binding, 100 interferers removed · bare items: no worked examples']]
     .map(([b, s]) => `<div><b class="num">${b}</b><span>${s}</span></div>`).join('');
   document.getElementById('famkey').innerHTML = FAM_SHORT.map((f, i) => `<span><i style="background:${FAMC[i]}"></i>${f}</span>`).join('');
   document.getElementById('t-weights').innerHTML = ev ? `Each neuron adds a fixed direction to the model's running state. Here each neuron is placed by where that direction falls on the two main axes of all ${fmt(W.unique ? W.unique.length * 4096 : 212992)} such directions. The first axis explains <b>${(ev[0] * 100).toFixed(2)}%</b> of their variance. That is about five times the share that an even cloud in 1,536 dimensions would give. Depth explains ${(W.write_depth_share * 100).toFixed(2)}%. The weights carry almost no low-dimensional structure. The model was trained with Muon, which orthogonalises every update.` : '';
   document.getElementById('t-scatter').innerHTML = `Attribution picked the 100 neurons that most help and the 100 that most hurt on each of three binding tasks: attribute (who holds what), dialogue (who said what) and who-is-you. These <b>${fmt(nSet)}</b> neurons fall in <b>${nCl}</b> of the 400 groups. No group is about binding.`;
   document.getElementById('t-depth').innerHTML = `Now x is depth. Positions 19–38 and 39–58 are the same layers run twice, so the dark band is pass 1 and the lighter band pass 2. <b>${seam}</b> of the ${fmt(nSet)} sit at position 38, the last layer of pass 1, or at 42–45, early in pass 2. <b>${at8}</b> sit at position 8, the last layer before the attention-residual boundary at 9. With balanced worked examples, fewer sit at position 8: 11 of the attribute interferers instead of 17, and 10 of the dialogue interferers instead of 16.`;
-  document.getElementById('t-neg').innerHTML = `On held-out bare items (no worked examples), setting these 100 neurons to their average lifts attribute binding from <b>${pct(P.base.acc)}</b> to <b class="ember">${pct(P.attr_neg100.acc)}</b>. Picks of the last-mentioned name fall from ${pct(P.base.last)} to ${pct(P.attr_neg100.last)}: the interferers carry a recency pull. 100 random neurons at the same positions move accuracy by ${Math.abs(Math.round((X.attr.attr_neg100.r || 0) * 100))} points.`;
+  document.getElementById('t-neg').innerHTML = `On held-out bare items (no worked examples), setting these 100 neurons to their average lifts attribute binding from <b>${pct(P.base.acc)}</b> to <b class="ember">${pct(P.attr_neg100.acc)}</b>. Picks of the last-mentioned name fall from ${pct(P.base.last)} to ${pct(P.attr_neg100.last)}: the interferers carry a recency pull. 100 random neurons at the same positions move accuracy by ${Math.abs(Math.round((X.attr.attr_neg100.r || 0) * 100))} points. This set is specific to the format: with four balanced worked examples, only 8 of these 100 neurons recur.`;
   document.getElementById('t-pos').innerHTML = `Accuracy falls to <b class="ice">${pct(P.attr_pos100.acc)}</b>, below the chance line, and last-mention picks rise to ${pct(P.attr_pos100.last)}. On bare items, a few hundred neurons build binding against the recency prior, and ${seam + at8} of the ${fmt(nSet)} sit in those two places.`;
   document.getElementById('t-method').innerHTML = `Sets were chosen on training items and tested on ${X.attr.n} held-out items per task. Each cell is the change in accuracy when 100 neurons are set to their corpus mean; the grey tick is the mean of three random sets at the same positions (largest random shift: ${Math.round(Math.max(...Object.values(X).flatMap(m => Object.values(m).filter(v => v && v.rs != null).map(v => v.rs))) * 100)} points). Removing a task's own interferers helps it and removing its own supporters hurts it, in all three tasks. Items are shown bare, with no worked examples. With four balanced worked examples, a mostly different set of neurons carries attribute binding. Only 8 of these 100 interferers and 15 of the 100 supporters recur, while the sets from two halves of one format's items share 82 to 87 of 100.`;
   const cellsAll = Object.values(P.attr_neg100.cells).map(c => c.acc);
   const baseAll = Object.values(P.base.cells).map(c => c.acc);
   document.getElementById('t-cells').innerHTML = `The attribute battery varies the number of entities (2–8) and where the asked-about entity was mentioned (first, middle, last). At baseline the model does well on the first-mentioned and poorly on the last (${pct(Math.min(...baseAll))}–${pct(Math.max(...baseAll))}). With the 100 interferers removed every one of the ${cellsAll.length} cells rises, to ${pct(Math.min(...cellsAll))}–${pct(Math.max(...cellsAll))}; with the 100 supporters removed every cell falls.`;
   document.getElementById('summary').textContent = M.summary;
-  document.getElementById('trust').innerHTML = `Group names and neuron labels are agent drafts. The readings agree strongly for ${pct(M.clusters.filter(c => c.agree === 'high').reduce((a, c) => a + c.size, 0) / N)} of neurons; part of the map is an artefact (a J-lens direction toward British spellings pulls unrelated neurons together) and part is unassigned. The knock-outs are causal on the battery's held-out items; they say what these neurons do to the margin, not everything they do. Binding attribution is a first-order estimate; the knock-outs are the test. In one test, attribution ranked both passes of the same neuron among the top senders. Only the pass-1 copy changed binding when it was removed.`;
+  document.getElementById('trust').innerHTML = `Group names and neuron labels are agent drafts. The readings agree strongly for ${pct(M.clusters.filter(c => c.agree === 'high').reduce((a, c) => a + c.size, 0) / N)} of neurons; part of the map is an artefact (a J-lens direction toward British spellings pulls unrelated neurons together) and part is unassigned. The knock-outs are causal on the battery's held-out items; they say what these neurons do to the margin, not everything they do. Binding attribution is a first-order estimate; the knock-outs are the test. In one test, attribution ranked both passes of the same neuron among the neurons with the strongest links to later neurons. Only the pass-1 copy changed binding when it was removed.`;
 }
 
 function figMatrix() {

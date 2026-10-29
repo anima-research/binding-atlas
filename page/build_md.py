@@ -176,7 +176,7 @@ def main() -> None:
     for r in dec["rows"]:
         P(f"| {r['m']} | {r['tok']} | " + " | ".join(pend(r[c['k']]) for c in dec["cols"]) + " |")
     P("")
-    P("Three layers: (1) possession transfer itself: every ~1B model is at chance even narrated (kotodama-tsumugi "
+    P("Three layers: (1) possession transfer itself: every 1.4–1.5B model is at chance even narrated (kotodama-tsumugi "
       "through 110B, Pythia-1.4B, OLMo-2 1B at 4T); SmolLM2 1.7B at 11T and Qwen3 1.7B at 36T lift off chance; from 4B "
       "it is easy. (2) The transfer as a speech act is the mid-size wall: 4B–70B models that pass the narrated version "
       "stay at .29–.41 spoken; narrating only the hand-off recovers part of the gap. (3) Naming the addressee does not "
@@ -245,7 +245,8 @@ def main() -> None:
     P("The two 110B columns are two anneals from the same fork with the same training loss. Their spread (static *you* "
       ".142 vs .235, K50 3.8 vs 4.8, and .025 bits/byte on held-out text) is the measured anneal-to-anneal variance, "
       "and every single-anneal number here carries it. A second initialization seed (seed 7, same data order) was "
-      "trained to 11B. Capacity (K50, after arXiv 2609.30634) tracks recipe and tokens more than "
+      "trained to 11B. Capacity (K50, after arXiv 2609.30634: how many name–task pairs fit in context before recall falls halfway to "
+      "chance) tracks recipe and tokens more than "
       "parameters on this harness, so no parameter-equivalent size is read from it.")
     P("")
     rid = stage["riders"]
