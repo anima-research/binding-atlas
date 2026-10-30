@@ -13,3 +13,8 @@ site/fonts/*.woff2
 # the connections panel shards (~47 MB, regenerated from the corpus graph; data/built/neurons/conn/conn.json holds their sha256)
 data/built/neurons/conn/*.bin
 site/threads-data/conn/*.bin
+# /take: the item pool (fresh draws stay off the public repo), invites, the database, local venvs
+take/data/
+take/.venv*/
+*.sqlite
+invites.txt

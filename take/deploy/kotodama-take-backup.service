@@ -1,0 +1,8 @@
+[Unit]
+Description=Nightly copy of the /take database
+
+[Service]
+Type=oneshot
+User=vesper
+Group=vesper
+ExecStart=/opt/kotodama-take/take/.venv/bin/python /opt/kotodama-take/take/backup.py --db /opt/aethera-server/core/data/kotodama-take/take.sqlite --dir /opt/aethera-server/core/data/kotodama-take/backups

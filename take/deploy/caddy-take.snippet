@@ -1,0 +1,8 @@
+# Inside the kotodama.animalabs.ai site block: /take* goes to the service; everything else stays as it is,
+# wrapped in its own handle block.
+handle /take* {
+	reverse_proxy 127.0.0.1:7480
+}
+handle {
+	# the existing root / try_files / file_server lines
+}

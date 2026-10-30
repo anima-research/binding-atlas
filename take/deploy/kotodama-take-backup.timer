@@ -1,0 +1,9 @@
+[Unit]
+Description=Nightly copy of the /take database
+
+[Timer]
+OnCalendar=*-*-* 04:30:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

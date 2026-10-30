@@ -1,0 +1,24 @@
+# /take, the human reader. Copy to /etc/systemd/system/, then: systemctl daemon-reload && systemctl enable --now kotodama-take
+# SERVICE_DIR holds this repository's take/ (with its uv venv in take/.venv); DATA_DIR holds the pool, invites and database.
+[Unit]
+Description=Binding Atlas /take (human reader)
+After=network.target
+
+[Service]
+User=vesper
+Group=vesper
+Environment=SERVICE_DIR=/opt/kotodama-take
+Environment=DATA_DIR=/opt/aethera-server/core/data/kotodama-take
+Environment=TAKE_POOL=/opt/aethera-server/core/data/kotodama-take/pool.jsonl
+Environment=TAKE_DB=/opt/aethera-server/core/data/kotodama-take/take.sqlite
+Environment=TAKE_INVITES=/opt/aethera-server/core/data/kotodama-take/invites.txt
+WorkingDirectory=/opt/kotodama-take
+ExecStart=/opt/kotodama-take/take/.venv/bin/uvicorn take.server:app --host 127.0.0.1 --port 7480 --workers 1 --proxy-headers --no-access-log
+Restart=on-failure
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/opt/aethera-server/core/data/kotodama-take
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

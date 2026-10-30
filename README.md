@@ -37,6 +37,38 @@ make neurons-binding                       # data/inputs/binding/*.jsonl -> data
 `build/build_neurons.py` writes everything in `data/built/neurons/` except `binding.json`, from the compendium build (its
 inputs are named in its docstring).
 
+## Take it yourself
+
+A third page, `/take`, lets people answer the same items that the models are scored on. With enough readers, the
+atlas's single human row becomes an estimate per column. Each item is a fresh draw from the generator behind a scored
+battery, with a seed that the battery never used. It is rendered exactly as a model sees it. Readers arrive by
+invitation and stay anonymous. The service keeps their answers, their response times and a random id from the
+browser, and no IP address or account.
+
+Each reader answers in one of two modes, drawn at random: they pick among the model's candidates, or they type a word,
+which is matched to the candidates. Readers see items without worked examples first, and items with examples only
+after that. Nobody sees two variants of one story. Each new item comes from the slice with the fewest answers so far,
+so coverage fills evenly. If a browser reports automation, or a reader ticks "an automated agent is answering", their
+answers are flagged and kept out of the human estimate.
+
+| file | what |
+|---|---|
+| `take/build_pool.py` | builds the item pool offline from `binding_bench` generators and the kotodama commit that drew each battery |
+| `take/server.py` | the service (FastAPI, SQLite): invites, serving order, answers, summaries, agent reports |
+| `take/static/take.html` | the page |
+| `take/make_invite.py`, `take/backup.py` | an invite link (only its hash is stored); an online copy of the database |
+| `take/deploy/` | the systemd units, the nightly backup timer and the reverse-proxy snippet |
+
+```bash
+uv venv take/.venv && uv pip install --python take/.venv "fastapi>=0.110" "uvicorn>=0.29" "httpx>=0.27" "pytest>=8"
+take/.venv/bin/python -m pytest take/test_server.py
+python take/build_pool.py --kotodama KOTODAMA_CLONE --bench BINDING_BENCH --seeds 900001 --out take/data/pool.jsonl
+TAKE_POOL=take/data/pool.jsonl TAKE_DB=take/data/take.sqlite TAKE_INVITES=take/data/invites.txt \
+  take/.venv/bin/uvicorn take.server:app --port 7480
+```
+
+The pool stays out of the repository (`take/data/` is ignored), so the human items are not published.
+
 ## Layout
 
 | path | what |
