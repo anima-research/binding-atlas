@@ -3,8 +3,8 @@
 Usage: python page/build_md.py --atlas data/built/atlas.json --stage data/built/stage.json --swap data/built/swap.json
                                --out site/binding-atlas.md [--config config/default.toml] [--stamp "YYYY-MM-DD HH:MM UTC"]
                                [--swap-prompts swap-prompts.jsonl]   (optional: prints one example speaker-swap pair)
-Sections: how to read · findings · scoring notes · columns (+ verbatim example prompts per column: 0-shot, shortcut-free,
-3-shot, a few more items) · rows · 0-shot wide tables per battery family · speaker-swap table · every cell as CSV.
+Sections: summary · Parts I–III · how to read · glossary · columns (+ verbatim example prompts per column) · rows ·
+tables by group · rows and every cell as CSV.
 Refuses to write if the output contains an internal hostname / path (same law as build_page.py).
 """
 from __future__ import annotations
@@ -26,10 +26,6 @@ SMALL_N = 20                                 # cells with fewer items get a dagg
 API_NOTE = ("reflex frame: single next word, reasoning disabled/minimal", "deliberate frame: think it through, then the word",
             "; generation scoring (first/last word == gold)")
 # page-only instructions -> their equivalent in this file
-MD_REWRITES = {
-    "Toggle <i>Shortcut-free</i> to watch it happen.": "Compare `mode=all` with `mode=free` in the CSV to see it.",
-    "Open any deixis cell for its error anatomy.": "The error anatomy is the `errs` field of each deixis cell in the CSV.",
-}
 SHORT = {"dx-owner-3-deictic": "owner I", "dx-owner-3-third": "owner 3rd", "dx-self-3-deictic": "self3 I",
          "dx-self-3-third": "self3 3rd", "dx-self-2-deictic": "self2 I", "dx-self-2-third": "self2 3rd",
          "dx-addressee-3-deictic": "you3 I", "dx-addressee-3-third": "you3 3rd", "dx-addressee-2-deictic": "you2 I",
@@ -40,26 +36,6 @@ GLOSSARY = [
     ("owner / self / addressee", "deixis query kinds: owner = 'Now the cup is with' -> a name; self = 'S: Right now I'm "
                                  "holding the' -> the speaker's object; addressee = 'S: Right now you're holding the' -> "
                                  "the addressee's object."),
-    ("I/you/my vs 3rd-person twin", "the same events told in chat with pronouns vs in prose with names; same gold and "
-                                    "candidates. Column ids end in -deictic / -third."),
-    ("structural you", "a 'you' whose referent is fixed only by the conversation (P2, no vocative)."),
-    ("shortcut-free (mode=free)", "items where the gold is neither the last-mentioned candidate nor the last speaker, "
-                                  "so recency cannot answer them."),
-    ("kind: acc", "gold is the top-ranked candidate (logprob rows) or the produced word (API/human rows)."),
-    ("kind: hit1 / exactk", "set binding: hit1 = top candidate is in the gold set; exactk = the top-k candidates are "
-                            "exactly the gold set (k = set size); chance differs accordingly."),
-    ("kind: cal", "answer deixis, open models: argmax of logp(item) − logp(same tail with the body hidden); API rows "
-                  "use referent scoring instead (the person's name counts as right as well as me/you)."),
-    ("seat_form", "API answer columns: share of referent-correct answers that used me/you rather than the name."),
-    ("errs", "deixis I/you cells: shares of items by error type (a wrong pick only). speaker_confusion = the wrong side "
-             "of I/you (for 'you' queries: an object the SPEAKER holds); previous_owner = someone who held it earlier; "
-             "other_participant = a third person (owner queries) / their object; other_object = another object; "
-             "tie = gold tied for top (counted wrong); format = API answer not among the candidates; other = rest."),
-    ("reflex / deliberate", "API frames: reflex = answer with the next word, reasoning off (calls that reasoned anyway "
-                            "are excluded); deliberate = think first, then give the word."),
-    ("row ids", "or-<provider>/<model>-A = API reflex row, -B = API deliberate row; other ids are open checkpoints "
-                "(e.g. llama31-405b). 'human' = the human row."),
-    ("swap shift", "speaker-swap test: P(original gold | original asker) − P(original gold | swapped asker)."),
 ]
 FAMILY_NOTES = {
     "Set binding": "3-shot exemplars show completed sentences (often one object); the test item is scored on the "
@@ -104,7 +80,6 @@ def main() -> None:
     atlas = json.loads(args.atlas.read_text())
     out = args.out
     swap = json.loads(args.swap.read_text()) if args.swap is not None and args.swap.exists() else None
-    meta = json.loads(args.meta.read_text())
     rows, cols, cells, ex = atlas["rows"], atlas["cols"], atlas["cells"], atlas["examples"]
     have = {k.split("|")[0] for k in cells}
     rows = [r for r in rows if r["id"] in have]
@@ -187,13 +162,6 @@ def main() -> None:
       ".29–.41 when the transfer is spoken. Narrating only the hand-off recovers part of the gap. (3) Naming the "
       "addressee does not help: the vocative variant is at or below the spoken one for every public model.")
     P("")
-    P("### Findings from the deixis study")
-    P("")
-    for i, f in enumerate(meta["findings"], 1):
-        for a, b in MD_REWRITES.items():
-            f = f.replace(a, b)
-        P(f"{i}. {md_text(f)}")
-    P("")
     P("## Part II · The levers")
     P("")
     P("Each lever measured on 1.4B-parameter arms trained for 4B tokens on one data order; one seed per arm except the "
@@ -251,9 +219,9 @@ def main() -> None:
     P("The two 110B columns are two anneals from the same fork with the same training loss. Their spread (static *you* "
       ".142 vs .235, K50 3.8 vs 4.8, and .025 bits/byte on held-out text) is the measured anneal-to-anneal variance, "
       "and every single-anneal number here carries it. A second initialization seed (seed 7, same data order) was "
-      "trained to 11B. Capacity (K50, after arXiv 2609.30634: how many name–task pairs fit in context before recall falls halfway to "
-      "chance) tracks recipe and tokens more than "
-      "parameters on this harness, so no parameter-equivalent size is read from it.")
+      "trained to 11B. Capacity (K50, after arXiv 2609.30634) is how many name–task pairs fit in context before recall "
+      "falls halfway to chance. On this harness it tracks recipe and tokens more than parameters, so no "
+      "parameter-equivalent size is read from it.")
     P("")
     rid = stage["riders"]
     P("### Object tracking with fixed vs fair exemplars (riders v2, prose; accuracy, chance .25)")
@@ -297,12 +265,6 @@ def main() -> None:
     for t, d in GLOSSARY:
         P(f"| {t} | {d} |")
     P("")
-    P("## Scoring notes for the deixis study")
-    P("")
-    for g in meta["gaps"]:
-        P(f"- {md_text(g)}")
-    P("")
-
     # columns
     P("## Columns")
     P("")
@@ -361,9 +323,6 @@ def main() -> None:
 
     # rows
     P("## Rows")
-    P("")
-    P("API rows (`or-…`) are all generation-scored; `-A` = reflex frame (single next word, reasoning off), `-B` = "
-      "deliberate frame (think, then the word). Notes below list only what differs from that.")
     P("")
     P("| id | label | group | params (B) | active (B) | pretraining tokens | note |")
     P("|---|---|---|---|---|---|---|")

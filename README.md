@@ -78,7 +78,7 @@ uv-managed Python links into the home directory of whoever built it, and the ser
 | path | what |
 |---|---|
 | `site/` | the built site, ready to serve: `binding-atlas.html`, `binding-atlas.md`, `binding-atlas-card.png`; `threads.html` + `threads-data/` + `threads-card.png` (+ the `neuron-atlas.html` redirect) |
-| `page/` | page builders: `build_page.py` (HTML), `build_md.py` (Markdown twin), `build_card.py` + `build_card.sh` (link card), `atlas_page.html` (template), `meta.json` (findings, gaps), `siteconfig.py` (hosting config) |
+| `page/` | page builders: `build_page.py` (HTML), `build_md.py` (Markdown twin), `build_card.py` + `build_card.sh` (link card), `atlas_page.html` (template), `siteconfig.py` (hosting config) |
 | `build/` | data builders: `build_atlas_v4.py` (the zoo sweep's score rows → `atlas.json`), `build_stage.py` (synthesis table → `stage.json`), `facts.py`; `subset_synthesis.py` (cuts `data/inputs/synthesis.jsonl`), `forbidden.py` (the public-content guard) |
 | `take/` | the human reader at `/take` (see above) |
 | `tools/` | the documentation gates (see `CONTRIBUTING.md`) |

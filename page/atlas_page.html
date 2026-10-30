@@ -460,9 +460,7 @@ table.levers td.cost { color: var(--muted); }
     </section>
   </div>
 
-  <section class="sect" aria-labelledby="apph"><h2 id="apph">Appendix</h2></section>
-  <div class="two">
-    <details class="panel prose"><summary>Reading the grid</summary>
+  <details class="panel prose"><summary>Reading the grid</summary>
       <ul>
         <li><b>Score</b> = (accuracy − chance) / (1 − chance). 0 is guessing among the candidates, 1 is always right, and
           below 0 is reliably wrong: a systematic wrong answer, usually a shortcut.</li>
@@ -470,7 +468,9 @@ table.levers td.cost { color: var(--muted); }
           includes 0. A red-hatched cell is below chance. When candidates tie exactly, the item's credit is split among
           them.</li>
         <li><b>With examples</b> puts four solved items before each item, balanced so that no answer can be copied from
-          them. That is the reading. <b>Cold</b> shows the item alone, with no solved items: the floor.</li>
+          them. That is the reading. <b>Cold</b> shows the item alone, with no solved items: the floor.
+          Columns with no worked-example version (lookups in lists, box refills, the static gauges) have a Cold
+          reading only.</li>
         <li><b>Each model</b> is scored by the log-probability that it gives each candidate answer. The human row read
           each item cold, once, without options.</li>
         <li><b>Columns are grouped</b> by what the questions look like. Each column is its own test, and a collapsed group
@@ -478,33 +478,6 @@ table.levers td.cost { color: var(--muted); }
           training order at the foot.</li>
       </ul>
     </details>
-    <details class="panel prose"><summary>Findings from the deixis study</summary>
-      <ul id="findings"></ul>
-    </details>
-  </div>
-
-  <div class="two">
-    <details class="panel prose"><summary>Scoring notes for the deixis study</summary><ul id="gaps"></ul></details>
-  </div>
-
-  <details class="panel prose"><summary>Methods and instruments</summary>
-    <ul>
-      <li><b>Core binding</b>: static lookup (N people each keep an object), code variables (assignments, copies, swaps),
-        3rd-person updates (objects change hands, partly via pronouns).</li>
-      <li><b>Deixis v2</b>: chats where ownership is stated only through <i>I/my/you</i> and vocatives; queries ask who
-        has an object (owner), what the speaker holds (self), or what the addressee holds (you). Every deictic item has a
-        name-only twin. Generated procedurally with frozen validity gates; candidates are always the names/objects in play.</li>
-      <li><b>Battery v3</b>: set binding (several objects per person; exact-set scoring), production deixis (answer the
-        question as the answerer would: <i>me</i> / <i>you</i> / a name; read against a body-hidden null to remove the
-        phrase prior), adjacency (<i>yours</i> resolved only by request→grant structure), aliased Python lists (mutate /
-        rebind / copy traps).</li>
-      <li><b>Kotodama models</b>: lever arms at 1.42B parameters and 4B tokens (Table 2), and kotodama-tsumugi
-        (Part III): a constant-LR trunk to 100B tokens with cooldown branches (cosine decay to zero over about 10% of the
-        tokens so far, forked from full checkpoints), read with the stage gauges, the battery, binding capacity, the
-        stage-5 decomposition and riders v2.</li>
-      <li>Cells need n ≥ 8 (the human row is the exception — it is a handful of items per cell, shown as small-sample).</li>
-    </ul>
-  </details>
 
   <footer><span id="updated"></span><span id="foot"></span><span>Built from the kotodama binding research (2026). Numbers are point
     estimates; hover a cell for n and ± standard error.</span><span>__FONT_CREDIT__</span><span><a href="binding-atlas.md">Agent view (Markdown)</a>: the same data as plain text, with example prompts and every cell as CSV.</span></footer>
@@ -1128,8 +1101,6 @@ $("#groups").innerHTML = GROUPS.map(g => `<button class="chip" data-g="${esc(g)}
 $("#groups").addEventListener("click", e => { const b = e.target.closest(".chip"); if (!b) return; S.hidden.has(b.dataset.g) ? S.hidden.delete(b.dataset.g) : S.hidden.add(b.dataset.g); render(); });
 $("#updated").textContent = "updated " + META.updated;
 $("#stats").innerHTML = [[ROWS.length, "models & checkpoints"], [COLS.length, "eval columns"], [Object.keys(CELLS).length.toLocaleString(), "cells"], [META.items.toLocaleString(), "scored items"]].map(([n, l]) => `<span><b>${n}</b>${l}</span>`).join("");
-$("#findings").innerHTML = META.findings.map(f => `<li>${f}</li>`).join("");
-$("#gaps").innerHTML = META.gaps.map(f => `<li>${f}</li>`).join("");
 $("#foot").textContent = `atlas build ${META.build}`;
 render();
 if (S.sel) openCell(S.sel.r, S.sel.c); else if (S.col) openCol(S.col);

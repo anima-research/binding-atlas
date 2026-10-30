@@ -1,4 +1,4 @@
-"""Render the standalone Binding Atlas page: atlas JSON + stage JSON + meta.json + site config → binding-atlas.html.
+"""Render the standalone Binding Atlas page: atlas JSON + stage JSON + site config → binding-atlas.html.
 
 Usage: python page/build_page.py --atlas data/built/atlas.json --stage data/built/stage.json --out site/binding-atlas.html
                                  [--config config/default.toml] [--stamp "YYYY-MM-DD HH:MM UTC"]
@@ -46,7 +46,6 @@ def load_config(path: Path | None) -> SiteConfig:
 def common_args(ap: argparse.ArgumentParser) -> None:
     ap.add_argument("--atlas", type=Path, default=REPO / "data" / "built" / "atlas.json")
     ap.add_argument("--stage", type=Path, default=REPO / "data" / "built" / "stage.json")
-    ap.add_argument("--meta", type=Path, default=HERE / "meta.json")
     ap.add_argument("--config", type=Path, default=None, help="site config TOML (default: neutral, relative URLs)")
     ap.add_argument("--stamp", default=None, help="build stamp, 'YYYY-MM-DD HH:MM UTC' (default: now)")
     ap.add_argument("--out", type=Path, required=True)
@@ -60,11 +59,8 @@ def main() -> None:
     cfg = load_config(a.config)
     stamp = build_stamp(a.stamp)
     atlas = json.loads(a.atlas.read_text())
-    meta = json.loads(a.meta.read_text())
-    meta.pop("changelog", None)   # kept in meta.json for the record; the public page does not narrate its own edits
-    meta["updated"] = stamp[:10]
-    meta["build"] = stamp
-    meta["items"] = sum(v["n"] for k, v in atlas["cells"].items() if k.endswith("|all"))
+    meta = {"updated": stamp[:10], "build": stamp,
+            "items": sum(v["n"] for k, v in atlas["cells"].items() if k.endswith("|all"))}
     for r in atlas["rows"]:
         r["sources"] = [s for s in r.get("sources", []) if not FORBIDDEN.search(s)]
     tpl = render_hosting(a.template.read_text(), cfg)
