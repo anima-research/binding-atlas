@@ -16,8 +16,9 @@ FONT_DIR ?= site/fonts
 ifndef STAMP
 STAMP := $(shell date -u '+%Y-%m-%d %H:%M UTC')
 endif
-# the build the aetherawi.red deployment serves (config/aetherawi.sha256)
-VERIFY_STAMP := 2026-10-29 21:39 UTC
+# the build the kotodama.animalabs.ai deployment serves (config/animalabs.sha256)
+VERIFY_CONFIG := animalabs
+VERIFY_STAMP := 2026-10-30 07:31 UTC
 
 DATA_ENV := $(if $(KOTODAMA_SRC),PYTHONPATH=$(KOTODAMA_SRC),)
 PAGE_ARGS = --config $(CONFIG) --stamp "$(STAMP)"
@@ -31,7 +32,7 @@ help:
 	@echo "make neurons [CONFIG=...] [SITE=dir]  Threads (the neuron page) + its data dir (data/built/neurons -> site/)"
 	@echo "make neurons-binding   data/inputs/binding -> data/built/neurons/binding.json"
 	@echo "make grids  [GRIDMAP=config/local-grids.tsv]  link local copies into .grids/ (sha256-checked)"
-	@echo "make verify       rebuild the aetherawi.red deployment into out/verify and check its sha256"
+	@echo "make verify       rebuild the kotodama.animalabs.ai deployment into out/verify and check its sha256"
 	@echo "make guard        scan every tracked file for internal names (build/forbidden.py)"
 	@echo "make stage-check  rebuild stage.json into out/ and compare with data/built/"
 	@echo "make data-check   GRIDS=dir  rebuild atlas.json + stage.json into out/ and compare with data/built/"
@@ -73,10 +74,10 @@ grids:
 
 # ---- equivalence checks
 verify:
-	$(MAKE) --no-print-directory page CONFIG=config/aetherawi.toml SITE=out/verify STAMP="$(VERIFY_STAMP)"
-	@if compgen -G "$(FONT_DIR)/*.woff2" > /dev/null; then cd out/verify && sha256sum -c ../../config/aetherawi.sha256; \
+	$(MAKE) --no-print-directory page CONFIG=config/$(VERIFY_CONFIG).toml SITE=out/verify STAMP="$(VERIFY_STAMP)"
+	@if compgen -G "$(FONT_DIR)/*.woff2" > /dev/null; then cd out/verify && sha256sum -c ../../config/$(VERIFY_CONFIG).sha256; \
 	else echo "(no web font files in FONT_DIR=$(FONT_DIR): the card renders in fallback faces, so only the page and twin are checked)"; \
-	  cd out/verify && grep -v binding-atlas-card.png ../../config/aetherawi.sha256 | sha256sum -c; fi
+	  cd out/verify && grep -v binding-atlas-card.png ../../config/$(VERIFY_CONFIG).sha256 | sha256sum -c; fi
 
 guard:
 	$(PY) build/forbidden.py

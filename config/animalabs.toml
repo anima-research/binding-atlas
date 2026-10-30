@@ -1,0 +1,19 @@
+# The kotodama.animalabs.ai deployment: the page at https://kotodama.animalabs.ai/binding-atlas (clean URL for
+# binding-atlas.html), the card next to it. `make verify` rebuilds site/ with it and checks config/animalabs.sha256.
+[site]
+name = "kotodama.animalabs.ai"
+base_url = "https://kotodama.animalabs.ai/"
+clean_urls = true
+card_label = ""        # derived: kotodama.animalabs.ai/binding-atlas
+
+[nav]
+back_url = "https://kotodama.animalabs.ai/"
+back_label = "Who Is You?"
+
+[font]                 # host-supplied: the host serves the files at /fonts/ (not in this repository)
+name = "Love Letter TW Luxia"
+family = "LL Luxia"
+url = "fonts/"
+stem = "LoveLetterTWLuxia"
+meta = "Love Letter Typewriter (Love Letter TW Luxia build), © 1994 Blake Haber for Dixie's Delights; fallback Courier Prime (OFL)"
+credit = "Set in Love Letter Typewriter (© 1994 Blake Haber, Dixie's Delights) with Courier Prime."

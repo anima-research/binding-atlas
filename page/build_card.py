@@ -63,6 +63,7 @@ body {{ width: 1200px; height: 630px; background: {BG}; color: {INK}; font-famil
 .eb {{ font-size: 17px; letter-spacing: .14em; text-transform: uppercase; color: {MUTED}; }}
 h1 {{ font-size: 56px; line-height: 1.02; margin: 0; font-weight: 700; }}
 p {{ font-size: 22px; line-height: 1.38; margin: 0; }}
+.cr {{ font-size: 16px; line-height: 1.4; color: {MUTED}; }}
 .u {{ margin-top: auto; font-size: 17px; color: {MUTED}; }}
 .r {{ display: flex; flex-direction: column; gap: 10px; padding-top: 6px; }}
 .k {{ font-size: 15px; color: {MUTED}; display: flex; gap: 22px; padding-left: 20px; }}
@@ -72,6 +73,7 @@ p {{ font-size: 22px; line-height: 1.38; margin: 0; }}
 <div class="l"><div class="eb">kotodama · referent binding</div><h1>Binding Atlas</h1>
 <p>Base models learn who <i>you</i> is in five stages. The last one, tracking <i>you</i> as objects change hands, is
 never reached zero-shot up to 8B, at any token count measured, and stays weak from 14B to 1T.</p>
+<div class="cr">By Luxia, with Claude<br>Compute and hosting by Anima Labs</div>
 <div class="u">{CARD_TEXT}</div></div>
 <div class="r">{chart}<div class="k"><span><b style="background:{INK}"></b>zero-shot</span><span><b></b>3-shot</span>
 <span>30 public bases</span></div></div>

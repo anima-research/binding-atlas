@@ -47,7 +47,7 @@ inputs are named in its docstring).
 | `data/built/` | what the page shows: `atlas.json`, `stage.json`, `swap.json` |
 | `data/inputs/` | small tracked inputs: `synthesis.jsonl` (the rows of the synthesis table `build_stage.py` reads) and the human gauntlet items |
 | `data/INPUTS-MANIFEST.tsv` | every raw file `build_atlas_v3.py` reads, by logical path, with size and sha256 |
-| `config/` | hosting configs (`default.toml` neutral, `aetherawi.toml`), `aetherawi.sha256`, `local-grids.example.tsv` |
+| `config/` | hosting configs (`default.toml` neutral, `animalabs.toml` for kotodama.animalabs.ai, `aetherawi.toml` for the earlier host), `animalabs.sha256`, `local-grids.example.tsv` |
 
 ## Building
 
@@ -55,7 +55,7 @@ inputs are named in its docstring).
 
 ```bash
 make page                                  # neutral config: relative URLs, no canonical link
-make page CONFIG=config/aetherawi.toml     # a deployment config (see below)
+make page CONFIG=config/animalabs.toml     # a deployment config (see below)
 make page SITE=/some/dir STAMP="2026-01-31 12:00 UTC"
 ```
 
@@ -107,7 +107,7 @@ make grids && make data GRIDS=.grids
 
 | command | checks |
 |---|---|
-| `make verify` | builds with `config/aetherawi.toml` and the committed build stamp into `out/verify/`; the HTML, Markdown twin and card must match `config/aetherawi.sha256` (the files in `site/`) byte for byte |
+| `make verify` | builds with `config/animalabs.toml` and the committed build stamp into `out/verify/`; the HTML, Markdown twin and card must match `config/animalabs.sha256` (the files in `site/`) byte for byte |
 | `make stage-check` | `stage.json` rebuilt from the tracked synthesis rows equals `data/built/stage.json` |
 | `make guard` | no tracked file contains an internal hostname, machine path, session id or internal run / checkpoint name (`build/forbidden.py`; the page builders apply the same guard to their output) |
 | `make data-check GRIDS=…` | `atlas.json` and `stage.json` rebuilt from the raw grids equal `data/built/` |
@@ -146,12 +146,12 @@ meta = "Some Typewriter; fallback Courier Prime (OFL)"   # <meta name="typeface"
 credit = "Set in Some Typewriter with Courier Prime."     # footer line
 ```
 
-`page/siteconfig.py` documents every key. `config/aetherawi.toml` sets a host-supplied web font; to render the link
+`page/siteconfig.py` documents every key. `config/animalabs.toml` sets a host-supplied web font; to render the link
 card in that font locally, put its files in `site/fonts/` (gitignored) or point `FONT_DIR=` at them.
 
 The page file is `binding-atlas.html`. With `clean_urls = true` the canonical URL is `…/binding-atlas`, which
 assumes the server maps `/binding-atlas` to `binding-atlas.html` (as many static hosts do); without that mapping,
-set `clean_urls = false`. The committed `site/` is built with `config/aetherawi.toml`; rebuild it with a different
+set `clean_urls = false`. The committed `site/` is built with `config/animalabs.toml`; rebuild it with a different
 config before serving it under another domain. The card carries the canonical URL as text, so it is rebuilt by
 `make page` as well.
 
@@ -174,11 +174,11 @@ config before serving it under another domain. The card carries the canonical UR
 
 ## Credits
 
-Research, code and development: Luxia (@LuxiaSL) and Claude (Anthropic). Trained on compute provided by Anima Labs.
+Research, code and development: Luxia (@LuxiaSL) and Claude (Anthropic). Compute and hosting provided by Anima Labs.
 
 ## Licence
 
 - **Code** (`build/`, `page/`, `config/`, the Makefile, the page code in `site/`): Apache-2.0, see `LICENSE`.
 - **Data** (`data/`, the data embedded in the built pages, and the raw score grids): CC-BY-4.0, see `data/LICENSE`.
 - **Fonts:** none ship here. Courier Prime (SIL OFL) is loaded from Google Fonts. A host-supplied web font (such as
-  the one `config/aetherawi.toml` names) is the host's, outside both grants; see `site/fonts/README`.
+  the one `config/animalabs.toml` names) is the host's, outside both grants; see `site/fonts/README`.

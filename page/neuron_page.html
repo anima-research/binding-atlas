@@ -76,6 +76,8 @@ p { margin: 0 }
 .hero .card { max-width: 760px; background: none; backdrop-filter: none; -webkit-backdrop-filter: none; border: 0; padding: 0; gap: 18px }
 .hero h1 { font-size: clamp(46px, 9vw, 112px); line-height: .92; letter-spacing: -.02em }
 .hero h1 span { display: block; color: var(--plate-muted); font-size: .34em; letter-spacing: .02em; margin-top: 14px; line-height: 1.2 }
+.hero .credit { font-family: var(--f-mono); font-size: 13px; letter-spacing: .04em; color: var(--plate-muted); max-width: 50ch }
+.hero .credit a { color: var(--plate-fg) }
 .hero .lede { font-size: clamp(16px, 1.6vw, 19px); color: #d4dae0; max-width: 60ch }
 .hero .figs { display: flex; flex-wrap: wrap; gap: 8px 30px }
 .hero .figs div { display: grid }
@@ -275,6 +277,7 @@ footer .wrap { display: grid; gap: 8px }
       <div class="mark" aria-label="言霊 紬, kotodama-tsumugi"><span class="kanji">言霊 紬</span><span class="romaji">kotodama · tsumugi</span></div>
       <span class="eyebrow" style="color:var(--plate-muted)">trained from scratch · 1.4B parameters · 72 effective layers</span>
       <h1>Threads<span>every neuron of one language model, and the circuits that decide who is who</span></h1>
+      <p class="credit">By <a href="https://github.com/LuxiaSL">Luxia</a> (@LuxiaSL), with Claude (Anthropic) · compute and hosting by <a href="https://animalabs.ai">Anima Labs</a></p>
       <p class="lede">Each point is one FFN neuron at one depth: 294,912 in all. They are placed by what they respond to in 24M tokens of the model's own training text. The model, its training run and every measurement here come from one project, from random initialisation onward.</p>
       <div class="figs" id="figs"></div>
       <div class="gloss"><span><b>言霊</b>kotodama: word-spirit, language as a thing with a life of its own.</span><span><b>紬</b>tsumugi: spun thread, words woven into more than the sum of their parts.</span></div>
@@ -497,7 +500,7 @@ footer .wrap { display: grid; gap: 8px }
 <footer><div class="wrap">
   <span><span class="kanji" style="font-size:15px">言霊 紬</span> Threads · model: kotodama-tsumugi.</span>
   <span>Companion pages: <a href="./">Who Is You?</a>, the write-up · <a href="__ATLAS_LINK__">Binding Atlas</a>, every model against every referent-binding probe.</span>
-  <span>Research, code and development: Luxia (@LuxiaSL) and Claude (Anthropic). Trained on compute provided by Anima Labs. __FONT_CREDIT__ Data CC-BY-4.0; code Apache-2.0.</span>
+  <span>Research, code and development: Luxia (@LuxiaSL) and Claude (Anthropic). Compute and hosting provided by Anima Labs. __FONT_CREDIT__ Data CC-BY-4.0; code Apache-2.0.</span>
   <span class="num" id="stamp">atlas build __STAMP__</span>
 </div></footer>
 
