@@ -273,12 +273,12 @@ def main() -> None:
     P("")
     P("## How to read the full atlas")
     P("")
-    P("- **A cell** = one model (row) on one test (column) under one condition: `score` = mean over items of "
-      "(credit − chance)/(1 − chance), where `credit` is 1 when the gold is the model's top-ranked candidate (an exact "
-      "tie between candidates splits the credit evenly) and `chance` = 1/#candidates. 0 = guessing, 1 = always right, "
-      "below 0 = reliably wrong. `lo`, `hi` = the bootstrap 95% interval (1,000 resamples of items).")
-    P("- **State:** `above` (the interval is above 0), `at` (it includes 0), `below` (it is below 0: the model picks a "
-      "wrong answer more often than guessing would).")
+    P("- **A cell** = one model (row) on one test (column) under one condition. `score` averages, over items, "
+      "(credit − chance)/(1 − chance), with `chance` = 1/#candidates. `credit` is 1 when the gold is the model's "
+      "top-ranked candidate, and an exact tie between candidates splits the credit evenly. 0 = guessing, 1 = always "
+      "right, below 0 = reliably wrong. `lo`, `hi` = the bootstrap 95% interval (1,000 resamples of items).")
+    P("- **State:** `above` when the interval is above 0, and `at` when it includes 0. `below` means the interval is "
+      "below 0: the model picks a wrong answer more often than guessing would.")
     P("- **Conditions:** `fair` = four solved items first, balanced so that no answer can be copied from them (the "
       "reading); `0shot` = the item alone (the floor). Columns without worked examples (lookups in lists, box refills, the "
       "static gauges) have a `0shot` reading only. The rule-learning columns are read across their difficulty ladder "
