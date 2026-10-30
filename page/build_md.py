@@ -286,7 +286,7 @@ def main() -> None:
     P("- **Groups:** columns are grouped by what the questions look like. Each column is scored and read on its own.")
     P("- **Models:** every base model is scored by log-probability over the candidate set, with one scorer and one set "
       "of batteries. The **Human** row is one person reading items cold, with typed answers.")
-    P("- **Parsing:** sections are `##` headings outside code fences (prompts inside ``` fences can contain lines "
+    P("- **Parsing:** sections are `##` headings outside code fences (prompts inside code fences can contain lines "
       "that start with `#`). Two CSV blocks at the end: `rows` (id → label, group, size, tokens) and `cells` (every number).")
     P("")
     P("## Glossary")

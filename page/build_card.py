@@ -1,7 +1,7 @@
 """Render the Binding Atlas link card (og:image, 1200×630): title + a reduced Figure 2 (dynamic 'you' vs parameters)
 from stage.json, as HTML; build_card.sh screenshots it to PNG with headless Chrome.
-Usage: python page/build_card.py OUT.html [--stage data/built/stage.json] [--config config/default.toml]
-(the configured font's files, if any, in fonts/ next to OUT.html). The URL line on the card is the site config's card text (empty: no URL line)."""
+Usage: python page/build_card.py <out>.html [--stage data/built/stage.json] [--config config/default.toml]
+(the configured font's files, if any, in fonts/ next to the output). The URL line on the card is the site config's card text (empty: no URL line)."""
 from __future__ import annotations
 
 import argparse

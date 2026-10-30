@@ -1,12 +1,12 @@
 # Binding Atlas
 
 Base language models learn who *you* is in five stages. No public model up to 8B reaches the last one zero-shot, at
-any token count measured, and from 14B to 1T parameters it stays weak. The Binding Atlas puts every model against
-every referent-binding probe, chance-normalized, with the raw context behind each cell: verbatim example prompts
-for each column, error anatomy for each deixis cell, and a plain-text Markdown twin carrying the same data as CSV.
+any token count measured, and from 14B to 1T parameters it stays weak. The Binding Atlas scores every base model with
+one scorer on one set of tests, chance-normalized. Each column shows a verbatim example prompt, and a plain-text
+Markdown twin carries the same data as CSV.
 
-The atlas covers 30 public base models, 5 public training trajectories, post-trained and API models, and one human
-reader. It also follows **kotodama-tsumugi**, a 1.4B model run as 72 effective layers (looped depth,
+The grid covers 45 public base models and one human reader. The figures cover 30 public base models and 5 public
+training trajectories. The atlas also follows **kotodama-tsumugi**, a 1.4B model run as 72 effective layers (looped depth,
 boundary-fitted attention residuals). kotodama-tsumugi reaches stage 3 by 33B tokens, about what OLMo-2 13B needs,
 where OLMo-2 1B needs about 420B. At 110B tokens its zero-shot dynamic *you* is not inverted (−.021), where most
 1–2B bases invert, and it follows a narrated hand-off better than every Pythia model up to 6.9B.
@@ -15,10 +15,12 @@ where OLMo-2 1B needs about 420B. At 110B tokens its zero-shot dynamic *you* is 
 
 A second page, `threads.html` (*Threads*; 紬 tsumugi, spun thread), maps every FFN neuron of kotodama-tsumugi: 72 effective positions × 4,096 = 294,912
 neurons. Each one is placed by the meaning of its strongest firing contexts in 24M training tokens, by depth, or by its
-weights. Language-model agents wrote the groups and labels and graded each by how well three readings match: the contexts a
-neuron fires on, the tokens its output favours (logit lens and J-lens), and what steering it does. They are drafts. The page also shows the referent-binding circuit: per-neuron
-attribution of the battery margin on bare items, held-out knock-outs of the supporter and interferer sets, and which parts
-of the circuit hold when the items come with balanced worked examples (246 neurons stay in a top-100 set under both formats). The page loads its data at run
+weights. Language-model agents wrote the groups and labels. They graded each label by how well three readings agree: the
+contexts that a neuron fires on, the tokens that its output favours (logit lens and J-lens), and what steering it does.
+The labels are drafts. The page also shows the referent-binding circuit. It gives each neuron's attribution of the
+battery margin on bare items, and held-out knock-outs of the supporter and interferer sets. It also shows which parts of
+the circuit hold when the items come with balanced worked examples: 246 neurons stay in a top-100 set under both
+formats. The page loads its data at run
 time from `threads-data/` beside it. The directory is named differently from the page on purpose: some hosts try a path
 before adding `.html`, and a directory with the page's name would hide the page. `neuron-atlas.html`, the page's earlier address, is built beside it as a redirect:
 
@@ -77,11 +79,13 @@ uv-managed Python links into the home directory of whoever built it, and the ser
 |---|---|
 | `site/` | the built site, ready to serve: `binding-atlas.html`, `binding-atlas.md`, `binding-atlas-card.png`; `threads.html` + `threads-data/` + `threads-card.png` (+ the `neuron-atlas.html` redirect) |
 | `page/` | page builders: `build_page.py` (HTML), `build_md.py` (Markdown twin), `build_card.py` + `build_card.sh` (link card), `atlas_page.html` (template), `meta.json` (findings, gaps), `siteconfig.py` (hosting config) |
-| `build/` | data builders: `build_atlas_v3.py` (raw grids → `atlas.json`), `build_stage.py` (synthesis table → `stage.json`), `facts.py`, `dx_replay.py`; `link_grids.py` (local copies → grids root), `subset_synthesis.py` (cuts `data/inputs/synthesis.jsonl`), `forbidden.py` (the public-content guard) |
-| `data/built/` | what the page shows: `atlas.json`, `stage.json`, `swap.json` |
+| `build/` | data builders: `build_atlas_v4.py` (the zoo sweep's score rows → `atlas.json`), `build_stage.py` (synthesis table → `stage.json`), `facts.py`; `subset_synthesis.py` (cuts `data/inputs/synthesis.jsonl`), `forbidden.py` (the public-content guard) |
+| `take/` | the human reader at `/take` (see above) |
+| `tools/` | the documentation gates (see `CONTRIBUTING.md`) |
+| `data/built/` | what the page shows: `atlas.json`, `stage.json` |
 | `data/inputs/` | small tracked inputs: `synthesis.jsonl` (the rows of the synthesis table `build_stage.py` reads) and the human gauntlet items |
-| `data/INPUTS-MANIFEST.tsv` | every raw file `build_atlas_v3.py` reads, by logical path, with size and sha256 |
-| `config/` | hosting configs (`default.toml` neutral, `animalabs.toml` for kotodama.animalabs.ai, `aetherawi.toml` for the earlier host), `animalabs.sha256`, `local-grids.example.tsv` |
+| `data/DROPPED-2026-10.tsv` | every cell of the previous edition's grid, with what happened to it |
+| `config/` | hosting configs (`default.toml` neutral, `animalabs.toml` for kotodama.animalabs.ai, `aetherawi.toml` for the earlier host), `animalabs.sha256` |
 
 ## Building
 
@@ -97,45 +101,22 @@ The page and the Markdown twin need only Python ≥ 3.11 (standard library). The
 Google Chrome (`PY=` a python with Pillow, `CHROME=` the browser binary). `STAMP` is the "atlas build" line in the
 footer (default: now, UTC); its date is the "updated" line.
 
-### The data (raw grids → `data/built`)
+### The data (`data/built`)
 
 ```bash
 make stage                                 # re-read every number in data/built/stage.json from data/inputs/synthesis.jsonl
-make data GRIDS=/path/to/grids PY_DATA=.venv/bin/python
+make data ZOO=<sweep rows> PROMPTS=<battery files> BENCH=<binding-bench checkout> PY_DATA=<python with numpy>
 ```
 
-The raw grids are the public dataset
-[`LuxiaSL/binding-atlas-grids`](https://huggingface.co/datasets/LuxiaSL/binding-atlas-grids), laid out as the grids
-root, so a download is ready for `GRIDS=`:
+The grid comes from the zoo sweep's score rows: `suite/<battery>/<model>.jsonl` and `riders/rows_<model>.jsonl`, with
+the sweep's model table and report beside them. `build_atlas_v4.py` reads every row and scores each cell, with split credit
+for exact ties. It adds each cell's bootstrap interval and state, and it renders one example prompt per column with
+binding-bench's own payload builder. The batteries' prompt files come from binding-bench's prompts directory.
 
-```bash
-hf download LuxiaSL/binding-atlas-grids --repo-type dataset \
-  --revision b45667b7817f723b14359d5abf550ef327e64a63 --local-dir grids
-make data GRIDS=grids PY_DATA=.venv/bin/python
-```
-
-`make data` runs `make stage` and then `build_atlas_v3.py`, which reads the raw score grids under one root
-(`GRIDS=` / `--grids DIR` / `ATLAS_GRIDS`) laid out as `data/INPUTS-MANIFEST.tsv` lists them, and imports
-`kotodama.eval.bindprobes` to render the example prompts. kotodama is pinned in `pyproject.toml`
-(`kotodama @ git+https://github.com/anima-research/kotodama@21f9989ae1cef6b8025b689b3b7ebd09430ca89f`):
-
-```bash
-uv venv && uv sync --extra data            # kotodama and its dependencies (including torch) into .venv
-make data GRIDS=/path/to/grids PY_DATA=.venv/bin/python
-# or, with a kotodama checkout at that commit:  make data GRIDS=... KOTODAMA_SRC=/path/to/kotodama/src
-```
-
-The published Atlas items render byte-identically at that commit, because kotodama renders pinned items with the
-templates of their own item version.
-
-When the raw files sit in several local directories, `config/local-grids.tsv` (gitignored; template
-`config/local-grids.example.tsv`) maps logical path prefixes to them, and `make grids` assembles a checked tree of
-symlinks in `.grids/` (every size and sha256 against the manifest):
-
-```bash
-cp config/local-grids.example.tsv config/local-grids.tsv   # then edit
-make grids && make data GRIDS=.grids
-```
+The previous edition's grid read other score files. They stay in the public dataset
+[`LuxiaSL/binding-atlas-grids`](https://huggingface.co/datasets/LuxiaSL/binding-atlas-grids) at revision `b45667b7`,
+and `data/DROPPED-2026-10.tsv` lists every cell that came from them. Each cell carries one of three marks: a column of
+the new grid replaced it, the new grid has no such column, or the clean bench has not scored that row yet.
 
 ### Equivalence checks
 
@@ -144,9 +125,9 @@ make grids && make data GRIDS=.grids
 | `make verify` | builds with `config/animalabs.toml` and the committed build stamp into `out/verify/`; the HTML, Markdown twin and card must match `config/animalabs.sha256` (the files in `site/`) byte for byte |
 | `make stage-check` | `stage.json` rebuilt from the tracked synthesis rows equals `data/built/stage.json` |
 | `make guard` | no tracked file contains an internal hostname, machine path, session id or internal run / checkpoint name (`build/forbidden.py`; the page builders apply the same guard to their output) |
-| `make data-check GRIDS=…` | `atlas.json` and `stage.json` rebuilt from the raw grids equal `data/built/` |
-| `make check` | `verify` + `stage-check` + `guard` (no grids needed) |
-| `make legibility KOTODAMA_SRC=…` | a report, not a check: kotodama's `tools/check_legibility.py` (processing-difficulty features of arXiv 2610.29162 against a Wikipedia reference) on this README (and any files in `LEGIBILITY_FILES`), listing the sentences behind each count |
+| `make data-check ZOO=… PROMPTS=… BENCH=…` | `atlas.json` and `stage.json` rebuilt from their inputs equal `data/built/` |
+| `make check` | `verify` + `stage-check` + `guard` (no score rows needed) |
+| `make gates` | the documentation gates of `CONTRIBUTING.md`: timelessness, referents and legibility |
 
 ## Hosting
 
@@ -191,11 +172,6 @@ config before serving it under another domain. The card carries the canonical UR
 
 ## Data provenance
 
-- `data/INPUTS-MANIFEST.tsv` lists the 143 files `build_atlas_v3.py` reads (an audit-hook trace of a full build):
-  141 raw score grids and item files (1.86 GB) under the grids root, by logical path, and the two human-gauntlet item
-  files tracked here. Each entry carries its size and sha256. The raw grids are published as the dataset
-  [`LuxiaSL/binding-atlas-grids`](https://huggingface.co/datasets/LuxiaSL/binding-atlas-grids) (CC-BY-4.0); at
-  revision `b45667b7` every one of the 141 files matches its manifest size and sha256.
 - `data/inputs/synthesis.jsonl` holds the rows of the synthesis table that `build_stage.py` reads: one row per model,
   checkpoint and metric, with value, n, standard error, interval, tokens and FLOPs. Checkpoints carry public ids
   (kotodama-tsumugi: `trunk-<tokens>` on the constant-LR trunk, `anneal-<tokens>` for cooldown branches,
@@ -203,8 +179,6 @@ config before serving it under another domain. The card carries the canonical UR
   cuts it from the full table, given a local map from the table's checkpoint ids to the public ones.
 - `data/built/stage.json` holds the curated front-section layout (figure model lists, stage texts, the battery path);
   `make stage` re-reads every number in it from the synthesis rows.
-- `data/built/swap.json` (the speaker-swap table in the Markdown twin) is carried over from the 2026-10-15 edition and
-  is not rebuilt by `make data`.
 
 ## Credits
 

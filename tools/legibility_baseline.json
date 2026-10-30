@@ -1,0 +1,49 @@
+{
+  "pages": {
+    "CONTRIBUTING.md": {
+      "dep_len": 2.4215,
+      "rates": {
+        "denominal": 0.0,
+        "inanimate": 0.0,
+        "long": 0.0,
+        "orc": 6.0606,
+        "orc_all": 6.0606,
+        "orc_reduced": 0.0,
+        "stacked": 0.0
+      },
+      "sentences": 69,
+      "words": 825
+    },
+    "README.md": {
+      "dep_len": 2.6281,
+      "rates": {
+        "denominal": 0.8711,
+        "inanimate": 4.3554,
+        "long": 1.7422,
+        "orc": 2.6132,
+        "orc_all": 2.6132,
+        "orc_reduced": 0.0,
+        "stacked": 1.7422
+      },
+      "sentences": 71,
+      "words": 1148
+    },
+    "site/binding-atlas.md": {
+      "accepted_regression": "first correct measurement of the Markdown twin: the earlier entry counted CSV rows and fenced prompts as prose, because a stray fence marker in the twin's parsing note shifted every code fence; the twin's findings text is published wording and changes only with the page owner's approval",
+      "dep_len": 2.7606,
+      "rates": {
+        "denominal": 1.7726,
+        "inanimate": 1.5194,
+        "long": 5.3178,
+        "orc": 0.2532,
+        "orc_all": 1.0129,
+        "orc_reduced": 0.7597,
+        "stacked": 2.0258
+      },
+      "sentences": 253,
+      "words": 3949
+    }
+  },
+  "parser": "en_core_web_trf",
+  "reference": "wikimedia/wikipedia 20231101.en, first 3000 articles (bigrams), 120 parsed"
+}

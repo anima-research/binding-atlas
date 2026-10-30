@@ -13,7 +13,7 @@ Nothing identifying is stored: no IP address, no account. A session stores its i
 browser's `navigator.webdriver` flag and the visitor's own answer to "is an automated agent answering?".
 
 Run:  TAKE_POOL=pool.jsonl TAKE_DB=take.sqlite TAKE_INVITES=invites.txt uvicorn take.server:app --port 7480
-(`invites.txt`: one sha256 hex digest of an invite token per line.)
+(The invites file holds one sha256 hex digest of an invite token per line.)
 """
 from __future__ import annotations
 

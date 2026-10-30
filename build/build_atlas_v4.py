@@ -8,8 +8,8 @@ measure one ability. The few-shot reading is `fair` (balanced worked examples); 
 Also writes data/DROPPED-2026-10.tsv: every cell of the previous grid, marked with what happened to it, so the old
 rows and columns can be re-added once the clean bench has scored them.
 
-    python build/build_atlas_v4.py --zoo ZOO_DIR --prompts PROMPTS_DIR --bench BINDING_BENCH --old data/built/atlas.json \
-        --out data/built/atlas.json --dropped data/DROPPED-2026-10.tsv
+    python build/build_atlas_v4.py --zoo ZOO_DIR --prompts PROMPTS_DIR --bench BINDING_BENCH --out data/built/atlas.json
+    (the one-time diff against the previous grid: add --old OLD_ATLAS --dropped data/DROPPED-2026-10.tsv)
 
 ZOO_DIR: suite/<battery>/<model>.jsonl, riders/rows_<model>.jsonl, zoo_tierA.tsv, report/report.json.
 """
@@ -57,7 +57,7 @@ LABELS: dict[str, tuple[str, str]] = {      # zoo name → (label, family)
     "tsumugi-s7-a5B": ("kotodama-tsumugi, seed 7 · 5B tokens", "kotodama"),
     "tsumugi-s7-a11B": ("kotodama-tsumugi, seed 7 · 11B tokens", "kotodama"),
 }
-# Creator-stated pretraining tokens (zoo-sweep TOKENS.md) with the uncertainty mark the page shows.
+# Creator-stated pretraining tokens (model cards and papers) with the uncertainty mark the page shows.
 TOKENS: dict[str, tuple[Optional[float], str]] = {
     **{k: (300e9, "") for k in ("pythia-160m", "pythia-1b", "pythia-1.4b", "pythia-2.8b", "pythia-2.8b-deduped", "pythia-6.9b")},
     "smollm2-360m": (4e12, ""), "smollm2-1.7b": (11e12, ""),
@@ -348,12 +348,12 @@ def main() -> int:
     ap.add_argument("--zoo", type=Path, required=True)
     ap.add_argument("--bench", type=Path, required=True, help="a binding-bench checkout (its src/ is imported)")
     ap.add_argument("--prompts", type=Path, required=True, help="the battery prompt files (the bench's prompts dir)")
-    ap.add_argument("--old", type=Path, required=True)
+    ap.add_argument("--old", type=Path, help="the previous grid's atlas.json: its human row, and (with --dropped) its cells")
     ap.add_argument("--out", type=Path, required=True)
-    ap.add_argument("--dropped", type=Path, required=True)
+    ap.add_argument("--dropped", type=Path, help="write the one-time diff of the previous grid's cells here")
     a = ap.parse_args()
     sys.path.insert(0, str(a.bench / "src"))
-    old = json.loads(a.old.read_text())
+    old = json.loads((a.old or a.out).read_text())
     report = json.loads((a.zoo / "report" / "report.json").read_text())["models"]
     table = [ln.split("\t")[0] for ln in (a.zoo / "zoo_tierA.tsv").read_text().splitlines() if ln and not ln.startswith("#")]
     names = [n for n in table if (a.zoo / "suite" / "bp-deixis-v2" / f"{n}.jsonl").exists()]
@@ -368,8 +368,8 @@ def main() -> int:
     new_of = {o: c.id for c in COLS for o in c.old}
     for key, cell in old["cells"].items():
         rid, cid, cond, mode = key.split("|")
-        if rid == "human" and cid in new_of:
-            cells[f"human|{new_of[cid]}|{cond}|{mode}"] = cell
+        if rid == "human" and (cid in new_of or cid in {c.id for c in COLS}):   # an old id, or already a new one
+            cells[f"human|{new_of.get(cid, cid)}|{cond}|{mode}"] = cell
     for n in names:
         lab, fam = LABELS[n]
         p = report[n]["params"]
@@ -390,9 +390,10 @@ def main() -> int:
              "headline": c.headline, "flag": c.flag, "free_ok": False} for c in COLS]
     atlas = {"rows": rows, "cols": cols, "cells": cells, "examples": examples(a.prompts)}
     a.out.write_text(json.dumps(atlas, ensure_ascii=False, separators=(",", ":")))
-    n_drop = dropped(old, set(names), a.dropped)
-    print(f"atlas: {len(rows)} rows, {len(cols)} columns, {len(cells)} cells -> {a.out}; dropped {n_drop} old cells "
-          f"-> {a.dropped}")
+    msg = f"atlas: {len(rows)} rows, {len(cols)} columns, {len(cells)} cells -> {a.out}"
+    if a.dropped:
+        msg += f"; dropped {dropped(old, set(names), a.dropped)} old cells -> {a.dropped}"
+    print(msg)
     return 0
 
 

@@ -32,7 +32,7 @@ def build_stamp(arg: str | None) -> str:
     try:
         time.strptime(arg, STAMP_FMT)
     except ValueError as e:
-        raise SystemExit(f"--stamp must look like '2026-01-31 12:00 UTC', got {arg!r}") from e
+        raise SystemExit(f"--stamp must match {STAMP_FMT!r} (date, time, UTC), got {arg!r}") from e
     return arg
 
 

@@ -1,10 +1,10 @@
 # Binding Atlas — agent view
 
-Plain-text twin of the [Binding Atlas page](https://kotodama.animalabs.ai/binding-atlas). Same data, same build. Built 2026-10-30 07:43 UTC: 117 rows (models + one human), 28 columns, 7,919 cells, 1,285,239 scored items.
+Plain-text twin of the [Binding Atlas page](https://kotodama.animalabs.ai/binding-atlas). Same data, same build. Built 2026-10-30 22:24 UTC: 54 rows (models + one human), 24 columns, 2,029 cells, 1,303,620 scored items.
 
 ## Summary
 
-This atlas scores 116 models and checkpoints, plus one human reader, on 28 tests of tracking who *I* and *you* refer to. "Example items per column" quotes the exact prompts that the models were given.
+This atlas scores 53 models and checkpoints, plus one human reader, on 24 tests of tracking who *I* and *you* refer to. "Example items per column" quotes the exact prompts that the models were given.
 
 Base language models acquire the referent of *you* in five ordered stages. Every base of 0.6B parameters or more trained on trillions of tokens reaches the first three. The fifth stage, tracking *you* after objects change hands, is **never reached zero-shot** (with no worked examples) by a public model up to 8B, at any token count measured up to 36T; its swap shift is negative in every one of them. From 14B to 1T parameters, stage 5 is weak and nearly flat. In these models, parameter count and depth grow together. **kotodama-tsumugi**, a 1.4B model run as 72 effective layers (looped depth, boundary-fitted attention residuals), separates them: it reaches stage 3 by **33B tokens** (annealed; on the constant-LR trunk by 40B), the token cost of OLMo-2 13B, against about 420B for OLMo-2 1B. At 110B tokens its zero-shot stage-5 reading (−.021) is not inverted under the gauge rule, where every 1–2B public base whose static *you* binds, except Llama-3.2-1B, inverts. In a check of 20 bases, kotodama-tsumugi (.336) follows a hand-off told in the third person better than every Pythia model up to 6.9B (.275 to .294) and Llama-3.2-1B (.303). Most bases up to 1.5B barely follow one: 7 of those 10 score .26 to .34, against about .29 by chance. For every model of this size, that hand-off is the open step toward stage 5.
 
@@ -215,13 +215,12 @@ Zero-shot, the annealed kotodama-tsumugi checkpoints from 33B on (.455–.490) s
 
 ## How to read the full atlas
 
-- **A cell** = one model (row) on one probe type (column) under one condition, as `acc` = share of items where the gold answer is the model's top choice among the item's candidates, with `n` items and the `chance` rate (mean 1/#candidates). `score` = (acc − chance)/(1 − chance); `se` = binomial standard error.
-- **Conditions:** `0shot` = the item alone; `3shot` = three solved items of the test item's own type first (a diagnostic: on aliased lists it teaches the answer's role; see Scoring notes); `3shot_collide` = the three exemplars reuse the test item's names/objects in other roles (interference test).
-- **Modes:** `all` = every item; `free` = shortcut-free subset (deixis columns only): the answer is neither the last-mentioned candidate nor the last speaker.
-- **Open models** (bases, hybrids, post-trained) are scored by log-probability over the candidate set (vLLM or HF transformers, never mixed within a row; parity-checked to ±.01). **API models** are scored by generation: `reflex` rows = single next word with reasoning off (calls that reasoned anyway are excluded); `deliberate` rows = think, then answer. **Human** row = one person reading items cold, typed answers.
-- **Answer-deixis columns** (`an-*`) use a calibrated read for open models (argmax of logp(item) − logp(body hidden)); API rows use referent scoring (the person's name counts as correct as well as me/you). Per-role cells mix skill with each model's standing preference — compare a model's answer columns together.
-- **Deixis twins:** every `I/you/my` item has a `3rd-person twin` with the same events, gold and candidates, told in third person with names. The gap between the two is the cost of perspective.
-- **Parsing:** sections are `##` headings outside code fences (prompts inside ``` fences can contain lines that start with `#`). Two CSV blocks at the end: `rows` (id → label, group, size) and `cells` (every number).
+- **A cell** = one model (row) on one test (column) under one condition. `score` averages, over items, (credit − chance)/(1 − chance), with `chance` = 1/#candidates. `credit` is 1 when the gold is the model's top-ranked candidate, and an exact tie between candidates splits the credit evenly. 0 = guessing, 1 = always right, below 0 = reliably wrong. `lo`, `hi` = the bootstrap 95% interval (1,000 resamples of items).
+- **State:** `above` when the interval is above 0, and `at` when it includes 0. `below` means the interval is below 0: the model picks a wrong answer more often than guessing would.
+- **Conditions:** `fair` = four solved items first, balanced so that no answer can be copied from them (the reading); `0shot` = the item alone (the floor). Columns without worked examples (lookups in lists, box refills, the static gauges) have a `0shot` reading only. The rule-learning columns are read across their difficulty ladder (`ladder`: the mean chance-normalized accuracy over the ladder's rungs, clipped at 0 and 1).
+- **Groups:** columns are grouped by what the questions look like. Each column is scored and read on its own.
+- **Models:** every base model is scored by log-probability over the candidate set, with one scorer and one set of batteries. The **Human** row is one person reading items cold, with typed answers.
+- **Parsing:** sections are `##` headings outside code fences (prompts inside code fences can contain lines that start with `#`). Two CSV blocks at the end: `rows` (id → label, group, size, tokens) and `cells` (every number).
 
 ## Glossary
 
@@ -257,867 +256,148 @@ Zero-shot, the annealed kotodama-tsumugi checkpoints from 33B on (.455–.490) s
 
 ## Columns
 
-| id | family | label | what it asks | scoring | shortcut-free |
+| id | group | label | what it asks | readings | headline |
 |---|---|---|---|---|---|
-| `attr` | Core binding | Static lookup | N people each keep an object; query one. Pure retrieval under distractors. | acc | — |
-| `codevar` | Core binding | Code variables | Python assignments, copies, swaps; read a variable after reassignment. | acc | — |
-| `dialogue` | Core binding | 3rd-person updates | Prose scene; objects change hands, partly via he/she/it; who has what. | acc | — |
-| `dx-owner-3-deictic` | Deixis · owner | I/you/my | Ownership stated only via I/my/you + vocatives; query 'Now the X is with' -> a name. | acc | yes |
-| `dx-owner-3-third` | Deixis · owner | 3rd-person twin | The same events narrated with names, no pronouns (the control). | acc | yes |
-| `dx-self-3-deictic` | Deixis · self · P3 | I/you/my | Query 'Ana: Right now I'm holding the' -> the speaker's own object. | acc | yes |
-| `dx-self-3-third` | Deixis · self · P3 | 3rd-person twin | The same events narrated with names, no pronouns (the control). | acc | yes |
-| `dx-self-2-deictic` | Deixis · self · P2 | I/you/my | Query 'Ana: Right now I'm holding the' -> the speaker's own object. | acc | yes |
-| `dx-self-2-third` | Deixis · self · P2 | 3rd-person twin | The same events narrated with names, no pronouns (the control). | acc | yes |
-| `dx-addressee-3-deictic` | Deixis · you · P3 (vocative) | I/you/my | Query 'Ben: Ana, right now you're holding the' (P3 names 'you'; P2 = the only other person). | acc | yes |
-| `dx-addressee-3-third` | Deixis · you · P3 (vocative) | 3rd-person twin | The same events narrated with names, no pronouns (the control). | acc | yes |
-| `dx-addressee-2-deictic` | Deixis · you · P2 (structural) | I/you/my | Query 'Ben: Ana, right now you're holding the' (P3 names 'you'; P2 = the only other person). | acc | yes |
-| `dx-addressee-2-third` | Deixis · you · P2 (structural) | 3rd-person twin | The same events narrated with names, no pronouns (the control). | acc | yes |
-| `sb-k1` | Set binding | 1 object | Static, one object per queried person (baseline). | hit1 | — |
-| `sb-k23` | Set binding | 2-3 objects, exact set | Person keeps 2-3 objects (one sentence). Score: top-k == the set. | exactk | — |
-| `sb-split` | Set binding | split across sentences | Same, but each object declared in a separate sentence. | exactk | — |
-| `sb-dyn` | Set binding | after transfers | Sets change through two gives; read the final set. | exactk | — |
-| `an-narr` | Answer deixis | narrator query | Same chat, narrator asks 'Now the X is with' -> a name (comprehension). | acc | — |
-| `an-other-any` | Answer deixis | answer: a name | 'Dee: Who has the cup now?' / 'Ben: I think it's with' -> another person's name. Calibrated read (vs body-hidden null). | cal | — |
-| `an-me-any` | Answer deixis | answer: me | The answerer holds it -> ' me' (speak from your own seat). Calibrated read (vs body-hidden null). | cal | — |
-| `an-you-voc` | Answer deixis | answer: you (named) | The asker holds it, answer opens with the asker's name -> ' you'. Calibrated read (vs body-hidden null). | cal | — |
-| `an-you-novoc` | Answer deixis | answer: you (no name) | The asker holds it, no name in the answer -> ' you' (reply structure only). Calibrated read (vs body-hidden null). | cal | — |
-| `adj-adj` | Adjacency | 'yours' by reply | 'Ben: Can I have the cup?' / 'Ana: Sure, the cup is yours.' -> Ben. Critical items (object last moved by a grant). | acc | — |
-| `adj-voc` | Adjacency | 'yours' with the name | Same, grant names him: 'Sure, Ben, the cup is yours.' Critical items (object last moved by a grant). | acc | — |
-| `adj-third` | Adjacency | 3rd-person twin | 'Ben asks Ana for the cup. Ana gives the cup to Ben.' Critical items (object last moved by a grant). | acc | — |
-| `cm-mutate` | Aliased lists | mutate via alias | b = a; a.append('x'); print(b[-1]) -> the appended value. | acc | — |
-| `cm-rebind` | Aliased lists | rebind after alias | b = a; a = ['new']; print(b[-1]) -> the OLD list's value. | acc | — |
-| `cm-copy` | Aliased lists | copy then mutate | b = list(a); a.append('x'); print(b[-1]) -> unaffected. | acc | — |
+| `lookup` | Who has what? Nothing moves | Simple lookup | Several people each keep an object; name one person's object. | fair, 0shot | yes |
+| `shortlist` | Who has what? Nothing moves | Short list lookup | A list pairs one to four names with tasks; name one person's task. | 0shot |  |
+| `pairs` | Who has what? Nothing moves | Lookup among pairs | Some people hold two objects and some one; name what a one-object person holds. | fair, 0shot |  |
+| `noise` | Who has what? Nothing moves | Lookup past noise | Boxes are filled, unrelated events follow; name what one box holds. | 0shot |  |
+| `now` | Who has what? Nothing moves | Who holds it now | A scene says who holds what; nothing moves. Then: 'Now X is holding the'. (The query opens with 'Now', which implies a change: the largest models answer as if something moved.) | 0shot |  |
+| `handoffs` | Who has what after things move: told as a story | Hand-offs in a story | Objects pass between people in a short story; name who has an object at the end. | fair, 0shot | yes |
+| `sets` | Who has what after things move: told as a story | Sets after hand-offs | Each person starts with a set of objects, then two gives; name the set one person ends with. | fair, 0shot | yes |
+| `refilled` | Who has what after things move: told as a story | Refilled box | A box is emptied and refilled; name its new contents. | 0shot |  |
+| `refills` | Who has what after things move: told as a story | Many refills | Boxes are emptied and refilled again and again; name one box's latest contents. | 0shot | yes |
+| `codevar` | Who has what after things move: written as code | Variable chains | Python variables are assigned, copied and reassigned; name what one prints. | fair, 0shot | yes |
+| `sharedlists` | Who has what after things move: written as code | Shared lists | Two names point at one Python list that is changed, rebound or copied; name what a print shows. | fair, 0shot | yes |
+| `box-narrative` | One box puzzle, four formats | Box puzzle: prose | Boxes are swapped, moved and refilled, written as plain sentences; name one box's contents. | fair, 0shot |  |
+| `box-screenplay` | One box puzzle, four formats | Box puzzle: script | Boxes are swapped, moved and refilled, written as a two-speaker script; name one box's contents. | fair, 0shot |  |
+| `box-code` | One box puzzle, four formats | Box puzzle: code | Boxes are swapped, moved and refilled, written as a Python dictionary; name one box's contents. | fair, 0shot |  |
+| `box-chat` | One box puzzle, four formats | Box puzzle: chat | Boxes are swapped, moved and refilled, written as chat turns; name one box's contents. | fair, 0shot |  |
+| `you-static` | Who are I and you? | 'You', nothing moves | A narrator says who holds what; then a speaker says 'right now you're holding the'. Name the listener's object. | 0shot | yes |
+| `i-moves` | Who are I and you? | 'I', after hand-offs | Two people hand objects over only through I / my / you lines; a speaker says 'right now I'm holding the'. | fair, 0shot |  |
+| `you-moves` | Who are I and you? | 'You', after hand-offs | Two people hand objects over only through I / my / you lines; a speaker says 'right now you're holding the'. Name the listener's object. | fair, 0shot | yes |
+| `you-named` | Who are I and you? | 'You' among three | Three people talk and hand objects over; the line naming the listener asks what they are holding. | fair, 0shot |  |
+| `answer-self` | Who are I and you? | Answering as yourself | A speaker must answer with 'me', 'you' or a name, from where they stand in the conversation. | fair, 0shot |  |
+| `grammar` | Learning a rule from the examples | Made-up grammar | Examples show an invented word ending; apply it to a new invented word. | ladder |  |
+| `operators` | Learning a rule from the examples | Made-up operators | Example equations define invented symbols; solve a new equation. | ladder |  |
+| `patterns` | Learning a rule from the examples | Pattern completion | Example lines repeat or mirror a pattern of nonsense words; continue a new line. A copy rule alone scores .26 here. | ladder | yes |
+| `facts` | Learning a rule from the examples | Known facts (control) | Real facts in the same examples-then-question layout; this column separates the layout from the learning. | ladder |  |
 
 ## Example items per column (verbatim prompts)
 
 Each prompt ends right before the scored word. `candidates` = the closed set a logprob model ranks; `gold` = the right answer. Generation-scored (API, human) rows see the same prompt with no options.
 
-### `attr` — Core binding · Static lookup
+### `lookup` — Who has what? Nothing moves · Simple lookup
 
-N people each keep an object; query one. Pure retrieval under distractors.
+Several people each keep an object; name one person's object.
 
-**0-shot example** (`attr_4-first_000`) — candidates: switch, needle, clock, towel, pencil · gold: **switch**
+**0-shot example** (`attr_2-first_000`) — candidates: knife, ribbon, rope, soap · gold: **knife**
 
 ```text
-Jack keeps the switch. A needle lies on the shelf. Larry keeps the clock. Betty keeps the towel. John keeps the pencil. So Jack keeps the
+Amy has the knife. A ribbon lies on the shelf. A rope lies on the shelf. Felix has the soap. So Amy has the
 ```
 
-**3-shot form** (same test item, three solved exemplars of its own type first; shown once per family — every Core binding column uses this layout)
+### `shortlist` — Who has what? Nothing moves · Short list lookup
 
-```text
-A book lies on the shelf. Hugo has the shell. Lucy has the stone. A candle lies on the shelf. Jane has the bell. Adam has the button. So Hugo has the shell.
-
-* * *
-
-Kate owns the key. Paul owns the cup. Ben owns the coin. Sarah owns the pen. A glass lies on the shelf. So Kate owns the key.
-
-* * *
-
-Leo owns the apple. A ring lies on the shelf. Ivan owns the brush. Lucy owns the map. Ben owns the thread. So Leo owns the apple.
-
-* * *
-
-Jack keeps the switch. A needle lies on the shelf. Larry keeps the clock. Betty keeps the towel. John keeps the pencil. So Jack keeps the
-```
-
-**More item 1** — candidates: knife, hammer, rope, glove, ribbon · gold: **ribbon**
-
-```text
-A knife lies on the shelf. Nancy owns the hammer. Joe owns the rope. Greg owns the glove. Lily owns the ribbon. So Lily owns the
-```
-
-### `codevar` — Core binding · Code variables
-
-Python assignments, copies, swaps; read a variable after reassignment.
-
-**0-shot example** (`codevar_2-1_000`) — candidates: sock, shoe, magnet, dice · gold: **shoe**
-
-```text
-k = "sock"
-h = "shoe"
-m = "magnet"
-n = h
-d = n
-n = "dice"
-print(d)  # output:
-```
-
-**More item 1** — candidates: carrot, dice, fork, hammer · gold: **carrot**
-
-```text
-h = "carrot"
-d = "dice"
-k = "fork"
-g = k
-f = h
-h = d
-d = f
-h = "hammer"
-a = g
-print(d)  # output:
-```
-
-### `dialogue` — Core binding · 3rd-person updates
-
-Prose scene; objects change hands, partly via he/she/it; who has what.
-
-**0-shot example** (`dialogue_3-2-holder_000`) — candidates: Jake, Molly, Erin · gold: **Erin**
-
-```text
-Jake, Molly and Erin are sitting at a table. Molly has the towel and the belt. Erin has the bottle. Jake asks Erin for the bottle, so she gives it to him. He passes it to Erin. Now the bottle is with
-```
-
-**More item 1** — candidates: Sandra, Joe, Judy · gold: **Joe**
-
-```text
-Sandra, Joe and Judy are sitting at a table. Sandra has the bolt and the dice. Joe has the screw. Joe hands the screw to Sandra. Joe asks Sandra for the screw, so she gives it to him. Now the screw is with
-```
-
-> **Deixis:** Only the 0-shot and shortcut-free examples are paired with their twin; the 'more item' examples of the I/you and 3rd-person columns are independent draws.
-
-### `dx-owner-3-deictic` — Deixis · owner · I/you/my
-
-Ownership stated only via I/my/you + vocatives; query 'Now the X is with' -> a name.
-
-**0-shot example** (`deixis-v2_3-2-owner_000_deictic`) — candidates: John, Nick, Wendy · gold: **Wendy**
-
-```text
-A chat between John, Nick and Wendy.
-Nick: I have the rope.
-Nick: I have the nail.
-Nick: Here, Wendy, take my rope.
-Nick: Wendy, my nail is yours now.
-Now the rope is with
-```
-
-**Shortcut-free example** — candidates: Ross, Jim, Rosa · gold: **Ross**
-
-```text
-A chat between Ross, Jim and Rosa.
-Ross: The notebook is mine.
-Jim: I have the ticket.
-Jim: The lantern is mine.
-Rosa: I have the marble.
-Jim: Here, Ross, take my ticket.
-Jim: Rosa, my lantern is yours now.
-Now the ticket is with
-```
-
-**3-shot form** (same test item, three solved exemplars of its own type first; shown once per family — every Deixis column uses this layout)
-
-```text
-A chat between Adam, Ruth and Owen.
-Adam: The button is mine.
-Adam: I have the book.
-Owen: I have the bell.
-Owen: Ruth, I'm giving you my bell.
-Adam: Here, Ruth, take my book.
-Now the bell is with Ruth.
-
-* * *
-
-A chat between Mary, Kate and Paul.
-Mary: I have the brush.
-Kate: The key is mine.
-Kate: The glass is mine.
-Mary: Kate, my brush is yours now.
-Kate: Paul, I'm giving you my key.
-Now the brush is with Kate.
-
-* * *
-
-A chat between Hugo, Anna and Emma.
-Hugo: I have the stone.
-Anna: The cup is mine.
-Anna: I have the thread.
-Emma: I have the map.
-Emma: Hugo, my map is yours now.
-Anna: Hugo, I'm giving you my cup.
-Now the map is with Hugo.
-
-* * *
-
-A chat between John, Nick and Wendy.
-Nick: I have the rope.
-Nick: I have the nail.
-Nick: Here, Wendy, take my rope.
-Nick: Wendy, my nail is yours now.
-Now the rope is with
-```
-
-**More item 1** — candidates: Bruce, Joe, Julia · gold: **Joe**
-
-```text
-A chat between Bruce, Joe and Julia.
-Bruce: The needle is mine.
-Bruce: I have the feather.
-Bruce: I have the funnel.
-Bruce: Joe, I'm giving you my feather.
-Bruce: Here, Julia, take my funnel.
-Now the feather is with
-```
-
-### `dx-owner-3-third` — Deixis · owner · 3rd-person twin
-
-The same events narrated with names, no pronouns (the control).
-
-**0-shot example** (`deixis-v2_3-2-owner_000_third`) — candidates: John, Nick, Wendy · gold: **Wendy**
-
-```text
-John, Nick and Wendy are sitting at a table. Nick has the rope and the nail. Nick gives the rope to Wendy. Nick gives the nail to Wendy. Now the rope is with
-```
-
-**Shortcut-free example** — candidates: Ross, Jim, Rosa · gold: **Ross**
-
-```text
-Ross, Jim and Rosa are sitting at a table. Ross has the notebook. Jim has the ticket and the lantern. Rosa has the marble. Jim gives the ticket to Ross. Jim gives the lantern to Rosa. Now the ticket is with
-```
-
-**More item 1** — candidates: Susan, Peter, Oscar · gold: **Susan**
-
-```text
-Susan, Peter and Oscar are sitting at a table. Susan has the soap. Peter has the clock and the switch. Peter gives the clock to Susan. Peter gives the switch to Oscar. Now the clock is with
-```
-
-### `dx-self-3-deictic` — Deixis · self · P3 · I/you/my
-
-Query 'Ana: Right now I'm holding the' -> the speaker's own object.
-
-**0-shot example** (`deixis-v2_3-2-self_000_deictic`) — candidates: basket, chain, dice · gold: **basket**
-
-```text
-A chat between Mike, Walt and Laura.
-Mike: I have the basket.
-Walt: The chain is mine.
-Laura: The dice is mine.
-Laura: Mike, I'm giving you my dice.
-Mike: Here, Laura, take my basket.
-Laura: Right now I'm holding the
-```
-
-**Shortcut-free example** — candidates: ticket, needle, spoon · gold: **ticket**
-
-```text
-A chat between Molly, Bruce and Seth.
-Molly: The ticket is mine.
-Bruce: The needle is mine.
-Seth: I have the spoon.
-Molly: Seth, I'm giving you my ticket.
-Seth: Here, Molly, take my spoon.
-Seth: Right now I'm holding the
-```
-
-**More item 1** — candidates: fork, lamp, ribbon, wallet · gold: **ribbon**
-
-```text
-A chat between Linda, Ellen and Erin.
-Erin: I have the fork.
-Erin: I have the lamp.
-Erin: The ribbon is mine.
-Erin: The wallet is mine.
-Erin: Ellen, my ribbon is yours now.
-Erin: Linda, I'm giving you my lamp.
-Ellen: Right now I'm holding the
-```
-
-### `dx-self-3-third` — Deixis · self · P3 · 3rd-person twin
-
-The same events narrated with names, no pronouns (the control).
-
-**0-shot example** (`deixis-v2_3-2-self_000_third`) — candidates: basket, chain, dice · gold: **basket**
-
-```text
-Mike, Walt and Laura are sitting at a table. Mike has the basket. Walt has the chain. Laura has the dice. Laura gives the dice to Mike. Mike gives the basket to Laura. Now Laura is holding the
-```
-
-**Shortcut-free example** — candidates: ticket, needle, spoon · gold: **ticket**
-
-```text
-Molly, Bruce and Seth are sitting at a table. Molly has the ticket. Bruce has the needle. Seth has the spoon. Molly gives the ticket to Seth. Seth gives the spoon to Molly. Now Seth is holding the
-```
-
-**More item 1** — candidates: whistle, wire, straw, lid · gold: **lid**
-
-```text
-Tony, Linda and Sean are sitting at a table. Tony has the whistle and the wire. Sean has the straw and the lid. Sean gives the straw to Tony. Tony gives the whistle to Linda. Now Sean is holding the
-```
-
-### `dx-self-2-deictic` — Deixis · self · P2 · I/you/my
-
-Query 'Ana: Right now I'm holding the' -> the speaker's own object.
-
-**0-shot example** (`deixis-v2_2-2-self_000_deictic`) — candidates: jar, magnet, lemon · gold: **magnet**
-
-```text
-A chat between Emily and Kevin.
-Emily: The jar is mine.
-Kevin: The magnet is mine.
-Kevin: The lemon is mine.
-Emily: I'm giving you my jar.
-Kevin: Here, take my magnet.
-Emily: Right now I'm holding the
-```
-
-**Shortcut-free example** — candidates: screw, hat, carrot · gold: **screw**
-
-```text
-A chat between Alice and Jerry.
-Alice: I have the screw.
-Alice: I have the hat.
-Alice: I have the carrot.
-Alice: I'm giving you my hat.
-Alice: Here, take my carrot.
-Alice: Right now I'm holding the
-```
-
-**More item 1** — candidates: glue, bulb, glove, ticket · gold: **glove**
-
-```text
-A chat between Jake and Molly.
-Jake: I have the glue.
-Jake: I have the bulb.
-Jake: I have the glove.
-Molly: The ticket is mine.
-Jake: My glove is yours now.
-Molly: I'm giving you my ticket.
-Molly: Right now I'm holding the
-```
-
-### `dx-self-2-third` — Deixis · self · P2 · 3rd-person twin
-
-The same events narrated with names, no pronouns (the control).
-
-**0-shot example** (`deixis-v2_2-2-self_000_third`) — candidates: jar, magnet, lemon · gold: **magnet**
-
-```text
-Emily and Kevin are sitting at a table. Emily has the jar. Kevin has the magnet and the lemon. Emily gives the jar to Kevin. Kevin gives the magnet to Emily. Now Emily is holding the
-```
-
-**Shortcut-free example** — candidates: screw, hat, carrot · gold: **screw**
-
-```text
-Alice and Jerry are sitting at a table. Alice has the screw, the hat and the carrot. Alice gives the hat to Jerry. Alice gives the carrot to Jerry. Now Alice is holding the
-```
-
-**More item 1** — candidates: sock, bottle, soap, whistle · gold: **whistle**
-
-```text
-Hal and Alice are sitting at a table. Hal has the sock. Alice has the bottle, the soap and the whistle. Alice gives the soap to Hal. Alice gives the bottle to Hal. Now Alice is holding the
-```
-
-### `dx-addressee-3-deictic` — Deixis · you · P3 (vocative) · I/you/my
-
-Query 'Ben: Ana, right now you're holding the' (P3 names 'you'; P2 = the only other person).
-
-**0-shot example** (`deixis-v2_3-2-addressee_000_deictic`) — candidates: dice, banana, notebook · gold: **banana**
-
-```text
-A chat between Ada, Ross and Linda.
-Ada: I have the dice.
-Ada: The banana is mine.
-Ross: The notebook is mine.
-Ada: Here, Ross, take my banana.
-Ross: Linda, my banana is yours now.
-Ross: Linda, right now you're holding the
-```
-
-**Shortcut-free example** — candidates: plate, dice, pencil · gold: **dice**
-
-```text
-A chat between Rosa, Larry and Mike.
-Rosa: The plate is mine.
-Rosa: I have the dice.
-Larry: I have the pencil.
-Rosa: Larry, I'm giving you my plate.
-Larry: Here, Mike, take my pencil.
-Mike: Rosa, right now you're holding the
-```
-
-**More item 1** — candidates: magnet, shoe, wire · gold: **shoe**
-
-```text
-A chat between Ada, Maya and Laura.
-Ada: I have the magnet.
-Laura: I have the shoe.
-Laura: The wire is mine.
-Laura: Ada, I'm giving you my wire.
-Ada: Here, Maya, take my wire.
-Ada: Laura, right now you're holding the
-```
-
-### `dx-addressee-3-third` — Deixis · you · P3 (vocative) · 3rd-person twin
-
-The same events narrated with names, no pronouns (the control).
-
-**0-shot example** (`deixis-v2_3-2-addressee_000_third`) — candidates: dice, banana, notebook · gold: **banana**
-
-```text
-Ada, Ross and Linda are sitting at a table. Ada has the dice and the banana. Ross has the notebook. Ada gives the banana to Ross. Ross gives the banana to Linda. Now Linda is holding the
-```
-
-**Shortcut-free example** — candidates: plate, dice, pencil · gold: **dice**
-
-```text
-Rosa, Larry and Mike are sitting at a table. Rosa has the plate and the dice. Larry has the pencil. Rosa gives the plate to Larry. Larry gives the pencil to Mike. Now Rosa is holding the
-```
-
-**More item 1** — candidates: lemon, dice, hat, soap · gold: **soap**
-
-```text
-Greg, Jessica and Molly are sitting at a table. Greg has the lemon, the dice and the hat. Molly has the soap. Molly gives the soap to Jessica. Greg gives the hat to Molly. Now Jessica is holding the
-```
-
-### `dx-addressee-2-deictic` — Deixis · you · P2 (structural) · I/you/my
-
-Query 'Ben: Ana, right now you're holding the' (P3 names 'you'; P2 = the only other person).
-
-**0-shot example** (`deixis-v2_2-2-addressee_000_deictic`) — candidates: chain, glue, screw · gold: **glue**
-
-```text
-A chat between Betty and Lily.
-Betty: I have the chain.
-Betty: The glue is mine.
-Lily: The screw is mine.
-Lily: My screw is yours now.
-Betty: I'm giving you my glue.
-Betty: Right now you're holding the
-```
-
-**Shortcut-free example** — candidates: photo, bulb, sponge · gold: **photo**
-
-```text
-A chat between Beth and Ryan.
-Ryan: I have the photo.
-Ryan: The bulb is mine.
-Ryan: I have the sponge.
-Ryan: Here, take my sponge.
-Ryan: My bulb is yours now.
-Beth: Right now you're holding the
-```
-
-**More item 1** — candidates: battery, hammer, lamp, stamp · gold: **lamp**
-
-```text
-A chat between Diana and Martha.
-Diana: The battery is mine.
-Diana: I have the hammer.
-Diana: The lamp is mine.
-Martha: The stamp is mine.
-Diana: Here, take my hammer.
-Diana: My battery is yours now.
-Martha: Right now you're holding the
-```
-
-### `dx-addressee-2-third` — Deixis · you · P2 (structural) · 3rd-person twin
-
-The same events narrated with names, no pronouns (the control).
-
-**0-shot example** (`deixis-v2_2-2-addressee_000_third`) — candidates: chain, glue, screw · gold: **glue**
-
-```text
-Betty and Lily are sitting at a table. Betty has the chain and the glue. Lily has the screw. Lily gives the screw to Betty. Betty gives the glue to Lily. Now Lily is holding the
-```
-
-**Shortcut-free example** — candidates: photo, bulb, sponge · gold: **photo**
-
-```text
-Beth and Ryan are sitting at a table. Ryan has the photo, the bulb and the sponge. Ryan gives the sponge to Beth. Ryan gives the bulb to Beth. Now Ryan is holding the
-```
-
-**More item 1** — candidates: rope, wire, onion · gold: **wire**
-
-```text
-Emily and Kevin are sitting at a table. Emily has the rope, the wire and the onion. Emily gives the rope to Kevin. Emily gives the onion to Kevin. Now Emily is holding the
-```
-
-> **Set binding:** 3-shot exemplars show completed sentences (often one object); the test item is scored on the exact gold set.
-
-### `sb-k1` — Set binding · 1 object
-
-Static, one object per queried person (baseline).
-
-**0-shot example** (`setbind-v1_1-joint-0_000`) — candidates: tape, nail, carrot, boot, mirror, letter, wallet, onion · gold: **onion**
-
-```text
-Kevin has the tape and the nail. Neil has the carrot and the boot. A mirror lies on the shelf. A letter lies on the shelf. Steve has the wallet. Jerry has the onion. So Jerry has the
-```
-
-**3-shot form** (same test item, three solved exemplars of its own type first; shown once per family — every Set binding column uses this layout)
-
-```text
-Paul has the brush and the ring. Ivan has the button. A candle lies on the shelf. Hugo has the map and the cup. Jane has the pen. A stone lies on the shelf. So Jane has the pen.
-
-* * *
-
-Ben has the candle and the glass. A stone lies on the shelf. A pen lies on the shelf. Emma has the brush. Sarah has the shell. Lucy has the book and the ring. So Sarah has the shell.
-
-* * *
-
-A map lies on the shelf. Mary has the button. Adam has the shell and the pen. Leo has the stone and the bell. Kate has the brush. A book lies on the shelf. So Kate has the brush.
-
-* * *
-
-Kevin has the tape and the nail. Neil has the carrot and the boot. A mirror lies on the shelf. A letter lies on the shelf. Steve has the wallet. Jerry has the onion. So Jerry has the
-```
-
-**More item 1** — candidates: rope, stamp, boot, marble, potato, belt, fork, shoe · gold: **stamp**
-
-```text
-A rope lies on the shelf. Amy has the stamp. A boot lies on the shelf. Bruce has the marble. George has the potato and the belt. Rachel has the fork and the shoe. So Amy has the
-```
-
-### `sb-k23` — Set binding · 2-3 objects, exact set
+A list pairs one to four names with tasks; name one person's task.
 
-Person keeps 2-3 objects (one sentence). Score: top-k == the set.
+**0-shot example** (`cap1|K1|D0|s0|t0`) — candidates: laundry, dishes, garden, cooking, shopping, painting, windows, trash, mail, dog, car, plants, bills, lunch, dinner, breakfast, garage, kitchen, roof, fence, pool, lawn, taxes, report, budget · gold: **shopping**
 
-**0-shot example** (`setbind-v1_2-joint-0_000`) — candidates: feather, carrot, shoe, spoon, lamp, nail, boot, switch · gold: **boot, switch**
-
-```text
-Joe has the feather. A carrot lies on the shelf. Hal has the shoe and the spoon. Sandra has the lamp. A nail lies on the shelf. Amanda has the boot and the switch. So Amanda has the
-```
-
-**More item 1** — candidates: towel, feather, sock, envelope, onion, fork, switch, plate · gold: **switch, plate**
-
-```text
-Ellen has the towel and the feather. Rachel has the sock. An envelope lies on the shelf. An onion lies on the shelf. Matt has the fork. George has the switch and the plate. So George has the
-```
-
-### `sb-split` — Set binding · split across sentences
-
-Same, but each object declared in a separate sentence.
-
-**0-shot example** (`setbind-v1_3-split-0_000`) — candidates: stamp, ribbon, magnet, spoon, bulb, lid, drum, glove · gold: **stamp, spoon, glove**
-
-```text
-Oscar has the stamp. Betty has the ribbon. Jessica has the magnet. Oscar also has the spoon. Amy has the bulb. A lid lies on the shelf. A drum lies on the shelf. Oscar also has the glove. So Oscar has the
-```
-
-**More item 1** — candidates: onion, boot, feather, marble, banana, mirror, hat, rope · gold: **onion, marble, hat**
-
-```text
-Ada has the onion. A boot lies on the shelf. Frank has the feather. Ada also has the marble. Olivia has the banana. A mirror lies on the shelf. Ada also has the hat. Sean has the rope. So Ada has the
-```
-
-### `sb-dyn` — Set binding · after transfers
-
-Sets change through two gives; read the final set.
-
-**0-shot example** (`setbind-v1_2-joint-2_000`) — candidates: fan, hammer, screw, magnet, stamp, banana, feather, tape · gold: **hammer, feather**
-
-```text
-Diana has the fan and the hammer. Carol has the screw and the magnet. Jill has the stamp. A banana lies on the shelf. Nancy has the feather. A tape lies on the shelf. Diana gives the fan to Nancy. Nancy gives the feather to Diana. So now Diana has the
-```
-
-**More item 1** — candidates: letter, jar, knife, switch, photo, screw, towel, boot · gold: **screw, boot**
-
-```text
-Ken has the letter. A jar lies on the shelf. George has the knife. Lily has the switch. A photo lies on the shelf. Amanda has the screw, the towel and the boot. Ken gives the letter to Lily. Amanda gives the towel to Ken. So now Amanda has the
-```
-
-> **Answer deixis:** Roles are cycled so every constant answer is at chance: holder = the answerer (me) ¼, the asker (you) ¼, one of the two others (a name) ½. For open models the candidates are me / you / the two OTHER people's names; exemplar answers follow the same cycle, so 'you'/'me' exemplars before a name item are expected.
-
-### `an-narr` — Answer deixis · narrator query
-
-Same chat, narrator asks 'Now the X is with' -> a name (comprehension).
-
-**0-shot example** (`answer-v2_1-novoc_000_narr`) — candidates: Tim, Nina, Carl, Erin · gold: **Nina**
-
-```text
-A chat between Tim, Nina, Carl and Erin.
-Tim: I have the envelope.
-Tim: The soap is mine.
-Nina: The towel is mine.
-Nina: The sock is mine.
-Tim: Nina, my soap is yours now.
-Now the soap is with
-```
-
-**3-shot form** (same test item, three solved exemplars of its own type first; shown once per family — every Answer deixis column uses this layout)
-
-```text
-A chat between Mary, Emma, Ivan and Kate.
-Mary: I have the button.
-Emma: The brush is mine.
-Ivan: The key is mine.
-Emma: Mary, I'm giving you my brush.
-Now the brush is with Mary.
-
-* * *
-
-A chat between Tom, Adam, Anna and Paul.
-Tom: The ring is mine.
-Adam: The glass is mine.
-Adam: The bell is mine.
-Adam: Tom, my glass is yours now.
-Now the glass is with Tom.
-
-* * *
-
-A chat between Ben, Leo, Owen and Sarah.
-Ben: I have the stone.
-Leo: The pen is mine.
-Owen: I have the cup.
-Sarah: The apple is mine.
-Sarah: Owen, I'm giving you my apple.
-Now the apple is with Owen.
-
-* * *
-
-A chat between Tim, Nina, Carl and Erin.
-Tim: I have the envelope.
-Tim: The soap is mine.
-Nina: The towel is mine.
-Nina: The sock is mine.
-Tim: Nina, my soap is yours now.
-Now the soap is with
-```
-
-**More item 1** — candidates: Carl, Julia, Alice, Nina · gold: **Carl**
-
 ```text
-A chat between Carl, Julia, Alice and Nina.
-Carl: The hammer is mine.
-Alice: I have the feather.
-Nina: I have the chain.
-Nina: The envelope is mine.
-Nina: Here, Julia, take my envelope.
-Now the hammer is with
+Tyler: shopping
+The task for Tyler is:
 ```
-
-### `an-other-any` — Answer deixis · answer: a name
 
-'Dee: Who has the cup now?' / 'Ben: I think it's with' -> another person's name. Calibrated read (vs body-hidden null).
+### `pairs` — Who has what? Nothing moves · Lookup among pairs
 
-**0-shot example** (`answer-v2_1-novoc_002_qa`) — candidates: me, you, Kevin, Martha · gold: **Kevin**
+Some people hold two objects and some one; name what a one-object person holds.
 
-```text
-A chat between Kevin, Helen, Clara and Martha.
-Clara: The hat is mine.
-Clara: I have the carrot.
-Clara: I have the mirror.
-Clara: Here, Kevin, take my hat.
-Clara: Who has the hat now?
-Helen: I think it's with
-```
+**0-shot example** (`setbind-v3_1-joint-0_000`) — candidates: funnel, magnet, pencil, towel, photo, chain, marble, bolt · gold: **bolt**
 
-**More item 1** — candidates: me, you, Sandra, Nina · gold: **Sandra**
-
 ```text
-A chat between Sandra, Eric, Nina and James.
-Sandra: I have the sponge.
-Nina: I have the drum.
-Nina: I have the potato.
-Nina: The whistle is mine.
-Nina: Here, James, take my drum.
-Eric: Who has the sponge now?
-James: Eric, I think it's with
+Nina has the funnel and the magnet. Matt has the pencil. Linda has the towel and the photo. A chain lies on the shelf. A marble lies on the shelf. Greg has the bolt. So Greg has the
 ```
-
-### `an-me-any` — Answer deixis · answer: me
 
-The answerer holds it -> ' me' (speak from your own seat). Calibrated read (vs body-hidden null).
+### `noise` — Who has what? Nothing moves · Lookup past noise
 
-**0-shot example** (`answer-v2_1-novoc_000_qa`) — candidates: me, you, Tim, Carl · gold: **me**
+Boxes are filled, unrelated events follow; name what one box holds.
 
-```text
-A chat between Tim, Nina, Carl and Erin.
-Tim: I have the envelope.
-Tim: The soap is mine.
-Nina: The towel is mine.
-Nina: The sock is mine.
-Tim: Nina, my soap is yours now.
-Erin: Who has the soap now?
-Nina: I think it's with
-```
+**0-shot example** (`formupdate-v3|K2|U1|prose|b00|A`) — candidates: hammer, sock, marble, ball, button · gold: **hammer**
 
-**More item 1** — candidates: me, you, Ross, Luke · gold: **me**
-
 ```text
-A chat between Laura, Ross, Luke and Hal.
-Ross: I have the knife.
-Luke: I have the wire.
-Hal: The shoe is mine.
-Luke: Hal, my wire is yours now.
-Ross: Laura, I'm giving you my knife.
-Laura: Who has the wire now?
-Hal: I think it's with
+The drawer holds the hammer. The tin holds the ball. Then the kettle is switched on. Then the lights are switched off. In the end, the drawer holds the
 ```
-
-### `an-you-voc` — Answer deixis · answer: you (named)
-
-The asker holds it, answer opens with the asker's name -> ' you'. Calibrated read (vs body-hidden null).
 
-**0-shot example** (`answer-v2_1-voc_001_qa`) — candidates: me, you, Oscar, Emily · gold: **you**
+### `now` — Who has what? Nothing moves · Who holds it now
 
-```text
-A chat between Seth, Tim, Oscar and Emily.
-Seth: I have the wallet.
-Tim: I have the hammer.
-Emily: I have the banana.
-Tim: Seth, I'm giving you my hammer.
-Seth: Who has the hammer now?
-Tim: Seth, I think it's with
-```
+A scene says who holds what; nothing moves. Then: 'Now X is holding the'.
 
-**More item 1** — candidates: me, you, Henry, Maya · gold: **you**
+**0-shot example** (`jl0000-third-orig`) — candidates: photo, onion, marble · gold: **onion**
 
 ```text
-A chat between Henry, Maya, Tony and John.
-Henry: The orange is mine.
-Maya: The envelope is mine.
-Tony: I have the photo.
-John: I have the rope.
-Maya: Here, Henry, take my envelope.
-John: Who has the rope now?
-Tony: John, I think it's with
+A chat between Jack and Carol. Carol has the onion, Jack has the photo, and a marble is on the table.
+Jack: The coffee here is good.
+Jack: I had lunch already.
+Now Carol is holding the
 ```
-
-### `an-you-novoc` — Answer deixis · answer: you (no name)
-
-The asker holds it, no name in the answer -> ' you' (reply structure only). Calibrated read (vs body-hidden null).
 
-**0-shot example** (`answer-v2_1-novoc_001_qa`) — candidates: me, you, Julia, Amy · gold: **you**
+### `handoffs` — Who has what after things move: told as a story · Hand-offs in a story
 
-```text
-A chat between Julia, Wendy, Amy and Jim.
-Julia: I have the bottle.
-Amy: The dice is mine.
-Jim: I have the rope.
-Amy: Wendy, I'm giving you my dice.
-Wendy: Who has the dice now?
-Jim: I think it's with
-```
+Objects pass between people in a short story; name who has an object at the end.
 
-**More item 1** — candidates: me, you, Kevin, Lily · gold: **you**
+**0-shot example** (`dialogue_3-1-holder_000`) — candidates: Lily, Jerry, Julia · gold: **Lily**
 
 ```text
-A chat between Kevin, Eric, Lily and Helen.
-Kevin: I have the stamp.
-Helen: I have the jar.
-Helen: I have the orange.
-Helen: The ticket is mine.
-Kevin: Lily, my stamp is yours now.
-Helen: Who has the ticket now?
-Eric: I think it's with
+Lily, Jerry and Julia are sitting at a table. Jerry has the tape, the rope and the envelope. Jerry hands the tape to Lily. Now the tape is with
 ```
 
-> **Adjacency:** Critical items (the scored ones) end with the object last moved by a grant; exemplars may be non-critical.
+### `sets` — Who has what after things move: told as a story · Sets after hand-offs
 
-### `adj-adj` — Adjacency · 'yours' by reply
+Each person starts with a set of objects, then two gives; name the set one person ends with.
 
-'Ben: Can I have the cup?' / 'Ana: Sure, the cup is yours.' -> Ben. Critical items (object last moved by a grant).
+**0-shot example** (`setbind-v3_1-joint-2_000`) — candidates: screw, bolt, notebook, fork, battery, drum, banana, potato · gold: **fork**
 
-**0-shot example** (`adjacency-v1_1-1_000_adj`) — candidates: Kurt, Kevin, John · gold: **John**
-
 ```text
-A chat between Kurt, Kevin and John.
-Kurt: I have the nail.
-Kevin: The potato is mine.
-John: I have the fork.
-John: Can I have the nail?
-Kurt: Sure, the nail is yours.
-Now the nail is with
+Matt has the screw. Neil has the bolt and the notebook. Eric has the fork and the battery. Oscar has the drum. A banana lies on the shelf. A potato lies on the shelf. Oscar gives the drum to Eric. Eric gives the fork to Oscar. So now Oscar has the
 ```
 
-**3-shot form** (same test item, three solved exemplars of its own type first; shown once per family — every Adjacency column uses this layout)
+### `refilled` — Who has what after things move: told as a story · Refilled box
 
-```text
-A chat between Leo, Adam and Ivan.
-Leo: The thread is mine.
-Leo: I have the brush.
-Leo: The bell is mine.
-Ivan: The map is mine.
-Leo: Can I have the map?
-Ivan: Sure, the map is yours.
-Now the map is with Leo.
-
-* * *
-
-A chat between Anna, Lucy and Jane.
-Lucy: The coin is mine.
-Lucy: The glass is mine.
-Lucy: I have the ring.
-Anna: Can I have the coin?
-Lucy: Sure, the coin is yours.
-Now the coin is with Anna.
-
-* * *
-
-A chat between Mary, Kate and Sarah.
-Kate: The shell is mine.
-Kate: I have the cup.
-Sarah: Can I have the cup?
-Kate: Sure, take the cup.
-Now the shell is with Kate.
-
-* * *
-
-A chat between Kurt, Kevin and John.
-Kurt: I have the nail.
-Kevin: The potato is mine.
-John: I have the fork.
-John: Can I have the nail?
-Kurt: Sure, the nail is yours.
-Now the nail is with
-```
+A box is emptied and refilled; name its new contents.
 
-**More item 1** — candidates: Jill, John, Mike · gold: **Jill**
+**0-shot example** (`formupdate-v3|K2|U1|prose|b00|C`) — candidates: hammer, sock, marble, ball, button · gold: **button**
 
 ```text
-A chat between Jill, John and Mike.
-John: The letter is mine.
-Mike: I have the lemon.
-Jill: Can I have the lemon?
-Mike: Sure, the lemon is yours.
-Now the lemon is with
+The drawer holds the hammer. The tin holds the ball. Then the drawer is emptied and the button is put in it. Then the lights are switched off. In the end, the drawer holds the
 ```
-
-### `adj-voc` — Adjacency · 'yours' with the name
 
-Same, grant names him: 'Sure, Ben, the cup is yours.' Critical items (object last moved by a grant).
+### `refills` — Who has what after things move: told as a story · Many refills
 
-**0-shot example** (`adjacency-v1_1-1_000_voc`) — candidates: Kurt, Kevin, John · gold: **John**
-
-```text
-A chat between Kurt, Kevin and John.
-Kurt: I have the nail.
-Kevin: The potato is mine.
-John: I have the fork.
-John: Can I have the nail?
-Kurt: Sure, John, the nail is yours.
-Now the nail is with
-```
+Boxes are emptied and refilled again and again; name one box's latest contents.
 
-**More item 1** — candidates: Linda, Helen, Joe · gold: **Joe**
+**0-shot example** (`fluid-v2-rebind|N1|RN|prose|s0|t0`) — candidates: stone, brush, button, ball, fork · gold: **button**
 
 ```text
-A chat between Linda, Helen and Joe.
-Helen: The soap is mine.
-Helen: I have the glue.
-Joe: Can I have the glue?
-Helen: Sure, Joe, the glue is yours.
-Now the glue is with
+The tin holds the fork. The crate holds the ball. The bag holds the hat. The drawer holds the brush. Then the drawer is emptied and the button is put in it. Then the bag is emptied and the stone is put in it. In the end, the drawer holds the
 ```
-
-### `adj-third` — Adjacency · 3rd-person twin
 
-'Ben asks Ana for the cup. Ana gives the cup to Ben.' Critical items (object last moved by a grant).
+### `codevar` — Who has what after things move: written as code · Variable chains
 
-**0-shot example** (`adjacency-v1_1-1_000_third`) — candidates: Kurt, Kevin, John · gold: **John**
-
-```text
-Kurt, Kevin and John are sitting at a table. Kurt has the nail. Kevin has the potato. John has the fork. John asks Kurt for the nail. Kurt gives the nail to John. Now the nail is with
-```
+Python variables are assigned, copied and reassigned; name what one prints.
 
-**More item 1** — candidates: David, Walt, Simon · gold: **Simon**
+**0-shot example** (`codevar_0-1_000`) — candidates: mirror, bulb, bowl, bolt · gold: **bolt**
 
 ```text
-David, Walt and Simon are sitting at a table. David has the envelope and the marble. Simon has the screw. Simon asks David for the marble. David gives the marble to Simon. Now the marble is with
+b = "mirror"
+d = "bulb"
+n = "bowl"
+b = "bolt"
+print(b)  # output:
 ```
 
-### `cm-mutate` — Aliased lists · mutate via alias
+### `sharedlists` — Who has what after things move: written as code · Shared lists
 
-b = a; a.append('x'); print(b[-1]) -> the appended value.
+Two names point at one Python list that is changed, rebound or copied; name what a print shows.
 
 **0-shot example** (`codevarmut-v1_1-mutate_000`) — candidates: bolt, spoon, straw, mirror, lantern · gold: **lantern**
 
@@ -1132,8998 +412,2733 @@ k.append("lantern")
 print(d[-1])  # output:
 ```
 
-**3-shot form** (same test item, three solved exemplars of its own type first; shown once per family — every Aliased lists column uses this layout)
+### `box-narrative` — One box puzzle, four formats · Box puzzle: prose
+
+Boxes are swapped, moved and refilled, written as plain sentences; name one box's contents.
+
+**0-shot example** (`n2m0_131|narrative|0shot`) — candidates: fork, tape · gold: **fork**
 
 ```text
-# python
-y = ["ring"]
-z = ["apple"]
-w = ["brush"]
-t = y
-y.append("thread")
-z = ["key"]
-print(t[-1])  # output: thread
-
-# ---
-
-# python
-v = ["book"]
-u = ["cup"]
-r = ["shell"]
-u = ["button"]
-p = r
-r.append("map")
-print(p[-1])  # output: map
-
-# ---
-
-# python
-y = ["pen"]
-q = ["coin"]
-t = ["bell"]
-q.append("candle")
-v = y
-y.append("stone")
-print(v[-1])  # output: stone
-
-# ---
-
-# python
-k = ["bolt"]
-f = ["spoon"]
-n = ["straw"]
-d = k
-n.append("mirror")
-k.append("lantern")
-print(d[-1])  # output:
+Box F contains the fork. Box G contains the tape. Box F now contains the
 ```
 
-**More item 1** — candidates: notebook, knife, jar, bolt, hat · gold: **hat**
+### `box-screenplay` — One box puzzle, four formats · Box puzzle: script
+
+Boxes are swapped, moved and refilled, written as a two-speaker script; name one box's contents.
+
+**0-shot example** (`n2m0_131|screenplay|0shot`) — candidates: fork, tape · gold: **fork**
 
 ```text
-# python
-a = ["notebook"]
-h = ["knife"]
-k = ["jar"]
-h.append("bolt")
-n = a
-a.append("hat")
-print(n[-1])  # output:
+SAM: Box F contains the fork. Box G contains the tape.
+RIVER: So Box F now contains the
 ```
 
-### `cm-rebind` — Aliased lists · rebind after alias
+### `box-code` — One box puzzle, four formats · Box puzzle: code
 
-b = a; a = ['new']; print(b[-1]) -> the OLD list's value.
+Boxes are swapped, moved and refilled, written as a Python dictionary; name one box's contents.
 
-**0-shot example** (`codevarmut-v1_1-rebind_000`) — candidates: glue, bottle, magnet, shoe, chain · gold: **glue**
+**0-shot example** (`n2m0_131|code|0shot`) — candidates: fork, tape · gold: **fork**
 
 ```text
-# python
-m = ["glue"]
-f = ["bottle"]
-n = ["magnet"]
-f.append("shoe")
-k = m
-m = ["chain"]
-print(k[-1])  # output:
+state = {"F": "fork", "G": "tape"}
+print(state["F"])  #
 ```
 
-**More item 1** — candidates: screw, letter, ticket, boot, clock · gold: **screw**
+### `box-chat` — One box puzzle, four formats · Box puzzle: chat
+
+Boxes are swapped, moved and refilled, written as chat turns; name one box's contents.
+
+**0-shot example** (`n2m0_131|chat|0shot`) — candidates: fork, tape · gold: **fork**
 
 ```text
-# python
-c = ["screw"]
-b = ["letter"]
-f = ["ticket"]
-h = c
-c = ["boot"]
-f.append("clock")
-print(h[-1])  # output:
+<|im_start|>user
+Box F contains the fork. Box G contains the tape.<|im_end|>
+<|im_start|>assistant
+So Box F now contains the
 ```
 
-### `cm-copy` — Aliased lists · copy then mutate
+### `you-static` — Who are I and you? · 'You', nothing moves
 
-b = list(a); a.append('x'); print(b[-1]) -> unaffected.
+A narrator says who holds what; then a speaker says 'right now you're holding the'. Name the listener's object.
 
-**0-shot example** (`codevarmut-v1_1-copy_000`) — candidates: wire, ribbon, funnel, spoon, tape · gold: **funnel**
+**0-shot example** (`jl0000-addressee-orig`) — candidates: photo, onion, marble · gold: **onion**
 
 ```text
-# python
-b = ["wire"]
-h = ["ribbon"]
-e = ["funnel"]
-k = list(e)
-b.append("spoon")
-e.append("tape")
-print(k[-1])  # output:
+A chat between Jack and Carol. Carol has the onion, Jack has the photo, and a marble is on the table.
+Jack: The coffee here is good.
+Jack: I had lunch already.
+Jack: Right now you're holding the
 ```
 
-**More item 1** — candidates: sock, mirror, dice, lid, magnet · gold: **sock**
+### `i-moves` — Who are I and you? · 'I', after hand-offs
+
+Two people hand objects over only through I / my / you lines; a speaker says 'right now I'm holding the'.
+
+**0-shot example** (`deixis-v2_2-1-self_000_deictic`) — candidates: knife, switch, fan · gold: **switch**
 
 ```text
-# python
-d = ["sock"]
-k = ["mirror"]
-g = ["dice"]
-a = list(d)
-d.append("lid")
-g.append("magnet")
-print(a[-1])  # output:
+A chat between Olivia and Maya.
+Olivia: I have the knife.
+Olivia: The switch is mine.
+Olivia: The fan is mine.
+Olivia: I'm giving you my switch.
+Maya: Right now I'm holding the
+```
+
+### `you-moves` — Who are I and you? · 'You', after hand-offs
+
+Two people hand objects over only through I / my / you lines; a speaker says 'right now you're holding the'. Name the listener's object.
+
+**0-shot example** (`deixis-v2_2-1-addressee_000_deictic`) — candidates: clock, lantern, whistle · gold: **clock**
+
+```text
+A chat between Judy and Diana.
+Judy: The clock is mine.
+Judy: I have the lantern.
+Judy: I have the whistle.
+Judy: My clock is yours now.
+Judy: Right now you're holding the
+```
+
+### `you-named` — Who are I and you? · 'You' among three
+
+Three people talk and hand objects over; the line naming the listener asks what they are holding.
+
+**0-shot example** (`deixis-v2_3-1-addressee_000_deictic`) — candidates: magnet, sponge, lamp · gold: **sponge**
+
+```text
+A chat between Amy, Omar and Henry.
+Amy: The magnet is mine.
+Omar: The sponge is mine.
+Omar: I have the lamp.
+Omar: Here, Henry, take my sponge.
+Amy: Henry, right now you're holding the
+```
+
+### `answer-self` — Who are I and you? · Answering as yourself
+
+A speaker must answer with 'me', 'you' or a name, from where they stand in the conversation.
+
+**0-shot example** (`answer-v3_1-novoc_000_qa`) — candidates: me, you, Hal, Jill · gold: **me**
+
+```text
+A chat between Dan, Hal, Jill and Mike.
+Hal: I have the belt.
+Hal: I have the photo.
+Mike: I have the basket.
+Hal: Dan, I'm giving you my photo.
+Mike: Who has the photo now?
+Dan: I think it's with
+```
+
+### `grammar` — Learning a rule from the examples · Made-up grammar
+
+Examples show an invented word ending; apply it to a new invented word.
+
+**0-shot example** (`fluid-v1-morph|suffix|n8|s0|t0`) — candidates: fo, di, fa, bi, ta · gold: **bi**
+
+```text
+Word → plural:
+da ba → da ba bi
+de ge → de ge bi
+te su → te su bi
+se pi → se pi bi
+mo po → mo po bi
+mi sa → mi sa bi
+mu fu → mu fu bi
+ma di → ma di bi
+fa fo → fa fo
+```
+
+### `operators` — Learning a rule from the examples · Made-up operators
+
+Example equations define invented symbols; solve a new equation.
+
+**0-shot example** (`fluid-v2-algebra|k1|d1|s0|t0`) — candidates: vap, viv, ker, piv, reb, sab · gold: **piv**
+
+```text
+Equations:
+reb ⊙ vap = reb
+vap ⊙ viv = vap
+sab ⊙ reb = sab
+piv ⊙ viv =
+```
+
+### `patterns` — Learning a rule from the examples · Pattern completion
+
+Example lines repeat or mirror a pattern of nonsense words; continue a new line. A copy rule alone scores .26 here.
+
+**0-shot example** (`fluid-v1-seqind|m2|g0|s0|t0`) — candidates: raz, bif, gaz, nex, sab, ker · gold: **gaz**
+
+```text
+Sequences:
+raz vir vir raz
+sab ker ker sab
+nex vap vap nex
+gaz bif bif
+```
+
+### `facts` — Learning a rule from the examples · Known facts (control)
+
+Real facts in the same examples-then-question layout; this column separates the layout from the learning.
+
+**0-shot example** (`cryst-v1|capital|shots6|s0|t0`) — candidates: Copenhagen, Washington, Warsaw, Brussels, Berlin, Paris · gold: **Brussels**
+
+```text
+Country → capital:
+Philippines → Manila
+Greece → Athens
+China → Beijing
+United Kingdom → London
+Japan → Tokyo
+South Korea → Seoul
+Belgium →
 ```
 
 ## Rows
 
 API rows (`or-…`) are all generation-scored; `-A` = reflex frame (single next word, reasoning off), `-B` = deliberate frame (think, then the word). Notes below list only what differs from that.
 
-| id | label | group | size (B params) | note |
-|---|---|---|---|---|
-| `human` | Human reader (gauntlet) | Human | — | reflex, read cold: round 1 (31 items, 30 right) + round 2 (24 items, 22 right; both misses self-reported reading slips) |
-| `or-amazon/nova-pro-v1-A` | Amazon Nova Pro · reflex | API · closed | — |  |
-| `or-anthropic/claude-fable-5.1-A` | Claude Fable 5.1 · reflex | API · closed | — |  |
-| `or-anthropic/claude-haiku-4.5-B` | Claude Haiku 4.5 · deliberate | API · closed | — |  |
-| `or-anthropic/claude-haiku-4.5-A` | Claude Haiku 4.5 · reflex | API · closed | — |  |
-| `or-anthropic/claude-haiku-5.5-B` | Claude Haiku 5.5 · deliberate | API · closed | — |  |
-| `or-anthropic/claude-haiku-5.5-A` | Claude Haiku 5.5 · reflex | API · closed | — |  |
-| `or-anthropic/claude-opus-4.5-A` | Claude Opus 4.5 · reflex | API · closed | — |  |
-| `or-anthropic/claude-opus-5.5-B` | Claude Opus 5.5 · deliberate | API · closed | — |  |
-| `or-anthropic/claude-opus-5.5-A` | Claude Opus 5.5 · reflex | API · closed | — | 27% of its reflex calls reasoned anyway and are EXCLUDED (cells use only zero-reasoning calls) |
-| `or-anthropic/claude-sonnet-4.5-A` | Claude Sonnet 4.5 · reflex | API · closed | — |  |
-| `or-anthropic/claude-sonnet-5.5-B` | Claude Sonnet 5.5 · deliberate | API · closed | — |  |
-| `or-anthropic/claude-sonnet-5.5-A` | Claude Sonnet 5.5 · reflex | API · closed | — |  |
-| `or-google/gemini-2.5-flash-B` | Gemini 2.5 Flash · deliberate | API · closed | — |  |
-| `or-google/gemini-2.5-flash-A` | Gemini 2.5 Flash · reflex | API · closed | — |  |
-| `or-google/gemini-2.5-flash-lite-A` | Gemini 2.5 Flash-Lite · reflex | API · closed | — |  |
-| `or-google/gemini-3.1-pro-preview-B` | Gemini 3.1 Pro (preview) · deliberate | API · closed | — |  |
-| `or-openai/gpt-4.1-mini-A` | GPT-4.1 mini · reflex | API · closed | — |  |
-| `or-openai/gpt-4.1-nano-A` | GPT-4.1 nano · reflex | API · closed | — |  |
-| `or-openai/gpt-4.1-A` | GPT-4.1 · reflex | API · closed | — |  |
-| `or-openai/gpt-4o-mini-A` | GPT-4o mini · reflex | API · closed | — |  |
-| `or-openai/gpt-5-mini-B` | GPT-5 mini · deliberate | API · closed | — |  |
-| `or-openai/gpt-5-mini-A` | GPT-5 mini · reflex | API · closed | — |  |
-| `or-openai/gpt-5-nano-B` | GPT-5 nano · deliberate | API · closed | — |  |
-| `or-openai/gpt-5-nano-A` | GPT-5 nano · reflex | API · closed | — |  |
-| `or-openai/gpt-5.5-B` | GPT-5.5 · deliberate | API · closed | — |  |
-| `or-openai/gpt-5.5-A` | GPT-5.5 · reflex | API · closed | — |  |
-| `or-x-ai/grok-4.3-B` | Grok 4.3 · deliberate | API · closed | — |  |
-| `or-x-ai/grok-4.3-A` | Grok 4.3 · reflex | API · closed | — |  |
-| `or-deepseek/deepseek-v3.2-B` | DeepSeek V3.2 (671B MoE) · deliberate | API · open weights | 671 |  |
-| `or-deepseek/deepseek-v3.2-A` | DeepSeek V3.2 (671B MoE) · reflex | API · open weights | 671 | 28% of its reflex calls reasoned anyway and are EXCLUDED (cells use only zero-reasoning calls) |
-| `or-google/gemma-3-12b-it-A` | Gemma-3 12B IT · reflex | API · open weights | 12 |  |
-| `or-google/gemma-3-27b-it-A` | Gemma-3 27B IT · reflex | API · open weights | 27 |  |
-| `or-google/gemma-3-4b-it-A` | Gemma-3 4B IT · reflex | API · open weights | 4 |  |
-| `or-z-ai/glm-4.6-B` | GLM-4.6 (355B MoE) · deliberate | API · open weights | 355 |  |
-| `or-z-ai/glm-4.6-A` | GLM-4.6 (355B MoE) · reflex | API · open weights | 355 |  |
-| `or-openai/gpt-oss-120b-B` | gpt-oss 120B · deliberate | API · open weights | 120 |  |
-| `or-openai/gpt-oss-120b-A` | gpt-oss 120B · reflex | API · open weights | 120 | 58% of its reflex calls reasoned anyway and are EXCLUDED (cells use only zero-reasoning calls) |
-| `or-nousresearch/hermes-3-llama-3.1-405b-A` | Hermes-3 405B · reflex | API · open weights | 405 |  |
-| `or-moonshotai/kimi-k2-0905-A` | Kimi K2 (1T MoE) · reflex | API · open weights | 1000 |  |
-| `or-meta-llama/llama-3.1-8b-instruct-A` | Llama-3.1 8B Instruct · reflex | API · open weights | 8 |  |
-| `or-meta-llama/llama-3.2-1b-instruct-A` | Llama-3.2 1B Instruct · reflex | API · open weights | 1 |  |
-| `or-meta-llama/llama-3.2-3b-instruct-A` | Llama-3.2 3B Instruct · reflex | API · open weights | 3 |  |
-| `or-meta-llama/llama-3.3-70b-instruct-A` | Llama-3.3 70B Instruct · reflex | API · open weights | 70 |  |
-| `or-meta-llama/llama-4-maverick-A` | Llama-4 Maverick (400B MoE) · reflex | API · open weights | 400 |  |
-| `or-mistralai/ministral-3b-2512-A` | Ministral 3B · reflex | API · open weights | 3 |  |
-| `or-mistralai/ministral-8b-2512-A` | Ministral 8B · reflex | API · open weights | 8 |  |
-| `or-mistralai/mistral-large-2512-A` | Mistral Large (2512) · reflex | API · open weights | — |  |
-| `or-mistralai/mistral-small-3.2-24b-instruct-A` | Mistral Small 3.2 24B · reflex | API · open weights | 24 |  |
-| `or-microsoft/phi-4-A` | Phi-4 14B · reflex | API · open weights | 14 |  |
-| `or-qwen/qwen-2.5-72b-instruct-A` | Qwen2.5 72B Instruct · reflex | API · open weights | 72 |  |
-| `or-qwen/qwen-2.5-7b-instruct-A` | Qwen2.5 7B Instruct · reflex | API · open weights | 7 |  |
-| `or-qwen/qwen3-235b-a22b-2507-A` | Qwen3 235B-A22B · reflex | API · open weights | 235 |  |
-| `or-qwen/qwen3-32b-A` | Qwen3 32B · reflex | API · open weights | 32 | 37% of its reflex calls reasoned anyway and are EXCLUDED (cells use only zero-reasoning calls) |
-| `or-qwen/qwen3.5-397b-a17b-B` | Qwen3.5 397B-A17B · deliberate | API · open weights | 397 |  |
-| `or-qwen/qwen3.5-397b-a17b-A` | Qwen3.5 397B-A17B · reflex | API · open weights | 397 | 2% of its reflex calls reasoned anyway and are EXCLUDED (cells use only zero-reasoning calls) |
-| `smollm2-135m` | SmolLM2 135M | Pretrained bases | 0.135 |  |
-| `pythia-160m` | Pythia 160M | Pretrained bases | 0.16 |  |
-| `smollm2-360m` | SmolLM2 360M | Pretrained bases | 0.36 |  |
-| `pythia-410m` | Pythia 410M | Pretrained bases | 0.41 |  |
-| `qwen2.5-0.5b` | Qwen2.5 0.5B | Pretrained bases | 0.5 |  |
-| `qwen3-0.6b-base` | Qwen3 0.6B | Pretrained bases | 0.6 |  |
-| `llama3.2-1b` | Llama-3.2 1B | Pretrained bases | 1 |  |
-| `olmo1-1b-0724` | OLMo-1 1B (0724) | Pretrained bases | 1 |  |
-| `pythia-1b` | Pythia 1B | Pretrained bases | 1 |  |
-| `tsumugi-release` | kotodama-tsumugi 1.4B (release) | Pretrained bases | 1.4 |  |
-| `pythia-1.4b` | Pythia 1.4B | Pretrained bases | 1.4 |  |
-| `olmo2-1b` | OLMo-2 1B | Pretrained bases | 1.5 |  |
-| `qwen2.5-1.5b` | Qwen2.5 1.5B | Pretrained bases | 1.5 |  |
-| `qwen3-1.7b-base` | Qwen3 1.7B | Pretrained bases | 1.7 |  |
-| `smollm2-1.7b` | SmolLM2 1.7B | Pretrained bases | 1.7 |  |
-| `pythia-2.8b` | Pythia 2.8B | Pretrained bases | 2.8 |  |
-| `falcon3-3b` | Falcon3 3B | Pretrained bases | 3 |  |
-| `qwen2.5-3b` | Qwen2.5 3B | Pretrained bases | 3 |  |
-| `qwen3-4b-base` | Qwen3 4B | Pretrained bases | 4 |  |
-| `pythia-6.9b` | Pythia 6.9B | Pretrained bases | 6.9 |  |
-| `falcon3-7b` | Falcon3 7B | Pretrained bases | 7 |  |
-| `olmo2-7b-base` | OLMo-2 7B | Pretrained bases | 7 |  |
-| `qwen2.5-7b` | Qwen2.5 7B | Pretrained bases | 7 |  |
-| `llama31-8b-base` | Llama-3.1 8B | Pretrained bases | 8 |  |
-| `gemma2-9b` | Gemma-2 9B | Pretrained bases | 9 | scored with vLLM (parity-checked against HF) |
-| `olmo2-13b` | OLMo-2 13B | Pretrained bases | 13 |  |
-| `qwen3-30b-a3b-base` | Qwen3 30B-A3B | Pretrained bases | 30 | scored with vLLM (parity-checked against HF) |
-| `gemma4-31b-base` | Gemma-4 31B | Pretrained bases | 31 | scored with vLLM (parity-checked against HF) |
-| `glm4-32b-base` | GLM-4 32B | Pretrained bases | 32 | scored with vLLM (parity-checked against HF) |
-| `olmo3-32b` | OLMo-3 32B | Pretrained bases | 32 | scored with vLLM (parity-checked against HF) |
-| `olmo3-32b-stage1` | OLMo-3 32B @ stage 1 (pre-midtrain) | Pretrained bases | 32 | pre-midtraining checkpoint; scored with vLLM (parity-checked against HF) |
-| `llama31-70b` | Llama-3.1 70B | Pretrained bases | 70 | scored with vLLM (parity-checked against HF) |
-| `qwen25-72b` | Qwen2.5 72B | Pretrained bases | 72 | scored with vLLM (parity-checked against HF) |
-| `dsv4-flash-base` | DeepSeek-V4 Flash Base | Pretrained bases | 290 | ≈290B total params (MoE); scored with vLLM (parity-checked against HF) |
-| `mimo-v25-base` | MiMo-V2.5 Base | Pretrained bases | 310 | ≈310B total params (MoE); scored with vLLM (parity-checked against HF) |
-| `trinity-base` | Trinity-Large Base | Pretrained bases | 400 | ≈400B MoE; scored with vLLM (parity-checked against HF) |
-| `trinity-truebase` | Trinity-Large TrueBase | Pretrained bases | 400 | ≈400B MoE; scored with vLLM (parity-checked against HF) |
-| `llama31-405b` | Llama-3.1 405B | Pretrained bases | 405 | scored with vLLM (parity-checked against HF) |
-| `dsv3-base` | DeepSeek-V3 Base (671B MoE) | Pretrained bases | 671 | scored with vLLM (parity-checked against HF) |
-| `dsv4-pro-base` | DeepSeek-V4 Pro Base | Pretrained bases | 860 | ≈860B total params (MoE); scored from an fp4 copy; scored with vLLM (parity-checked against HF) |
-| `kimi-k2-base` | Kimi-K2 Base (1T MoE) | Pretrained bases | 1000 | scored with vLLM (parity-checked against HF) |
-| `mimo-v25-pro-base` | MiMo-V2.5-Pro Base | Pretrained bases | 1000 | ≈1T total params (MoE); scored with vLLM (parity-checked against HF) |
-| `olmo2-7b-pt2928B` | OLMo-2 7B @ 2.9T (stage 1) | OLMo-2 7B trajectory | 7 |  |
-| `olmo2-7b-pt3896B` | OLMo-2 7B @ 3.9T (end stage 1) | OLMo-2 7B trajectory | 7 |  |
-| `olmo2-7b-mid5B` | OLMo-2 7B mid-train +5B | OLMo-2 7B trajectory | 7 |  |
-| `olmo2-7b-mid17B` | OLMo-2 7B mid-train +17B | OLMo-2 7B trajectory | 7 |  |
-| `olmo2-7b-mid50B` | OLMo-2 7B mid-train +50B | OLMo-2 7B trajectory | 7 |  |
-| `olmo2-7b-sft` | OLMo-2 7B SFT | Post-trained | 7 |  |
-| `olmo2-7b-dpo` | OLMo-2 7B DPO | Post-trained | 7 |  |
-| `olmo2-7b-instruct` | OLMo-2 7B Instruct | Post-trained | 7 |  |
-| `llama31-8b-instruct` | Llama-3.1 8B Instruct | Post-trained | 8 |  |
-| `falcon-h1-0.5b` | Falcon-H1 0.5B | Hybrid & SSM bases | 0.5 |  |
-| `falcon-h1-1.5b` | Falcon-H1 1.5B (24L) | Hybrid & SSM bases | 1.5 |  |
-| `falcon-h1-1.5b-deep` | Falcon-H1 1.5B-Deep (66L) | Hybrid & SSM bases | 1.5 |  |
-| `falcon-h1-3b` | Falcon-H1 3B | Hybrid & SSM bases | 3 |  |
-| `falcon-h1-7b` | Falcon-H1 7B | Hybrid & SSM bases | 7 |  |
-| `falcon-mamba-7b` | Falcon-Mamba 7B (pure SSM) | Hybrid & SSM bases | 7 |  |
-| `bamba-9b` | Bamba 9B (interleaved) | Hybrid & SSM bases | 9 |  |
-| `recurrentgemma-9b` | RecurrentGemma 9B | Hybrid & SSM bases | 9 |  |
-| `falcon-h1-34b-base` | Falcon-H1 34B | Hybrid & SSM bases | 34 |  |
-| `nemotron3-ultra-550b-base` | Nemotron-3 Ultra 550B Base (hybrid) | Hybrid & SSM bases | 550 | Mamba–attention hybrid; scored with vLLM (parity-checked against HF) |
+| id | label | group | params (B) | active (B) | pretraining tokens | note |
+|---|---|---|---|---|---|---|
+| `human` | Human reader (gauntlet) | Human | — | — | — | reflex, read cold: round 1 (31 items, 30 right) + round 2 (24 items, 22 right; both misses self-reported reading slips) |
+| `pythia-160m` | Pythia 160M | under 1B | 0.213 | 0.213 | 300B |  |
+| `smollm2-360m` | SmolLM2 360M | under 1B | 0.362 | 0.362 | 4T |  |
+| `qwen2.5-0.5b` | Qwen2.5 0.5B | under 1B | 0.494 | 0.494 | ≤ 18T |  |
+| `falcon-h1-0.5b` | Falcon-H1 0.5B | under 1B | 0.521 | 0.521 | 2.5T |  |
+| `qwen3-0.6b` | Qwen3 0.6B | under 1B | 0.596 | 0.596 | 36T |  |
+| `pythia-1b` | Pythia 1B | 1–3B | 1.079 | 1.079 | 300B |  |
+| `llama3.2-1b` | Llama-3.2 1B | 1–3B | 1.236 | 1.236 | ≤ distilled 9T |  |
+| `olmo1-1b` | OLMo 1B | 1–3B | 1.28 | 1.28 | 3.05T |  |
+| `tsumugi` | kotodama-tsumugi 1.4B | 1–3B | 1.425 | 1.425 | 110B |  |
+| `olmo2-1b` | OLMo-2 1B | 1–3B | 1.485 | 1.485 | 4.05T |  |
+| `pythia-1.4b` | Pythia 1.4B | 1–3B | 1.515 | 1.515 | 300B |  |
+| `qwen2.5-1.5b` | Qwen2.5 1.5B | 1–3B | 1.544 | 1.544 | ≤ 18T |  |
+| `falcon-h1-1.5b` | Falcon-H1 1.5B | 1–3B | 1.555 | 1.555 | 3T |  |
+| `falcon-h1-1.5b-deep` | Falcon-H1 1.5B-Deep | 1–3B | 1.555 | 1.555 | 3T |  |
+| `gpt2-xl` | GPT-2 XL | 1–3B | 1.608 | 1.608 | — |  |
+| `smollm2-1.7b` | SmolLM2 1.7B | 1–3B | 1.711 | 1.711 | 11T |  |
+| `qwen3-1.7b` | Qwen3 1.7B | 1–3B | 1.721 | 1.721 | 36T |  |
+| `gemma-2b` | Gemma 2B | 1–3B | 2.506 | 2.506 | 3T |  |
+| `gemma2-2b` | Gemma-2 2B | 1–3B | 2.614 | 2.614 | distilled 2T |  |
+| `pythia-2.8b` | Pythia 2.8B | 1–3B | 2.909 | 2.909 | 300B |  |
+| `pythia-2.8b-deduped` | Pythia 2.8B (deduped) | 1–3B | 2.909 | 2.909 | 300B |  |
+| `qwen2.5-3b` | Qwen2.5 3B | 3–10B | 3.086 | 3.086 | ≤ 18T |  |
+| `falcon-h1-3b` | Falcon-H1 3B | 3–10B | 3.149 | 3.149 | 2.5T |  |
+| `falcon3-3b` | Falcon3 3B | 3–10B | 3.228 | 3.228 | 100B |  |
+| `qwen3-30b-a3b` | Qwen3 30B-A3B (MoE) | 3–10B | 30.532 | 3.3 | 36T |  |
+| `qwen3-4b` | Qwen3 4B | 3–10B | 4.022 | 4.022 | 36T |  |
+| `pythia-6.9b` | Pythia 6.9B | 3–10B | 6.992 | 6.992 | 300B |  |
+| `falcon-mamba-7b` | Falcon-Mamba 7B | 3–10B | 7.273 | 7.273 | 5.8T |  |
+| `olmo2-7b` | OLMo-2 7B | 3–10B | 7.299 | 7.299 | 4.15T |  |
+| `falcon3-7b` | Falcon3 7B | 3–10B | 7.456 | 7.456 | 14T |  |
+| `falcon-h1-7b` | Falcon-H1 7B | 3–10B | 7.586 | 7.586 | ≈ 12T |  |
+| `qwen2.5-7b` | Qwen2.5 7B | 3–10B | 7.616 | 7.616 | ≤ 18T |  |
+| `llama3-8b` | Llama-3 8B | 3–10B | 8.03 | 8.03 | ≥ 15T |  |
+| `llama3.1-8b` | Llama-3.1 8B | 3–10B | 8.03 | 8.03 | ≈ 15T |  |
+| `gemma-7b` | Gemma 7B | 3–10B | 8.538 | 8.538 | 6T |  |
+| `gemma2-9b` | Gemma-2 9B | 3–10B | 9.242 | 9.242 | distilled 8T |  |
+| `recurrentgemma-9b` | RecurrentGemma 9B | 3–10B | 9.629 | 9.629 | 2T |  |
+| `bamba-9b` | Bamba 9B | 3–10B | 9.78 | 9.78 | ≈ 3.1T |  |
+| `olmo2-13b` | OLMo-2 13B | 10B and up | 13.716 | 13.716 | 5.6T |  |
+| `olmo3-32b` | OLMo-3 32B | 10B and up | 32.234 | 32.234 | 5.7T |  |
+| `olmo3-32b-stage1` | OLMo-3 32B, before mid-training | 10B and up | 32.234 | 32.234 | stage 1 only 5.5T |  |
+| `glm4-32b-base` | GLM-4 32B | 10B and up | 32.566 | 32.566 | 15T |  |
+| `falcon-h1-34b` | Falcon-H1 34B | 10B and up | 33.643 | 33.643 | ≈ 18T |  |
+| `llama3.1-70b` | Llama-3.1 70B | 10B and up | 70.554 | 70.554 | ≈ 15T |  |
+| `qwen2.5-72b` | Qwen2.5 72B | 10B and up | 72.706 | 72.706 | ≤ 18T |  |
+| `llama3.1-405b` | Llama-3.1 405B | 10B and up | 405.853 | 405.853 | 15.6T |  |
+| `tsumugi-s17-a5B` | kotodama-tsumugi · 5B tokens | kotodama-tsumugi, by training tokens | 1.425 | 1.425 | 5B |  |
+| `tsumugi-s7-a5B` | kotodama-tsumugi, seed 7 · 5B tokens | kotodama-tsumugi, by training tokens | 1.425 | 1.425 | 5B |  |
+| `tsumugi-s17-a11B` | kotodama-tsumugi · 11B tokens | kotodama-tsumugi, by training tokens | 1.425 | 1.425 | 11B |  |
+| `tsumugi-s7-a11B` | kotodama-tsumugi, seed 7 · 11B tokens | kotodama-tsumugi, by training tokens | 1.425 | 1.425 | 11B |  |
+| `tsumugi-s17-a33B` | kotodama-tsumugi · 33B tokens | kotodama-tsumugi, by training tokens | 1.425 | 1.425 | 33B |  |
+| `tsumugi-s17-a55B` | kotodama-tsumugi · 55B tokens | kotodama-tsumugi, by training tokens | 1.425 | 1.425 | 55B |  |
+| `tsumugi-s17-a88B` | kotodama-tsumugi · 88B tokens | kotodama-tsumugi, by training tokens | 1.425 | 1.425 | 88B |  |
 
-## 0-shot tables by family
+## Tables by group
 
-Accuracy × 100, 0-shot; deixis columns are the **shortcut-free** subset. `—` = not measured; `†` = fewer than 20 items in that cell (all human cells; many API cells). Rows are grouped (bold separator rows); API rows are generation-scored, open rows logprob-scored. Full numbers (n, chance, se, every condition and mode) are in the CSV below.
+Score (0 = guessing, 1 = always right), with worked examples where the column has them; `°` = the column's only reading (cold, or across its ladder); `↓` = below chance (the interval is below 0); `—` = not measured. Full numbers (n, chance, the interval, every condition) are in the CSV below.
 
-### Core binding
+### Who has what? Nothing moves
 
-| model | Static lookup | Code variables | 3rd-person updates |
-|---|---|---|---|
-| **Human** | | | |
-| Human reader (gauntlet) | 100† | 80† | 100† |
-| **API · closed** | | | |
-| Amazon Nova Pro · reflex | 100 | 80 | 93 |
-| Claude Fable 5.1 · reflex | 100 | 53 | 100 |
-| Claude Haiku 4.5 · reflex | 100 | 90 | 87 |
-| Claude Haiku 5.5 · reflex | 100 | 70 | 93 |
-| Claude Opus 4.5 · reflex | 100 | 100 | 100 |
-| Claude Opus 5.5 · reflex | 100 | 70 | 100 |
-| Claude Sonnet 4.5 · reflex | 100 | 100 | 100 |
-| Claude Sonnet 5.5 · reflex | 100 | 63 | 93 |
-| Gemini 2.5 Flash · reflex | 100 | 93 | 93 |
-| Gemini 2.5 Flash-Lite · reflex | 90 | 70 | 87 |
-| GPT-4.1 mini · reflex | 83 | 90 | 97 |
-| GPT-4.1 nano · reflex | 57 | 73 | 77 |
-| GPT-4.1 · reflex | 93 | 93 | 100 |
-| GPT-4o mini · reflex | 63 | 83 | 93 |
-| GPT-5 mini · reflex | 70 | 80 | 83 |
-| GPT-5 nano · reflex | 17 | 47 | 67 |
-| GPT-5.5 · reflex | 100 | 97 | 100 |
-| Grok 4.3 · reflex | 100 | 77 | 97 |
-| **API · open weights** | | | |
-| DeepSeek V3.2 (671B MoE) · reflex | 67 | 91 | 100 |
-| Gemma-3 12B IT · reflex | 67 | 77 | 80 |
-| Gemma-3 27B IT · reflex | 57 | 70 | 93 |
-| Gemma-3 4B IT · reflex | 87 | 53 | 33 |
-| GLM-4.6 (355B MoE) · reflex | 97 | 90 | 100 |
-| gpt-oss 120B · reflex | 25† | 0† | 44† |
-| Hermes-3 405B · reflex | 93 | 70 | 100 |
-| Kimi K2 (1T MoE) · reflex | 100 | 93 | 100 |
-| Llama-3.1 8B Instruct · reflex | 73 | 37 | 90 |
-| Llama-3.2 1B Instruct · reflex | 77 | 13 | 50 |
-| Llama-3.2 3B Instruct · reflex | 50 | 47 | 80 |
-| Llama-3.3 70B Instruct · reflex | 93 | 73 | 100 |
-| Llama-4 Maverick (400B MoE) · reflex | 100 | 100 | 100 |
-| Ministral 3B · reflex | 80 | 67 | 70 |
-| Ministral 8B · reflex | 60 | 77 | 73 |
-| Mistral Large (2512) · reflex | 81† | 92† | 100† |
-| Mistral Small 3.2 24B · reflex | 87 | 93 | 93 |
-| Phi-4 14B · reflex | 100 | 73 | 90 |
-| Qwen2.5 72B Instruct · reflex | 100 | 83 | 97 |
-| Qwen2.5 7B Instruct · reflex | 93 | 67 | 90 |
-| Qwen3 235B-A22B · reflex | 80 | 73 | 87 |
-| Qwen3 32B · reflex | 95† | 73 | 100† |
-| Qwen3.5 397B-A17B · reflex | 100 | 100 | 100 |
-| **Pretrained bases** | | | |
-| SmolLM2 135M | 39 | 28 | 43 |
-| Pythia 160M | 5 | 10 | 10 |
-| SmolLM2 360M | 45 | 31 | 58 |
-| Pythia 410M | 53 | 25 | 39 |
-| Qwen2.5 0.5B | 39 | 33 | 45 |
-| Qwen3 0.6B | 63 | 40 | 55 |
-| Llama-3.2 1B | 57 | 31 | 53 |
-| OLMo-1 1B (0724) | 43 | 32 | 49 |
-| Pythia 1B | 46 | 27 | 52 |
-| kotodama-tsumugi 1.4B (release) | 55 | 32 | 60 |
-| Pythia 1.4B | 52 | 24 | 48 |
-| OLMo-2 1B | 33 | 34 | 60 |
-| Qwen2.5 1.5B | 71 | 39 | 64 |
-| Qwen3 1.7B | 72 | 46 | 71 |
-| SmolLM2 1.7B | 41 | 36 | 60 |
-| Pythia 2.8B | 61 | 33 | 57 |
-| Falcon3 3B | 55 | 43 | 72 |
-| Qwen2.5 3B | 70 | 43 | 67 |
-| Qwen3 4B | 97 | 60 | 87 |
-| Pythia 6.9B | 53 | 37 | 57 |
-| Falcon3 7B | 75 | 62 | 86 |
-| OLMo-2 7B | 46 | 37 | 77 |
-| Qwen2.5 7B | 79 | 61 | 82 |
-| Llama-3.1 8B | 66 | 56 | 82 |
-| Gemma-2 9B | 76 | 61 | 84 |
-| Qwen3 30B-A3B | 84 | 75 | 81 |
-| Gemma-4 31B | 70 | 87 | 93 |
-| GLM-4 32B | 77 | 79 | 91 |
-| OLMo-3 32B | 78 | 75 | 89 |
-| OLMo-3 32B @ stage 1 (pre-midtrain) | 70 | 53 | 85 |
-| Llama-3.1 70B | 53 | 79 | 91 |
-| Qwen2.5 72B | 95 | 74 | 94 |
-| DeepSeek-V4 Flash Base | 75 | 90 | 92 |
-| MiMo-V2.5 Base | 72 | 79 | 94 |
-| Trinity-Large Base | 74 | 83 | 90 |
-| Trinity-Large TrueBase | 79 | 87 | 88 |
-| Llama-3.1 405B | 79 | 84 | 95 |
-| DeepSeek-V3 Base (671B MoE) | 68 | 88 | 96 |
-| DeepSeek-V4 Pro Base | 68 | 87 | 96 |
-| Kimi-K2 Base (1T MoE) | 97 | 89 | 98 |
-| MiMo-V2.5-Pro Base | 69 | 77 | 92 |
-| **Post-trained** | | | |
-| OLMo-2 7B Instruct | 65 | 42 | 79 |
-| **Hybrid & SSM bases** | | | |
-| Falcon-H1 1.5B (24L) | 84 | 44 | 50 |
-| Falcon-H1 1.5B-Deep (66L) | 79 | 51 | 71 |
-| Falcon-H1 3B | 94 | 55 | 73 |
-| Falcon-H1 7B | 87 | 54 | 90 |
-| Falcon-Mamba 7B (pure SSM) | 40 | 24 | 62 |
-| Bamba 9B (interleaved) | 30 | 31 | 54 |
-| Nemotron-3 Ultra 550B Base (hybrid) | 88 | 84 | 96 |
-| *chance* | 17 | 27 | 31 |
-
-### Deixis
-
-Key: owner = 'Now the X is with' (P3); self = 'I'm holding the'; you = 'you're holding the'; 2/3 = people in the chat (you3 has a vocative, you2 is structural); I = the I/you/my version, 3rd = its 3rd-person twin.
-
-| model | owner I | owner 3rd | self3 I | self3 3rd | self2 I | self2 3rd | you3 I | you3 3rd | you2 I | you2 3rd |
-|---|---|---|---|---|---|---|---|---|---|---|
-| **Human** | | | | | | | | | | |
-| Human reader (gauntlet) | 100† | — | — | — | 100† | — | 100† | — | 100† | 100† |
-| **API · closed** | | | | | | | | | | |
-| Amazon Nova Pro · reflex | 75† | 100† | 74† | 95 | 48 | 89† | 50 | 84† | 44† | 87 |
-| Claude Fable 5.1 · reflex | 100† | 100† | 100† | 100 | 90 | 100† | 95 | 100† | 100† | 100 |
-| Claude Haiku 4.5 · deliberate | 100† | 100† | 100† | 100 | 96 | 100† | 100 | 100† | 100† | 100 |
-| Claude Haiku 4.5 · reflex | 88† | 100† | 53† | 91 | 57 | 89† | 64 | 74† | 67† | 78 |
-| Claude Haiku 5.5 · deliberate | 100† | 100† | 68† | 100 | 91 | 100† | 82 | 95† | 78† | 100 |
-| Claude Haiku 5.5 · reflex | 88† | 100† | 58† | 100 | 74 | 100† | 73 | 95† | 61† | 100 |
-| Claude Opus 4.5 · reflex | 100† | 100† | 100† | 100 | 87 | 100† | 91 | 100† | 56† | 100 |
-| Claude Opus 5.5 · deliberate | 100† | 100† | 100† | 100 | 100 | 100† | 100 | 100† | 100† | 100 |
-| Claude Opus 5.5 · reflex | — | 100† | 88† | 95 | — | 100† | — | 100† | — | 100† |
-| Claude Sonnet 4.5 · reflex | 75† | 100† | 95† | 100 | 39 | 100† | 91 | 95† | 72† | 96 |
-| Claude Sonnet 5.5 · deliberate | 100† | 100† | 100† | 100 | 100 | 100† | 100 | 100† | 100† | 100 |
-| Claude Sonnet 5.5 · reflex | 100† | 100† | 58† | 95 | 57 | 95† | 82 | 95† | 61† | 91 |
-| Gemini 2.5 Flash · deliberate | 100† | 100† | 100† | 100 | 91 | 100† | 95 | 100† | 83† | 100 |
-| Gemini 2.5 Flash · reflex | 62† | 100† | 58† | 100 | 57 | 89† | 45 | 84† | 56† | 87 |
-| Gemini 2.5 Flash-Lite · reflex | 100† | 100† | 26† | 95 | 52 | 79† | 14 | 84† | 39† | 70 |
-| Gemini 3.1 Pro (preview) · deliberate | 100† | 100† | 100† | 100 | 100 | 100† | 100 | 100† | 100† | 100 |
-| GPT-4.1 mini · reflex | 62† | 100† | 47† | 100 | 43 | 100† | 50 | 95† | 72† | 96 |
-| GPT-4.1 nano · reflex | 75† | 100† | 37† | 91 | 30 | 84† | 55 | 79† | 22† | 78 |
-| GPT-4.1 · reflex | 100† | 100† | 84† | 100 | 57 | 100† | 91 | 95† | 67† | 96 |
-| GPT-4o mini · reflex | 62† | 75† | 37† | 91 | 52 | 84† | 64 | 84† | 61† | 78 |
-| GPT-5 mini · deliberate | 100† | 100† | 100† | 100 | 87 | 100† | 100 | 100† | 94† | 100 |
-| GPT-5 mini · reflex | 75† | 100† | 21† | 95 | 35 | 79† | 41 | 79† | 33† | 83 |
-| GPT-5 nano · deliberate | 100† | 100† | 95† | 100 | 65 | 100† | 77 | 100† | 72† | 100 |
-| GPT-5 nano · reflex | 38† | 88† | 11† | 64 | 35 | 63† | 18 | 53† | 6† | 57 |
-| GPT-5.5 · deliberate | 100† | 100† | 100† | 100 | 96 | 100† | 100 | 100† | 100† | 100 |
-| GPT-5.5 · reflex | 100† | 100† | 100† | 100 | 78 | 100† | 82 | 95† | 33† | 100 |
-| Grok 4.3 · deliberate | 75† | 88† | 89† | 100 | 91 | 95† | 91 | 100† | 83† | 100 |
-| Grok 4.3 · reflex | 62† | 88† | 21† | 95 | 52 | 100† | 45 | 89† | 33† | 87 |
-| **API · open weights** | | | | | | | | | | |
-| DeepSeek V3.2 (671B MoE) · deliberate | 75† | 100† | 100† | 100 | 87 | 100† | 77 | 100† | 56† | 100 |
-| DeepSeek V3.2 (671B MoE) · reflex | — | — | 71† | 100† | 47† | 100† | 67† | 100† | 18† | 93† |
-| Gemma-3 12B IT · reflex | 38† | 100† | 21† | 91 | 35 | 79† | 64 | 79† | 44† | 65 |
-| Gemma-3 27B IT · reflex | 62† | 88† | 47† | 86 | 35 | 89† | 55 | 79† | 39† | 78 |
-| Gemma-3 4B IT · reflex | 88† | 75† | 37† | 68 | 43 | 68† | 41 | 53† | 39† | 70 |
-| GLM-4.6 (355B MoE) · deliberate | 88† | 100† | 95† | 100 | 96 | 100† | 95 | 100† | 89† | 100 |
-| GLM-4.6 (355B MoE) · reflex | 100† | 100† | 74† | 100 | 52 | 89† | 55 | 95† | 61† | 91 |
-| gpt-oss 120B · deliberate | 88† | 100† | 95† | 100 | 87 | 100† | 86 | 100† | 39† | 100 |
-| gpt-oss 120B · reflex | — | — | — | 38† | 0† | 55† | 18† | 60† | — | 27† |
-| Hermes-3 405B · reflex | 75† | 62† | 74† | 100 | 52 | 100† | 82 | 95† | 33† | 96 |
-| Kimi K2 (1T MoE) · reflex | 100† | 100† | 58† | 100 | 50 | 95† | 73 | 100† | 59† | 100 |
-| Llama-3.1 8B Instruct · reflex | 75† | 88† | 53† | 73 | 43 | 74† | 32 | 68† | 33† | 70 |
-| Llama-3.2 1B Instruct · reflex | 12† | 38† | 21† | 55 | 17 | 58† | 14 | 37† | 17† | 43 |
-| Llama-3.2 3B Instruct · reflex | 75† | 38† | 53† | 64 | 35 | 63† | 41 | 58† | 39† | 52 |
-| Llama-3.3 70B Instruct · reflex | 62† | 75† | 79† | 100 | 52 | 95† | 64 | 95† | 44† | 96 |
-| Llama-4 Maverick (400B MoE) · reflex | 88† | 100† | 89† | 100 | 65 | 95† | 73 | 100† | 83† | 100 |
-| Ministral 3B · reflex | 75† | 88† | 32† | 82 | 43 | 84† | 41 | 58† | 50† | 74 |
-| Ministral 8B · reflex | 88† | 75† | 26† | 59 | 39 | 74† | 45 | 53† | 39† | 52 |
-| Mistral Large (2512) · reflex | — | — | 50† | 100† | 36† | — | 64† | 100† | 73† | 91† |
-| Mistral Small 3.2 24B · reflex | 75† | 62† | 42† | 91 | 39 | 79† | 55 | 74† | 39† | 91 |
-| Phi-4 14B · reflex | 62† | 100† | 63† | 100 | 52 | 74† | 59 | 84† | 39† | 74 |
-| Qwen2.5 72B Instruct · reflex | 62† | 100† | 68† | 100 | 57 | 100† | 77 | 89† | 61† | 96 |
-| Qwen2.5 7B Instruct · reflex | 50† | 100† | 47† | 82 | 61 | 84† | 64 | 84† | 61† | 74 |
-| Qwen3 235B-A22B · reflex | 62† | 75† | 26† | 91 | 22 | 79† | 32 | 89† | 28† | 91 |
-| Qwen3 32B · reflex | — | — | 36† | 82† | 45† | 83† | 40† | 86† | 21† | 86† |
-| Qwen3.5 397B-A17B · deliberate | 100† | 88† | 89† | 100 | 87 | 100† | 91 | 95† | 83† | 100 |
-| Qwen3.5 397B-A17B · reflex | 100† | 100† | 89† | 100 | 70 | 95† | 67 | 100† | 61† | 100 |
-| **Pretrained bases** | | | | | | | | | | |
-| SmolLM2 135M | 42 | 42 | 25 | 21 | 21 | 25 | 27 | 29 | 17 | 14 |
-| Pythia 160M | 2 | 18 | 3 | 9 | 4 | 6 | 7 | 6 | 6 | 9 |
-| SmolLM2 360M | 25 | 60 | 30 | 21 | 21 | 25 | 20 | 22 | 15 | 25 |
-| Pythia 410M | 40 | 45 | 32 | 37 | 19 | 28 | 31 | 32 | 15 | 30 |
-| Qwen2.5 0.5B | 48 | 50 | 37 | 10 | 32 | 21 | 35 | 16 | 21 | 16 |
-| Qwen3 0.6B | 40 | 60 | 40 | 31 | 44 | 44 | 28 | 37 | 30 | 53 |
-| Llama-3.2 1B | 30 | 22 | 37 | 25 | 27 | 34 | 30 | 26 | 19 | 36 |
-| OLMo-1 1B (0724) | 22 | 50 | 35 | 34 | 40 | 36 | 27 | 30 | 19 | 36 |
-| Pythia 1B | 50 | 38 | 39 | 37 | 33 | 35 | 31 | 33 | 15 | 33 |
-| kotodama-tsumugi 1.4B (release) | 62 | 62 | 31 | 37 | 28 | 40 | 27 | 40 | 21 | 42 |
-| Pythia 1.4B | 42 | 68 | 46 | 50 | 42 | 49 | 41 | 51 | 25 | 48 |
-| OLMo-2 1B | 48 | 57 | 39 | 25 | 37 | 43 | 25 | 33 | 16 | 44 |
-| Qwen2.5 1.5B | 32 | 55 | 45 | 30 | 48 | 49 | 33 | 33 | 32 | 56 |
-| Qwen3 1.7B | 48 | 60 | 50 | 44 | 52 | 67 | 32 | 48 | 25 | 67 |
-| SmolLM2 1.7B | 32 | 45 | 42 | 35 | 44 | 50 | 34 | 32 | 23 | 55 |
-| Pythia 2.8B | 48 | 72 | 27 | 34 | 25 | 38 | 33 | 44 | 16 | 37 |
-| Falcon3 3B | 35 | 52 | 32 | 39 | 22 | 56 | 29 | 46 | 21 | 48 |
-| Qwen2.5 3B | 42 | 52 | 39 | 64 | 40 | 67 | 29 | 65 | 26 | 76 |
-| Qwen3 4B | 78 | 95 | 47 | 79 | 57 | 79 | 48 | 79 | 41 | 79 |
-| Pythia 6.9B | 52 | 78 | 33 | 31 | 35 | 40 | 31 | 40 | 18 | 44 |
-| Falcon3 7B | 35 | 68 | 48 | 71 | 33 | 73 | 32 | 69 | 19 | 68 |
-| OLMo-2 7B | 40 | 48 | 37 | 36 | 31 | 48 | 34 | 39 | 22 | 44 |
-| Qwen2.5 7B | 57 | 85 | 56 | 53 | 56 | 68 | 52 | 56 | 44 | 71 |
-| Llama-3.1 8B | 57 | 65 | 47 | 71 | 38 | 79 | 39 | 69 | 16 | 75 |
-| Gemma-2 9B | 60 | 68 | 41 | 71 | 41 | 71 | 28 | 64 | 21 | 75 |
-| OLMo-2 13B | 65 | 65 | 55 | 67 | 48 | 60 | 48 | 63 | 38 | 58 |
-| Qwen3 30B-A3B | 60 | 68 | 42 | 71 | 41 | 78 | 33 | 70 | 29 | 81 |
-| Gemma-4 31B | 62 | 80 | 74 | 94 | 60 | 91 | 43 | 93 | 33 | 91 |
-| GLM-4 32B | 65 | 82 | 45 | 86 | 47 | 87 | 30 | 84 | 15 | 85 |
-| OLMo-3 32B | 65 | 82 | 57 | 84 | 57 | 84 | 51 | 82 | 29 | 80 |
-| OLMo-3 32B @ stage 1 (pre-midtrain) | 40 | 60 | 44 | 75 | 45 | 78 | 35 | 74 | 23 | 76 |
-| Llama-3.1 70B | 55 | 50 | 58 | 80 | 37 | 83 | 50 | 73 | 25 | 83 |
-| Qwen2.5 72B | 60 | 72 | 60 | 92 | 37 | 87 | 52 | 92 | 27 | 88 |
-| DeepSeek-V4 Flash Base | 72 | 78 | 60 | 86 | 52 | 89 | 51 | 90 | 29 | 90 |
-| MiMo-V2.5 Base | 48 | 57 | 44 | 79 | 48 | 96 | 40 | 83 | 25 | 91 |
-| Trinity-Large Base | 40 | 82 | 35 | 87 | 44 | 83 | 38 | 91 | 17 | 90 |
-| Trinity-Large TrueBase | 65 | 75 | 44 | 76 | 43 | 72 | 42 | 78 | 21 | 72 |
-| Llama-3.1 405B | 72 | 85 | 55 | 99 | 40 | 99 | 38 | 98 | 21 | 99 |
-| DeepSeek-V3 Base (671B MoE) | 65 | 75 | 40 | 96 | 27 | 97 | 48 | 94 | 21 | 95 |
-| DeepSeek-V4 Pro Base | 50 | 65 | 40 | 89 | 48 | 94 | 29 | 90 | 31 | 96 |
-| Kimi-K2 Base (1T MoE) | 68 | 100 | 39 | 95 | 33 | 94 | 39 | 97 | 25 | 93 |
-| MiMo-V2.5-Pro Base | 45 | 68 | 25 | 88 | 21 | 88 | 26 | 88 | 17 | 90 |
-| **OLMo-2 7B trajectory** | | | | | | | | | | |
-| OLMo-2 7B @ 2.9T (stage 1) | 28 | 30 | 37 | 45 | 31 | 52 | 31 | 44 | 27 | 47 |
-| OLMo-2 7B @ 3.9T (end stage 1) | 45 | 55 | 31 | 40 | 40 | 53 | 32 | 48 | 17 | 50 |
-| OLMo-2 7B mid-train +5B | 32 | 45 | 40 | 39 | 31 | 39 | 36 | 35 | 28 | 46 |
-| OLMo-2 7B mid-train +17B | 32 | 52 | 35 | 35 | 29 | 39 | 31 | 40 | 19 | 42 |
-| OLMo-2 7B mid-train +50B | 35 | 60 | 40 | 37 | 29 | 47 | 33 | 37 | 19 | 44 |
-| **Post-trained** | | | | | | | | | | |
-| OLMo-2 7B SFT | 42 | 65 | 43 | 43 | 40 | 49 | 37 | 32 | 22 | 40 |
-| OLMo-2 7B DPO | 62 | 65 | 49 | 48 | 46 | 54 | 37 | 41 | 28 | 43 |
-| OLMo-2 7B Instruct | 60 | 68 | 50 | 49 | 46 | 56 | 37 | 42 | 29 | 42 |
-| Llama-3.1 8B Instruct | 52 | 72 | 56 | 83 | 45 | 84 | 44 | 78 | 18 | 81 |
-| **Hybrid & SSM bases** | | | | | | | | | | |
-| Falcon-H1 0.5B | — | — | 29† | 24† | 27 | 19 | 54 | 35 | 26 | 45 |
-| Falcon-H1 1.5B (24L) | — | — | 47 | 42 | 50 | 56 | 42 | 45 | 25 | 53 |
-| Falcon-H1 1.5B-Deep (66L) | — | — | 35 | 58 | 42 | 83 | 32 | 64 | 12 | 78 |
-| Falcon-H1 3B | — | — | 26 | 60 | 35 | 81 | 34 | 65 | 25 | 75 |
-| Falcon-H1 7B | 64 | 91 | 41 | 86 | 40 | 78 | 38 | 84 | 29 | 82 |
-| Falcon-Mamba 7B (pure SSM) | 5 | 38 | 19 | 17 | 19 | 32 | 19 | 21 | 17 | 37 |
-| Bamba 9B (interleaved) | 25 | 25 | 21 | 11 | 13 | 19 | 23 | 15 | 17 | 23 |
-| RecurrentGemma 9B | 42 | 45 | 10 | 10 | 15 | 10 | 11 | 14 | 5 | 11 |
-| Falcon-H1 34B | 75 | 65 | 61 | 94 | 52 | 83 | 55 | 91 | 37 | 91 |
-| Nemotron-3 Ultra 550B Base (hybrid) | 57 | 88 | 61 | 92 | 44 | 85 | 43 | 91 | 19 | 93 |
-| *chance* | 33 | 33 | 29 | 29 | 28 | 29 | 28 | 29 | 29 | 28 |
-
-### Set binding
-
-| model | 1 object | 2-3 objects, exact set | split across sentences | after transfers |
-|---|---|---|---|---|
-| **Human** | | | | |
-| Human reader (gauntlet) | 100† | 100† | 100† | 100† |
-| **API · closed** | | | | |
-| Amazon Nova Pro · reflex | 100 | — | — | — |
-| Claude Fable 5.1 · reflex | 100 | — | — | — |
-| Claude Haiku 4.5 · reflex | 100 | — | — | — |
-| Claude Haiku 5.5 · reflex | 100 | — | — | — |
-| Claude Opus 4.5 · reflex | 100 | — | — | — |
-| Claude Opus 5.5 · reflex | 100 | — | — | — |
-| Claude Sonnet 4.5 · reflex | 100 | — | — | — |
-| Claude Sonnet 5.5 · reflex | 100 | — | — | — |
-| Gemini 2.5 Flash · reflex | 100 | — | — | — |
-| Gemini 2.5 Flash-Lite · reflex | 100 | — | — | — |
-| GPT-4.1 mini · reflex | 96 | — | — | — |
-| GPT-4.1 nano · reflex | 92 | — | — | — |
-| GPT-4.1 · reflex | 88 | — | — | — |
-| GPT-4o mini · reflex | 79 | — | — | — |
-| GPT-5 mini · reflex | 96 | — | — | — |
-| GPT-5 nano · reflex | 21 | — | — | — |
-| GPT-5.5 · reflex | 100 | — | — | — |
-| Grok 4.3 · reflex | 100 | — | — | — |
-| **API · open weights** | | | | |
-| DeepSeek V3.2 (671B MoE) · reflex | 82† | — | — | — |
-| Gemma-3 12B IT · reflex | 96 | — | — | — |
-| Gemma-3 27B IT · reflex | 58 | — | — | — |
-| Gemma-3 4B IT · reflex | 88 | — | — | — |
-| GLM-4.6 (355B MoE) · reflex | 100 | — | — | — |
-| gpt-oss 120B · reflex | 33† | — | — | — |
-| Hermes-3 405B · reflex | 100 | — | — | — |
-| Kimi K2 (1T MoE) · reflex | 100 | — | — | — |
-| Llama-3.1 8B Instruct · reflex | 92 | — | — | — |
-| Llama-3.2 1B Instruct · reflex | 54 | — | — | — |
-| Llama-3.2 3B Instruct · reflex | 58 | — | — | — |
-| Llama-3.3 70B Instruct · reflex | 100 | — | — | — |
-| Llama-4 Maverick (400B MoE) · reflex | 100 | — | — | — |
-| Ministral 3B · reflex | 88 | — | — | — |
-| Ministral 8B · reflex | 88 | — | — | — |
-| Mistral Large (2512) · reflex | 82† | — | — | — |
-| Mistral Small 3.2 24B · reflex | 100 | — | — | — |
-| Phi-4 14B · reflex | 100 | — | — | — |
-| Qwen2.5 72B Instruct · reflex | 100 | — | — | — |
-| Qwen2.5 7B Instruct · reflex | 100 | — | — | — |
-| Qwen3 235B-A22B · reflex | 75 | — | — | — |
-| Qwen3 32B · reflex | 100† | — | — | — |
-| Qwen3.5 397B-A17B · reflex | 100 | — | — | — |
-| **Pretrained bases** | | | | |
-| SmolLM2 135M | 33 | 8 | 7 | 5 |
-| Pythia 160M | 22 | 9 | 5 | 7 |
-| SmolLM2 360M | 39 | 16 | 10 | 9 |
-| Pythia 410M | 58 | 10 | 12 | 11 |
-| Qwen2.5 0.5B | 47 | 12 | 16 | 14 |
-| Qwen3 0.6B | 58 | 41 | 27 | 12 |
-| Llama-3.2 1B | 56 | 16 | 28 | 12 |
-| OLMo-1 1B (0724) | 39 | 16 | 12 | 6 |
-| Pythia 1B | 28 | 20 | 16 | 12 |
-| kotodama-tsumugi 1.4B (release) | 50 | 9 | 16 | 12 |
-| Pythia 1.4B | 42 | 12 | 18 | 13 |
-| OLMo-2 1B | 33 | 24 | 5 | 11 |
-| Qwen2.5 1.5B | 78 | 35 | 29 | 21 |
-| Qwen3 1.7B | 77 | 38 | 41 | 34 |
-| SmolLM2 1.7B | 42 | 20 | 21 | 10 |
-| Pythia 2.8B | 64 | 35 | 27 | 14 |
-| Qwen2.5 3B | 81 | 61 | 27 | 38 |
-| Qwen3 4B | 100 | 74 | 69 | 55 |
-| Pythia 6.9B | 58 | 24 | 10 | 11 |
-| Falcon3 7B | 70 | 41 | 49 | 41 |
-| OLMo-2 7B | 52 | 27 | 10 | 10 |
-| Qwen2.5 7B | 100 | 75 | 64 | 51 |
-| Llama-3.1 8B | 75 | 55 | 44 | 44 |
-| Gemma-2 9B | 95 | 58 | 52 | 42 |
-| Qwen3 30B-A3B | 89 | 59 | 55 | 49 |
-| Gemma-4 31B | 91 | 44 | 72 | 66 |
-| GLM-4 32B | 86 | 71 | 72 | 71 |
-| OLMo-3 32B | 100 | 76 | 58 | 62 |
-| OLMo-3 32B @ stage 1 (pre-midtrain) | 86 | 45 | 40 | 51 |
-| Llama-3.1 70B | 31 | 18 | 64 | 59 |
-| Qwen2.5 72B | 100 | 77 | 88 | 70 |
-| DeepSeek-V4 Flash Base | 88 | 58 | 82 | 81 |
-| MiMo-V2.5 Base | 78 | 41 | 44 | 40 |
-| Trinity-Large Base | 92 | 77 | 77 | 54 |
-| Trinity-Large TrueBase | 94 | 65 | 59 | 48 |
-| Llama-3.1 405B | 88 | 76 | 81 | 84 |
-| DeepSeek-V3 Base (671B MoE) | 88 | 70 | 68 | 87 |
-| DeepSeek-V4 Pro Base | 94 | 71 | 90 | 88 |
-| Kimi-K2 Base (1T MoE) | 100 | 93 | 83 | 74 |
-| MiMo-V2.5-Pro Base | 97 | 54 | 51 | 55 |
-| **Post-trained** | | | | |
-| OLMo-2 7B SFT | 73 | 47 | 21 | 18 |
-| OLMo-2 7B DPO | 77 | 57 | 27 | 22 |
-| OLMo-2 7B Instruct | 78 | 59 | 30 | 23 |
-| Llama-3.1 8B Instruct | 97 | 72 | 85 | 63 |
-| **Hybrid & SSM bases** | | | | |
-| Falcon-H1 1.5B (24L) | 88† | 68 | 34 | 13 |
-| Falcon-H1 1.5B-Deep (66L) | 94† | 68 | 66 | 34 |
-| Falcon-H1 7B | 98 | 70 | 73 | 61 |
-| Falcon-H1 34B | 98 | 84 | 81 | 70 |
-| Nemotron-3 Ultra 550B Base (hybrid) | 100 | 95 | 97 | 82 |
-| *chance* | 12 | 3 | 3 | 3 |
-
-### Answer deixis
-
-| model | narrator query | answer: a name | answer: me | answer: you (named) | answer: you (no name) |
+| model | Simple lookup | Short list lookup | Lookup among pairs | Lookup past noise | Who holds it now |
 |---|---|---|---|---|---|
 | **Human** | | | | | |
-| Human reader (gauntlet) | 100† | 100† | 100† | 100† | 100† |
-| **API · closed** | | | | | |
-| Amazon Nova Pro · reflex | 67 | 71 | 33 | 67 | 50 |
-| Claude Fable 5.1 · reflex | 100 | 100 | 100 | 100 | 100 |
-| Claude Haiku 4.5 · deliberate | 100 | 100 | 96 | 100 | 100 |
-| Claude Haiku 4.5 · reflex | 79 | 88 | 33 | 58 | 33 |
-| Claude Haiku 5.5 · deliberate | 96 | 100 | 100 | 100 | 100 |
-| Claude Haiku 5.5 · reflex | 83 | 100 | 75 | 71 | 83 |
-| Claude Opus 4.5 · reflex | 100 | 100 | 100 | 96 | 96 |
-| Claude Opus 5.5 · deliberate | 100 | 100 | 100 | 100 | 100 |
-| Claude Opus 5.5 · reflex | 100 | 95 | — | 56† | 93† |
-| Claude Sonnet 4.5 · reflex | 88 | 100 | 67 | 100 | 96 |
-| Claude Sonnet 5.5 · deliberate | 100 | 100 | 100 | 100 | 100 |
-| Claude Sonnet 5.5 · reflex | 100 | 100 | 92 | 100 | 100 |
-| Gemini 2.5 Flash · deliberate | 100 | 100 | 100 | 100 | 100 |
-| Gemini 2.5 Flash · reflex | 58 | 79 | 21 | 42 | 21 |
-| Gemini 2.5 Flash-Lite · reflex | 62 | 83 | 0 | 71 | 8 |
-| Gemini 3.1 Pro (preview) · deliberate | 100 | 100 | 100 | 100 | 100 |
-| GPT-4.1 mini · reflex | 58 | 75 | 50 | 83 | 75 |
-| GPT-4.1 nano · reflex | 54 | 75 | 4 | 12 | 12 |
-| GPT-4.1 · reflex | 100 | 92 | 67 | 83 | 88 |
-| GPT-4o mini · reflex | 33 | 71 | 8 | 50 | 17 |
-| GPT-5 mini · deliberate | 83 | 100 | 79 | 92 | 96 |
-| GPT-5 mini · reflex | 46 | 83 | 25 | 71 | 71 |
-| GPT-5 nano · deliberate | 100 | 100 | 96 | 100 | 100 |
-| GPT-5 nano · reflex | 25 | 62 | 12 | 29 | 17 |
-| GPT-5.5 · deliberate | 100 | 100 | 100 | 100 | 100 |
-| GPT-5.5 · reflex | 100 | 100 | 100 | 96 | 100 |
-| Grok 4.3 · deliberate | 100 | 88 | 92 | 83 | 88 |
-| Grok 4.3 · reflex | 58 | 75 | 0 | 67 | 38 |
-| **API · open weights** | | | | | |
-| DeepSeek V3.2 (671B MoE) · deliberate | 96 | 96 | 96 | 75 | 75 |
-| DeepSeek V3.2 (671B MoE) · reflex | 52 | 93† | 6† | 59† | 33† |
-| Gemma-3 12B IT · reflex | 33 | 50 | 0 | 25 | 0 |
-| Gemma-3 27B IT · reflex | 50 | 79 | 4 | 42 | 33 |
-| Gemma-3 4B IT · reflex | 50 | 25 | 8 | 83 | 0 |
-| GLM-4.6 (355B MoE) · deliberate | 100 | 96 | 100 | 92 | 100 |
-| GLM-4.6 (355B MoE) · reflex | 79 | 88 | 54 | 100 | 54 |
-| gpt-oss 120B · deliberate | 83 | 88 | 54 | 88 | 83 |
-| gpt-oss 120B · reflex | 17† | 0† | 0† | 38† | 12† |
-| Hermes-3 405B · reflex | 75 | 92 | 46 | 100 | 38 |
-| Kimi K2 (1T MoE) · reflex | 88 | 96 | 25 | 96 | 79 |
-| Llama-3.1 8B Instruct · reflex | 46 | 67 | 0 | 17 | 12 |
-| Llama-3.2 1B Instruct · reflex | 38 | 29 | 8 | 25 | 25 |
-| Llama-3.2 3B Instruct · reflex | 46 | 46 | 50 | 0 | 12 |
-| Llama-3.3 70B Instruct · reflex | 88 | 92 | 25 | 54 | 42 |
-| Llama-4 Maverick (400B MoE) · reflex | 83 | 100 | 54 | 79 | 83 |
-| Ministral 3B · reflex | 50 | 42 | 4 | 4 | 12 |
-| Ministral 8B · reflex | 50 | 62 | 4 | 46 | 0 |
-| Mistral Small 3.2 24B · reflex | 54 | 79 | 38 | 75 | 8 |
-| Phi-4 14B · reflex | 71 | 71 | 29 | 71 | 38 |
-| Qwen2.5 72B Instruct · reflex | 71 | 92 | 25 | 75 | 42 |
-| Qwen2.5 7B Instruct · reflex | 50 | 58 | 12 | 92 | 33 |
-| Qwen3 235B-A22B · reflex | 46 | 71 | 12 | 83 | 33 |
-| Qwen3 32B · reflex | 87† | 79† | 12† | 91† | 69† |
-| Qwen3.5 397B-A17B · deliberate | 100 | 92 | 75 | 88 | 88 |
-| Qwen3.5 397B-A17B · reflex | 100 | 96 | 50 | 100 | 96 |
-| **Pretrained bases** | | | | | |
-| SmolLM2 135M | 42 | 37 | 42 | 26 | 28 |
-| Pythia 160M | 6 | 21 | 57 | 1 | 18 |
-| SmolLM2 360M | 32 | 18 | 44 | 60 | 40 |
-| Pythia 410M | 37 | 24 | 22 | 30 | 79 |
-| Qwen2.5 0.5B | 34 | 40 | 47 | 11 | 15 |
-| Qwen3 0.6B | 39 | 37 | 19 | 35 | 50 |
-| Llama-3.2 1B | 40 | 43 | 9 | 34 | 14 |
-| OLMo-1 1B (0724) | 31 | 44 | 19 | 20 | 11 |
-| Pythia 1B | 36 | 28 | 28 | 51 | 44 |
-| kotodama-tsumugi 1.4B (release) | 44 | 20 | 21 | 50 | 82 |
-| Pythia 1.4B | 32 | 22 | 7 | 89 | 51 |
-| OLMo-2 1B | 48 | 43 | 9 | 28 | 32 |
-| Qwen2.5 1.5B | 39 | 30 | 22 | 38 | 41 |
-| Qwen3 1.7B | 45 | 52 | 6 | 28 | 35 |
-| SmolLM2 1.7B | 28 | 39 | 14 | 42 | 11 |
-| Pythia 2.8B | 40 | 14 | 68 | 20 | 12 |
-| Qwen2.5 3B | 37 | 40 | 0 | 81 | 40 |
-| Qwen3 4B | 65 | 51 | 13 | 41 | 78 |
-| Pythia 6.9B | 40 | 65 | 15 | 18 | 5 |
-| Falcon3 7B | 50 | 43 | 9 | 40 | 44 |
-| OLMo-2 7B | 49 | 7 | 66 | 72 | 30 |
-| Qwen2.5 7B | 45 | 14 | 1 | 89 | 99 |
-| Llama-3.1 8B | 57 | 57 | 1 | 20 | 79 |
-| Gemma-2 9B | 62 | 22 | 36 | 32 | 40 |
-| Qwen3 30B-A3B | 49 | 42 | 12 | 94 | 64 |
-| Gemma-4 31B | 65 | 71 | 68 | 57 | 51 |
-| GLM-4 32B | 65 | 52 | 34 | 54 | 45 |
-| OLMo-3 32B | 67 | 6 | 71 | 49 | 8 |
-| OLMo-3 32B @ stage 1 (pre-midtrain) | 43 | 28 | 50 | 46 | 9 |
-| Llama-3.1 70B | 59 | 45 | 65 | 38 | 42 |
-| Qwen2.5 72B | 63 | 30 | 72 | 74 | 54 |
-| DeepSeek-V4 Flash Base | 69 | 55 | 68 | 26 | 20 |
-| MiMo-V2.5 Base | 54 | 30 | 69 | 52 | 35 |
-| Trinity-Large Base | 60 | 43 | 38 | 52 | 24 |
-| Trinity-Large TrueBase | 61 | 14 | 60 | 20 | 49 |
-| Llama-3.1 405B | 74 | 57 | 65 | 14 | 20 |
-| DeepSeek-V3 Base (671B MoE) | 70 | 59 | 58 | 60 | 39 |
-| DeepSeek-V4 Pro Base | 49 | 18 | 40 | 38 | 84 |
-| Kimi-K2 Base (1T MoE) | 73 | 25 | 52 | 84 | 92 |
-| MiMo-V2.5-Pro Base | 44 | 18 | 66 | 30 | 45 |
-| **Post-trained** | | | | | |
-| OLMo-2 7B SFT | 52 | 2 | 47 | 86 | 38 |
-| OLMo-2 7B DPO | 53 | 5 | 38 | 91 | 61 |
-| OLMo-2 7B Instruct | 55 | 6 | 39 | 92 | 60 |
-| Llama-3.1 8B Instruct | 65 | 80 | 9 | 45 | 76 |
-| **Hybrid & SSM bases** | | | | | |
-| Falcon-H1 1.5B (24L) | 39 | 30 | 75 | 9 | 2 |
-| Falcon-H1 1.5B-Deep (66L) | 45 | 43 | 16 | 47 | 55 |
-| Falcon-H1 7B | 59 | 49 | 26 | 64 | 42 |
-| Falcon-H1 34B | 71 | 36 | 80 | 65 | 19 |
-| Nemotron-3 Ultra 550B Base (hybrid) | 56 | 46 | 84 | 90 | 40 |
-| *chance* | 25 | 25 | 25 | 25 | 25 |
+| Human reader (gauntlet) | +1.00 | — | +1.00 | — | — |
+| **under 1B** | | | | | |
+| Pythia 160M | +0.10 | +0.20° | +0.12 | +0.22° | +0.07° |
+| SmolLM2 360M | +0.33 | +0.60° | +0.16 | +0.26° | +0.25° |
+| Qwen2.5 0.5B | +0.75 | +0.46° | +0.23 | +0.49° | +0.47° |
+| Falcon-H1 0.5B | +0.77 | +0.79° | +0.32 | +0.68° | +0.69° |
+| Qwen3 0.6B | +0.92 | +0.48° | +0.38 | +0.73° | +0.65° |
+| **1–3B** | | | | | |
+| Pythia 1B | +0.39 | +0.55° | +0.18 | +0.50° | +0.38° |
+| Llama-3.2 1B | +0.82 | +0.67° | +0.31 | +0.62° | +0.46° |
+| OLMo 1B | +0.74 | +0.67° | +0.28 | +0.15° | +0.27° |
+| kotodama-tsumugi 1.4B | +0.98 | +0.68° | +0.64 | +0.46° | +0.62° |
+| OLMo-2 1B | +0.33 | +0.69° | +0.07 | +0.33° | +0.32° |
+| Pythia 1.4B | +0.51 | +0.58° | +0.33 | +0.45° | +0.39° |
+| Qwen2.5 1.5B | +0.98 | +0.62° | +0.49 | +0.68° | +0.60° |
+| Falcon-H1 1.5B | +0.99 | +0.81° | +0.80 | +0.62° | +0.39° |
+| Falcon-H1 1.5B-Deep | +0.99 | +0.92° | +0.86 | +0.75° | +0.63° |
+| GPT-2 XL | +0.58 | +0.44° | +0.56 | +0.43° | +0.19° |
+| SmolLM2 1.7B | +0.69 | +0.75° | +0.18 | +0.43° | +0.40° |
+| Qwen3 1.7B | +1.00 | +0.89° | +0.81 | +0.89° | +0.79° |
+| Gemma 2B | +0.96 | +0.84° | +0.45 | +0.48° | +0.18° |
+| Gemma-2 2B | +1.00 | +0.82° | +0.81 | +0.58° | +0.29° |
+| Pythia 2.8B | +0.83 | +0.54° | +0.47 | +0.53° | +0.59° |
+| Pythia 2.8B (deduped) | +0.85 | +0.56° | +0.54 | +0.54° | +0.59° |
+| **3–10B** | | | | | |
+| Qwen2.5 3B | +0.99 | +0.72° | +0.89 | +0.66° | +0.74° |
+| Falcon-H1 3B | +0.99 | +0.90° | +0.88 | +0.69° | +0.42° |
+| Falcon3 3B | +0.95 | +0.56° | +0.57 | +0.61° | +0.65° |
+| Qwen3 30B-A3B (MoE) | +1.00 | +0.76° | +0.97 | +0.77° | +0.13° |
+| Qwen3 4B | +1.00 | +0.88° | +0.96 | +0.79° | +0.72° |
+| Pythia 6.9B | +0.79 | +0.57° | +0.51 | +0.53° | +0.42° |
+| Falcon-Mamba 7B | +0.98 | +0.74° | +0.12 | +0.57° | +0.39° |
+| OLMo-2 7B | +0.98 | +0.88° | +0.77 | +0.56° | +0.32° |
+| Falcon3 7B | +1.00 | +0.72° | +0.88 | +0.64° | +0.40° |
+| Falcon-H1 7B | +1.00 | +0.97° | +1.00 | +0.79° | +0.00° |
+| Qwen2.5 7B | +1.00 | +0.88° | +1.00 | +0.89° | +0.70° |
+| Llama-3 8B | +1.00 | +0.99° | +0.96 | +0.89° | +0.05° |
+| Llama-3.1 8B | +1.00 | +0.99° | +0.99 | +0.91° | +0.10° |
+| Gemma 7B | +1.00 | +0.96° | +0.84 | +0.69° | -0.01° |
+| Gemma-2 9B | +1.00 | +0.94° | +0.98 | +0.93° | +0.21° |
+| RecurrentGemma 9B | +0.16 | +0.69° | +0.06 | +0.28° | +0.24° |
+| Bamba 9B | +0.06 | +0.64° | -0.02 | +0.23° | +0.16° |
+| **10B and up** | | | | | |
+| OLMo-2 13B | +0.99 | +0.92° | +0.87 | +0.62° | -0.04° |
+| OLMo-3 32B | +1.00 | +0.94° | +0.98 | +0.62° | -0.11°↓ |
+| OLMo-3 32B, before mid-training | +1.00 | +0.88° | +1.00 | +0.61° | -0.28°↓ |
+| GLM-4 32B | +1.00 | +0.99° | +1.00 | +0.76° | -0.27°↓ |
+| Falcon-H1 34B | +1.00 | +0.99° | +1.00 | +0.73° | -0.27°↓ |
+| Llama-3.1 70B | +1.00 | +0.98° | +1.00 | +0.86° | -0.15°↓ |
+| Qwen2.5 72B | +1.00 | +0.98° | +1.00 | +0.90° | -0.27°↓ |
+| Llama-3.1 405B | +1.00 | +0.99° | +1.00 | +0.88° | -0.31°↓ |
+| **kotodama-tsumugi, by training tokens** | | | | | |
+| kotodama-tsumugi · 5B tokens | +0.66 | +0.48° | +0.46 | +0.36° | +0.24° |
+| kotodama-tsumugi, seed 7 · 5B tokens | +0.79 | +0.51° | +0.49 | +0.42° | +0.15° |
+| kotodama-tsumugi · 11B tokens | +0.89 | +0.49° | +0.68 | +0.31° | +0.34° |
+| kotodama-tsumugi, seed 7 · 11B tokens | +0.90 | +0.53° | +0.54 | +0.39° | +0.35° |
+| kotodama-tsumugi · 33B tokens | +0.93 | +0.59° | +0.66 | +0.40° | +0.63° |
+| kotodama-tsumugi · 55B tokens | +0.97 | +0.61° | +0.70 | +0.47° | +0.36° |
+| kotodama-tsumugi · 88B tokens | +0.97 | +0.63° | +0.62 | +0.55° | +0.72° |
 
-### Adjacency
+### Who has what after things move: told as a story
 
-| model | 'yours' by reply | 'yours' with the name | 3rd-person twin |
-|---|---|---|---|
-| **Human** | | | |
-| Human reader (gauntlet) | 50† | 100† | 100† |
-| **API · closed** | | | |
-| Amazon Nova Pro · reflex | 96 | 100 | 100 |
-| Claude Fable 5.1 · reflex | 100 | 100 | 100 |
-| Claude Haiku 4.5 · deliberate | 100 | 100 | 100 |
-| Claude Haiku 4.5 · reflex | 96 | 100 | 100 |
-| Claude Haiku 5.5 · deliberate | 96 | 100 | 100 |
-| Claude Haiku 5.5 · reflex | 92 | 92 | 100 |
-| Claude Opus 4.5 · reflex | 100 | 100 | 100 |
-| Claude Opus 5.5 · deliberate | 100 | 100 | 100 |
-| Claude Opus 5.5 · reflex | 100 | 100 | 100 |
-| Claude Sonnet 4.5 · reflex | 100 | 100 | 100 |
-| Claude Sonnet 5.5 · deliberate | 100 | 100 | 100 |
-| Claude Sonnet 5.5 · reflex | 100 | 100 | 100 |
-| Gemini 2.5 Flash · deliberate | 100 | 100 | 100 |
-| Gemini 2.5 Flash · reflex | 100 | 100 | 100 |
-| Gemini 2.5 Flash-Lite · reflex | 56 | 84 | 100 |
-| Gemini 3.1 Pro (preview) · deliberate | 100 | 100 | 100 |
-| GPT-4.1 mini · reflex | 100 | 100 | 100 |
-| GPT-4.1 nano · reflex | 56 | 80 | 100 |
-| GPT-4.1 · reflex | 100 | 100 | 100 |
-| GPT-4o mini · reflex | 72 | 92 | 100 |
-| GPT-5 mini · deliberate | 100 | 100 | 100 |
-| GPT-5 mini · reflex | 80 | 92 | 100 |
-| GPT-5 nano · deliberate | 100 | 100 | 100 |
-| GPT-5 nano · reflex | 44 | 36 | 60 |
-| GPT-5.5 · deliberate | 100 | 100 | 100 |
-| GPT-5.5 · reflex | 100 | 100 | 100 |
-| Grok 4.3 · deliberate | 100 | 100 | 100 |
-| Grok 4.3 · reflex | 84 | 100 | 100 |
-| **API · open weights** | | | |
-| DeepSeek V3.2 (671B MoE) · deliberate | 100 | 100 | 100 |
-| DeepSeek V3.2 (671B MoE) · reflex | 100† | 100† | 100† |
-| Gemma-3 12B IT · reflex | 84 | 88 | 88 |
-| Gemma-3 27B IT · reflex | 92 | 100 | 100 |
-| Gemma-3 4B IT · reflex | 68 | 80 | 52 |
-| GLM-4.6 (355B MoE) · deliberate | 96 | 100 | 100 |
-| GLM-4.6 (355B MoE) · reflex | 92 | 100 | 100 |
-| gpt-oss 120B · deliberate | 100 | 100 | 100 |
-| gpt-oss 120B · reflex | 10† | 11† | 45† |
-| Hermes-3 405B · reflex | 100 | 100 | 100 |
-| Kimi K2 (1T MoE) · reflex | 100 | 100 | 100 |
-| Llama-3.1 8B Instruct · reflex | 84 | 80 | 92 |
-| Llama-3.2 1B Instruct · reflex | 36 | 52 | 64 |
-| Llama-3.2 3B Instruct · reflex | 96 | 96 | 88 |
-| Llama-3.3 70B Instruct · reflex | 100 | 100 | 100 |
-| Llama-4 Maverick (400B MoE) · reflex | 100 | 100 | 100 |
-| Ministral 3B · reflex | 56 | 68 | 92 |
-| Ministral 8B · reflex | 92 | 100 | 100 |
-| Mistral Small 3.2 24B · reflex | 100 | 100 | 96 |
-| Phi-4 14B · reflex | 100 | 100 | 100 |
-| Qwen2.5 72B Instruct · reflex | 96 | 100 | 100 |
-| Qwen2.5 7B Instruct · reflex | 72 | 84 | 96 |
-| Qwen3 235B-A22B · reflex | 84 | 92 | 88 |
-| Qwen3 32B · reflex | 100† | 100† | 100† |
-| Qwen3.5 397B-A17B · deliberate | 100 | 96 | 100 |
-| Qwen3.5 397B-A17B · reflex | 100 | 100 | 100 |
-| **Pretrained bases** | | | |
-| SmolLM2 135M | 38 | 55 | 52 |
-| Pythia 160M | 11 | 14 | 21 |
-| SmolLM2 360M | 40 | 42 | 58 |
-| Pythia 410M | 35 | 42 | 49 |
-| Qwen2.5 0.5B | 37 | 42 | 52 |
-| Qwen3 0.6B | 44 | 57 | 76 |
-| Llama-3.2 1B | 55 | 75 | 55 |
-| OLMo-1 1B (0724) | 43 | 55 | 55 |
-| Pythia 1B | 33 | 41 | 52 |
-| kotodama-tsumugi 1.4B (release) | 59 | 83 | 72 |
-| Pythia 1.4B | 40 | 40 | 63 |
-| OLMo-2 1B | 64 | 78 | 63 |
-| Qwen2.5 1.5B | 55 | 65 | 67 |
-| Qwen3 1.7B | 76 | 93 | 55 |
-| SmolLM2 1.7B | 53 | 54 | 41 |
-| Pythia 2.8B | 53 | 68 | 82 |
-| Qwen2.5 3B | 59 | 68 | 59 |
-| Qwen3 4B | 89 | 95 | 95 |
-| Pythia 6.9B | 42 | 56 | 67 |
-| Falcon3 7B | 86 | 90 | 99 |
-| OLMo-2 7B | 87 | 90 | 73 |
-| Qwen2.5 7B | 82 | 90 | 98 |
-| Llama-3.1 8B | 87 | 89 | 85 |
-| Gemma-2 9B | 95 | 97 | 98 |
-| Qwen3 30B-A3B | 85 | 95 | 97 |
-| Gemma-4 31B | 100 | 100 | 99 |
-| GLM-4 32B | 99 | 100 | 99 |
-| OLMo-3 32B | 98 | 100 | 100 |
-| OLMo-3 32B @ stage 1 (pre-midtrain) | 90 | 95 | 98 |
-| Llama-3.1 70B | 99 | 99 | 99 |
-| Qwen2.5 72B | 99 | 100 | 100 |
-| DeepSeek-V4 Flash Base | 98 | 99 | 100 |
-| MiMo-V2.5 Base | 92 | 97 | 100 |
-| Trinity-Large Base | 99 | 99 | 100 |
-| Trinity-Large TrueBase | 93 | 95 | 98 |
-| Llama-3.1 405B | 100 | 100 | 100 |
-| DeepSeek-V3 Base (671B MoE) | 96 | 97 | 99 |
-| DeepSeek-V4 Pro Base | 98 | 100 | 100 |
-| Kimi-K2 Base (1T MoE) | 94 | 98 | 100 |
-| MiMo-V2.5-Pro Base | 88 | 97 | 99 |
-| **Post-trained** | | | |
-| OLMo-2 7B SFT | 87 | 88 | 83 |
-| OLMo-2 7B DPO | 88 | 92 | 91 |
-| OLMo-2 7B Instruct | 89 | 93 | 92 |
-| Llama-3.1 8B Instruct | 97 | 99 | 97 |
-| **Hybrid & SSM bases** | | | |
-| Falcon-H1 1.5B (24L) | 66 | 73 | 69 |
-| Falcon-H1 1.5B-Deep (66L) | 76 | 77 | 81 |
-| Falcon-H1 7B | 95 | 97 | 100 |
-| Falcon-H1 34B | 99 | 100 | 100 |
-| Nemotron-3 Ultra 550B Base (hybrid) | 99 | 99 | 100 |
-| *chance* | 33 | 33 | 33 |
+| model | Hand-offs in a story | Sets after hand-offs | Refilled box | Many refills |
+|---|---|---|---|---|
+| **Human** | | | | |
+| Human reader (gauntlet) | +1.00 | +1.00 | — | — |
+| **under 1B** | | | | |
+| Pythia 160M | +0.09 | +0.06 | +0.03° | -0.01° |
+| SmolLM2 360M | +0.34 | +0.10 | +0.26° | +0.10° |
+| Qwen2.5 0.5B | +0.29 | +0.33 | +0.16° | +0.14° |
+| Falcon-H1 0.5B | +0.50 | +0.22 | +0.29° | +0.14° |
+| Qwen3 0.6B | +0.45 | +0.53 | +0.14° | +0.13° |
+| **1–3B** | | | | |
+| Pythia 1B | +0.35 | +0.25 | +0.16° | +0.13° |
+| Llama-3.2 1B | +0.43 | +0.45 | +0.14° | +0.11° |
+| OLMo 1B | +0.39 | +0.33 | +0.29° | +0.16° |
+| kotodama-tsumugi 1.4B | +0.44 | +0.43 | +0.21° | +0.14° |
+| OLMo-2 1B | +0.50 | +0.31 | +0.43° | +0.24° |
+| Pythia 1.4B | +0.23 | +0.32 | +0.19° | +0.05° |
+| Qwen2.5 1.5B | +0.50 | +0.52 | +0.49° | +0.25° |
+| Falcon-H1 1.5B | +0.63 | +0.66 | +0.41° | +0.14° |
+| Falcon-H1 1.5B-Deep | +0.72 | +0.57 | +0.44° | +0.28° |
+| GPT-2 XL | +0.16 | +0.25 | +0.22° | -0.01° |
+| SmolLM2 1.7B | +0.58 | +0.20 | +0.19° | +0.07° |
+| Qwen3 1.7B | +0.68 | +0.69 | +0.53° | +0.20° |
+| Gemma 2B | +0.51 | +0.51 | +0.28° | +0.31° |
+| Gemma-2 2B | +0.67 | +0.52 | +0.41° | +0.36° |
+| Pythia 2.8B | +0.39 | +0.34 | +0.15° | +0.03° |
+| Pythia 2.8B (deduped) | +0.39 | +0.31 | +0.13° | +0.03° |
+| **3–10B** | | | | |
+| Qwen2.5 3B | +0.64 | +0.52 | +0.30° | +0.13° |
+| Falcon-H1 3B | +0.79 | +0.72 | +0.70° | +0.34° |
+| Falcon3 3B | +0.66 | +0.28 | +0.31° | +0.19° |
+| Qwen3 30B-A3B (MoE) | +0.86 | +0.81 | +0.37° | +0.33° |
+| Qwen3 4B | +0.81 | +0.73 | +0.49° | +0.38° |
+| Pythia 6.9B | +0.37 | +0.35 | +0.19° | +0.07° |
+| Falcon-Mamba 7B | +0.55 | +0.18 | +0.34° | +0.11° |
+| OLMo-2 7B | +0.71 | +0.69 | +0.47° | +0.25° |
+| Falcon3 7B | +0.82 | +0.54 | +0.49° | +0.31° |
+| Falcon-H1 7B | +0.88 | +0.69 | +0.63° | +0.54° |
+| Qwen2.5 7B | +0.81 | +0.86 | +0.57° | +0.44° |
+| Llama-3 8B | +0.79 | +0.77 | +0.31° | +0.29° |
+| Llama-3.1 8B | +0.81 | +0.82 | +0.32° | +0.29° |
+| Gemma 7B | +0.82 | +0.71 | +0.37° | +0.26° |
+| Gemma-2 9B | +0.89 | +0.73 | +0.39° | +0.36° |
+| RecurrentGemma 9B | +0.29 | +0.06 | +0.06° | +0.10° |
+| Bamba 9B | +0.22 | +0.13 | +0.27° | +0.22° |
+| **10B and up** | | | | |
+| OLMo-2 13B | +0.87 | +0.86 | +0.68° | +0.48° |
+| OLMo-3 32B | +0.85 | +0.77 | +0.59° | +0.46° |
+| OLMo-3 32B, before mid-training | +0.88 | +0.84 | +0.65° | +0.47° |
+| GLM-4 32B | +0.96 | +0.92 | +0.62° | +0.53° |
+| Falcon-H1 34B | +0.93 | +0.86 | +0.78° | +0.66° |
+| Llama-3.1 70B | +0.97 | +0.92 | +0.54° | +0.58° |
+| Qwen2.5 72B | +0.98 | +0.93 | +0.61° | +0.60° |
+| Llama-3.1 405B | +0.99 | +0.99 | +0.73° | +0.74° |
+| **kotodama-tsumugi, by training tokens** | | | | |
+| kotodama-tsumugi · 5B tokens | +0.26 | +0.26 | +0.04° | -0.00° |
+| kotodama-tsumugi, seed 7 · 5B tokens | +0.30 | +0.27 | +0.05° | -0.04° |
+| kotodama-tsumugi · 11B tokens | +0.33 | +0.31 | -0.05°↓ | -0.01° |
+| kotodama-tsumugi, seed 7 · 11B tokens | +0.35 | +0.33 | +0.00° | +0.03° |
+| kotodama-tsumugi · 33B tokens | +0.30 | +0.36 | +0.07° | +0.01° |
+| kotodama-tsumugi · 55B tokens | +0.46 | +0.44 | +0.21° | +0.09° |
+| kotodama-tsumugi · 88B tokens | +0.48 | +0.46 | +0.32° | +0.22° |
 
-### Aliased lists
+### Who has what after things move: written as code
 
-| model | mutate via alias | rebind after alias | copy then mutate |
-|---|---|---|---|
-| **Human** | | | |
-| Human reader (gauntlet) | 50† | 100† | 100† |
-| **API · closed** | | | |
-| Amazon Nova Pro · reflex | 100 | 70 | 45 |
-| Claude Fable 5.1 · reflex | 85 | 80 | 100 |
-| Claude Haiku 4.5 · reflex | 95 | 85 | 95 |
-| Claude Haiku 5.5 · reflex | 100 | 100 | 100 |
-| Claude Opus 4.5 · reflex | 100 | 100 | 90 |
-| Claude Opus 5.5 · reflex | 94† | 89† | 89† |
-| Claude Sonnet 4.5 · reflex | 100 | 100 | 95 |
-| Claude Sonnet 5.5 · reflex | 100 | 95 | 70 |
-| Gemini 2.5 Flash · reflex | 100 | 100 | 100 |
-| Gemini 2.5 Flash-Lite · reflex | 100 | 60 | 40 |
-| GPT-4.1 mini · reflex | 100 | 80 | 60 |
-| GPT-4.1 nano · reflex | 100 | 85 | 65 |
-| GPT-4.1 · reflex | 100 | 90 | 85 |
-| GPT-4o mini · reflex | 100 | 95 | 30 |
-| GPT-5 mini · reflex | 100 | 95 | 85 |
-| GPT-5 nano · reflex | 100 | 55 | 30 |
-| GPT-5.5 · reflex | 100 | 100 | 100 |
-| Grok 4.3 · reflex | 100 | 90 | 90 |
-| **API · open weights** | | | |
-| DeepSeek V3.2 (671B MoE) · reflex | 100† | 100† | 100† |
-| Gemma-3 12B IT · reflex | 20 | 100 | 90 |
-| Gemma-3 27B IT · reflex | 100 | 90 | 45 |
-| Gemma-3 4B IT · reflex | 90 | 0 | 0 |
-| GLM-4.6 (355B MoE) · reflex | 100 | 85 | 95 |
-| gpt-oss 120B · reflex | 50† | 38† | 10† |
-| Hermes-3 405B · reflex | 90 | 95 | 100 |
-| Kimi K2 (1T MoE) · reflex | 100 | 100 | 95 |
-| Llama-3.1 8B Instruct · reflex | 65 | 55 | 15 |
-| Llama-3.2 1B Instruct · reflex | 55 | 0 | 5 |
-| Llama-3.2 3B Instruct · reflex | 85 | 20 | 10 |
-| Llama-3.3 70B Instruct · reflex | 100 | 95 | 90 |
-| Llama-4 Maverick (400B MoE) · reflex | 100 | 95 | 90 |
-| Ministral 3B · reflex | 90 | 45 | 35 |
-| Ministral 8B · reflex | 100 | 80 | 20 |
-| Mistral Small 3.2 24B · reflex | 95 | 60 | 70 |
-| Phi-4 14B · reflex | 60 | 95 | 85 |
-| Qwen2.5 72B Instruct · reflex | 100 | 75 | 90 |
-| Qwen2.5 7B Instruct · reflex | 70 | 50 | 55 |
-| Qwen3 235B-A22B · reflex | 90 | 75 | 80 |
-| Qwen3 32B · reflex | 100† | 89† | 0† |
-| Qwen3.5 397B-A17B · reflex | 100 | 90 | 90 |
-| **Pretrained bases** | | | |
-| SmolLM2 135M | 42 | 2 | 4 |
-| Pythia 160M | 24 | 10 | 4 |
-| SmolLM2 360M | 56 | 4 | 1 |
-| Pythia 410M | 32 | 13 | 12 |
-| Qwen2.5 0.5B | 58 | 5 | 4 |
-| Qwen3 0.6B | 80 | 7 | 0 |
-| Llama-3.2 1B | 87 | 11 | 2 |
-| OLMo-1 1B (0724) | 64 | 3 | 1 |
-| Pythia 1B | 52 | 10 | 4 |
-| kotodama-tsumugi 1.4B (release) | 58 | 9 | 7 |
-| Pythia 1.4B | 26 | 22 | 14 |
-| OLMo-2 1B | 60 | 1 | 4 |
-| Qwen2.5 1.5B | 79 | 2 | 0 |
-| Qwen3 1.7B | 75 | 22 | 11 |
-| SmolLM2 1.7B | 76 | 6 | 2 |
-| Pythia 2.8B | 76 | 10 | 4 |
-| Qwen2.5 3B | 89 | 11 | 9 |
-| Qwen3 4B | 94 | 31 | 30 |
-| Pythia 6.9B | 54 | 18 | 10 |
-| Falcon3 7B | 84 | 22 | 12 |
-| OLMo-2 7B | 83 | 10 | 3 |
-| Qwen2.5 7B | 90 | 50 | 25 |
-| Llama-3.1 8B | 86 | 28 | 12 |
-| Gemma-2 9B | 86 | 67 | 27 |
-| Qwen3 30B-A3B | 92 | 72 | 64 |
-| Gemma-4 31B | 99 | 81 | 56 |
-| GLM-4 32B | 96 | 57 | 9 |
-| OLMo-3 32B | 98 | 69 | 35 |
-| OLMo-3 32B @ stage 1 (pre-midtrain) | 86 | 14 | 3 |
-| Llama-3.1 70B | 97 | 97 | 55 |
-| Qwen2.5 72B | 99 | 82 | 69 |
-| DeepSeek-V4 Flash Base | 86 | 92 | 89 |
-| MiMo-V2.5 Base | 88 | 79 | 70 |
-| Trinity-Large Base | 98 | 93 | 98 |
-| Trinity-Large TrueBase | 98 | 78 | 36 |
-| Llama-3.1 405B | 99 | 80 | 83 |
-| DeepSeek-V3 Base (671B MoE) | 96 | 94 | 90 |
-| DeepSeek-V4 Pro Base | 100 | 88 | 98 |
-| Kimi-K2 Base (1T MoE) | 98 | 97 | 90 |
-| MiMo-V2.5-Pro Base | 98 | 90 | 88 |
-| **Post-trained** | | | |
-| OLMo-2 7B SFT | 86 | 10 | 4 |
-| OLMo-2 7B DPO | 94 | 6 | 0 |
-| OLMo-2 7B Instruct | 94 | 6 | 0 |
-| Llama-3.1 8B Instruct | 77 | 44 | 54 |
-| **Hybrid & SSM bases** | | | |
-| Falcon-H1 1.5B (24L) | 95 | 11 | 1 |
-| Falcon-H1 1.5B-Deep (66L) | 84 | 39 | 2 |
-| Falcon-H1 7B | 98 | 9 | 6 |
-| Falcon-H1 34B | 84 | 78 | 78 |
-| Nemotron-3 Ultra 550B Base (hybrid) | 100 | 84 | 83 |
-| *chance* | 20 | 20 | 20 |
+| model | Variable chains | Shared lists |
+|---|---|---|
+| **Human** | | |
+| Human reader (gauntlet) | +0.73 | +1.00 |
+| **under 1B** | | |
+| Pythia 160M | +0.01 | -0.01 |
+| SmolLM2 360M | +0.05 | -0.02 |
+| Qwen2.5 0.5B | +0.06 | +0.16 |
+| Falcon-H1 0.5B | +0.08 | +0.13 |
+| Qwen3 0.6B | +0.27 | +0.10 |
+| **1–3B** | | |
+| Pythia 1B | +0.00 | +0.07 |
+| Llama-3.2 1B | +0.12 | +0.13 |
+| OLMo 1B | +0.01 | +0.08 |
+| kotodama-tsumugi 1.4B | +0.04 | +0.15 |
+| OLMo-2 1B | +0.09 | +0.06 |
+| Pythia 1.4B | -0.03 | -0.01 |
+| Qwen2.5 1.5B | +0.22 | +0.14 |
+| Falcon-H1 1.5B | +0.34 | +0.38 |
+| Falcon-H1 1.5B-Deep | +0.47 | +0.41 |
+| GPT-2 XL | -0.06↓ | +0.01 |
+| SmolLM2 1.7B | +0.19 | +0.16 |
+| Qwen3 1.7B | +0.36 | +0.38 |
+| Gemma 2B | +0.20 | +0.27 |
+| Gemma-2 2B | +0.20 | +0.36 |
+| Pythia 2.8B | +0.02 | +0.11 |
+| Pythia 2.8B (deduped) | -0.00 | +0.11 |
+| **3–10B** | | |
+| Qwen2.5 3B | +0.27 | +0.30 |
+| Falcon-H1 3B | +0.56 | +0.44 |
+| Falcon3 3B | +0.42 | +0.47 |
+| Qwen3 30B-A3B (MoE) | +0.77 | +0.74 |
+| Qwen3 4B | +0.50 | +0.62 |
+| Pythia 6.9B | +0.06 | +0.02 |
+| Falcon-Mamba 7B | +0.15 | +0.08 |
+| OLMo-2 7B | +0.20 | +0.17 |
+| Falcon3 7B | +0.75 | +0.72 |
+| Falcon-H1 7B | +0.69 | +0.70 |
+| Qwen2.5 7B | +0.53 | +0.59 |
+| Llama-3 8B | +0.55 | +0.52 |
+| Llama-3.1 8B | +0.56 | +0.51 |
+| Gemma 7B | +0.45 | +0.42 |
+| Gemma-2 9B | +0.67 | +0.63 |
+| RecurrentGemma 9B | +0.02 | +0.12 |
+| Bamba 9B | +0.04 | -0.02 |
+| **10B and up** | | |
+| OLMo-2 13B | +0.35 | +0.44 |
+| OLMo-3 32B | +0.78 | +0.74 |
+| OLMo-3 32B, before mid-training | +0.60 | +0.58 |
+| GLM-4 32B | +0.85 | +0.65 |
+| Falcon-H1 34B | +0.84 | +0.79 |
+| Llama-3.1 70B | +0.84 | +0.65 |
+| Qwen2.5 72B | +0.82 | +0.88 |
+| Llama-3.1 405B | +0.92 | +0.97 |
+| **kotodama-tsumugi, by training tokens** | | |
+| kotodama-tsumugi · 5B tokens | -0.02 | +0.01 |
+| kotodama-tsumugi, seed 7 · 5B tokens | -0.05↓ | +0.04 |
+| kotodama-tsumugi · 11B tokens | -0.03 | +0.03 |
+| kotodama-tsumugi, seed 7 · 11B tokens | +0.01 | +0.06 |
+| kotodama-tsumugi · 33B tokens | +0.01 | +0.01 |
+| kotodama-tsumugi · 55B tokens | +0.07 | +0.08 |
+| kotodama-tsumugi · 88B tokens | +0.13 | +0.15 |
 
-## Speaker-swap test (open bases)
+### One box puzzle, four formats
 
-Two-person chats; the prompt is repeated with ONLY the name on the final query line changed, which flips the right answer. `shift` = mean P(original gold | original asker) − P(original gold | swapped asker), candidates renormalised; 95% CI by paired bootstrap over 180 items. `> 0` = the answer follows the speaker (binds); `≈ 0` = ignores who is speaking; `< 0` = moves the wrong way (inverts).
+| model | Box puzzle: prose | Box puzzle: script | Box puzzle: code | Box puzzle: chat |
+|---|---|---|---|---|
+| **under 1B** | | | | |
+| Pythia 160M | -0.00 | +0.02 | +0.01 | +0.02 |
+| SmolLM2 360M | +0.22 | +0.21 | +0.40 | +0.25 |
+| Qwen2.5 0.5B | +0.31 | +0.30 | +0.41 | +0.34 |
+| Falcon-H1 0.5B | +0.13 | +0.26 | +0.49 | +0.08 |
+| Qwen3 0.6B | +0.20 | +0.21 | +0.47 | +0.21 |
+| **1–3B** | | | | |
+| Pythia 1B | +0.10 | +0.09 | +0.31 | +0.05 |
+| Llama-3.2 1B | +0.41 | +0.44 | +0.55 | +0.44 |
+| OLMo 1B | +0.16 | +0.08 | +0.30 | +0.22 |
+| kotodama-tsumugi 1.4B | +0.20 | +0.22 | +0.49 | +0.34 |
+| OLMo-2 1B | +0.10 | +0.20 | +0.43 | +0.07 |
+| Pythia 1.4B | +0.26 | +0.19 | +0.28 | +0.15 |
+| Qwen2.5 1.5B | +0.22 | +0.21 | +0.60 | +0.29 |
+| Falcon-H1 1.5B | +0.16 | +0.15 | +0.66 | +0.19 |
+| Falcon-H1 1.5B-Deep | +0.07 | +0.25 | +0.76 | +0.43 |
+| GPT-2 XL | +0.11 | +0.10 | +0.23 | +0.05 |
+| SmolLM2 1.7B | +0.10 | +0.20 | +0.51 | -0.03 |
+| Qwen3 1.7B | +0.32 | +0.33 | +0.57 | +0.39 |
+| Gemma 2B | +0.24 | +0.21 | +0.50 | +0.46 |
+| Gemma-2 2B | +0.27 | +0.33 | +0.60 | +0.45 |
+| Pythia 2.8B | +0.38 | +0.35 | +0.45 | +0.38 |
+| Pythia 2.8B (deduped) | +0.38 | +0.37 | +0.42 | +0.35 |
+| **3–10B** | | | | |
+| Qwen2.5 3B | +0.47 | +0.52 | +0.53 | +0.58 |
+| Falcon-H1 3B | +0.30 | +0.48 | +0.68 | +0.54 |
+| Falcon3 3B | +0.23 | +0.39 | +0.62 | +0.58 |
+| Qwen3 30B-A3B (MoE) | +0.32 | +0.44 | +0.80 | +0.57 |
+| Qwen3 4B | +0.30 | +0.32 | +0.72 | +0.42 |
+| Pythia 6.9B | +0.34 | +0.37 | +0.39 | +0.29 |
+| Falcon-Mamba 7B | +0.10 | +0.17 | +0.48 | +0.23 |
+| OLMo-2 7B | +0.21 | +0.20 | +0.48 | +0.17 |
+| Falcon3 7B | +0.28 | +0.48 | +0.75 | +0.55 |
+| Falcon-H1 7B | +0.37 | +0.55 | +0.80 | +0.56 |
+| Qwen2.5 7B | +0.34 | +0.52 | +0.72 | +0.58 |
+| Llama-3 8B | +0.33 | +0.45 | +0.60 | +0.60 |
+| Llama-3.1 8B | +0.38 | +0.51 | +0.65 | +0.58 |
+| Gemma 7B | +0.10 | +0.28 | +0.68 | +0.32 |
+| Gemma-2 9B | +0.50 | +0.59 | +0.75 | +0.61 |
+| RecurrentGemma 9B | +0.02 | +0.23 | +0.26 | +0.28 |
+| Bamba 9B | -0.08↓ | -0.03 | -0.01 | +0.00 |
+| **10B and up** | | | | |
+| OLMo-2 13B | +0.23 | +0.33 | +0.60 | +0.44 |
+| OLMo-3 32B | +0.34 | +0.56 | +0.78 | +0.50 |
+| OLMo-3 32B, before mid-training | +0.35 | +0.48 | +0.76 | +0.56 |
+| GLM-4 32B | +0.47 | +0.75 | +0.86 | +0.66 |
+| Falcon-H1 34B | +0.65 | +0.84 | +0.88 | +0.78 |
+| Llama-3.1 70B | +0.63 | +0.85 | +0.88 | +0.86 |
+| Qwen2.5 72B | +0.54 | +0.81 | +0.80 | +0.66 |
+| Llama-3.1 405B | +0.77 | +0.87 | +0.82 | +0.89 |
+| **kotodama-tsumugi, by training tokens** | | | | |
+| kotodama-tsumugi · 5B tokens | +0.06 | +0.13 | +0.20 | +0.12 |
+| kotodama-tsumugi, seed 7 · 5B tokens | +0.07 | +0.15 | +0.29 | +0.17 |
+| kotodama-tsumugi · 11B tokens | +0.19 | +0.33 | +0.35 | +0.27 |
+| kotodama-tsumugi, seed 7 · 11B tokens | +0.30 | +0.29 | +0.42 | +0.29 |
+| kotodama-tsumugi · 33B tokens | +0.34 | +0.30 | +0.48 | +0.33 |
+| kotodama-tsumugi · 55B tokens | +0.24 | +0.32 | +0.51 | +0.38 |
+| kotodama-tsumugi · 88B tokens | +0.23 | +0.29 | +0.50 | +0.35 |
 
-**Reading rule:** `binds` if the CI's lower bound is above +.02; `inverts` if its upper bound is below −.02; otherwise `ignores speaker` (no reliable movement — a CI can exclude 0 and still be read this way).
+### Who are I and you?
 
-| model | I 0-shot | I 3-shot | you 0-shot | you 0-shot 95% CI | you 0-shot reading | you 3-shot |
-|---|---|---|---|---|---|---|
-| DeepSeek-V3 Base (671B MoE) | +0.062 | +0.395 | +0.067 | [+0.051, +0.083] | binds | +0.065 |
-| DeepSeek-V4 Flash Base | +0.166 | +0.499 | +0.102 | [+0.083, +0.123] | binds | +0.083 |
-| DeepSeek-V4 Pro Base | +0.088 | +0.520 | +0.004 | [-0.011, +0.018] | ignores speaker | +0.032 |
-| Gemma-2 9B | +0.071 | +0.161 | -0.040 | [-0.052, -0.030] | INVERTS | +0.010 |
-| Gemma-4 31B | +0.153 | +0.528 | -0.048 | [-0.070, -0.029] | INVERTS | +0.174 |
-| GLM-4 32B | +0.102 | +0.414 | +0.027 | [+0.013, +0.041] | ignores speaker | +0.011 |
-| Kimi-K2 Base (1T MoE) | +0.033 | +0.418 | +0.045 | [+0.027, +0.064] | binds | +0.070 |
-| Llama-3.1 405B | +0.083 | +0.523 | +0.054 | [+0.039, +0.068] | binds | +0.145 |
-| Llama-3.1 70B | +0.060 | +0.416 | +0.022 | [+0.013, +0.032] | ignores speaker | +0.039 |
-| MiMo-V2.5 Base | +0.092 | +0.391 | -0.012 | [-0.031, +0.005] | ignores speaker | +0.059 |
-| MiMo-V2.5-Pro Base | +0.056 | +0.443 | +0.036 | [+0.020, +0.054] | ignores speaker | +0.083 |
-| Nemotron-3 Ultra 550B Base (hybrid) | +0.081 | +0.581 | +0.014 | [+0.001, +0.025] | ignores speaker | +0.068 |
-| OLMo-3 32B | +0.150 | +0.266 | -0.048 | [-0.070, -0.027] | INVERTS | +0.027 |
-| OLMo-3 32B @ stage 1 (pre-midtrain) | +0.073 | +0.143 | -0.023 | [-0.042, -0.007] | ignores speaker | +0.009 |
-| Qwen2.5 72B | +0.090 | +0.409 | +0.034 | [+0.014, +0.054] | ignores speaker | +0.040 |
-| Qwen3 30B-A3B | +0.062 | +0.215 | +0.025 | [+0.004, +0.046] | ignores speaker | +0.049 |
-| Trinity-Large Base | +0.065 | +0.273 | +0.000 | [-0.014, +0.013] | ignores speaker | +0.110 |
-| Trinity-Large TrueBase | +0.060 | +0.204 | -0.012 | [-0.023, -0.001] | ignores speaker | +0.044 |
+| model | 'You', nothing moves | 'I', after hand-offs | 'You', after hand-offs | 'You' among three | Answering as yourself |
+|---|---|---|---|---|---|
+| **Human** | | | | | |
+| Human reader (gauntlet) | — | +1.00 | +1.00 | +1.00 | +1.00 |
+| **under 1B** | | | | | |
+| Pythia 160M | +0.10° | -0.01 | -0.05 | +0.05 | +0.02 |
+| SmolLM2 360M | +0.17° | -0.09↓ | -0.03 | +0.02 | +0.04 |
+| Qwen2.5 0.5B | +0.18° | +0.01 | +0.06 | +0.01 | +0.05 |
+| Falcon-H1 0.5B | +0.34° | -0.01 | -0.06 | +0.00 | +0.06 |
+| Qwen3 0.6B | +0.46° | +0.17 | +0.13 | -0.01 | +0.09 |
+| **1–3B** | | | | | |
+| Pythia 1B | +0.14° | -0.05 | -0.04 | -0.05 | +0.05 |
+| Llama-3.2 1B | +0.32° | +0.07 | +0.04 | +0.07 | +0.04 |
+| OLMo 1B | +0.22° | +0.01 | -0.06 | +0.02 | +0.06 |
+| kotodama-tsumugi 1.4B | +0.70° | +0.08 | +0.03 | +0.09 | +0.11 |
+| OLMo-2 1B | +0.36° | +0.06 | -0.02 | +0.03 | +0.14 |
+| Pythia 1.4B | +0.17° | +0.01 | -0.00 | +0.06 | +0.06 |
+| Qwen2.5 1.5B | +0.49° | +0.19 | -0.00 | -0.03 | +0.08 |
+| Falcon-H1 1.5B | +0.76° | +0.20 | +0.02 | +0.01 | +0.10 |
+| Falcon-H1 1.5B-Deep | +0.61° | +0.19 | -0.05 | +0.01 | +0.24 |
+| GPT-2 XL | +0.07° | -0.01 | +0.05 | +0.05 | +0.01 |
+| SmolLM2 1.7B | +0.42° | +0.13 | +0.08 | +0.04 | +0.04 |
+| Qwen3 1.7B | +0.51° | +0.20 | +0.11 | +0.06 | +0.20 |
+| Gemma 2B | +0.46° | +0.08 | -0.08 | +0.02 | +0.09 |
+| Gemma-2 2B | +0.66° | +0.11 | -0.04 | +0.05 | +0.15 |
+| Pythia 2.8B | +0.20° | +0.04 | +0.03 | +0.02 | +0.06 |
+| Pythia 2.8B (deduped) | +0.17° | +0.06 | +0.02 | +0.01 | +0.05 |
+| **3–10B** | | | | | |
+| Qwen2.5 3B | +0.82° | +0.11 | -0.06 | -0.00 | +0.13 |
+| Falcon-H1 3B | +0.91° | +0.25 | +0.00 | -0.02 | +0.24 |
+| Falcon3 3B | +0.75° | +0.10 | +0.01 | +0.00 | +0.13 |
+| Qwen3 30B-A3B (MoE) | +0.94° | +0.34 | +0.10 | +0.31 | +0.31 |
+| Qwen3 4B | +0.68° | +0.35 | +0.20 | +0.10 | +0.42 |
+| Pythia 6.9B | +0.25° | +0.03 | -0.02 | +0.12 | +0.06 |
+| Falcon-Mamba 7B | +0.70° | +0.17 | -0.07 | -0.05 | +0.05 |
+| OLMo-2 7B | +0.82° | +0.16 | +0.07 | +0.05 | +0.17 |
+| Falcon3 7B | +0.84° | +0.12 | -0.05 | +0.20 | +0.27 |
+| Falcon-H1 7B | +0.94° | +0.37 | +0.10 | +0.24 | +0.32 |
+| Qwen2.5 7B | +0.75° | +0.31 | +0.13 | +0.11 | +0.29 |
+| Llama-3 8B | +0.90° | +0.23 | +0.04 | +0.11 | +0.21 |
+| Llama-3.1 8B | +0.87° | +0.23 | +0.07 | +0.12 | +0.21 |
+| Gemma 7B | +0.93° | +0.23 | +0.06 | -0.00 | +0.17 |
+| Gemma-2 9B | +0.84° | +0.32 | +0.16 | +0.19 | +0.35 |
+| RecurrentGemma 9B | +0.40° | -0.04 | +0.02 | +0.04 | -0.01 |
+| Bamba 9B | +0.12° | -0.04 | -0.01 | +0.01 | +0.01 |
+| **10B and up** | | | | | |
+| OLMo-2 13B | +0.96° | +0.39 | +0.25 | +0.33 | +0.26 |
+| OLMo-3 32B | +0.98° | +0.41 | +0.22 | +0.30 | +0.37 |
+| OLMo-3 32B, before mid-training | +0.94° | +0.29 | +0.17 | +0.23 | +0.29 |
+| GLM-4 32B | +0.94° | +0.52 | +0.22 | +0.37 | +0.49 |
+| Falcon-H1 34B | +0.92° | +0.50 | +0.35 | +0.56 | +0.54 |
+| Llama-3.1 70B | +1.00° | +0.54 | +0.34 | +0.62 | +0.61 |
+| Qwen2.5 72B | +0.90° | +0.67 | +0.42 | +0.69 | +0.50 |
+| Llama-3.1 405B | +0.99° | +0.74 | +0.59 | +0.64 | +0.69 |
+| **kotodama-tsumugi, by training tokens** | | | | | |
+| kotodama-tsumugi · 5B tokens | +0.13° | -0.06 | -0.05 | -0.01 | +0.03 |
+| kotodama-tsumugi, seed 7 · 5B tokens | +0.10° | -0.07 | -0.08 | -0.04 | +0.04 |
+| kotodama-tsumugi · 11B tokens | +0.13° | +0.10 | +0.03 | +0.02 | +0.07 |
+| kotodama-tsumugi, seed 7 · 11B tokens | +0.14° | +0.00 | +0.00 | +0.05 | +0.06 |
+| kotodama-tsumugi · 33B tokens | +0.45° | +0.11 | +0.08 | +0.06 | +0.08 |
+| kotodama-tsumugi · 55B tokens | +0.42° | +0.03 | +0.06 | +0.03 | +0.06 |
+| kotodama-tsumugi · 88B tokens | +0.51° | +0.03 | +0.00 | +0.12 | +0.09 |
+
+### Learning a rule from the examples
+
+| model | Made-up grammar | Made-up operators | Pattern completion | Known facts (control) |
+|---|---|---|---|---|
+| **under 1B** | | | | |
+| Pythia 160M | +0.37° | +0.11° | +0.13° | +0.44° |
+| SmolLM2 360M | +0.75° | +0.26° | +0.68° | +0.97° |
+| Qwen2.5 0.5B | +0.71° | +0.20° | +0.64° | +0.92° |
+| Falcon-H1 0.5B | +0.70° | +0.22° | +0.51° | +0.90° |
+| Qwen3 0.6B | +0.73° | +0.25° | +0.77° | +0.94° |
+| **1–3B** | | | | |
+| Pythia 1B | +0.67° | +0.23° | +0.27° | +0.90° |
+| Llama-3.2 1B | +0.80° | +0.23° | +0.67° | +1.00° |
+| OLMo 1B | +0.77° | +0.25° | +0.56° | +0.98° |
+| kotodama-tsumugi 1.4B | +0.79° | +0.28° | +0.80° | +0.95° |
+| OLMo-2 1B | +0.70° | +0.27° | +0.61° | +0.99° |
+| Pythia 1.4B | +0.70° | +0.23° | +0.38° | +0.95° |
+| Qwen2.5 1.5B | +0.78° | +0.20° | +0.79° | +1.00° |
+| Falcon-H1 1.5B | +0.75° | +0.23° | +0.65° | +0.97° |
+| Falcon-H1 1.5B-Deep | +0.81° | +0.27° | +0.68° | +0.98° |
+| GPT-2 XL | +0.72° | +0.22° | +0.59° | +0.92° |
+| SmolLM2 1.7B | +0.76° | +0.25° | +0.71° | +1.00° |
+| Qwen3 1.7B | +0.82° | +0.27° | +0.83° | +0.99° |
+| Gemma 2B | +0.73° | +0.20° | +0.75° | +1.00° |
+| Gemma-2 2B | +0.80° | +0.27° | +0.72° | +1.00° |
+| Pythia 2.8B | +0.80° | +0.25° | +0.58° | +0.98° |
+| Pythia 2.8B (deduped) | +0.80° | +0.27° | +0.61° | +0.99° |
+| **3–10B** | | | | |
+| Qwen2.5 3B | +0.79° | +0.18° | +0.90° | +1.00° |
+| Falcon-H1 3B | +0.84° | +0.26° | +0.77° | +0.98° |
+| Falcon3 3B | +0.85° | +0.24° | +0.79° | +0.97° |
+| Qwen3 30B-A3B (MoE) | +0.84° | +0.21° | +0.99° | +1.00° |
+| Qwen3 4B | +0.85° | +0.22° | +0.95° | +1.00° |
+| Pythia 6.9B | +0.78° | +0.21° | +0.50° | +0.99° |
+| Falcon-Mamba 7B | +0.82° | +0.28° | +0.80° | +1.00° |
+| OLMo-2 7B | +0.86° | +0.29° | +0.81° | +1.00° |
+| Falcon3 7B | +0.83° | +0.23° | +0.83° | +1.00° |
+| Falcon-H1 7B | +0.87° | +0.28° | +0.92° | +1.00° |
+| Qwen2.5 7B | +0.83° | +0.22° | +0.94° | +1.00° |
+| Llama-3 8B | +0.85° | +0.26° | +0.93° | +1.00° |
+| Llama-3.1 8B | +0.84° | +0.27° | +0.94° | +1.00° |
+| Gemma 7B | +0.85° | +0.24° | +0.90° | +1.00° |
+| Gemma-2 9B | +0.86° | +0.30° | +0.90° | +1.00° |
+| RecurrentGemma 9B | +0.63° | +0.13° | +0.34° | +1.00° |
+| Bamba 9B | +0.57° | +0.14° | +0.43° | +1.00° |
+| **10B and up** | | | | |
+| OLMo-2 13B | +0.84° | +0.24° | +0.82° | +1.00° |
+| OLMo-3 32B | +0.85° | +0.21° | +0.90° | +1.00° |
+| OLMo-3 32B, before mid-training | +0.83° | +0.28° | +0.92° | +1.00° |
+| GLM-4 32B | +0.86° | +0.23° | +0.96° | +1.00° |
+| Falcon-H1 34B | +0.87° | +0.24° | +0.94° | +1.00° |
+| Llama-3.1 70B | +0.85° | +0.32° | +0.96° | +1.00° |
+| Qwen2.5 72B | +0.87° | +0.22° | +0.99° | +1.00° |
+| Llama-3.1 405B | +0.90° | +0.21° | +0.98° | +1.00° |
+| **kotodama-tsumugi, by training tokens** | | | | |
+| kotodama-tsumugi · 5B tokens | +0.66° | +0.25° | +0.56° | +0.64° |
+| kotodama-tsumugi, seed 7 · 5B tokens | +0.65° | +0.22° | +0.49° | +0.65° |
+| kotodama-tsumugi · 11B tokens | +0.76° | +0.27° | +0.56° | +0.71° |
+| kotodama-tsumugi, seed 7 · 11B tokens | +0.77° | +0.23° | +0.67° | +0.75° |
+| kotodama-tsumugi · 33B tokens | +0.79° | +0.28° | +0.74° | +0.89° |
+| kotodama-tsumugi · 55B tokens | +0.78° | +0.27° | +0.75° | +0.90° |
+| kotodama-tsumugi · 88B tokens | +0.82° | +0.29° | +0.80° | +0.91° |
 
 ## Rows (CSV)
 
 ```csv
-row_id,label,group,size_b,scoring
-human,"Human reader (gauntlet)","Human",,generation
-or-amazon/nova-pro-v1-A,"Amazon Nova Pro · reflex","API · closed",,generation
-or-anthropic/claude-fable-5.1-A,"Claude Fable 5.1 · reflex","API · closed",,generation
-or-anthropic/claude-haiku-4.5-B,"Claude Haiku 4.5 · deliberate","API · closed",,generation
-or-anthropic/claude-haiku-4.5-A,"Claude Haiku 4.5 · reflex","API · closed",,generation
-or-anthropic/claude-haiku-5.5-B,"Claude Haiku 5.5 · deliberate","API · closed",,generation
-or-anthropic/claude-haiku-5.5-A,"Claude Haiku 5.5 · reflex","API · closed",,generation
-or-anthropic/claude-opus-4.5-A,"Claude Opus 4.5 · reflex","API · closed",,generation
-or-anthropic/claude-opus-5.5-B,"Claude Opus 5.5 · deliberate","API · closed",,generation
-or-anthropic/claude-opus-5.5-A,"Claude Opus 5.5 · reflex","API · closed",,generation
-or-anthropic/claude-sonnet-4.5-A,"Claude Sonnet 4.5 · reflex","API · closed",,generation
-or-anthropic/claude-sonnet-5.5-B,"Claude Sonnet 5.5 · deliberate","API · closed",,generation
-or-anthropic/claude-sonnet-5.5-A,"Claude Sonnet 5.5 · reflex","API · closed",,generation
-or-google/gemini-2.5-flash-B,"Gemini 2.5 Flash · deliberate","API · closed",,generation
-or-google/gemini-2.5-flash-A,"Gemini 2.5 Flash · reflex","API · closed",,generation
-or-google/gemini-2.5-flash-lite-A,"Gemini 2.5 Flash-Lite · reflex","API · closed",,generation
-or-google/gemini-3.1-pro-preview-B,"Gemini 3.1 Pro (preview) · deliberate","API · closed",,generation
-or-openai/gpt-4.1-mini-A,"GPT-4.1 mini · reflex","API · closed",,generation
-or-openai/gpt-4.1-nano-A,"GPT-4.1 nano · reflex","API · closed",,generation
-or-openai/gpt-4.1-A,"GPT-4.1 · reflex","API · closed",,generation
-or-openai/gpt-4o-mini-A,"GPT-4o mini · reflex","API · closed",,generation
-or-openai/gpt-5-mini-B,"GPT-5 mini · deliberate","API · closed",,generation
-or-openai/gpt-5-mini-A,"GPT-5 mini · reflex","API · closed",,generation
-or-openai/gpt-5-nano-B,"GPT-5 nano · deliberate","API · closed",,generation
-or-openai/gpt-5-nano-A,"GPT-5 nano · reflex","API · closed",,generation
-or-openai/gpt-5.5-B,"GPT-5.5 · deliberate","API · closed",,generation
-or-openai/gpt-5.5-A,"GPT-5.5 · reflex","API · closed",,generation
-or-x-ai/grok-4.3-B,"Grok 4.3 · deliberate","API · closed",,generation
-or-x-ai/grok-4.3-A,"Grok 4.3 · reflex","API · closed",,generation
-or-deepseek/deepseek-v3.2-B,"DeepSeek V3.2 (671B MoE) · deliberate","API · open weights",671,generation
-or-deepseek/deepseek-v3.2-A,"DeepSeek V3.2 (671B MoE) · reflex","API · open weights",671,generation
-or-google/gemma-3-12b-it-A,"Gemma-3 12B IT · reflex","API · open weights",12,generation
-or-google/gemma-3-27b-it-A,"Gemma-3 27B IT · reflex","API · open weights",27,generation
-or-google/gemma-3-4b-it-A,"Gemma-3 4B IT · reflex","API · open weights",4,generation
-or-z-ai/glm-4.6-B,"GLM-4.6 (355B MoE) · deliberate","API · open weights",355,generation
-or-z-ai/glm-4.6-A,"GLM-4.6 (355B MoE) · reflex","API · open weights",355,generation
-or-openai/gpt-oss-120b-B,"gpt-oss 120B · deliberate","API · open weights",120,generation
-or-openai/gpt-oss-120b-A,"gpt-oss 120B · reflex","API · open weights",120,generation
-or-nousresearch/hermes-3-llama-3.1-405b-A,"Hermes-3 405B · reflex","API · open weights",405,generation
-or-moonshotai/kimi-k2-0905-A,"Kimi K2 (1T MoE) · reflex","API · open weights",1000,generation
-or-meta-llama/llama-3.1-8b-instruct-A,"Llama-3.1 8B Instruct · reflex","API · open weights",8,generation
-or-meta-llama/llama-3.2-1b-instruct-A,"Llama-3.2 1B Instruct · reflex","API · open weights",1,generation
-or-meta-llama/llama-3.2-3b-instruct-A,"Llama-3.2 3B Instruct · reflex","API · open weights",3,generation
-or-meta-llama/llama-3.3-70b-instruct-A,"Llama-3.3 70B Instruct · reflex","API · open weights",70,generation
-or-meta-llama/llama-4-maverick-A,"Llama-4 Maverick (400B MoE) · reflex","API · open weights",400,generation
-or-mistralai/ministral-3b-2512-A,"Ministral 3B · reflex","API · open weights",3,generation
-or-mistralai/ministral-8b-2512-A,"Ministral 8B · reflex","API · open weights",8,generation
-or-mistralai/mistral-large-2512-A,"Mistral Large (2512) · reflex","API · open weights",,generation
-or-mistralai/mistral-small-3.2-24b-instruct-A,"Mistral Small 3.2 24B · reflex","API · open weights",24,generation
-or-microsoft/phi-4-A,"Phi-4 14B · reflex","API · open weights",14,generation
-or-qwen/qwen-2.5-72b-instruct-A,"Qwen2.5 72B Instruct · reflex","API · open weights",72,generation
-or-qwen/qwen-2.5-7b-instruct-A,"Qwen2.5 7B Instruct · reflex","API · open weights",7,generation
-or-qwen/qwen3-235b-a22b-2507-A,"Qwen3 235B-A22B · reflex","API · open weights",235,generation
-or-qwen/qwen3-32b-A,"Qwen3 32B · reflex","API · open weights",32,generation
-or-qwen/qwen3.5-397b-a17b-B,"Qwen3.5 397B-A17B · deliberate","API · open weights",397,generation
-or-qwen/qwen3.5-397b-a17b-A,"Qwen3.5 397B-A17B · reflex","API · open weights",397,generation
-smollm2-135m,"SmolLM2 135M","Pretrained bases",0.135,logprob
-pythia-160m,"Pythia 160M","Pretrained bases",0.16,logprob
-smollm2-360m,"SmolLM2 360M","Pretrained bases",0.36,logprob
-pythia-410m,"Pythia 410M","Pretrained bases",0.41,logprob
-qwen2.5-0.5b,"Qwen2.5 0.5B","Pretrained bases",0.5,logprob
-qwen3-0.6b-base,"Qwen3 0.6B","Pretrained bases",0.6,logprob
-llama3.2-1b,"Llama-3.2 1B","Pretrained bases",1,logprob
-olmo1-1b-0724,"OLMo-1 1B (0724)","Pretrained bases",1,logprob
-pythia-1b,"Pythia 1B","Pretrained bases",1,logprob
-tsumugi-release,"kotodama-tsumugi 1.4B (release)","Pretrained bases",1.4,logprob
-pythia-1.4b,"Pythia 1.4B","Pretrained bases",1.4,logprob
-olmo2-1b,"OLMo-2 1B","Pretrained bases",1.5,logprob
-qwen2.5-1.5b,"Qwen2.5 1.5B","Pretrained bases",1.5,logprob
-qwen3-1.7b-base,"Qwen3 1.7B","Pretrained bases",1.7,logprob
-smollm2-1.7b,"SmolLM2 1.7B","Pretrained bases",1.7,logprob
-pythia-2.8b,"Pythia 2.8B","Pretrained bases",2.8,logprob
-falcon3-3b,"Falcon3 3B","Pretrained bases",3,logprob
-qwen2.5-3b,"Qwen2.5 3B","Pretrained bases",3,logprob
-qwen3-4b-base,"Qwen3 4B","Pretrained bases",4,logprob
-pythia-6.9b,"Pythia 6.9B","Pretrained bases",6.9,logprob
-falcon3-7b,"Falcon3 7B","Pretrained bases",7,logprob
-olmo2-7b-base,"OLMo-2 7B","Pretrained bases",7,logprob
-qwen2.5-7b,"Qwen2.5 7B","Pretrained bases",7,logprob
-llama31-8b-base,"Llama-3.1 8B","Pretrained bases",8,logprob
-gemma2-9b,"Gemma-2 9B","Pretrained bases",9,logprob
-olmo2-13b,"OLMo-2 13B","Pretrained bases",13,logprob
-qwen3-30b-a3b-base,"Qwen3 30B-A3B","Pretrained bases",30,logprob
-gemma4-31b-base,"Gemma-4 31B","Pretrained bases",31,logprob
-glm4-32b-base,"GLM-4 32B","Pretrained bases",32,logprob
-olmo3-32b,"OLMo-3 32B","Pretrained bases",32,logprob
-olmo3-32b-stage1,"OLMo-3 32B @ stage 1 (pre-midtrain)","Pretrained bases",32,logprob
-llama31-70b,"Llama-3.1 70B","Pretrained bases",70,logprob
-qwen25-72b,"Qwen2.5 72B","Pretrained bases",72,logprob
-dsv4-flash-base,"DeepSeek-V4 Flash Base","Pretrained bases",290,logprob
-mimo-v25-base,"MiMo-V2.5 Base","Pretrained bases",310,logprob
-trinity-base,"Trinity-Large Base","Pretrained bases",400,logprob
-trinity-truebase,"Trinity-Large TrueBase","Pretrained bases",400,logprob
-llama31-405b,"Llama-3.1 405B","Pretrained bases",405,logprob
-dsv3-base,"DeepSeek-V3 Base (671B MoE)","Pretrained bases",671,logprob
-dsv4-pro-base,"DeepSeek-V4 Pro Base","Pretrained bases",860,logprob
-kimi-k2-base,"Kimi-K2 Base (1T MoE)","Pretrained bases",1000,logprob
-mimo-v25-pro-base,"MiMo-V2.5-Pro Base","Pretrained bases",1000,logprob
-olmo2-7b-pt2928B,"OLMo-2 7B @ 2.9T (stage 1)","OLMo-2 7B trajectory",7,logprob
-olmo2-7b-pt3896B,"OLMo-2 7B @ 3.9T (end stage 1)","OLMo-2 7B trajectory",7,logprob
-olmo2-7b-mid5B,"OLMo-2 7B mid-train +5B","OLMo-2 7B trajectory",7,logprob
-olmo2-7b-mid17B,"OLMo-2 7B mid-train +17B","OLMo-2 7B trajectory",7,logprob
-olmo2-7b-mid50B,"OLMo-2 7B mid-train +50B","OLMo-2 7B trajectory",7,logprob
-olmo2-7b-sft,"OLMo-2 7B SFT","Post-trained",7,logprob
-olmo2-7b-dpo,"OLMo-2 7B DPO","Post-trained",7,logprob
-olmo2-7b-instruct,"OLMo-2 7B Instruct","Post-trained",7,logprob
-llama31-8b-instruct,"Llama-3.1 8B Instruct","Post-trained",8,logprob
-falcon-h1-0.5b,"Falcon-H1 0.5B","Hybrid & SSM bases",0.5,logprob
-falcon-h1-1.5b,"Falcon-H1 1.5B (24L)","Hybrid & SSM bases",1.5,logprob
-falcon-h1-1.5b-deep,"Falcon-H1 1.5B-Deep (66L)","Hybrid & SSM bases",1.5,logprob
-falcon-h1-3b,"Falcon-H1 3B","Hybrid & SSM bases",3,logprob
-falcon-h1-7b,"Falcon-H1 7B","Hybrid & SSM bases",7,logprob
-falcon-mamba-7b,"Falcon-Mamba 7B (pure SSM)","Hybrid & SSM bases",7,logprob
-bamba-9b,"Bamba 9B (interleaved)","Hybrid & SSM bases",9,logprob
-recurrentgemma-9b,"RecurrentGemma 9B","Hybrid & SSM bases",9,logprob
-falcon-h1-34b-base,"Falcon-H1 34B","Hybrid & SSM bases",34,logprob
-nemotron3-ultra-550b-base,"Nemotron-3 Ultra 550B Base (hybrid)","Hybrid & SSM bases",550,logprob
+row_id,label,group,params_b,active_b,tokens,scoring
+human,"Human reader (gauntlet)","Human",,,,generation
+pythia-160m,"Pythia 160M","under 1B",0.213,0.213,300000000000.0,logprob
+smollm2-360m,"SmolLM2 360M","under 1B",0.362,0.362,4000000000000.0,logprob
+qwen2.5-0.5b,"Qwen2.5 0.5B","under 1B",0.494,0.494,18000000000000.0,logprob
+falcon-h1-0.5b,"Falcon-H1 0.5B","under 1B",0.521,0.521,2500000000000.0,logprob
+qwen3-0.6b,"Qwen3 0.6B","under 1B",0.596,0.596,36000000000000.0,logprob
+pythia-1b,"Pythia 1B","1–3B",1.079,1.079,300000000000.0,logprob
+llama3.2-1b,"Llama-3.2 1B","1–3B",1.236,1.236,9000000000000.0,logprob
+olmo1-1b,"OLMo 1B","1–3B",1.28,1.28,3050000000000.0,logprob
+tsumugi,"kotodama-tsumugi 1.4B","1–3B",1.425,1.425,110000000000.0,logprob
+olmo2-1b,"OLMo-2 1B","1–3B",1.485,1.485,4050000000000.0,logprob
+pythia-1.4b,"Pythia 1.4B","1–3B",1.515,1.515,300000000000.0,logprob
+qwen2.5-1.5b,"Qwen2.5 1.5B","1–3B",1.544,1.544,18000000000000.0,logprob
+falcon-h1-1.5b,"Falcon-H1 1.5B","1–3B",1.555,1.555,3000000000000.0,logprob
+falcon-h1-1.5b-deep,"Falcon-H1 1.5B-Deep","1–3B",1.555,1.555,3000000000000.0,logprob
+gpt2-xl,"GPT-2 XL","1–3B",1.608,1.608,,logprob
+smollm2-1.7b,"SmolLM2 1.7B","1–3B",1.711,1.711,11000000000000.0,logprob
+qwen3-1.7b,"Qwen3 1.7B","1–3B",1.721,1.721,36000000000000.0,logprob
+gemma-2b,"Gemma 2B","1–3B",2.506,2.506,3000000000000.0,logprob
+gemma2-2b,"Gemma-2 2B","1–3B",2.614,2.614,2000000000000.0,logprob
+pythia-2.8b,"Pythia 2.8B","1–3B",2.909,2.909,300000000000.0,logprob
+pythia-2.8b-deduped,"Pythia 2.8B (deduped)","1–3B",2.909,2.909,300000000000.0,logprob
+qwen2.5-3b,"Qwen2.5 3B","3–10B",3.086,3.086,18000000000000.0,logprob
+falcon-h1-3b,"Falcon-H1 3B","3–10B",3.149,3.149,2500000000000.0,logprob
+falcon3-3b,"Falcon3 3B","3–10B",3.228,3.228,100000000000.0,logprob
+qwen3-30b-a3b,"Qwen3 30B-A3B (MoE)","3–10B",30.532,3.3,36000000000000.0,logprob
+qwen3-4b,"Qwen3 4B","3–10B",4.022,4.022,36000000000000.0,logprob
+pythia-6.9b,"Pythia 6.9B","3–10B",6.992,6.992,300000000000.0,logprob
+falcon-mamba-7b,"Falcon-Mamba 7B","3–10B",7.273,7.273,5800000000000.0,logprob
+olmo2-7b,"OLMo-2 7B","3–10B",7.299,7.299,4150000000000.0,logprob
+falcon3-7b,"Falcon3 7B","3–10B",7.456,7.456,14000000000000.0,logprob
+falcon-h1-7b,"Falcon-H1 7B","3–10B",7.586,7.586,12000000000000.0,logprob
+qwen2.5-7b,"Qwen2.5 7B","3–10B",7.616,7.616,18000000000000.0,logprob
+llama3-8b,"Llama-3 8B","3–10B",8.03,8.03,15000000000000.0,logprob
+llama3.1-8b,"Llama-3.1 8B","3–10B",8.03,8.03,15000000000000.0,logprob
+gemma-7b,"Gemma 7B","3–10B",8.538,8.538,6000000000000.0,logprob
+gemma2-9b,"Gemma-2 9B","3–10B",9.242,9.242,8000000000000.0,logprob
+recurrentgemma-9b,"RecurrentGemma 9B","3–10B",9.629,9.629,2000000000000.0,logprob
+bamba-9b,"Bamba 9B","3–10B",9.78,9.78,3100000000000.0,logprob
+olmo2-13b,"OLMo-2 13B","10B and up",13.716,13.716,5600000000000.0,logprob
+olmo3-32b,"OLMo-3 32B","10B and up",32.234,32.234,5700000000000.0,logprob
+olmo3-32b-stage1,"OLMo-3 32B, before mid-training","10B and up",32.234,32.234,5500000000000.0,logprob
+glm4-32b-base,"GLM-4 32B","10B and up",32.566,32.566,15000000000000.0,logprob
+falcon-h1-34b,"Falcon-H1 34B","10B and up",33.643,33.643,18000000000000.0,logprob
+llama3.1-70b,"Llama-3.1 70B","10B and up",70.554,70.554,15000000000000.0,logprob
+qwen2.5-72b,"Qwen2.5 72B","10B and up",72.706,72.706,18000000000000.0,logprob
+llama3.1-405b,"Llama-3.1 405B","10B and up",405.853,405.853,15600000000000.0,logprob
+tsumugi-s17-a5B,"kotodama-tsumugi · 5B tokens","kotodama-tsumugi, by training tokens",1.425,1.425,5000000000.0,logprob
+tsumugi-s7-a5B,"kotodama-tsumugi, seed 7 · 5B tokens","kotodama-tsumugi, by training tokens",1.425,1.425,5000000000.0,logprob
+tsumugi-s17-a11B,"kotodama-tsumugi · 11B tokens","kotodama-tsumugi, by training tokens",1.425,1.425,11000000000.0,logprob
+tsumugi-s7-a11B,"kotodama-tsumugi, seed 7 · 11B tokens","kotodama-tsumugi, by training tokens",1.425,1.425,11000000000.0,logprob
+tsumugi-s17-a33B,"kotodama-tsumugi · 33B tokens","kotodama-tsumugi, by training tokens",1.425,1.425,33000000000.0,logprob
+tsumugi-s17-a55B,"kotodama-tsumugi · 55B tokens","kotodama-tsumugi, by training tokens",1.425,1.425,55000000000.0,logprob
+tsumugi-s17-a88B,"kotodama-tsumugi · 88B tokens","kotodama-tsumugi, by training tokens",1.425,1.425,88000000000.0,logprob
 ```
 
 ## All cells (CSV)
 
-`row_id,col_id,condition,mode,acc,n,chance,se,seat_form,errs` — `score` (= (acc − chance)/(1 − chance)) is left out as derivable; `errs` = error-type shares among items (deixis I/you columns; `;`-separated `type=share`, types in the glossary); `seat_form` = share of referent-correct API answers that used me/you.
+`row_id,col_id,condition,acc,n,chance,score,lo,hi,state` — `acc` and `chance` are empty for ladder readings.
 
 ```csv
-row_id,col_id,condition,mode,acc,n,chance,se,seat_form,errs
-human,attr,0shot,all,1.000,5,0.185,0.000,,
-human,codevar,0shot,all,0.800,5,0.257,0.179,,
-human,dialogue,0shot,all,1.000,6,0.319,0.000,,
-human,dialogue,3shot_collide,all,1.000,1,0.250,0.000,,
-human,dialogue,3shot,all,1.000,1,0.250,0.000,,
-human,dx-owner-3-deictic,0shot,all,1.000,5,0.333,0.000,,
-human,dx-owner-3-deictic,0shot,free,1.000,1,0.333,0.000,,
-human,dx-self-3-deictic,0shot,all,1.000,2,0.333,0.000,,
-human,dx-self-2-deictic,0shot,all,1.000,3,0.306,0.000,,
-human,dx-self-2-deictic,0shot,free,1.000,1,0.250,0.000,,
-human,dx-addressee-3-deictic,0shot,all,1.000,3,0.306,0.000,,
-human,dx-addressee-3-deictic,0shot,free,1.000,1,0.250,0.000,,
-human,dx-addressee-3-third,0shot,all,1.000,1,0.333,0.000,,
-human,dx-addressee-2-deictic,0shot,all,1.000,4,0.312,0.000,,
-human,dx-addressee-2-deictic,0shot,free,1.000,2,0.292,0.000,,
-human,dx-addressee-2-third,0shot,all,1.000,1,0.250,0.000,,
-human,dx-addressee-2-third,0shot,free,1.000,1,0.250,0.000,,
-human,sb-k1,0shot,all,1.000,1,0.125,0.000,,
-human,sb-k23,0shot,all,1.000,1,0.018,0.000,,
-human,sb-split,0shot,all,1.000,1,0.018,0.000,,
-human,sb-dyn,0shot,all,1.000,1,0.036,0.000,,
-human,an-narr,0shot,all,1.000,1,0.250,0.000,,
-human,an-other-any,0shot,all,1.000,1,0.250,0.000,,
-human,an-me-any,0shot,all,1.000,1,0.250,0.000,,
-human,an-you-voc,0shot,all,1.000,1,0.250,0.000,,
-human,an-you-novoc,0shot,all,1.000,1,0.250,0.000,,
-human,adj-adj,0shot,all,0.500,2,0.333,0.354,,
-human,adj-voc,0shot,all,1.000,1,0.333,0.000,,
-human,adj-third,0shot,all,1.000,1,0.333,0.000,,
-human,cm-mutate,0shot,all,0.500,2,0.200,0.354,,
-human,cm-rebind,0shot,all,1.000,1,0.200,0.000,,
-human,cm-copy,0shot,all,1.000,1,0.200,0.000,,
-or-amazon/nova-pro-v1-A,attr,0shot,all,1.000,30,0.161,0.000,,
-or-amazon/nova-pro-v1-A,codevar,0shot,all,0.800,30,0.274,0.073,,
-or-amazon/nova-pro-v1-A,dialogue,0shot,all,0.933,30,0.311,0.045,,
-or-amazon/nova-pro-v1-A,dx-owner-3-deictic,0shot,all,0.750,28,0.333,0.082,,other=0.25
-or-amazon/nova-pro-v1-A,dx-owner-3-deictic,0shot,free,0.750,8,0.333,0.153,,other=0.25
-or-amazon/nova-pro-v1-A,dx-owner-3-third,0shot,all,1.000,28,0.333,0.000,,
-or-amazon/nova-pro-v1-A,dx-owner-3-third,0shot,free,1.000,8,0.333,0.000,,
-or-amazon/nova-pro-v1-A,dx-self-3-deictic,0shot,all,0.630,27,0.284,0.093,,other_participant=0.37
-or-amazon/nova-pro-v1-A,dx-self-3-deictic,0shot,free,0.737,19,0.281,0.101,,other_participant=0.263
-or-amazon/nova-pro-v1-A,dx-self-3-third,0shot,all,0.875,32,0.286,0.059,,
-or-amazon/nova-pro-v1-A,dx-self-3-third,0shot,free,0.955,22,0.284,0.044,,
-or-amazon/nova-pro-v1-A,dx-self-2-deictic,0shot,all,0.485,33,0.280,0.087,,other=0.303;other_object=0.091;other_participant=0.121
-or-amazon/nova-pro-v1-A,dx-self-2-deictic,0shot,free,0.478,23,0.275,0.104,,other=0.304;other_object=0.13;other_participant=0.087
-or-amazon/nova-pro-v1-A,dx-self-2-third,0shot,all,0.857,28,0.295,0.066,,
-or-amazon/nova-pro-v1-A,dx-self-2-third,0shot,free,0.895,19,0.289,0.070,,
-or-amazon/nova-pro-v1-A,dx-addressee-3-deictic,0shot,all,0.424,33,0.283,0.086,,other_participant=0.303;speaker_confusion=0.273
-or-amazon/nova-pro-v1-A,dx-addressee-3-deictic,0shot,free,0.500,22,0.280,0.107,,other_participant=0.273;speaker_confusion=0.227
-or-amazon/nova-pro-v1-A,dx-addressee-3-third,0shot,all,0.889,27,0.287,0.060,,
-or-amazon/nova-pro-v1-A,dx-addressee-3-third,0shot,free,0.842,19,0.285,0.084,,
-or-amazon/nova-pro-v1-A,dx-addressee-2-deictic,0shot,all,0.333,27,0.293,0.091,,other_participant=0.111;speaker_confusion=0.556
-or-amazon/nova-pro-v1-A,dx-addressee-2-deictic,0shot,free,0.444,18,0.292,0.117,,other_participant=0.167;speaker_confusion=0.389
-or-amazon/nova-pro-v1-A,dx-addressee-2-third,0shot,all,0.758,33,0.285,0.075,,
-or-amazon/nova-pro-v1-A,dx-addressee-2-third,0shot,free,0.870,23,0.279,0.070,,
-or-amazon/nova-pro-v1-A,sb-k1,0shot,all,1.000,24,0.125,0.000,,
-or-amazon/nova-pro-v1-A,an-narr,0shot,all,0.667,24,0.250,0.096,,
-or-amazon/nova-pro-v1-A,an-other-any,0shot,all,0.708,24,0.250,0.093,,
-or-amazon/nova-pro-v1-A,an-me-any,0shot,all,0.333,24,0.250,0.096,1.0,
-or-amazon/nova-pro-v1-A,an-you-voc,0shot,all,0.667,24,0.250,0.096,0.938,
-or-amazon/nova-pro-v1-A,an-you-novoc,0shot,all,0.500,24,0.250,0.102,0.0,
-or-amazon/nova-pro-v1-A,adj-adj,0shot,all,0.960,25,0.333,0.039,,
-or-amazon/nova-pro-v1-A,adj-voc,0shot,all,1.000,25,0.333,0.000,,
-or-amazon/nova-pro-v1-A,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-amazon/nova-pro-v1-A,cm-mutate,0shot,all,1.000,20,0.200,0.000,,
-or-amazon/nova-pro-v1-A,cm-rebind,0shot,all,0.700,20,0.200,0.102,,
-or-amazon/nova-pro-v1-A,cm-copy,0shot,all,0.450,20,0.200,0.111,,
-or-anthropic/claude-fable-5.1-A,attr,0shot,all,1.000,30,0.161,0.000,,
-or-anthropic/claude-fable-5.1-A,codevar,0shot,all,0.533,30,0.274,0.091,,
-or-anthropic/claude-fable-5.1-A,dialogue,0shot,all,1.000,30,0.311,0.000,,
-or-anthropic/claude-fable-5.1-A,dx-owner-3-deictic,0shot,all,0.964,28,0.333,0.035,,other=0.036
-or-anthropic/claude-fable-5.1-A,dx-owner-3-deictic,0shot,free,1.000,8,0.333,0.000,,
-or-anthropic/claude-fable-5.1-A,dx-owner-3-third,0shot,all,1.000,28,0.333,0.000,,
-or-anthropic/claude-fable-5.1-A,dx-owner-3-third,0shot,free,1.000,8,0.333,0.000,,
-or-anthropic/claude-fable-5.1-A,dx-self-3-deictic,0shot,all,1.000,27,0.284,0.000,,
-or-anthropic/claude-fable-5.1-A,dx-self-3-deictic,0shot,free,1.000,19,0.281,0.000,,
-or-anthropic/claude-fable-5.1-A,dx-self-3-third,0shot,all,1.000,32,0.286,0.000,,
-or-anthropic/claude-fable-5.1-A,dx-self-3-third,0shot,free,1.000,22,0.284,0.000,,
-or-anthropic/claude-fable-5.1-A,dx-self-2-deictic,0shot,all,0.839,31,0.280,0.066,,format=0.129;other=0.032
-or-anthropic/claude-fable-5.1-A,dx-self-2-deictic,0shot,free,0.905,21,0.274,0.064,,format=0.095
-or-anthropic/claude-fable-5.1-A,dx-self-2-third,0shot,all,1.000,28,0.295,0.000,,
-or-anthropic/claude-fable-5.1-A,dx-self-2-third,0shot,free,1.000,19,0.289,0.000,,
-or-anthropic/claude-fable-5.1-A,dx-addressee-3-deictic,0shot,all,0.939,33,0.283,0.042,,format=0.03;other_participant=0.03
-or-anthropic/claude-fable-5.1-A,dx-addressee-3-deictic,0shot,free,0.955,22,0.280,0.044,,format=0.045
-or-anthropic/claude-fable-5.1-A,dx-addressee-3-third,0shot,all,1.000,27,0.287,0.000,,
-or-anthropic/claude-fable-5.1-A,dx-addressee-3-third,0shot,free,1.000,19,0.285,0.000,,
-or-anthropic/claude-fable-5.1-A,dx-addressee-2-deictic,0shot,all,0.958,24,0.292,0.041,,speaker_confusion=0.042
-or-anthropic/claude-fable-5.1-A,dx-addressee-2-deictic,0shot,free,1.000,17,0.289,0.000,,
-or-anthropic/claude-fable-5.1-A,dx-addressee-2-third,0shot,all,1.000,33,0.285,0.000,,
-or-anthropic/claude-fable-5.1-A,dx-addressee-2-third,0shot,free,1.000,23,0.279,0.000,,
-or-anthropic/claude-fable-5.1-A,sb-k1,0shot,all,1.000,24,0.125,0.000,,
-or-anthropic/claude-fable-5.1-A,an-narr,0shot,all,1.000,24,0.250,0.000,,
-or-anthropic/claude-fable-5.1-A,an-other-any,0shot,all,1.000,24,0.250,0.000,,
-or-anthropic/claude-fable-5.1-A,an-me-any,0shot,all,1.000,24,0.250,0.000,1.0,
-or-anthropic/claude-fable-5.1-A,an-you-voc,0shot,all,1.000,24,0.250,0.000,0.958,
-or-anthropic/claude-fable-5.1-A,an-you-novoc,0shot,all,1.000,24,0.250,0.000,0.042,
-or-anthropic/claude-fable-5.1-A,adj-adj,0shot,all,1.000,25,0.333,0.000,,
-or-anthropic/claude-fable-5.1-A,adj-voc,0shot,all,1.000,25,0.333,0.000,,
-or-anthropic/claude-fable-5.1-A,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-anthropic/claude-fable-5.1-A,cm-mutate,0shot,all,0.850,20,0.200,0.080,,
-or-anthropic/claude-fable-5.1-A,cm-rebind,0shot,all,0.800,20,0.200,0.089,,
-or-anthropic/claude-fable-5.1-A,cm-copy,0shot,all,1.000,20,0.200,0.000,,
-or-anthropic/claude-haiku-4.5-B,dx-owner-3-deictic,0shot,all,1.000,28,0.333,0.000,,
-or-anthropic/claude-haiku-4.5-B,dx-owner-3-deictic,0shot,free,1.000,8,0.333,0.000,,
-or-anthropic/claude-haiku-4.5-B,dx-owner-3-third,0shot,all,1.000,28,0.333,0.000,,
-or-anthropic/claude-haiku-4.5-B,dx-owner-3-third,0shot,free,1.000,8,0.333,0.000,,
-or-anthropic/claude-haiku-4.5-B,dx-self-3-deictic,0shot,all,1.000,27,0.284,0.000,,
-or-anthropic/claude-haiku-4.5-B,dx-self-3-deictic,0shot,free,1.000,19,0.281,0.000,,
-or-anthropic/claude-haiku-4.5-B,dx-self-3-third,0shot,all,1.000,32,0.286,0.000,,
-or-anthropic/claude-haiku-4.5-B,dx-self-3-third,0shot,free,1.000,22,0.284,0.000,,
-or-anthropic/claude-haiku-4.5-B,dx-self-2-deictic,0shot,all,0.970,33,0.280,0.030,,other_object=0.03
-or-anthropic/claude-haiku-4.5-B,dx-self-2-deictic,0shot,free,0.957,23,0.275,0.043,,other_object=0.043
-or-anthropic/claude-haiku-4.5-B,dx-self-2-third,0shot,all,1.000,28,0.295,0.000,,
-or-anthropic/claude-haiku-4.5-B,dx-self-2-third,0shot,free,1.000,19,0.289,0.000,,
-or-anthropic/claude-haiku-4.5-B,dx-addressee-3-deictic,0shot,all,1.000,33,0.283,0.000,,
-or-anthropic/claude-haiku-4.5-B,dx-addressee-3-deictic,0shot,free,1.000,22,0.280,0.000,,
-or-anthropic/claude-haiku-4.5-B,dx-addressee-3-third,0shot,all,1.000,27,0.287,0.000,,
-or-anthropic/claude-haiku-4.5-B,dx-addressee-3-third,0shot,free,1.000,19,0.285,0.000,,
-or-anthropic/claude-haiku-4.5-B,dx-addressee-2-deictic,0shot,all,1.000,27,0.293,0.000,,
-or-anthropic/claude-haiku-4.5-B,dx-addressee-2-deictic,0shot,free,1.000,18,0.292,0.000,,
-or-anthropic/claude-haiku-4.5-B,dx-addressee-2-third,0shot,all,1.000,33,0.285,0.000,,
-or-anthropic/claude-haiku-4.5-B,dx-addressee-2-third,0shot,free,1.000,23,0.279,0.000,,
-or-anthropic/claude-haiku-4.5-B,an-narr,0shot,all,1.000,24,0.250,0.000,,
-or-anthropic/claude-haiku-4.5-B,an-other-any,0shot,all,1.000,24,0.250,0.000,,
-or-anthropic/claude-haiku-4.5-B,an-me-any,0shot,all,0.958,24,0.250,0.041,1.0,
-or-anthropic/claude-haiku-4.5-B,an-you-voc,0shot,all,1.000,24,0.250,0.000,0.875,
-or-anthropic/claude-haiku-4.5-B,an-you-novoc,0shot,all,1.000,24,0.250,0.000,0.042,
-or-anthropic/claude-haiku-4.5-B,adj-adj,0shot,all,1.000,25,0.333,0.000,,
-or-anthropic/claude-haiku-4.5-B,adj-voc,0shot,all,1.000,25,0.333,0.000,,
-or-anthropic/claude-haiku-4.5-B,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-anthropic/claude-haiku-4.5-A,attr,0shot,all,1.000,30,0.161,0.000,,
-or-anthropic/claude-haiku-4.5-A,codevar,0shot,all,0.900,30,0.274,0.055,,
-or-anthropic/claude-haiku-4.5-A,dialogue,0shot,all,0.867,30,0.311,0.062,,
-or-anthropic/claude-haiku-4.5-A,dx-owner-3-deictic,0shot,all,0.893,28,0.333,0.059,,other=0.107
-or-anthropic/claude-haiku-4.5-A,dx-owner-3-deictic,0shot,free,0.875,8,0.333,0.117,,other=0.125
-or-anthropic/claude-haiku-4.5-A,dx-owner-3-third,0shot,all,1.000,28,0.333,0.000,,
-or-anthropic/claude-haiku-4.5-A,dx-owner-3-third,0shot,free,1.000,8,0.333,0.000,,
-or-anthropic/claude-haiku-4.5-A,dx-self-3-deictic,0shot,all,0.444,27,0.284,0.096,,other_participant=0.556
-or-anthropic/claude-haiku-4.5-A,dx-self-3-deictic,0shot,free,0.526,19,0.281,0.115,,other_participant=0.474
-or-anthropic/claude-haiku-4.5-A,dx-self-3-third,0shot,all,0.688,32,0.286,0.082,,
-or-anthropic/claude-haiku-4.5-A,dx-self-3-third,0shot,free,0.909,22,0.284,0.061,,
-or-anthropic/claude-haiku-4.5-A,dx-self-2-deictic,0shot,all,0.424,33,0.280,0.086,,other=0.545;other_participant=0.03
-or-anthropic/claude-haiku-4.5-A,dx-self-2-deictic,0shot,free,0.565,23,0.275,0.103,,other=0.435
-or-anthropic/claude-haiku-4.5-A,dx-self-2-third,0shot,all,0.643,28,0.295,0.091,,
-or-anthropic/claude-haiku-4.5-A,dx-self-2-third,0shot,free,0.895,19,0.289,0.070,,
-or-anthropic/claude-haiku-4.5-A,dx-addressee-3-deictic,0shot,all,0.485,33,0.283,0.087,,other_participant=0.182;speaker_confusion=0.333
-or-anthropic/claude-haiku-4.5-A,dx-addressee-3-deictic,0shot,free,0.636,22,0.280,0.103,,other_participant=0.136;speaker_confusion=0.227
-or-anthropic/claude-haiku-4.5-A,dx-addressee-3-third,0shot,all,0.556,27,0.287,0.096,,
-or-anthropic/claude-haiku-4.5-A,dx-addressee-3-third,0shot,free,0.737,19,0.285,0.101,,
-or-anthropic/claude-haiku-4.5-A,dx-addressee-2-deictic,0shot,all,0.444,27,0.293,0.096,,other_participant=0.037;speaker_confusion=0.519
-or-anthropic/claude-haiku-4.5-A,dx-addressee-2-deictic,0shot,free,0.667,18,0.292,0.111,,speaker_confusion=0.333
-or-anthropic/claude-haiku-4.5-A,dx-addressee-2-third,0shot,all,0.576,33,0.285,0.086,,
-or-anthropic/claude-haiku-4.5-A,dx-addressee-2-third,0shot,free,0.783,23,0.279,0.086,,
-or-anthropic/claude-haiku-4.5-A,sb-k1,0shot,all,1.000,24,0.125,0.000,,
-or-anthropic/claude-haiku-4.5-A,an-narr,0shot,all,0.792,24,0.250,0.083,,
-or-anthropic/claude-haiku-4.5-A,an-other-any,0shot,all,0.875,24,0.250,0.068,,
-or-anthropic/claude-haiku-4.5-A,an-me-any,0shot,all,0.333,24,0.250,0.096,1.0,
-or-anthropic/claude-haiku-4.5-A,an-you-voc,0shot,all,0.583,24,0.250,0.101,1.0,
-or-anthropic/claude-haiku-4.5-A,an-you-novoc,0shot,all,0.333,24,0.250,0.096,0.0,
-or-anthropic/claude-haiku-4.5-A,adj-adj,0shot,all,0.960,25,0.333,0.039,,
-or-anthropic/claude-haiku-4.5-A,adj-voc,0shot,all,1.000,25,0.333,0.000,,
-or-anthropic/claude-haiku-4.5-A,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-anthropic/claude-haiku-4.5-A,cm-mutate,0shot,all,0.950,20,0.200,0.049,,
-or-anthropic/claude-haiku-4.5-A,cm-rebind,0shot,all,0.850,20,0.200,0.080,,
-or-anthropic/claude-haiku-4.5-A,cm-copy,0shot,all,0.950,20,0.200,0.049,,
-or-anthropic/claude-haiku-5.5-B,dx-owner-3-deictic,0shot,all,1.000,28,0.333,0.000,,
-or-anthropic/claude-haiku-5.5-B,dx-owner-3-deictic,0shot,free,1.000,8,0.333,0.000,,
-or-anthropic/claude-haiku-5.5-B,dx-owner-3-third,0shot,all,1.000,28,0.333,0.000,,
-or-anthropic/claude-haiku-5.5-B,dx-owner-3-third,0shot,free,1.000,8,0.333,0.000,,
-or-anthropic/claude-haiku-5.5-B,dx-self-3-deictic,0shot,all,0.778,27,0.284,0.080,,format=0.222
-or-anthropic/claude-haiku-5.5-B,dx-self-3-deictic,0shot,free,0.684,19,0.281,0.107,,format=0.316
-or-anthropic/claude-haiku-5.5-B,dx-self-3-third,0shot,all,1.000,32,0.286,0.000,,
-or-anthropic/claude-haiku-5.5-B,dx-self-3-third,0shot,free,1.000,22,0.284,0.000,,
-or-anthropic/claude-haiku-5.5-B,dx-self-2-deictic,0shot,all,0.879,33,0.280,0.057,,format=0.091;other_object=0.03
-or-anthropic/claude-haiku-5.5-B,dx-self-2-deictic,0shot,free,0.913,23,0.275,0.059,,format=0.043;other_object=0.043
-or-anthropic/claude-haiku-5.5-B,dx-self-2-third,0shot,all,1.000,28,0.295,0.000,,
-or-anthropic/claude-haiku-5.5-B,dx-self-2-third,0shot,free,1.000,19,0.289,0.000,,
-or-anthropic/claude-haiku-5.5-B,dx-addressee-3-deictic,0shot,all,0.879,33,0.283,0.057,,format=0.121
-or-anthropic/claude-haiku-5.5-B,dx-addressee-3-deictic,0shot,free,0.818,22,0.280,0.082,,format=0.182
-or-anthropic/claude-haiku-5.5-B,dx-addressee-3-third,0shot,all,0.963,27,0.287,0.036,,
-or-anthropic/claude-haiku-5.5-B,dx-addressee-3-third,0shot,free,0.947,19,0.285,0.051,,
-or-anthropic/claude-haiku-5.5-B,dx-addressee-2-deictic,0shot,all,0.852,27,0.293,0.068,,format=0.074;other_participant=0.074
-or-anthropic/claude-haiku-5.5-B,dx-addressee-2-deictic,0shot,free,0.778,18,0.292,0.098,,format=0.111;other_participant=0.111
-or-anthropic/claude-haiku-5.5-B,dx-addressee-2-third,0shot,all,1.000,33,0.285,0.000,,
-or-anthropic/claude-haiku-5.5-B,dx-addressee-2-third,0shot,free,1.000,23,0.279,0.000,,
-or-anthropic/claude-haiku-5.5-B,an-narr,0shot,all,0.958,24,0.250,0.041,,
-or-anthropic/claude-haiku-5.5-B,an-other-any,0shot,all,1.000,24,0.250,0.000,,
-or-anthropic/claude-haiku-5.5-B,an-me-any,0shot,all,1.000,24,0.250,0.000,0.958,
-or-anthropic/claude-haiku-5.5-B,an-you-voc,0shot,all,1.000,24,0.250,0.000,0.958,
-or-anthropic/claude-haiku-5.5-B,an-you-novoc,0shot,all,1.000,24,0.250,0.000,0.0,
-or-anthropic/claude-haiku-5.5-B,adj-adj,0shot,all,0.960,25,0.333,0.039,,
-or-anthropic/claude-haiku-5.5-B,adj-voc,0shot,all,1.000,25,0.333,0.000,,
-or-anthropic/claude-haiku-5.5-B,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-anthropic/claude-haiku-5.5-A,attr,0shot,all,1.000,30,0.161,0.000,,
-or-anthropic/claude-haiku-5.5-A,codevar,0shot,all,0.700,30,0.274,0.084,,
-or-anthropic/claude-haiku-5.5-A,dialogue,0shot,all,0.933,30,0.311,0.045,,
-or-anthropic/claude-haiku-5.5-A,dx-owner-3-deictic,0shot,all,0.714,28,0.333,0.085,,format=0.036;other=0.25
-or-anthropic/claude-haiku-5.5-A,dx-owner-3-deictic,0shot,free,0.875,8,0.333,0.117,,other=0.125
-or-anthropic/claude-haiku-5.5-A,dx-owner-3-third,0shot,all,0.964,28,0.333,0.035,,
-or-anthropic/claude-haiku-5.5-A,dx-owner-3-third,0shot,free,1.000,8,0.333,0.000,,
-or-anthropic/claude-haiku-5.5-A,dx-self-3-deictic,0shot,all,0.630,27,0.284,0.093,,format=0.037;other_participant=0.333
-or-anthropic/claude-haiku-5.5-A,dx-self-3-deictic,0shot,free,0.579,19,0.281,0.113,,format=0.053;other_participant=0.368
-or-anthropic/claude-haiku-5.5-A,dx-self-3-third,0shot,all,1.000,32,0.286,0.000,,
-or-anthropic/claude-haiku-5.5-A,dx-self-3-third,0shot,free,1.000,22,0.284,0.000,,
-or-anthropic/claude-haiku-5.5-A,dx-self-2-deictic,0shot,all,0.545,33,0.280,0.087,,other=0.424;other_object=0.03
-or-anthropic/claude-haiku-5.5-A,dx-self-2-deictic,0shot,free,0.739,23,0.275,0.092,,other=0.217;other_object=0.043
-or-anthropic/claude-haiku-5.5-A,dx-self-2-third,0shot,all,1.000,28,0.295,0.000,,
-or-anthropic/claude-haiku-5.5-A,dx-self-2-third,0shot,free,1.000,19,0.289,0.000,,
-or-anthropic/claude-haiku-5.5-A,dx-addressee-3-deictic,0shot,all,0.667,33,0.283,0.082,,other_participant=0.121;speaker_confusion=0.212
-or-anthropic/claude-haiku-5.5-A,dx-addressee-3-deictic,0shot,free,0.727,22,0.280,0.095,,other_participant=0.045;speaker_confusion=0.227
-or-anthropic/claude-haiku-5.5-A,dx-addressee-3-third,0shot,all,0.963,27,0.287,0.036,,
-or-anthropic/claude-haiku-5.5-A,dx-addressee-3-third,0shot,free,0.947,19,0.285,0.051,,
-or-anthropic/claude-haiku-5.5-A,dx-addressee-2-deictic,0shot,all,0.407,27,0.293,0.095,,other_participant=0.074;speaker_confusion=0.519
-or-anthropic/claude-haiku-5.5-A,dx-addressee-2-deictic,0shot,free,0.611,18,0.292,0.115,,other_participant=0.056;speaker_confusion=0.333
-or-anthropic/claude-haiku-5.5-A,dx-addressee-2-third,0shot,all,0.970,33,0.285,0.030,,
-or-anthropic/claude-haiku-5.5-A,dx-addressee-2-third,0shot,free,1.000,23,0.279,0.000,,
-or-anthropic/claude-haiku-5.5-A,sb-k1,0shot,all,1.000,24,0.125,0.000,,
-or-anthropic/claude-haiku-5.5-A,an-narr,0shot,all,0.833,24,0.250,0.076,,
-or-anthropic/claude-haiku-5.5-A,an-other-any,0shot,all,1.000,24,0.250,0.000,,
-or-anthropic/claude-haiku-5.5-A,an-me-any,0shot,all,0.750,24,0.250,0.088,0.0,
-or-anthropic/claude-haiku-5.5-A,an-you-voc,0shot,all,0.708,24,0.250,0.093,0.0,
-or-anthropic/claude-haiku-5.5-A,an-you-novoc,0shot,all,0.833,24,0.250,0.076,0.0,
-or-anthropic/claude-haiku-5.5-A,adj-adj,0shot,all,0.920,25,0.333,0.054,,
-or-anthropic/claude-haiku-5.5-A,adj-voc,0shot,all,0.920,25,0.333,0.054,,
-or-anthropic/claude-haiku-5.5-A,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-anthropic/claude-haiku-5.5-A,cm-mutate,0shot,all,1.000,20,0.200,0.000,,
-or-anthropic/claude-haiku-5.5-A,cm-rebind,0shot,all,1.000,20,0.200,0.000,,
-or-anthropic/claude-haiku-5.5-A,cm-copy,0shot,all,1.000,20,0.200,0.000,,
-or-anthropic/claude-opus-4.5-A,attr,0shot,all,1.000,30,0.161,0.000,,
-or-anthropic/claude-opus-4.5-A,codevar,0shot,all,1.000,30,0.274,0.000,,
-or-anthropic/claude-opus-4.5-A,dialogue,0shot,all,1.000,30,0.311,0.000,,
-or-anthropic/claude-opus-4.5-A,dx-owner-3-deictic,0shot,all,1.000,28,0.333,0.000,,
-or-anthropic/claude-opus-4.5-A,dx-owner-3-deictic,0shot,free,1.000,8,0.333,0.000,,
-or-anthropic/claude-opus-4.5-A,dx-owner-3-third,0shot,all,1.000,28,0.333,0.000,,
-or-anthropic/claude-opus-4.5-A,dx-owner-3-third,0shot,free,1.000,8,0.333,0.000,,
-or-anthropic/claude-opus-4.5-A,dx-self-3-deictic,0shot,all,0.926,27,0.284,0.050,,other_participant=0.074
-or-anthropic/claude-opus-4.5-A,dx-self-3-deictic,0shot,free,1.000,19,0.281,0.000,,
-or-anthropic/claude-opus-4.5-A,dx-self-3-third,0shot,all,1.000,32,0.286,0.000,,
-or-anthropic/claude-opus-4.5-A,dx-self-3-third,0shot,free,1.000,22,0.284,0.000,,
-or-anthropic/claude-opus-4.5-A,dx-self-2-deictic,0shot,all,0.758,33,0.280,0.075,,other=0.212;other_object=0.03
-or-anthropic/claude-opus-4.5-A,dx-self-2-deictic,0shot,free,0.870,23,0.275,0.070,,other=0.087;other_object=0.043
-or-anthropic/claude-opus-4.5-A,dx-self-2-third,0shot,all,0.964,28,0.295,0.035,,
-or-anthropic/claude-opus-4.5-A,dx-self-2-third,0shot,free,1.000,19,0.289,0.000,,
-or-anthropic/claude-opus-4.5-A,dx-addressee-3-deictic,0shot,all,0.909,33,0.283,0.050,,other_participant=0.03;speaker_confusion=0.061
-or-anthropic/claude-opus-4.5-A,dx-addressee-3-deictic,0shot,free,0.909,22,0.280,0.061,,other_participant=0.045;speaker_confusion=0.045
-or-anthropic/claude-opus-4.5-A,dx-addressee-3-third,0shot,all,1.000,27,0.287,0.000,,
-or-anthropic/claude-opus-4.5-A,dx-addressee-3-third,0shot,free,1.000,19,0.285,0.000,,
-or-anthropic/claude-opus-4.5-A,dx-addressee-2-deictic,0shot,all,0.481,27,0.293,0.096,,other_participant=0.185;speaker_confusion=0.333
-or-anthropic/claude-opus-4.5-A,dx-addressee-2-deictic,0shot,free,0.556,18,0.292,0.117,,other_participant=0.056;speaker_confusion=0.389
-or-anthropic/claude-opus-4.5-A,dx-addressee-2-third,0shot,all,1.000,33,0.285,0.000,,
-or-anthropic/claude-opus-4.5-A,dx-addressee-2-third,0shot,free,1.000,23,0.279,0.000,,
-or-anthropic/claude-opus-4.5-A,sb-k1,0shot,all,1.000,24,0.125,0.000,,
-or-anthropic/claude-opus-4.5-A,an-narr,0shot,all,1.000,24,0.250,0.000,,
-or-anthropic/claude-opus-4.5-A,an-other-any,0shot,all,1.000,24,0.250,0.000,,
-or-anthropic/claude-opus-4.5-A,an-me-any,0shot,all,1.000,24,0.250,0.000,0.75,
-or-anthropic/claude-opus-4.5-A,an-you-voc,0shot,all,0.958,24,0.250,0.041,0.826,
-or-anthropic/claude-opus-4.5-A,an-you-novoc,0shot,all,0.958,24,0.250,0.041,0.0,
-or-anthropic/claude-opus-4.5-A,adj-adj,0shot,all,1.000,25,0.333,0.000,,
-or-anthropic/claude-opus-4.5-A,adj-voc,0shot,all,1.000,25,0.333,0.000,,
-or-anthropic/claude-opus-4.5-A,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-anthropic/claude-opus-4.5-A,cm-mutate,0shot,all,1.000,20,0.200,0.000,,
-or-anthropic/claude-opus-4.5-A,cm-rebind,0shot,all,1.000,20,0.200,0.000,,
-or-anthropic/claude-opus-4.5-A,cm-copy,0shot,all,0.900,20,0.200,0.067,,
-or-anthropic/claude-opus-5.5-B,dx-owner-3-deictic,0shot,all,1.000,28,0.333,0.000,,
-or-anthropic/claude-opus-5.5-B,dx-owner-3-deictic,0shot,free,1.000,8,0.333,0.000,,
-or-anthropic/claude-opus-5.5-B,dx-owner-3-third,0shot,all,1.000,28,0.333,0.000,,
-or-anthropic/claude-opus-5.5-B,dx-owner-3-third,0shot,free,1.000,8,0.333,0.000,,
-or-anthropic/claude-opus-5.5-B,dx-self-3-deictic,0shot,all,1.000,27,0.284,0.000,,
-or-anthropic/claude-opus-5.5-B,dx-self-3-deictic,0shot,free,1.000,19,0.281,0.000,,
-or-anthropic/claude-opus-5.5-B,dx-self-3-third,0shot,all,1.000,32,0.286,0.000,,
-or-anthropic/claude-opus-5.5-B,dx-self-3-third,0shot,free,1.000,22,0.284,0.000,,
-or-anthropic/claude-opus-5.5-B,dx-self-2-deictic,0shot,all,1.000,33,0.280,0.000,,
-or-anthropic/claude-opus-5.5-B,dx-self-2-deictic,0shot,free,1.000,23,0.275,0.000,,
-or-anthropic/claude-opus-5.5-B,dx-self-2-third,0shot,all,1.000,28,0.295,0.000,,
-or-anthropic/claude-opus-5.5-B,dx-self-2-third,0shot,free,1.000,19,0.289,0.000,,
-or-anthropic/claude-opus-5.5-B,dx-addressee-3-deictic,0shot,all,1.000,33,0.283,0.000,,
-or-anthropic/claude-opus-5.5-B,dx-addressee-3-deictic,0shot,free,1.000,22,0.280,0.000,,
-or-anthropic/claude-opus-5.5-B,dx-addressee-3-third,0shot,all,1.000,27,0.287,0.000,,
-or-anthropic/claude-opus-5.5-B,dx-addressee-3-third,0shot,free,1.000,19,0.285,0.000,,
-or-anthropic/claude-opus-5.5-B,dx-addressee-2-deictic,0shot,all,1.000,27,0.293,0.000,,
-or-anthropic/claude-opus-5.5-B,dx-addressee-2-deictic,0shot,free,1.000,18,0.292,0.000,,
-or-anthropic/claude-opus-5.5-B,dx-addressee-2-third,0shot,all,1.000,33,0.285,0.000,,
-or-anthropic/claude-opus-5.5-B,dx-addressee-2-third,0shot,free,1.000,23,0.279,0.000,,
-or-anthropic/claude-opus-5.5-B,an-narr,0shot,all,1.000,24,0.250,0.000,,
-or-anthropic/claude-opus-5.5-B,an-other-any,0shot,all,1.000,24,0.250,0.000,,
-or-anthropic/claude-opus-5.5-B,an-me-any,0shot,all,1.000,24,0.250,0.000,1.0,
-or-anthropic/claude-opus-5.5-B,an-you-voc,0shot,all,1.000,24,0.250,0.000,1.0,
-or-anthropic/claude-opus-5.5-B,an-you-novoc,0shot,all,1.000,24,0.250,0.000,0.5,
-or-anthropic/claude-opus-5.5-B,adj-adj,0shot,all,1.000,25,0.333,0.000,,
-or-anthropic/claude-opus-5.5-B,adj-voc,0shot,all,1.000,25,0.333,0.000,,
-or-anthropic/claude-opus-5.5-B,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-anthropic/claude-opus-5.5-A,attr,0shot,all,1.000,30,0.161,0.000,,
-or-anthropic/claude-opus-5.5-A,codevar,0shot,all,0.696,23,0.269,0.096,,
-or-anthropic/claude-opus-5.5-A,dialogue,0shot,all,1.000,25,0.310,0.000,,
-or-anthropic/claude-opus-5.5-A,dx-owner-3-deictic,0shot,all,1.000,27,0.333,0.000,,
-or-anthropic/claude-opus-5.5-A,dx-owner-3-third,0shot,all,1.000,28,0.333,0.000,,
-or-anthropic/claude-opus-5.5-A,dx-owner-3-third,0shot,free,1.000,8,0.333,0.000,,
-or-anthropic/claude-opus-5.5-A,dx-self-3-deictic,0shot,all,0.889,9,0.287,0.105,,format=0.111
-or-anthropic/claude-opus-5.5-A,dx-self-3-deictic,0shot,free,0.875,8,0.292,0.117,,format=0.125
-or-anthropic/claude-opus-5.5-A,dx-self-3-third,0shot,all,0.968,31,0.288,0.032,,
-or-anthropic/claude-opus-5.5-A,dx-self-3-third,0shot,free,0.952,21,0.286,0.046,,
-or-anthropic/claude-opus-5.5-A,dx-self-2-third,0shot,all,1.000,23,0.293,0.000,,
-or-anthropic/claude-opus-5.5-A,dx-self-2-third,0shot,free,1.000,14,0.286,0.000,,
-or-anthropic/claude-opus-5.5-A,dx-addressee-3-deictic,0shot,all,0.636,11,0.295,0.145,,format=0.364
-or-anthropic/claude-opus-5.5-A,dx-addressee-3-third,0shot,all,1.000,22,0.288,0.000,,
-or-anthropic/claude-opus-5.5-A,dx-addressee-3-third,0shot,free,1.000,14,0.286,0.000,,
-or-anthropic/claude-opus-5.5-A,dx-addressee-2-third,0shot,all,1.000,28,0.286,0.000,,
-or-anthropic/claude-opus-5.5-A,dx-addressee-2-third,0shot,free,1.000,19,0.276,0.000,,
-or-anthropic/claude-opus-5.5-A,sb-k1,0shot,all,1.000,24,0.125,0.000,,
-or-anthropic/claude-opus-5.5-A,an-narr,0shot,all,1.000,24,0.250,0.000,,
-or-anthropic/claude-opus-5.5-A,an-other-any,0shot,all,0.955,22,0.250,0.044,,
-or-anthropic/claude-opus-5.5-A,an-you-voc,0shot,all,0.556,9,0.250,0.166,0.8,
-or-anthropic/claude-opus-5.5-A,an-you-novoc,0shot,all,0.929,14,0.250,0.069,0.0,
-or-anthropic/claude-opus-5.5-A,adj-adj,0shot,all,1.000,25,0.333,0.000,,
-or-anthropic/claude-opus-5.5-A,adj-voc,0shot,all,1.000,25,0.333,0.000,,
-or-anthropic/claude-opus-5.5-A,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-anthropic/claude-opus-5.5-A,cm-mutate,0shot,all,0.944,18,0.200,0.054,,
-or-anthropic/claude-opus-5.5-A,cm-rebind,0shot,all,0.889,18,0.200,0.074,,
-or-anthropic/claude-opus-5.5-A,cm-copy,0shot,all,0.889,9,0.200,0.105,,
-or-anthropic/claude-sonnet-4.5-A,attr,0shot,all,1.000,30,0.161,0.000,,
-or-anthropic/claude-sonnet-4.5-A,codevar,0shot,all,1.000,30,0.274,0.000,,
-or-anthropic/claude-sonnet-4.5-A,dialogue,0shot,all,1.000,30,0.311,0.000,,
-or-anthropic/claude-sonnet-4.5-A,dx-owner-3-deictic,0shot,all,0.929,28,0.333,0.049,,other=0.071
-or-anthropic/claude-sonnet-4.5-A,dx-owner-3-deictic,0shot,free,0.750,8,0.333,0.153,,other=0.25
-or-anthropic/claude-sonnet-4.5-A,dx-owner-3-third,0shot,all,1.000,28,0.333,0.000,,
-or-anthropic/claude-sonnet-4.5-A,dx-owner-3-third,0shot,free,1.000,8,0.333,0.000,,
-or-anthropic/claude-sonnet-4.5-A,dx-self-3-deictic,0shot,all,0.815,27,0.284,0.075,,other_participant=0.185
-or-anthropic/claude-sonnet-4.5-A,dx-self-3-deictic,0shot,free,0.947,19,0.281,0.051,,other_participant=0.053
-or-anthropic/claude-sonnet-4.5-A,dx-self-3-third,0shot,all,0.969,32,0.286,0.031,,
-or-anthropic/claude-sonnet-4.5-A,dx-self-3-third,0shot,free,1.000,22,0.284,0.000,,
-or-anthropic/claude-sonnet-4.5-A,dx-self-2-deictic,0shot,all,0.424,33,0.280,0.086,,other=0.485;other_object=0.061;other_participant=0.03
-or-anthropic/claude-sonnet-4.5-A,dx-self-2-deictic,0shot,free,0.391,23,0.275,0.102,,other=0.478;other_object=0.087;other_participant=0.043
-or-anthropic/claude-sonnet-4.5-A,dx-self-2-third,0shot,all,0.893,28,0.295,0.059,,
-or-anthropic/claude-sonnet-4.5-A,dx-self-2-third,0shot,free,1.000,19,0.289,0.000,,
-or-anthropic/claude-sonnet-4.5-A,dx-addressee-3-deictic,0shot,all,0.818,33,0.283,0.067,,speaker_confusion=0.182
-or-anthropic/claude-sonnet-4.5-A,dx-addressee-3-deictic,0shot,free,0.909,22,0.280,0.061,,speaker_confusion=0.091
-or-anthropic/claude-sonnet-4.5-A,dx-addressee-3-third,0shot,all,0.963,27,0.287,0.036,,
-or-anthropic/claude-sonnet-4.5-A,dx-addressee-3-third,0shot,free,0.947,19,0.285,0.051,,
-or-anthropic/claude-sonnet-4.5-A,dx-addressee-2-deictic,0shot,all,0.556,27,0.293,0.096,,other_participant=0.148;speaker_confusion=0.296
-or-anthropic/claude-sonnet-4.5-A,dx-addressee-2-deictic,0shot,free,0.722,18,0.292,0.106,,other_participant=0.167;speaker_confusion=0.111
-or-anthropic/claude-sonnet-4.5-A,dx-addressee-2-third,0shot,all,0.879,33,0.285,0.057,,
-or-anthropic/claude-sonnet-4.5-A,dx-addressee-2-third,0shot,free,0.957,23,0.279,0.043,,
-or-anthropic/claude-sonnet-4.5-A,sb-k1,0shot,all,1.000,24,0.125,0.000,,
-or-anthropic/claude-sonnet-4.5-A,an-narr,0shot,all,0.875,24,0.250,0.068,,
-or-anthropic/claude-sonnet-4.5-A,an-other-any,0shot,all,1.000,24,0.250,0.000,,
-or-anthropic/claude-sonnet-4.5-A,an-me-any,0shot,all,0.667,24,0.250,0.096,1.0,
-or-anthropic/claude-sonnet-4.5-A,an-you-voc,0shot,all,1.000,24,0.250,0.000,0.958,
-or-anthropic/claude-sonnet-4.5-A,an-you-novoc,0shot,all,0.958,24,0.250,0.041,0.0,
-or-anthropic/claude-sonnet-4.5-A,adj-adj,0shot,all,1.000,25,0.333,0.000,,
-or-anthropic/claude-sonnet-4.5-A,adj-voc,0shot,all,1.000,25,0.333,0.000,,
-or-anthropic/claude-sonnet-4.5-A,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-anthropic/claude-sonnet-4.5-A,cm-mutate,0shot,all,1.000,20,0.200,0.000,,
-or-anthropic/claude-sonnet-4.5-A,cm-rebind,0shot,all,1.000,20,0.200,0.000,,
-or-anthropic/claude-sonnet-4.5-A,cm-copy,0shot,all,0.950,20,0.200,0.049,,
-or-anthropic/claude-sonnet-5.5-B,dx-owner-3-deictic,0shot,all,1.000,28,0.333,0.000,,
-or-anthropic/claude-sonnet-5.5-B,dx-owner-3-deictic,0shot,free,1.000,8,0.333,0.000,,
-or-anthropic/claude-sonnet-5.5-B,dx-owner-3-third,0shot,all,1.000,28,0.333,0.000,,
-or-anthropic/claude-sonnet-5.5-B,dx-owner-3-third,0shot,free,1.000,8,0.333,0.000,,
-or-anthropic/claude-sonnet-5.5-B,dx-self-3-deictic,0shot,all,1.000,27,0.284,0.000,,
-or-anthropic/claude-sonnet-5.5-B,dx-self-3-deictic,0shot,free,1.000,19,0.281,0.000,,
-or-anthropic/claude-sonnet-5.5-B,dx-self-3-third,0shot,all,1.000,32,0.286,0.000,,
-or-anthropic/claude-sonnet-5.5-B,dx-self-3-third,0shot,free,1.000,22,0.284,0.000,,
-or-anthropic/claude-sonnet-5.5-B,dx-self-2-deictic,0shot,all,1.000,33,0.280,0.000,,
-or-anthropic/claude-sonnet-5.5-B,dx-self-2-deictic,0shot,free,1.000,23,0.275,0.000,,
-or-anthropic/claude-sonnet-5.5-B,dx-self-2-third,0shot,all,1.000,28,0.295,0.000,,
-or-anthropic/claude-sonnet-5.5-B,dx-self-2-third,0shot,free,1.000,19,0.289,0.000,,
-or-anthropic/claude-sonnet-5.5-B,dx-addressee-3-deictic,0shot,all,1.000,33,0.283,0.000,,
-or-anthropic/claude-sonnet-5.5-B,dx-addressee-3-deictic,0shot,free,1.000,22,0.280,0.000,,
-or-anthropic/claude-sonnet-5.5-B,dx-addressee-3-third,0shot,all,1.000,27,0.287,0.000,,
-or-anthropic/claude-sonnet-5.5-B,dx-addressee-3-third,0shot,free,1.000,19,0.285,0.000,,
-or-anthropic/claude-sonnet-5.5-B,dx-addressee-2-deictic,0shot,all,1.000,27,0.293,0.000,,
-or-anthropic/claude-sonnet-5.5-B,dx-addressee-2-deictic,0shot,free,1.000,18,0.292,0.000,,
-or-anthropic/claude-sonnet-5.5-B,dx-addressee-2-third,0shot,all,1.000,33,0.285,0.000,,
-or-anthropic/claude-sonnet-5.5-B,dx-addressee-2-third,0shot,free,1.000,23,0.279,0.000,,
-or-anthropic/claude-sonnet-5.5-B,an-narr,0shot,all,1.000,24,0.250,0.000,,
-or-anthropic/claude-sonnet-5.5-B,an-other-any,0shot,all,1.000,24,0.250,0.000,,
-or-anthropic/claude-sonnet-5.5-B,an-me-any,0shot,all,1.000,24,0.250,0.000,0.958,
-or-anthropic/claude-sonnet-5.5-B,an-you-voc,0shot,all,1.000,24,0.250,0.000,0.958,
-or-anthropic/claude-sonnet-5.5-B,an-you-novoc,0shot,all,1.000,24,0.250,0.000,0.0,
-or-anthropic/claude-sonnet-5.5-B,adj-adj,0shot,all,1.000,25,0.333,0.000,,
-or-anthropic/claude-sonnet-5.5-B,adj-voc,0shot,all,1.000,25,0.333,0.000,,
-or-anthropic/claude-sonnet-5.5-B,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-anthropic/claude-sonnet-5.5-A,attr,0shot,all,1.000,30,0.161,0.000,,
-or-anthropic/claude-sonnet-5.5-A,codevar,0shot,all,0.633,30,0.274,0.088,,
-or-anthropic/claude-sonnet-5.5-A,dialogue,0shot,all,0.933,30,0.311,0.045,,
-or-anthropic/claude-sonnet-5.5-A,dx-owner-3-deictic,0shot,all,1.000,28,0.333,0.000,,
-or-anthropic/claude-sonnet-5.5-A,dx-owner-3-deictic,0shot,free,1.000,8,0.333,0.000,,
-or-anthropic/claude-sonnet-5.5-A,dx-owner-3-third,0shot,all,1.000,28,0.333,0.000,,
-or-anthropic/claude-sonnet-5.5-A,dx-owner-3-third,0shot,free,1.000,8,0.333,0.000,,
-or-anthropic/claude-sonnet-5.5-A,dx-self-3-deictic,0shot,all,0.667,27,0.284,0.091,,format=0.333
-or-anthropic/claude-sonnet-5.5-A,dx-self-3-deictic,0shot,free,0.579,19,0.281,0.113,,format=0.421
-or-anthropic/claude-sonnet-5.5-A,dx-self-3-third,0shot,all,0.938,32,0.286,0.043,,
-or-anthropic/claude-sonnet-5.5-A,dx-self-3-third,0shot,free,0.955,22,0.284,0.044,,
-or-anthropic/claude-sonnet-5.5-A,dx-self-2-deictic,0shot,all,0.576,33,0.280,0.086,,format=0.424
-or-anthropic/claude-sonnet-5.5-A,dx-self-2-deictic,0shot,free,0.565,23,0.275,0.103,,format=0.435
-or-anthropic/claude-sonnet-5.5-A,dx-self-2-third,0shot,all,0.929,28,0.295,0.049,,
-or-anthropic/claude-sonnet-5.5-A,dx-self-2-third,0shot,free,0.947,19,0.289,0.051,,
-or-anthropic/claude-sonnet-5.5-A,dx-addressee-3-deictic,0shot,all,0.758,33,0.283,0.075,,format=0.212;speaker_confusion=0.03
-or-anthropic/claude-sonnet-5.5-A,dx-addressee-3-deictic,0shot,free,0.818,22,0.280,0.082,,format=0.136;speaker_confusion=0.045
-or-anthropic/claude-sonnet-5.5-A,dx-addressee-3-third,0shot,all,0.963,27,0.287,0.036,,
-or-anthropic/claude-sonnet-5.5-A,dx-addressee-3-third,0shot,free,0.947,19,0.285,0.051,,
-or-anthropic/claude-sonnet-5.5-A,dx-addressee-2-deictic,0shot,all,0.630,27,0.293,0.093,,format=0.37
-or-anthropic/claude-sonnet-5.5-A,dx-addressee-2-deictic,0shot,free,0.611,18,0.292,0.115,,format=0.389
-or-anthropic/claude-sonnet-5.5-A,dx-addressee-2-third,0shot,all,0.849,33,0.285,0.062,,
-or-anthropic/claude-sonnet-5.5-A,dx-addressee-2-third,0shot,free,0.913,23,0.279,0.059,,
-or-anthropic/claude-sonnet-5.5-A,sb-k1,0shot,all,1.000,24,0.125,0.000,,
-or-anthropic/claude-sonnet-5.5-A,an-narr,0shot,all,1.000,24,0.250,0.000,,
-or-anthropic/claude-sonnet-5.5-A,an-other-any,0shot,all,1.000,24,0.250,0.000,,
-or-anthropic/claude-sonnet-5.5-A,an-me-any,0shot,all,0.917,24,0.250,0.056,0.636,
-or-anthropic/claude-sonnet-5.5-A,an-you-voc,0shot,all,1.000,24,0.250,0.000,0.958,
-or-anthropic/claude-sonnet-5.5-A,an-you-novoc,0shot,all,1.000,24,0.250,0.000,0.0,
-or-anthropic/claude-sonnet-5.5-A,adj-adj,0shot,all,1.000,25,0.333,0.000,,
-or-anthropic/claude-sonnet-5.5-A,adj-voc,0shot,all,1.000,25,0.333,0.000,,
-or-anthropic/claude-sonnet-5.5-A,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-anthropic/claude-sonnet-5.5-A,cm-mutate,0shot,all,1.000,20,0.200,0.000,,
-or-anthropic/claude-sonnet-5.5-A,cm-rebind,0shot,all,0.950,20,0.200,0.049,,
-or-anthropic/claude-sonnet-5.5-A,cm-copy,0shot,all,0.700,20,0.200,0.102,,
-or-google/gemini-2.5-flash-B,dx-owner-3-deictic,0shot,all,1.000,28,0.333,0.000,,
-or-google/gemini-2.5-flash-B,dx-owner-3-deictic,0shot,free,1.000,8,0.333,0.000,,
-or-google/gemini-2.5-flash-B,dx-owner-3-third,0shot,all,1.000,28,0.333,0.000,,
-or-google/gemini-2.5-flash-B,dx-owner-3-third,0shot,free,1.000,8,0.333,0.000,,
-or-google/gemini-2.5-flash-B,dx-self-3-deictic,0shot,all,1.000,27,0.284,0.000,,
-or-google/gemini-2.5-flash-B,dx-self-3-deictic,0shot,free,1.000,19,0.281,0.000,,
-or-google/gemini-2.5-flash-B,dx-self-3-third,0shot,all,1.000,32,0.286,0.000,,
-or-google/gemini-2.5-flash-B,dx-self-3-third,0shot,free,1.000,22,0.284,0.000,,
-or-google/gemini-2.5-flash-B,dx-self-2-deictic,0shot,all,0.879,33,0.280,0.057,,other=0.091;other_object=0.03
-or-google/gemini-2.5-flash-B,dx-self-2-deictic,0shot,free,0.913,23,0.275,0.059,,other=0.043;other_object=0.043
-or-google/gemini-2.5-flash-B,dx-self-2-third,0shot,all,1.000,28,0.295,0.000,,
-or-google/gemini-2.5-flash-B,dx-self-2-third,0shot,free,1.000,19,0.289,0.000,,
-or-google/gemini-2.5-flash-B,dx-addressee-3-deictic,0shot,all,0.970,33,0.283,0.030,,other_participant=0.03
-or-google/gemini-2.5-flash-B,dx-addressee-3-deictic,0shot,free,0.955,22,0.280,0.044,,other_participant=0.045
-or-google/gemini-2.5-flash-B,dx-addressee-3-third,0shot,all,1.000,27,0.287,0.000,,
-or-google/gemini-2.5-flash-B,dx-addressee-3-third,0shot,free,1.000,19,0.285,0.000,,
-or-google/gemini-2.5-flash-B,dx-addressee-2-deictic,0shot,all,0.889,27,0.293,0.060,,other_participant=0.037;speaker_confusion=0.074
-or-google/gemini-2.5-flash-B,dx-addressee-2-deictic,0shot,free,0.833,18,0.292,0.088,,other_participant=0.056;speaker_confusion=0.111
-or-google/gemini-2.5-flash-B,dx-addressee-2-third,0shot,all,1.000,33,0.285,0.000,,
-or-google/gemini-2.5-flash-B,dx-addressee-2-third,0shot,free,1.000,23,0.279,0.000,,
-or-google/gemini-2.5-flash-B,an-narr,0shot,all,1.000,24,0.250,0.000,,
-or-google/gemini-2.5-flash-B,an-other-any,0shot,all,1.000,24,0.250,0.000,,
-or-google/gemini-2.5-flash-B,an-me-any,0shot,all,1.000,24,0.250,0.000,0.958,
-or-google/gemini-2.5-flash-B,an-you-voc,0shot,all,1.000,24,0.250,0.000,1.0,
-or-google/gemini-2.5-flash-B,an-you-novoc,0shot,all,1.000,24,0.250,0.000,0.042,
-or-google/gemini-2.5-flash-B,adj-adj,0shot,all,1.000,25,0.333,0.000,,
-or-google/gemini-2.5-flash-B,adj-voc,0shot,all,1.000,25,0.333,0.000,,
-or-google/gemini-2.5-flash-B,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-google/gemini-2.5-flash-A,attr,0shot,all,1.000,30,0.161,0.000,,
-or-google/gemini-2.5-flash-A,codevar,0shot,all,0.933,30,0.274,0.045,,
-or-google/gemini-2.5-flash-A,dialogue,0shot,all,0.933,30,0.311,0.045,,
-or-google/gemini-2.5-flash-A,dx-owner-3-deictic,0shot,all,0.750,28,0.333,0.082,,other=0.25
-or-google/gemini-2.5-flash-A,dx-owner-3-deictic,0shot,free,0.625,8,0.333,0.171,,other=0.375
-or-google/gemini-2.5-flash-A,dx-owner-3-third,0shot,all,1.000,28,0.333,0.000,,
-or-google/gemini-2.5-flash-A,dx-owner-3-third,0shot,free,1.000,8,0.333,0.000,,
-or-google/gemini-2.5-flash-A,dx-self-3-deictic,0shot,all,0.593,27,0.284,0.095,,other_participant=0.407
-or-google/gemini-2.5-flash-A,dx-self-3-deictic,0shot,free,0.579,19,0.281,0.113,,other_participant=0.421
-or-google/gemini-2.5-flash-A,dx-self-3-third,0shot,all,0.969,32,0.286,0.031,,
-or-google/gemini-2.5-flash-A,dx-self-3-third,0shot,free,1.000,22,0.284,0.000,,
-or-google/gemini-2.5-flash-A,dx-self-2-deictic,0shot,all,0.455,33,0.280,0.087,,format=0.03;other=0.364;other_object=0.152
-or-google/gemini-2.5-flash-A,dx-self-2-deictic,0shot,free,0.565,23,0.275,0.103,,other=0.261;other_object=0.174
-or-google/gemini-2.5-flash-A,dx-self-2-third,0shot,all,0.893,28,0.295,0.059,,
-or-google/gemini-2.5-flash-A,dx-self-2-third,0shot,free,0.895,19,0.289,0.070,,
-or-google/gemini-2.5-flash-A,dx-addressee-3-deictic,0shot,all,0.455,33,0.283,0.087,,other_participant=0.182;speaker_confusion=0.364
-or-google/gemini-2.5-flash-A,dx-addressee-3-deictic,0shot,free,0.455,22,0.280,0.106,,other_participant=0.182;speaker_confusion=0.364
-or-google/gemini-2.5-flash-A,dx-addressee-3-third,0shot,all,0.889,27,0.287,0.060,,
-or-google/gemini-2.5-flash-A,dx-addressee-3-third,0shot,free,0.842,19,0.285,0.084,,
-or-google/gemini-2.5-flash-A,dx-addressee-2-deictic,0shot,all,0.481,27,0.293,0.096,,other_participant=0.074;speaker_confusion=0.444
-or-google/gemini-2.5-flash-A,dx-addressee-2-deictic,0shot,free,0.556,18,0.292,0.117,,other_participant=0.056;speaker_confusion=0.389
-or-google/gemini-2.5-flash-A,dx-addressee-2-third,0shot,all,0.909,33,0.285,0.050,,
-or-google/gemini-2.5-flash-A,dx-addressee-2-third,0shot,free,0.870,23,0.279,0.070,,
-or-google/gemini-2.5-flash-A,sb-k1,0shot,all,1.000,24,0.125,0.000,,
-or-google/gemini-2.5-flash-A,an-narr,0shot,all,0.583,24,0.250,0.101,,
-or-google/gemini-2.5-flash-A,an-other-any,0shot,all,0.792,24,0.250,0.083,,
-or-google/gemini-2.5-flash-A,an-me-any,0shot,all,0.208,24,0.250,0.083,1.0,
-or-google/gemini-2.5-flash-A,an-you-voc,0shot,all,0.417,24,0.250,0.101,1.0,
-or-google/gemini-2.5-flash-A,an-you-novoc,0shot,all,0.208,24,0.250,0.083,0.2,
-or-google/gemini-2.5-flash-A,adj-adj,0shot,all,1.000,25,0.333,0.000,,
-or-google/gemini-2.5-flash-A,adj-voc,0shot,all,1.000,25,0.333,0.000,,
-or-google/gemini-2.5-flash-A,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-google/gemini-2.5-flash-A,cm-mutate,0shot,all,1.000,20,0.200,0.000,,
-or-google/gemini-2.5-flash-A,cm-rebind,0shot,all,1.000,20,0.200,0.000,,
-or-google/gemini-2.5-flash-A,cm-copy,0shot,all,1.000,20,0.200,0.000,,
-or-google/gemini-2.5-flash-lite-A,attr,0shot,all,0.900,30,0.161,0.055,,
-or-google/gemini-2.5-flash-lite-A,codevar,0shot,all,0.700,30,0.274,0.084,,
-or-google/gemini-2.5-flash-lite-A,dialogue,0shot,all,0.867,30,0.311,0.062,,
-or-google/gemini-2.5-flash-lite-A,dx-owner-3-deictic,0shot,all,0.750,28,0.333,0.082,,other=0.25
-or-google/gemini-2.5-flash-lite-A,dx-owner-3-deictic,0shot,free,1.000,8,0.333,0.000,,
-or-google/gemini-2.5-flash-lite-A,dx-owner-3-third,0shot,all,1.000,28,0.333,0.000,,
-or-google/gemini-2.5-flash-lite-A,dx-owner-3-third,0shot,free,1.000,8,0.333,0.000,,
-or-google/gemini-2.5-flash-lite-A,dx-self-3-deictic,0shot,all,0.296,27,0.284,0.088,,other_participant=0.704
-or-google/gemini-2.5-flash-lite-A,dx-self-3-deictic,0shot,free,0.263,19,0.281,0.101,,other_participant=0.737
-or-google/gemini-2.5-flash-lite-A,dx-self-3-third,0shot,all,0.844,32,0.286,0.064,,
-or-google/gemini-2.5-flash-lite-A,dx-self-3-third,0shot,free,0.955,22,0.284,0.044,,
-or-google/gemini-2.5-flash-lite-A,dx-self-2-deictic,0shot,all,0.394,33,0.280,0.085,,format=0.03;other=0.424;other_object=0.121;other_participant=0.03
-or-google/gemini-2.5-flash-lite-A,dx-self-2-deictic,0shot,free,0.522,23,0.275,0.104,,format=0.043;other=0.304;other_object=0.13
-or-google/gemini-2.5-flash-lite-A,dx-self-2-third,0shot,all,0.679,28,0.295,0.088,,
-or-google/gemini-2.5-flash-lite-A,dx-self-2-third,0shot,free,0.789,19,0.289,0.093,,
-or-google/gemini-2.5-flash-lite-A,dx-addressee-3-deictic,0shot,all,0.091,33,0.283,0.050,,other_participant=0.364;speaker_confusion=0.545
-or-google/gemini-2.5-flash-lite-A,dx-addressee-3-deictic,0shot,free,0.136,22,0.280,0.073,,other_participant=0.364;speaker_confusion=0.5
-or-google/gemini-2.5-flash-lite-A,dx-addressee-3-third,0shot,all,0.815,27,0.287,0.075,,
-or-google/gemini-2.5-flash-lite-A,dx-addressee-3-third,0shot,free,0.842,19,0.285,0.084,,
-or-google/gemini-2.5-flash-lite-A,dx-addressee-2-deictic,0shot,all,0.333,27,0.293,0.091,,other_participant=0.074;speaker_confusion=0.593
-or-google/gemini-2.5-flash-lite-A,dx-addressee-2-deictic,0shot,free,0.389,18,0.292,0.115,,other_participant=0.111;speaker_confusion=0.5
-or-google/gemini-2.5-flash-lite-A,dx-addressee-2-third,0shot,all,0.576,33,0.285,0.086,,
-or-google/gemini-2.5-flash-lite-A,dx-addressee-2-third,0shot,free,0.696,23,0.279,0.096,,
-or-google/gemini-2.5-flash-lite-A,sb-k1,0shot,all,1.000,24,0.125,0.000,,
-or-google/gemini-2.5-flash-lite-A,an-narr,0shot,all,0.625,24,0.250,0.099,,
-or-google/gemini-2.5-flash-lite-A,an-other-any,0shot,all,0.833,24,0.250,0.076,,
-or-google/gemini-2.5-flash-lite-A,an-me-any,0shot,all,0.000,24,0.250,0.000,,
-or-google/gemini-2.5-flash-lite-A,an-you-voc,0shot,all,0.708,24,0.250,0.093,1.0,
-or-google/gemini-2.5-flash-lite-A,an-you-novoc,0shot,all,0.083,24,0.250,0.056,0.0,
-or-google/gemini-2.5-flash-lite-A,adj-adj,0shot,all,0.560,25,0.333,0.099,,
-or-google/gemini-2.5-flash-lite-A,adj-voc,0shot,all,0.840,25,0.333,0.073,,
-or-google/gemini-2.5-flash-lite-A,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-google/gemini-2.5-flash-lite-A,cm-mutate,0shot,all,1.000,20,0.200,0.000,,
-or-google/gemini-2.5-flash-lite-A,cm-rebind,0shot,all,0.600,20,0.200,0.110,,
-or-google/gemini-2.5-flash-lite-A,cm-copy,0shot,all,0.400,20,0.200,0.110,,
-or-google/gemini-3.1-pro-preview-B,dx-owner-3-deictic,0shot,all,1.000,28,0.333,0.000,,
-or-google/gemini-3.1-pro-preview-B,dx-owner-3-deictic,0shot,free,1.000,8,0.333,0.000,,
-or-google/gemini-3.1-pro-preview-B,dx-owner-3-third,0shot,all,1.000,28,0.333,0.000,,
-or-google/gemini-3.1-pro-preview-B,dx-owner-3-third,0shot,free,1.000,8,0.333,0.000,,
-or-google/gemini-3.1-pro-preview-B,dx-self-3-deictic,0shot,all,1.000,27,0.284,0.000,,
-or-google/gemini-3.1-pro-preview-B,dx-self-3-deictic,0shot,free,1.000,19,0.281,0.000,,
-or-google/gemini-3.1-pro-preview-B,dx-self-3-third,0shot,all,1.000,32,0.286,0.000,,
-or-google/gemini-3.1-pro-preview-B,dx-self-3-third,0shot,free,1.000,22,0.284,0.000,,
-or-google/gemini-3.1-pro-preview-B,dx-self-2-deictic,0shot,all,1.000,33,0.280,0.000,,
-or-google/gemini-3.1-pro-preview-B,dx-self-2-deictic,0shot,free,1.000,23,0.275,0.000,,
-or-google/gemini-3.1-pro-preview-B,dx-self-2-third,0shot,all,1.000,28,0.295,0.000,,
-or-google/gemini-3.1-pro-preview-B,dx-self-2-third,0shot,free,1.000,19,0.289,0.000,,
-or-google/gemini-3.1-pro-preview-B,dx-addressee-3-deictic,0shot,all,1.000,33,0.283,0.000,,
-or-google/gemini-3.1-pro-preview-B,dx-addressee-3-deictic,0shot,free,1.000,22,0.280,0.000,,
-or-google/gemini-3.1-pro-preview-B,dx-addressee-3-third,0shot,all,1.000,27,0.287,0.000,,
-or-google/gemini-3.1-pro-preview-B,dx-addressee-3-third,0shot,free,1.000,19,0.285,0.000,,
-or-google/gemini-3.1-pro-preview-B,dx-addressee-2-deictic,0shot,all,1.000,27,0.293,0.000,,
-or-google/gemini-3.1-pro-preview-B,dx-addressee-2-deictic,0shot,free,1.000,18,0.292,0.000,,
-or-google/gemini-3.1-pro-preview-B,dx-addressee-2-third,0shot,all,1.000,33,0.285,0.000,,
-or-google/gemini-3.1-pro-preview-B,dx-addressee-2-third,0shot,free,1.000,23,0.279,0.000,,
-or-google/gemini-3.1-pro-preview-B,an-narr,0shot,all,1.000,24,0.250,0.000,,
-or-google/gemini-3.1-pro-preview-B,an-other-any,0shot,all,1.000,24,0.250,0.000,,
-or-google/gemini-3.1-pro-preview-B,an-me-any,0shot,all,1.000,24,0.250,0.000,1.0,
-or-google/gemini-3.1-pro-preview-B,an-you-voc,0shot,all,1.000,24,0.250,0.000,0.958,
-or-google/gemini-3.1-pro-preview-B,an-you-novoc,0shot,all,1.000,24,0.250,0.000,0.167,
-or-google/gemini-3.1-pro-preview-B,adj-adj,0shot,all,1.000,25,0.333,0.000,,
-or-google/gemini-3.1-pro-preview-B,adj-voc,0shot,all,1.000,25,0.333,0.000,,
-or-google/gemini-3.1-pro-preview-B,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-openai/gpt-4.1-mini-A,attr,0shot,all,0.833,30,0.161,0.068,,
-or-openai/gpt-4.1-mini-A,codevar,0shot,all,0.900,30,0.274,0.055,,
-or-openai/gpt-4.1-mini-A,dialogue,0shot,all,0.967,30,0.311,0.033,,
-or-openai/gpt-4.1-mini-A,dx-owner-3-deictic,0shot,all,0.714,28,0.333,0.085,,other=0.286
-or-openai/gpt-4.1-mini-A,dx-owner-3-deictic,0shot,free,0.625,8,0.333,0.171,,other=0.375
-or-openai/gpt-4.1-mini-A,dx-owner-3-third,0shot,all,1.000,28,0.333,0.000,,
-or-openai/gpt-4.1-mini-A,dx-owner-3-third,0shot,free,1.000,8,0.333,0.000,,
-or-openai/gpt-4.1-mini-A,dx-self-3-deictic,0shot,all,0.444,27,0.284,0.096,,other_participant=0.556
-or-openai/gpt-4.1-mini-A,dx-self-3-deictic,0shot,free,0.474,19,0.281,0.115,,other_participant=0.526
-or-openai/gpt-4.1-mini-A,dx-self-3-third,0shot,all,1.000,32,0.286,0.000,,
-or-openai/gpt-4.1-mini-A,dx-self-3-third,0shot,free,1.000,22,0.284,0.000,,
-or-openai/gpt-4.1-mini-A,dx-self-2-deictic,0shot,all,0.394,33,0.280,0.085,,other=0.545;other_object=0.03;other_participant=0.03
-or-openai/gpt-4.1-mini-A,dx-self-2-deictic,0shot,free,0.435,23,0.275,0.103,,other=0.522;other_participant=0.043
-or-openai/gpt-4.1-mini-A,dx-self-2-third,0shot,all,1.000,28,0.295,0.000,,
-or-openai/gpt-4.1-mini-A,dx-self-2-third,0shot,free,1.000,19,0.289,0.000,,
-or-openai/gpt-4.1-mini-A,dx-addressee-3-deictic,0shot,all,0.515,33,0.283,0.087,,other_participant=0.182;speaker_confusion=0.303
-or-openai/gpt-4.1-mini-A,dx-addressee-3-deictic,0shot,free,0.500,22,0.280,0.107,,other_participant=0.227;speaker_confusion=0.273
-or-openai/gpt-4.1-mini-A,dx-addressee-3-third,0shot,all,0.963,27,0.287,0.036,,
-or-openai/gpt-4.1-mini-A,dx-addressee-3-third,0shot,free,0.947,19,0.285,0.051,,
-or-openai/gpt-4.1-mini-A,dx-addressee-2-deictic,0shot,all,0.630,27,0.293,0.093,,other_participant=0.074;speaker_confusion=0.296
-or-openai/gpt-4.1-mini-A,dx-addressee-2-deictic,0shot,free,0.722,18,0.292,0.106,,other_participant=0.056;speaker_confusion=0.222
-or-openai/gpt-4.1-mini-A,dx-addressee-2-third,0shot,all,0.970,33,0.285,0.030,,
-or-openai/gpt-4.1-mini-A,dx-addressee-2-third,0shot,free,0.957,23,0.279,0.043,,
-or-openai/gpt-4.1-mini-A,sb-k1,0shot,all,0.958,24,0.125,0.041,,
-or-openai/gpt-4.1-mini-A,an-narr,0shot,all,0.583,24,0.250,0.101,,
-or-openai/gpt-4.1-mini-A,an-other-any,0shot,all,0.750,24,0.250,0.088,,
-or-openai/gpt-4.1-mini-A,an-me-any,0shot,all,0.500,24,0.250,0.102,0.917,
-or-openai/gpt-4.1-mini-A,an-you-voc,0shot,all,0.833,24,0.250,0.076,1.0,
-or-openai/gpt-4.1-mini-A,an-you-novoc,0shot,all,0.750,24,0.250,0.088,0.0,
-or-openai/gpt-4.1-mini-A,adj-adj,0shot,all,1.000,25,0.333,0.000,,
-or-openai/gpt-4.1-mini-A,adj-voc,0shot,all,1.000,25,0.333,0.000,,
-or-openai/gpt-4.1-mini-A,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-openai/gpt-4.1-mini-A,cm-mutate,0shot,all,1.000,20,0.200,0.000,,
-or-openai/gpt-4.1-mini-A,cm-rebind,0shot,all,0.800,20,0.200,0.089,,
-or-openai/gpt-4.1-mini-A,cm-copy,0shot,all,0.600,20,0.200,0.110,,
-or-openai/gpt-4.1-nano-A,attr,0shot,all,0.567,30,0.161,0.090,,
-or-openai/gpt-4.1-nano-A,codevar,0shot,all,0.733,30,0.274,0.081,,
-or-openai/gpt-4.1-nano-A,dialogue,0shot,all,0.767,30,0.311,0.077,,
-or-openai/gpt-4.1-nano-A,dx-owner-3-deictic,0shot,all,0.393,28,0.333,0.092,,format=0.25;other=0.357
-or-openai/gpt-4.1-nano-A,dx-owner-3-deictic,0shot,free,0.750,8,0.333,0.153,,format=0.25
-or-openai/gpt-4.1-nano-A,dx-owner-3-third,0shot,all,0.714,28,0.333,0.085,,
-or-openai/gpt-4.1-nano-A,dx-owner-3-third,0shot,free,1.000,8,0.333,0.000,,
-or-openai/gpt-4.1-nano-A,dx-self-3-deictic,0shot,all,0.259,27,0.284,0.084,,format=0.148;other_participant=0.593
-or-openai/gpt-4.1-nano-A,dx-self-3-deictic,0shot,free,0.368,19,0.281,0.111,,format=0.158;other_participant=0.474
-or-openai/gpt-4.1-nano-A,dx-self-3-third,0shot,all,0.812,32,0.286,0.069,,
-or-openai/gpt-4.1-nano-A,dx-self-3-third,0shot,free,0.909,22,0.284,0.061,,
-or-openai/gpt-4.1-nano-A,dx-self-2-deictic,0shot,all,0.212,33,0.280,0.071,,format=0.394;other=0.394
-or-openai/gpt-4.1-nano-A,dx-self-2-deictic,0shot,free,0.304,23,0.275,0.096,,format=0.391;other=0.304
-or-openai/gpt-4.1-nano-A,dx-self-2-third,0shot,all,0.679,28,0.295,0.088,,
-or-openai/gpt-4.1-nano-A,dx-self-2-third,0shot,free,0.842,19,0.289,0.084,,
-or-openai/gpt-4.1-nano-A,dx-addressee-3-deictic,0shot,all,0.364,33,0.283,0.084,,format=0.091;other_participant=0.152;speaker_confusion=0.394
-or-openai/gpt-4.1-nano-A,dx-addressee-3-deictic,0shot,free,0.545,22,0.280,0.106,,format=0.091;other_participant=0.091;speaker_confusion=0.273
-or-openai/gpt-4.1-nano-A,dx-addressee-3-third,0shot,all,0.778,27,0.287,0.080,,
-or-openai/gpt-4.1-nano-A,dx-addressee-3-third,0shot,free,0.789,19,0.285,0.093,,
-or-openai/gpt-4.1-nano-A,dx-addressee-2-deictic,0shot,all,0.148,27,0.293,0.068,,format=0.185;speaker_confusion=0.667
-or-openai/gpt-4.1-nano-A,dx-addressee-2-deictic,0shot,free,0.222,18,0.292,0.098,,format=0.222;speaker_confusion=0.556
-or-openai/gpt-4.1-nano-A,dx-addressee-2-third,0shot,all,0.667,33,0.285,0.082,,
-or-openai/gpt-4.1-nano-A,dx-addressee-2-third,0shot,free,0.783,23,0.279,0.086,,
-or-openai/gpt-4.1-nano-A,sb-k1,0shot,all,0.917,24,0.125,0.056,,
-or-openai/gpt-4.1-nano-A,an-narr,0shot,all,0.542,24,0.250,0.102,,
-or-openai/gpt-4.1-nano-A,an-other-any,0shot,all,0.750,24,0.250,0.088,,
-or-openai/gpt-4.1-nano-A,an-me-any,0shot,all,0.042,24,0.250,0.041,1.0,
-or-openai/gpt-4.1-nano-A,an-you-voc,0shot,all,0.125,24,0.250,0.068,1.0,
-or-openai/gpt-4.1-nano-A,an-you-novoc,0shot,all,0.125,24,0.250,0.068,0.0,
-or-openai/gpt-4.1-nano-A,adj-adj,0shot,all,0.560,25,0.333,0.099,,
-or-openai/gpt-4.1-nano-A,adj-voc,0shot,all,0.800,25,0.333,0.080,,
-or-openai/gpt-4.1-nano-A,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-openai/gpt-4.1-nano-A,cm-mutate,0shot,all,1.000,20,0.200,0.000,,
-or-openai/gpt-4.1-nano-A,cm-rebind,0shot,all,0.850,20,0.200,0.080,,
-or-openai/gpt-4.1-nano-A,cm-copy,0shot,all,0.650,20,0.200,0.107,,
-or-openai/gpt-4.1-A,attr,0shot,all,0.933,30,0.161,0.045,,
-or-openai/gpt-4.1-A,codevar,0shot,all,0.933,30,0.274,0.045,,
-or-openai/gpt-4.1-A,dialogue,0shot,all,1.000,30,0.311,0.000,,
-or-openai/gpt-4.1-A,dx-owner-3-deictic,0shot,all,0.929,28,0.333,0.049,,other=0.071
-or-openai/gpt-4.1-A,dx-owner-3-deictic,0shot,free,1.000,8,0.333,0.000,,
-or-openai/gpt-4.1-A,dx-owner-3-third,0shot,all,1.000,28,0.333,0.000,,
-or-openai/gpt-4.1-A,dx-owner-3-third,0shot,free,1.000,8,0.333,0.000,,
-or-openai/gpt-4.1-A,dx-self-3-deictic,0shot,all,0.889,27,0.284,0.060,,other_participant=0.111
-or-openai/gpt-4.1-A,dx-self-3-deictic,0shot,free,0.842,19,0.281,0.084,,other_participant=0.158
-or-openai/gpt-4.1-A,dx-self-3-third,0shot,all,1.000,32,0.286,0.000,,
-or-openai/gpt-4.1-A,dx-self-3-third,0shot,free,1.000,22,0.284,0.000,,
-or-openai/gpt-4.1-A,dx-self-2-deictic,0shot,all,0.515,33,0.280,0.087,,other=0.424;other_object=0.03;other_participant=0.03
-or-openai/gpt-4.1-A,dx-self-2-deictic,0shot,free,0.565,23,0.275,0.103,,other=0.435
-or-openai/gpt-4.1-A,dx-self-2-third,0shot,all,1.000,28,0.295,0.000,,
-or-openai/gpt-4.1-A,dx-self-2-third,0shot,free,1.000,19,0.289,0.000,,
-or-openai/gpt-4.1-A,dx-addressee-3-deictic,0shot,all,0.939,33,0.283,0.042,,speaker_confusion=0.061
-or-openai/gpt-4.1-A,dx-addressee-3-deictic,0shot,free,0.909,22,0.280,0.061,,speaker_confusion=0.091
-or-openai/gpt-4.1-A,dx-addressee-3-third,0shot,all,0.963,27,0.287,0.036,,
-or-openai/gpt-4.1-A,dx-addressee-3-third,0shot,free,0.947,19,0.285,0.051,,
-or-openai/gpt-4.1-A,dx-addressee-2-deictic,0shot,all,0.593,27,0.293,0.095,,other_participant=0.074;speaker_confusion=0.333
-or-openai/gpt-4.1-A,dx-addressee-2-deictic,0shot,free,0.667,18,0.292,0.111,,speaker_confusion=0.333
-or-openai/gpt-4.1-A,dx-addressee-2-third,0shot,all,0.939,33,0.285,0.042,,
-or-openai/gpt-4.1-A,dx-addressee-2-third,0shot,free,0.957,23,0.279,0.043,,
-or-openai/gpt-4.1-A,sb-k1,0shot,all,0.875,24,0.125,0.068,,
-or-openai/gpt-4.1-A,an-narr,0shot,all,1.000,24,0.250,0.000,,
-or-openai/gpt-4.1-A,an-other-any,0shot,all,0.917,24,0.250,0.056,,
-or-openai/gpt-4.1-A,an-me-any,0shot,all,0.667,24,0.250,0.096,1.0,
-or-openai/gpt-4.1-A,an-you-voc,0shot,all,0.833,24,0.250,0.076,1.0,
-or-openai/gpt-4.1-A,an-you-novoc,0shot,all,0.875,24,0.250,0.068,0.238,
-or-openai/gpt-4.1-A,adj-adj,0shot,all,1.000,25,0.333,0.000,,
-or-openai/gpt-4.1-A,adj-voc,0shot,all,1.000,25,0.333,0.000,,
-or-openai/gpt-4.1-A,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-openai/gpt-4.1-A,cm-mutate,0shot,all,1.000,20,0.200,0.000,,
-or-openai/gpt-4.1-A,cm-rebind,0shot,all,0.900,20,0.200,0.067,,
-or-openai/gpt-4.1-A,cm-copy,0shot,all,0.850,20,0.200,0.080,,
-or-openai/gpt-4o-mini-A,attr,0shot,all,0.633,30,0.161,0.088,,
-or-openai/gpt-4o-mini-A,codevar,0shot,all,0.833,30,0.274,0.068,,
-or-openai/gpt-4o-mini-A,dialogue,0shot,all,0.933,30,0.311,0.045,,
-or-openai/gpt-4o-mini-A,dx-owner-3-deictic,0shot,all,0.607,28,0.333,0.092,,format=0.107;other=0.286
-or-openai/gpt-4o-mini-A,dx-owner-3-deictic,0shot,free,0.625,8,0.333,0.171,,other=0.375
-or-openai/gpt-4o-mini-A,dx-owner-3-third,0shot,all,0.893,28,0.333,0.059,,
-or-openai/gpt-4o-mini-A,dx-owner-3-third,0shot,free,0.750,8,0.333,0.153,,
-or-openai/gpt-4o-mini-A,dx-self-3-deictic,0shot,all,0.259,27,0.284,0.084,,other_participant=0.741
-or-openai/gpt-4o-mini-A,dx-self-3-deictic,0shot,free,0.368,19,0.281,0.111,,other_participant=0.632
-or-openai/gpt-4o-mini-A,dx-self-3-third,0shot,all,0.938,32,0.286,0.043,,
-or-openai/gpt-4o-mini-A,dx-self-3-third,0shot,free,0.909,22,0.284,0.061,,
-or-openai/gpt-4o-mini-A,dx-self-2-deictic,0shot,all,0.364,33,0.280,0.084,,format=0.091;other=0.515;other_object=0.03
-or-openai/gpt-4o-mini-A,dx-self-2-deictic,0shot,free,0.522,23,0.275,0.104,,format=0.087;other=0.391
-or-openai/gpt-4o-mini-A,dx-self-2-third,0shot,all,0.857,28,0.295,0.066,,
-or-openai/gpt-4o-mini-A,dx-self-2-third,0shot,free,0.842,19,0.289,0.084,,
-or-openai/gpt-4o-mini-A,dx-addressee-3-deictic,0shot,all,0.455,33,0.283,0.087,,other_participant=0.121;speaker_confusion=0.424
-or-openai/gpt-4o-mini-A,dx-addressee-3-deictic,0shot,free,0.636,22,0.280,0.103,,other_participant=0.091;speaker_confusion=0.273
-or-openai/gpt-4o-mini-A,dx-addressee-3-third,0shot,all,0.889,27,0.287,0.060,,
-or-openai/gpt-4o-mini-A,dx-addressee-3-third,0shot,free,0.842,19,0.285,0.084,,
-or-openai/gpt-4o-mini-A,dx-addressee-2-deictic,0shot,all,0.444,27,0.293,0.096,,speaker_confusion=0.556
-or-openai/gpt-4o-mini-A,dx-addressee-2-deictic,0shot,free,0.611,18,0.292,0.115,,speaker_confusion=0.389
-or-openai/gpt-4o-mini-A,dx-addressee-2-third,0shot,all,0.818,33,0.285,0.067,,
-or-openai/gpt-4o-mini-A,dx-addressee-2-third,0shot,free,0.783,23,0.279,0.086,,
-or-openai/gpt-4o-mini-A,sb-k1,0shot,all,0.792,24,0.125,0.083,,
-or-openai/gpt-4o-mini-A,an-narr,0shot,all,0.333,24,0.250,0.096,,
-or-openai/gpt-4o-mini-A,an-other-any,0shot,all,0.708,24,0.250,0.093,,
-or-openai/gpt-4o-mini-A,an-me-any,0shot,all,0.083,24,0.250,0.056,1.0,
-or-openai/gpt-4o-mini-A,an-you-voc,0shot,all,0.500,24,0.250,0.102,1.0,
-or-openai/gpt-4o-mini-A,an-you-novoc,0shot,all,0.167,24,0.250,0.076,0.25,
-or-openai/gpt-4o-mini-A,adj-adj,0shot,all,0.720,25,0.333,0.090,,
-or-openai/gpt-4o-mini-A,adj-voc,0shot,all,0.920,25,0.333,0.054,,
-or-openai/gpt-4o-mini-A,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-openai/gpt-4o-mini-A,cm-mutate,0shot,all,1.000,20,0.200,0.000,,
-or-openai/gpt-4o-mini-A,cm-rebind,0shot,all,0.950,20,0.200,0.049,,
-or-openai/gpt-4o-mini-A,cm-copy,0shot,all,0.300,20,0.200,0.102,,
-or-openai/gpt-5-mini-B,dx-owner-3-deictic,0shot,all,1.000,28,0.333,0.000,,
-or-openai/gpt-5-mini-B,dx-owner-3-deictic,0shot,free,1.000,8,0.333,0.000,,
-or-openai/gpt-5-mini-B,dx-owner-3-third,0shot,all,1.000,28,0.333,0.000,,
-or-openai/gpt-5-mini-B,dx-owner-3-third,0shot,free,1.000,8,0.333,0.000,,
-or-openai/gpt-5-mini-B,dx-self-3-deictic,0shot,all,1.000,27,0.284,0.000,,
-or-openai/gpt-5-mini-B,dx-self-3-deictic,0shot,free,1.000,19,0.281,0.000,,
-or-openai/gpt-5-mini-B,dx-self-3-third,0shot,all,1.000,32,0.286,0.000,,
-or-openai/gpt-5-mini-B,dx-self-3-third,0shot,free,1.000,22,0.284,0.000,,
-or-openai/gpt-5-mini-B,dx-self-2-deictic,0shot,all,0.909,33,0.280,0.050,,other_object=0.091
-or-openai/gpt-5-mini-B,dx-self-2-deictic,0shot,free,0.870,23,0.275,0.070,,other_object=0.13
-or-openai/gpt-5-mini-B,dx-self-2-third,0shot,all,1.000,28,0.295,0.000,,
-or-openai/gpt-5-mini-B,dx-self-2-third,0shot,free,1.000,19,0.289,0.000,,
-or-openai/gpt-5-mini-B,dx-addressee-3-deictic,0shot,all,1.000,33,0.283,0.000,,
-or-openai/gpt-5-mini-B,dx-addressee-3-deictic,0shot,free,1.000,22,0.280,0.000,,
-or-openai/gpt-5-mini-B,dx-addressee-3-third,0shot,all,1.000,27,0.287,0.000,,
-or-openai/gpt-5-mini-B,dx-addressee-3-third,0shot,free,1.000,19,0.285,0.000,,
-or-openai/gpt-5-mini-B,dx-addressee-2-deictic,0shot,all,0.963,27,0.293,0.036,,other_participant=0.037
-or-openai/gpt-5-mini-B,dx-addressee-2-deictic,0shot,free,0.944,18,0.292,0.054,,other_participant=0.056
-or-openai/gpt-5-mini-B,dx-addressee-2-third,0shot,all,1.000,33,0.285,0.000,,
-or-openai/gpt-5-mini-B,dx-addressee-2-third,0shot,free,1.000,23,0.279,0.000,,
-or-openai/gpt-5-mini-B,an-narr,0shot,all,0.833,24,0.250,0.076,,
-or-openai/gpt-5-mini-B,an-other-any,0shot,all,1.000,24,0.250,0.000,,
-or-openai/gpt-5-mini-B,an-me-any,0shot,all,0.792,24,0.250,0.083,0.947,
-or-openai/gpt-5-mini-B,an-you-voc,0shot,all,0.917,24,0.250,0.056,0.955,
-or-openai/gpt-5-mini-B,an-you-novoc,0shot,all,0.958,24,0.250,0.041,0.0,
-or-openai/gpt-5-mini-B,adj-adj,0shot,all,1.000,25,0.333,0.000,,
-or-openai/gpt-5-mini-B,adj-voc,0shot,all,1.000,25,0.333,0.000,,
-or-openai/gpt-5-mini-B,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-openai/gpt-5-mini-A,attr,0shot,all,0.700,30,0.161,0.084,,
-or-openai/gpt-5-mini-A,codevar,0shot,all,0.800,30,0.274,0.073,,
-or-openai/gpt-5-mini-A,dialogue,0shot,all,0.833,30,0.311,0.068,,
-or-openai/gpt-5-mini-A,dx-owner-3-deictic,0shot,all,0.571,28,0.333,0.093,,other=0.429
-or-openai/gpt-5-mini-A,dx-owner-3-deictic,0shot,free,0.750,8,0.333,0.153,,other=0.25
-or-openai/gpt-5-mini-A,dx-owner-3-third,0shot,all,1.000,28,0.333,0.000,,
-or-openai/gpt-5-mini-A,dx-owner-3-third,0shot,free,1.000,8,0.333,0.000,,
-or-openai/gpt-5-mini-A,dx-self-3-deictic,0shot,all,0.222,27,0.284,0.080,,format=0.074;other_participant=0.704
-or-openai/gpt-5-mini-A,dx-self-3-deictic,0shot,free,0.210,19,0.281,0.093,,other_participant=0.789
-or-openai/gpt-5-mini-A,dx-self-3-third,0shot,all,0.875,32,0.286,0.059,,
-or-openai/gpt-5-mini-A,dx-self-3-third,0shot,free,0.955,22,0.284,0.044,,
-or-openai/gpt-5-mini-A,dx-self-2-deictic,0shot,all,0.303,33,0.280,0.080,,format=0.061;other=0.576;other_object=0.061
-or-openai/gpt-5-mini-A,dx-self-2-deictic,0shot,free,0.348,23,0.275,0.099,,format=0.087;other=0.522;other_object=0.043
-or-openai/gpt-5-mini-A,dx-self-2-third,0shot,all,0.643,28,0.295,0.091,,
-or-openai/gpt-5-mini-A,dx-self-2-third,0shot,free,0.789,19,0.289,0.093,,
-or-openai/gpt-5-mini-A,dx-addressee-3-deictic,0shot,all,0.333,33,0.283,0.082,,other_participant=0.212;speaker_confusion=0.455
-or-openai/gpt-5-mini-A,dx-addressee-3-deictic,0shot,free,0.409,22,0.280,0.105,,other_participant=0.227;speaker_confusion=0.364
-or-openai/gpt-5-mini-A,dx-addressee-3-third,0shot,all,0.704,27,0.287,0.088,,
-or-openai/gpt-5-mini-A,dx-addressee-3-third,0shot,free,0.789,19,0.285,0.093,,
-or-openai/gpt-5-mini-A,dx-addressee-2-deictic,0shot,all,0.296,27,0.293,0.088,,format=0.037;other_participant=0.074;speaker_confusion=0.593
-or-openai/gpt-5-mini-A,dx-addressee-2-deictic,0shot,free,0.333,18,0.292,0.111,,format=0.056;speaker_confusion=0.611
-or-openai/gpt-5-mini-A,dx-addressee-2-third,0shot,all,0.667,33,0.285,0.082,,
-or-openai/gpt-5-mini-A,dx-addressee-2-third,0shot,free,0.826,23,0.279,0.079,,
-or-openai/gpt-5-mini-A,sb-k1,0shot,all,0.958,24,0.125,0.041,,
-or-openai/gpt-5-mini-A,an-narr,0shot,all,0.458,24,0.250,0.102,,
-or-openai/gpt-5-mini-A,an-other-any,0shot,all,0.833,24,0.250,0.076,,
-or-openai/gpt-5-mini-A,an-me-any,0shot,all,0.250,24,0.250,0.088,0.333,
-or-openai/gpt-5-mini-A,an-you-voc,0shot,all,0.708,24,0.250,0.093,0.294,
-or-openai/gpt-5-mini-A,an-you-novoc,0shot,all,0.708,24,0.250,0.093,0.0,
-or-openai/gpt-5-mini-A,adj-adj,0shot,all,0.800,25,0.333,0.080,,
-or-openai/gpt-5-mini-A,adj-voc,0shot,all,0.920,25,0.333,0.054,,
-or-openai/gpt-5-mini-A,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-openai/gpt-5-mini-A,cm-mutate,0shot,all,1.000,20,0.200,0.000,,
-or-openai/gpt-5-mini-A,cm-rebind,0shot,all,0.950,20,0.200,0.049,,
-or-openai/gpt-5-mini-A,cm-copy,0shot,all,0.850,20,0.200,0.080,,
-or-openai/gpt-5-nano-B,dx-owner-3-deictic,0shot,all,0.964,28,0.333,0.035,,other=0.036
-or-openai/gpt-5-nano-B,dx-owner-3-deictic,0shot,free,1.000,8,0.333,0.000,,
-or-openai/gpt-5-nano-B,dx-owner-3-third,0shot,all,1.000,28,0.333,0.000,,
-or-openai/gpt-5-nano-B,dx-owner-3-third,0shot,free,1.000,8,0.333,0.000,,
-or-openai/gpt-5-nano-B,dx-self-3-deictic,0shot,all,0.926,27,0.284,0.050,,format=0.037;other_participant=0.037
-or-openai/gpt-5-nano-B,dx-self-3-deictic,0shot,free,0.947,19,0.281,0.051,,format=0.053
-or-openai/gpt-5-nano-B,dx-self-3-third,0shot,all,1.000,32,0.286,0.000,,
-or-openai/gpt-5-nano-B,dx-self-3-third,0shot,free,1.000,22,0.284,0.000,,
-or-openai/gpt-5-nano-B,dx-self-2-deictic,0shot,all,0.758,33,0.280,0.075,,format=0.121;other=0.03;other_object=0.061;other_participant=0.03
-or-openai/gpt-5-nano-B,dx-self-2-deictic,0shot,free,0.652,23,0.275,0.099,,format=0.174;other=0.043;other_object=0.087;other_participant=0.043
-or-openai/gpt-5-nano-B,dx-self-2-third,0shot,all,1.000,28,0.295,0.000,,
-or-openai/gpt-5-nano-B,dx-self-2-third,0shot,free,1.000,19,0.289,0.000,,
-or-openai/gpt-5-nano-B,dx-addressee-3-deictic,0shot,all,0.818,33,0.283,0.067,,other_participant=0.091;speaker_confusion=0.091
-or-openai/gpt-5-nano-B,dx-addressee-3-deictic,0shot,free,0.773,22,0.280,0.089,,other_participant=0.136;speaker_confusion=0.091
-or-openai/gpt-5-nano-B,dx-addressee-3-third,0shot,all,0.963,27,0.287,0.036,,
-or-openai/gpt-5-nano-B,dx-addressee-3-third,0shot,free,1.000,19,0.285,0.000,,
-or-openai/gpt-5-nano-B,dx-addressee-2-deictic,0shot,all,0.741,27,0.293,0.084,,format=0.037;other_participant=0.037;speaker_confusion=0.185
-or-openai/gpt-5-nano-B,dx-addressee-2-deictic,0shot,free,0.722,18,0.292,0.106,,format=0.056;speaker_confusion=0.222
-or-openai/gpt-5-nano-B,dx-addressee-2-third,0shot,all,1.000,33,0.285,0.000,,
-or-openai/gpt-5-nano-B,dx-addressee-2-third,0shot,free,1.000,23,0.279,0.000,,
-or-openai/gpt-5-nano-B,an-narr,0shot,all,1.000,24,0.250,0.000,,
-or-openai/gpt-5-nano-B,an-other-any,0shot,all,1.000,24,0.250,0.000,,
-or-openai/gpt-5-nano-B,an-me-any,0shot,all,0.958,24,0.250,0.041,0.261,
-or-openai/gpt-5-nano-B,an-you-voc,0shot,all,1.000,24,0.250,0.000,0.417,
-or-openai/gpt-5-nano-B,an-you-novoc,0shot,all,1.000,24,0.250,0.000,0.0,
-or-openai/gpt-5-nano-B,adj-adj,0shot,all,1.000,25,0.333,0.000,,
-or-openai/gpt-5-nano-B,adj-voc,0shot,all,1.000,25,0.333,0.000,,
-or-openai/gpt-5-nano-B,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-openai/gpt-5-nano-A,attr,0shot,all,0.167,30,0.161,0.068,,
-or-openai/gpt-5-nano-A,codevar,0shot,all,0.467,30,0.274,0.091,,
-or-openai/gpt-5-nano-A,dialogue,0shot,all,0.667,30,0.311,0.086,,
-or-openai/gpt-5-nano-A,dx-owner-3-deictic,0shot,all,0.357,28,0.333,0.091,,format=0.321;other=0.321
-or-openai/gpt-5-nano-A,dx-owner-3-deictic,0shot,free,0.375,8,0.333,0.171,,format=0.25;other=0.375
-or-openai/gpt-5-nano-A,dx-owner-3-third,0shot,all,0.679,28,0.333,0.088,,
-or-openai/gpt-5-nano-A,dx-owner-3-third,0shot,free,0.875,8,0.333,0.117,,
-or-openai/gpt-5-nano-A,dx-self-3-deictic,0shot,all,0.111,27,0.284,0.060,,format=0.333;other_participant=0.556
-or-openai/gpt-5-nano-A,dx-self-3-deictic,0shot,free,0.105,19,0.281,0.070,,format=0.474;other_participant=0.421
-or-openai/gpt-5-nano-A,dx-self-3-third,0shot,all,0.500,32,0.286,0.088,,
-or-openai/gpt-5-nano-A,dx-self-3-third,0shot,free,0.636,22,0.284,0.103,,
-or-openai/gpt-5-nano-A,dx-self-2-deictic,0shot,all,0.242,33,0.280,0.075,,format=0.273;other=0.394;other_object=0.061;other_participant=0.03
-or-openai/gpt-5-nano-A,dx-self-2-deictic,0shot,free,0.348,23,0.275,0.099,,format=0.261;other=0.304;other_object=0.043;other_participant=0.043
-or-openai/gpt-5-nano-A,dx-self-2-third,0shot,all,0.464,28,0.295,0.094,,
-or-openai/gpt-5-nano-A,dx-self-2-third,0shot,free,0.632,19,0.289,0.111,,
-or-openai/gpt-5-nano-A,dx-addressee-3-deictic,0shot,all,0.151,33,0.283,0.062,,format=0.303;other_participant=0.152;speaker_confusion=0.394
-or-openai/gpt-5-nano-A,dx-addressee-3-deictic,0shot,free,0.182,22,0.280,0.082,,format=0.273;other_participant=0.227;speaker_confusion=0.318
-or-openai/gpt-5-nano-A,dx-addressee-3-third,0shot,all,0.370,27,0.287,0.093,,
-or-openai/gpt-5-nano-A,dx-addressee-3-third,0shot,free,0.526,19,0.285,0.115,,
-or-openai/gpt-5-nano-A,dx-addressee-2-deictic,0shot,all,0.037,27,0.293,0.036,,format=0.259;other_participant=0.111;speaker_confusion=0.593
-or-openai/gpt-5-nano-A,dx-addressee-2-deictic,0shot,free,0.056,18,0.292,0.054,,format=0.167;other_participant=0.111;speaker_confusion=0.667
-or-openai/gpt-5-nano-A,dx-addressee-2-third,0shot,all,0.394,33,0.285,0.085,,
-or-openai/gpt-5-nano-A,dx-addressee-2-third,0shot,free,0.565,23,0.279,0.103,,
-or-openai/gpt-5-nano-A,sb-k1,0shot,all,0.208,24,0.125,0.083,,
-or-openai/gpt-5-nano-A,an-narr,0shot,all,0.250,24,0.250,0.088,,
-or-openai/gpt-5-nano-A,an-other-any,0shot,all,0.625,24,0.250,0.099,,
-or-openai/gpt-5-nano-A,an-me-any,0shot,all,0.125,24,0.250,0.068,0.0,
-or-openai/gpt-5-nano-A,an-you-voc,0shot,all,0.292,24,0.250,0.093,0.286,
-or-openai/gpt-5-nano-A,an-you-novoc,0shot,all,0.167,24,0.250,0.076,0.0,
-or-openai/gpt-5-nano-A,adj-adj,0shot,all,0.440,25,0.333,0.099,,
-or-openai/gpt-5-nano-A,adj-voc,0shot,all,0.360,25,0.333,0.096,,
-or-openai/gpt-5-nano-A,adj-third,0shot,all,0.600,25,0.333,0.098,,
-or-openai/gpt-5-nano-A,cm-mutate,0shot,all,1.000,20,0.200,0.000,,
-or-openai/gpt-5-nano-A,cm-rebind,0shot,all,0.550,20,0.200,0.111,,
-or-openai/gpt-5-nano-A,cm-copy,0shot,all,0.300,20,0.200,0.102,,
-or-openai/gpt-5.5-B,dx-owner-3-deictic,0shot,all,1.000,28,0.333,0.000,,
-or-openai/gpt-5.5-B,dx-owner-3-deictic,0shot,free,1.000,8,0.333,0.000,,
-or-openai/gpt-5.5-B,dx-owner-3-third,0shot,all,1.000,28,0.333,0.000,,
-or-openai/gpt-5.5-B,dx-owner-3-third,0shot,free,1.000,8,0.333,0.000,,
-or-openai/gpt-5.5-B,dx-self-3-deictic,0shot,all,1.000,27,0.284,0.000,,
-or-openai/gpt-5.5-B,dx-self-3-deictic,0shot,free,1.000,19,0.281,0.000,,
-or-openai/gpt-5.5-B,dx-self-3-third,0shot,all,1.000,32,0.286,0.000,,
-or-openai/gpt-5.5-B,dx-self-3-third,0shot,free,1.000,22,0.284,0.000,,
-or-openai/gpt-5.5-B,dx-self-2-deictic,0shot,all,0.970,33,0.280,0.030,,other_object=0.03
-or-openai/gpt-5.5-B,dx-self-2-deictic,0shot,free,0.957,23,0.275,0.043,,other_object=0.043
-or-openai/gpt-5.5-B,dx-self-2-third,0shot,all,1.000,28,0.295,0.000,,
-or-openai/gpt-5.5-B,dx-self-2-third,0shot,free,1.000,19,0.289,0.000,,
-or-openai/gpt-5.5-B,dx-addressee-3-deictic,0shot,all,1.000,33,0.283,0.000,,
-or-openai/gpt-5.5-B,dx-addressee-3-deictic,0shot,free,1.000,22,0.280,0.000,,
-or-openai/gpt-5.5-B,dx-addressee-3-third,0shot,all,1.000,27,0.287,0.000,,
-or-openai/gpt-5.5-B,dx-addressee-3-third,0shot,free,1.000,19,0.285,0.000,,
-or-openai/gpt-5.5-B,dx-addressee-2-deictic,0shot,all,1.000,27,0.293,0.000,,
-or-openai/gpt-5.5-B,dx-addressee-2-deictic,0shot,free,1.000,18,0.292,0.000,,
-or-openai/gpt-5.5-B,dx-addressee-2-third,0shot,all,1.000,33,0.285,0.000,,
-or-openai/gpt-5.5-B,dx-addressee-2-third,0shot,free,1.000,23,0.279,0.000,,
-or-openai/gpt-5.5-B,an-narr,0shot,all,1.000,24,0.250,0.000,,
-or-openai/gpt-5.5-B,an-other-any,0shot,all,1.000,24,0.250,0.000,,
-or-openai/gpt-5.5-B,an-me-any,0shot,all,1.000,24,0.250,0.000,1.0,
-or-openai/gpt-5.5-B,an-you-voc,0shot,all,1.000,24,0.250,0.000,1.0,
-or-openai/gpt-5.5-B,an-you-novoc,0shot,all,1.000,24,0.250,0.000,0.0,
-or-openai/gpt-5.5-B,adj-adj,0shot,all,1.000,25,0.333,0.000,,
-or-openai/gpt-5.5-B,adj-voc,0shot,all,1.000,25,0.333,0.000,,
-or-openai/gpt-5.5-B,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-openai/gpt-5.5-A,attr,0shot,all,1.000,30,0.161,0.000,,
-or-openai/gpt-5.5-A,codevar,0shot,all,0.967,30,0.274,0.033,,
-or-openai/gpt-5.5-A,dialogue,0shot,all,1.000,30,0.311,0.000,,
-or-openai/gpt-5.5-A,dx-owner-3-deictic,0shot,all,1.000,28,0.333,0.000,,
-or-openai/gpt-5.5-A,dx-owner-3-deictic,0shot,free,1.000,8,0.333,0.000,,
-or-openai/gpt-5.5-A,dx-owner-3-third,0shot,all,1.000,28,0.333,0.000,,
-or-openai/gpt-5.5-A,dx-owner-3-third,0shot,free,1.000,8,0.333,0.000,,
-or-openai/gpt-5.5-A,dx-self-3-deictic,0shot,all,0.963,27,0.284,0.036,,other_participant=0.037
-or-openai/gpt-5.5-A,dx-self-3-deictic,0shot,free,1.000,19,0.281,0.000,,
-or-openai/gpt-5.5-A,dx-self-3-third,0shot,all,1.000,32,0.286,0.000,,
-or-openai/gpt-5.5-A,dx-self-3-third,0shot,free,1.000,22,0.284,0.000,,
-or-openai/gpt-5.5-A,dx-self-2-deictic,0shot,all,0.758,33,0.280,0.075,,other=0.152;other_object=0.091
-or-openai/gpt-5.5-A,dx-self-2-deictic,0shot,free,0.783,23,0.275,0.086,,other=0.087;other_object=0.13
-or-openai/gpt-5.5-A,dx-self-2-third,0shot,all,1.000,28,0.295,0.000,,
-or-openai/gpt-5.5-A,dx-self-2-third,0shot,free,1.000,19,0.289,0.000,,
-or-openai/gpt-5.5-A,dx-addressee-3-deictic,0shot,all,0.818,33,0.283,0.067,,other_participant=0.03;speaker_confusion=0.152
-or-openai/gpt-5.5-A,dx-addressee-3-deictic,0shot,free,0.818,22,0.280,0.082,,speaker_confusion=0.182
-or-openai/gpt-5.5-A,dx-addressee-3-third,0shot,all,0.963,27,0.287,0.036,,
-or-openai/gpt-5.5-A,dx-addressee-3-third,0shot,free,0.947,19,0.285,0.051,,
-or-openai/gpt-5.5-A,dx-addressee-2-deictic,0shot,all,0.481,27,0.293,0.096,,other_participant=0.222;speaker_confusion=0.296
-or-openai/gpt-5.5-A,dx-addressee-2-deictic,0shot,free,0.333,18,0.292,0.111,,other_participant=0.222;speaker_confusion=0.444
-or-openai/gpt-5.5-A,dx-addressee-2-third,0shot,all,1.000,33,0.285,0.000,,
-or-openai/gpt-5.5-A,dx-addressee-2-third,0shot,free,1.000,23,0.279,0.000,,
-or-openai/gpt-5.5-A,sb-k1,0shot,all,1.000,24,0.125,0.000,,
-or-openai/gpt-5.5-A,an-narr,0shot,all,1.000,24,0.250,0.000,,
-or-openai/gpt-5.5-A,an-other-any,0shot,all,1.000,24,0.250,0.000,,
-or-openai/gpt-5.5-A,an-me-any,0shot,all,1.000,24,0.250,0.000,0.958,
-or-openai/gpt-5.5-A,an-you-voc,0shot,all,0.958,24,0.250,0.041,0.87,
-or-openai/gpt-5.5-A,an-you-novoc,0shot,all,1.000,24,0.250,0.000,0.0,
-or-openai/gpt-5.5-A,adj-adj,0shot,all,1.000,25,0.333,0.000,,
-or-openai/gpt-5.5-A,adj-voc,0shot,all,1.000,25,0.333,0.000,,
-or-openai/gpt-5.5-A,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-openai/gpt-5.5-A,cm-mutate,0shot,all,1.000,20,0.200,0.000,,
-or-openai/gpt-5.5-A,cm-rebind,0shot,all,1.000,20,0.200,0.000,,
-or-openai/gpt-5.5-A,cm-copy,0shot,all,1.000,20,0.200,0.000,,
-or-x-ai/grok-4.3-B,dx-owner-3-deictic,0shot,all,0.929,28,0.333,0.049,,format=0.071
-or-x-ai/grok-4.3-B,dx-owner-3-deictic,0shot,free,0.750,8,0.333,0.153,,format=0.25
-or-x-ai/grok-4.3-B,dx-owner-3-third,0shot,all,0.964,28,0.333,0.035,,
-or-x-ai/grok-4.3-B,dx-owner-3-third,0shot,free,0.875,8,0.333,0.117,,
-or-x-ai/grok-4.3-B,dx-self-3-deictic,0shot,all,0.926,27,0.284,0.050,,format=0.074
-or-x-ai/grok-4.3-B,dx-self-3-deictic,0shot,free,0.895,19,0.281,0.070,,format=0.105
-or-x-ai/grok-4.3-B,dx-self-3-third,0shot,all,0.969,32,0.286,0.031,,
-or-x-ai/grok-4.3-B,dx-self-3-third,0shot,free,1.000,22,0.284,0.000,,
-or-x-ai/grok-4.3-B,dx-self-2-deictic,0shot,all,0.939,33,0.280,0.042,,format=0.061
-or-x-ai/grok-4.3-B,dx-self-2-deictic,0shot,free,0.913,23,0.275,0.059,,format=0.087
-or-x-ai/grok-4.3-B,dx-self-2-third,0shot,all,0.964,28,0.295,0.035,,
-or-x-ai/grok-4.3-B,dx-self-2-third,0shot,free,0.947,19,0.289,0.051,,
-or-x-ai/grok-4.3-B,dx-addressee-3-deictic,0shot,all,0.909,33,0.283,0.050,,format=0.091
-or-x-ai/grok-4.3-B,dx-addressee-3-deictic,0shot,free,0.909,22,0.280,0.061,,format=0.091
-or-x-ai/grok-4.3-B,dx-addressee-3-third,0shot,all,1.000,27,0.287,0.000,,
-or-x-ai/grok-4.3-B,dx-addressee-3-third,0shot,free,1.000,19,0.285,0.000,,
-or-x-ai/grok-4.3-B,dx-addressee-2-deictic,0shot,all,0.889,27,0.293,0.060,,format=0.111
-or-x-ai/grok-4.3-B,dx-addressee-2-deictic,0shot,free,0.833,18,0.292,0.088,,format=0.167
-or-x-ai/grok-4.3-B,dx-addressee-2-third,0shot,all,1.000,33,0.285,0.000,,
-or-x-ai/grok-4.3-B,dx-addressee-2-third,0shot,free,1.000,23,0.279,0.000,,
-or-x-ai/grok-4.3-B,an-narr,0shot,all,1.000,24,0.250,0.000,,
-or-x-ai/grok-4.3-B,an-other-any,0shot,all,0.875,24,0.250,0.068,,
-or-x-ai/grok-4.3-B,an-me-any,0shot,all,0.917,24,0.250,0.056,1.0,
-or-x-ai/grok-4.3-B,an-you-voc,0shot,all,0.833,24,0.250,0.076,1.0,
-or-x-ai/grok-4.3-B,an-you-novoc,0shot,all,0.875,24,0.250,0.068,0.048,
-or-x-ai/grok-4.3-B,adj-adj,0shot,all,1.000,25,0.333,0.000,,
-or-x-ai/grok-4.3-B,adj-voc,0shot,all,1.000,25,0.333,0.000,,
-or-x-ai/grok-4.3-B,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-x-ai/grok-4.3-A,attr,0shot,all,1.000,30,0.161,0.000,,
-or-x-ai/grok-4.3-A,codevar,0shot,all,0.767,30,0.274,0.077,,
-or-x-ai/grok-4.3-A,dialogue,0shot,all,0.967,30,0.311,0.033,,
-or-x-ai/grok-4.3-A,dx-owner-3-deictic,0shot,all,0.607,28,0.333,0.092,,other=0.393
-or-x-ai/grok-4.3-A,dx-owner-3-deictic,0shot,free,0.625,8,0.333,0.171,,other=0.375
-or-x-ai/grok-4.3-A,dx-owner-3-third,0shot,all,0.929,28,0.333,0.049,,
-or-x-ai/grok-4.3-A,dx-owner-3-third,0shot,free,0.875,8,0.333,0.117,,
-or-x-ai/grok-4.3-A,dx-self-3-deictic,0shot,all,0.370,27,0.284,0.093,,other_participant=0.63
-or-x-ai/grok-4.3-A,dx-self-3-deictic,0shot,free,0.210,19,0.281,0.093,,other_participant=0.789
-or-x-ai/grok-4.3-A,dx-self-3-third,0shot,all,0.906,32,0.286,0.051,,
-or-x-ai/grok-4.3-A,dx-self-3-third,0shot,free,0.955,22,0.284,0.044,,
-or-x-ai/grok-4.3-A,dx-self-2-deictic,0shot,all,0.485,33,0.280,0.087,,other=0.364;other_object=0.152
-or-x-ai/grok-4.3-A,dx-self-2-deictic,0shot,free,0.522,23,0.275,0.104,,other=0.304;other_object=0.174
-or-x-ai/grok-4.3-A,dx-self-2-third,0shot,all,0.964,28,0.295,0.035,,
-or-x-ai/grok-4.3-A,dx-self-2-third,0shot,free,1.000,19,0.289,0.000,,
-or-x-ai/grok-4.3-A,dx-addressee-3-deictic,0shot,all,0.515,33,0.283,0.087,,other_participant=0.152;speaker_confusion=0.333
-or-x-ai/grok-4.3-A,dx-addressee-3-deictic,0shot,free,0.455,22,0.280,0.106,,other_participant=0.227;speaker_confusion=0.318
-or-x-ai/grok-4.3-A,dx-addressee-3-third,0shot,all,0.926,27,0.287,0.050,,
-or-x-ai/grok-4.3-A,dx-addressee-3-third,0shot,free,0.895,19,0.285,0.070,,
-or-x-ai/grok-4.3-A,dx-addressee-2-deictic,0shot,all,0.333,27,0.293,0.091,,other_participant=0.111;speaker_confusion=0.556
-or-x-ai/grok-4.3-A,dx-addressee-2-deictic,0shot,free,0.333,18,0.292,0.111,,other_participant=0.167;speaker_confusion=0.5
-or-x-ai/grok-4.3-A,dx-addressee-2-third,0shot,all,0.818,33,0.285,0.067,,
-or-x-ai/grok-4.3-A,dx-addressee-2-third,0shot,free,0.870,23,0.279,0.070,,
-or-x-ai/grok-4.3-A,sb-k1,0shot,all,1.000,24,0.125,0.000,,
-or-x-ai/grok-4.3-A,an-narr,0shot,all,0.583,24,0.250,0.101,,
-or-x-ai/grok-4.3-A,an-other-any,0shot,all,0.750,24,0.250,0.088,,
-or-x-ai/grok-4.3-A,an-me-any,0shot,all,0.000,24,0.250,0.000,,
-or-x-ai/grok-4.3-A,an-you-voc,0shot,all,0.667,24,0.250,0.096,0.562,
-or-x-ai/grok-4.3-A,an-you-novoc,0shot,all,0.375,24,0.250,0.099,0.0,
-or-x-ai/grok-4.3-A,adj-adj,0shot,all,0.840,25,0.333,0.073,,
-or-x-ai/grok-4.3-A,adj-voc,0shot,all,1.000,25,0.333,0.000,,
-or-x-ai/grok-4.3-A,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-x-ai/grok-4.3-A,cm-mutate,0shot,all,1.000,20,0.200,0.000,,
-or-x-ai/grok-4.3-A,cm-rebind,0shot,all,0.900,20,0.200,0.067,,
-or-x-ai/grok-4.3-A,cm-copy,0shot,all,0.900,20,0.200,0.067,,
-or-deepseek/deepseek-v3.2-B,dx-owner-3-deictic,0shot,all,0.857,28,0.333,0.066,,format=0.107;other=0.036
-or-deepseek/deepseek-v3.2-B,dx-owner-3-deictic,0shot,free,0.750,8,0.333,0.153,,format=0.25
-or-deepseek/deepseek-v3.2-B,dx-owner-3-third,0shot,all,1.000,28,0.333,0.000,,
-or-deepseek/deepseek-v3.2-B,dx-owner-3-third,0shot,free,1.000,8,0.333,0.000,,
-or-deepseek/deepseek-v3.2-B,dx-self-3-deictic,0shot,all,1.000,27,0.284,0.000,,
-or-deepseek/deepseek-v3.2-B,dx-self-3-deictic,0shot,free,1.000,19,0.281,0.000,,
-or-deepseek/deepseek-v3.2-B,dx-self-3-third,0shot,all,1.000,32,0.286,0.000,,
-or-deepseek/deepseek-v3.2-B,dx-self-3-third,0shot,free,1.000,22,0.284,0.000,,
-or-deepseek/deepseek-v3.2-B,dx-self-2-deictic,0shot,all,0.909,33,0.280,0.050,,format=0.03;other_object=0.03;other_participant=0.03
-or-deepseek/deepseek-v3.2-B,dx-self-2-deictic,0shot,free,0.870,23,0.275,0.070,,format=0.043;other_object=0.043;other_participant=0.043
-or-deepseek/deepseek-v3.2-B,dx-self-2-third,0shot,all,1.000,28,0.295,0.000,,
-or-deepseek/deepseek-v3.2-B,dx-self-2-third,0shot,free,1.000,19,0.289,0.000,,
-or-deepseek/deepseek-v3.2-B,dx-addressee-3-deictic,0shot,all,0.818,33,0.283,0.067,,format=0.121;speaker_confusion=0.061
-or-deepseek/deepseek-v3.2-B,dx-addressee-3-deictic,0shot,free,0.773,22,0.280,0.089,,format=0.136;speaker_confusion=0.091
-or-deepseek/deepseek-v3.2-B,dx-addressee-3-third,0shot,all,1.000,27,0.287,0.000,,
-or-deepseek/deepseek-v3.2-B,dx-addressee-3-third,0shot,free,1.000,19,0.285,0.000,,
-or-deepseek/deepseek-v3.2-B,dx-addressee-2-deictic,0shot,all,0.704,27,0.293,0.088,,format=0.222;other_participant=0.074
-or-deepseek/deepseek-v3.2-B,dx-addressee-2-deictic,0shot,free,0.556,18,0.292,0.117,,format=0.333;other_participant=0.111
-or-deepseek/deepseek-v3.2-B,dx-addressee-2-third,0shot,all,1.000,33,0.285,0.000,,
-or-deepseek/deepseek-v3.2-B,dx-addressee-2-third,0shot,free,1.000,23,0.279,0.000,,
-or-deepseek/deepseek-v3.2-B,an-narr,0shot,all,0.958,24,0.250,0.041,,
-or-deepseek/deepseek-v3.2-B,an-other-any,0shot,all,0.958,24,0.250,0.041,,
-or-deepseek/deepseek-v3.2-B,an-me-any,0shot,all,0.958,24,0.250,0.041,0.826,
-or-deepseek/deepseek-v3.2-B,an-you-voc,0shot,all,0.750,24,0.250,0.088,0.444,
-or-deepseek/deepseek-v3.2-B,an-you-novoc,0shot,all,0.750,24,0.250,0.088,0.167,
-or-deepseek/deepseek-v3.2-B,adj-adj,0shot,all,1.000,25,0.333,0.000,,
-or-deepseek/deepseek-v3.2-B,adj-voc,0shot,all,1.000,25,0.333,0.000,,
-or-deepseek/deepseek-v3.2-B,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-deepseek/deepseek-v3.2-A,attr,0shot,all,0.667,27,0.162,0.091,,
-or-deepseek/deepseek-v3.2-A,codevar,0shot,all,0.909,22,0.280,0.061,,
-or-deepseek/deepseek-v3.2-A,dialogue,0shot,all,1.000,21,0.309,0.000,,
-or-deepseek/deepseek-v3.2-A,dx-owner-3-deictic,0shot,all,0.700,20,0.333,0.102,,other=0.3
-or-deepseek/deepseek-v3.2-A,dx-owner-3-third,0shot,all,1.000,20,0.333,0.000,,
-or-deepseek/deepseek-v3.2-A,dx-self-3-deictic,0shot,all,0.522,23,0.283,0.104,,other_participant=0.478
-or-deepseek/deepseek-v3.2-A,dx-self-3-deictic,0shot,free,0.706,17,0.279,0.111,,other_participant=0.294
-or-deepseek/deepseek-v3.2-A,dx-self-3-third,0shot,all,0.818,22,0.280,0.082,,
-or-deepseek/deepseek-v3.2-A,dx-self-3-third,0shot,free,1.000,15,0.278,0.000,,
-or-deepseek/deepseek-v3.2-A,dx-self-2-deictic,0shot,all,0.393,28,0.283,0.092,,other=0.5;other_participant=0.107
-or-deepseek/deepseek-v3.2-A,dx-self-2-deictic,0shot,free,0.474,19,0.276,0.115,,other=0.421;other_participant=0.105
-or-deepseek/deepseek-v3.2-A,dx-self-2-third,0shot,all,0.889,18,0.292,0.074,,
-or-deepseek/deepseek-v3.2-A,dx-self-2-third,0shot,free,1.000,13,0.295,0.000,,
-or-deepseek/deepseek-v3.2-A,dx-addressee-3-deictic,0shot,all,0.522,23,0.279,0.104,,other_participant=0.217;speaker_confusion=0.261
-or-deepseek/deepseek-v3.2-A,dx-addressee-3-deictic,0shot,free,0.667,15,0.278,0.122,,other_participant=0.133;speaker_confusion=0.2
-or-deepseek/deepseek-v3.2-A,dx-addressee-3-third,0shot,all,0.938,16,0.292,0.060,,
-or-deepseek/deepseek-v3.2-A,dx-addressee-3-third,0shot,free,1.000,10,0.283,0.000,,
-or-deepseek/deepseek-v3.2-A,dx-addressee-2-deictic,0shot,all,0.210,19,0.289,0.093,,other_participant=0.105;speaker_confusion=0.684
-or-deepseek/deepseek-v3.2-A,dx-addressee-2-deictic,0shot,free,0.182,11,0.288,0.116,,other_participant=0.182;speaker_confusion=0.636
-or-deepseek/deepseek-v3.2-A,dx-addressee-2-third,0shot,all,0.783,23,0.290,0.086,,
-or-deepseek/deepseek-v3.2-A,dx-addressee-2-third,0shot,free,0.929,14,0.280,0.069,,
-or-deepseek/deepseek-v3.2-A,sb-k1,0shot,all,0.824,17,0.125,0.092,,
-or-deepseek/deepseek-v3.2-A,an-narr,0shot,all,0.524,21,0.250,0.109,,
-or-deepseek/deepseek-v3.2-A,an-other-any,0shot,all,0.933,15,0.250,0.064,,
-or-deepseek/deepseek-v3.2-A,an-me-any,0shot,all,0.056,18,0.250,0.054,1.0,
-or-deepseek/deepseek-v3.2-A,an-you-voc,0shot,all,0.588,17,0.250,0.119,1.0,
-or-deepseek/deepseek-v3.2-A,an-you-novoc,0shot,all,0.333,15,0.250,0.122,0.0,
-or-deepseek/deepseek-v3.2-A,adj-adj,0shot,all,1.000,17,0.333,0.000,,
-or-deepseek/deepseek-v3.2-A,adj-voc,0shot,all,1.000,16,0.333,0.000,,
-or-deepseek/deepseek-v3.2-A,adj-third,0shot,all,1.000,19,0.333,0.000,,
-or-deepseek/deepseek-v3.2-A,cm-mutate,0shot,all,1.000,16,0.200,0.000,,
-or-deepseek/deepseek-v3.2-A,cm-rebind,0shot,all,1.000,13,0.200,0.000,,
-or-deepseek/deepseek-v3.2-A,cm-copy,0shot,all,1.000,11,0.200,0.000,,
-or-google/gemma-3-12b-it-A,attr,0shot,all,0.667,30,0.161,0.086,,
-or-google/gemma-3-12b-it-A,codevar,0shot,all,0.767,30,0.274,0.077,,
-or-google/gemma-3-12b-it-A,dialogue,0shot,all,0.800,30,0.311,0.073,,
-or-google/gemma-3-12b-it-A,dx-owner-3-deictic,0shot,all,0.464,28,0.333,0.094,,other=0.536
-or-google/gemma-3-12b-it-A,dx-owner-3-deictic,0shot,free,0.375,8,0.333,0.171,,other=0.625
-or-google/gemma-3-12b-it-A,dx-owner-3-third,0shot,all,0.893,28,0.333,0.059,,
-or-google/gemma-3-12b-it-A,dx-owner-3-third,0shot,free,1.000,8,0.333,0.000,,
-or-google/gemma-3-12b-it-A,dx-self-3-deictic,0shot,all,0.148,27,0.284,0.068,,format=0.074;other_participant=0.778
-or-google/gemma-3-12b-it-A,dx-self-3-deictic,0shot,free,0.210,19,0.281,0.093,,format=0.105;other_participant=0.684
-or-google/gemma-3-12b-it-A,dx-self-3-third,0shot,all,0.875,32,0.286,0.059,,
-or-google/gemma-3-12b-it-A,dx-self-3-third,0shot,free,0.909,22,0.284,0.061,,
-or-google/gemma-3-12b-it-A,dx-self-2-deictic,0shot,all,0.242,33,0.280,0.075,,format=0.061;other=0.636;other_object=0.061
-or-google/gemma-3-12b-it-A,dx-self-2-deictic,0shot,free,0.348,23,0.275,0.099,,format=0.043;other=0.565;other_object=0.043
-or-google/gemma-3-12b-it-A,dx-self-2-third,0shot,all,0.679,28,0.295,0.088,,
-or-google/gemma-3-12b-it-A,dx-self-2-third,0shot,free,0.789,19,0.289,0.093,,
-or-google/gemma-3-12b-it-A,dx-addressee-3-deictic,0shot,all,0.424,33,0.283,0.086,,other_participant=0.121;speaker_confusion=0.455
-or-google/gemma-3-12b-it-A,dx-addressee-3-deictic,0shot,free,0.636,22,0.280,0.103,,other_participant=0.091;speaker_confusion=0.273
-or-google/gemma-3-12b-it-A,dx-addressee-3-third,0shot,all,0.852,27,0.287,0.068,,
-or-google/gemma-3-12b-it-A,dx-addressee-3-third,0shot,free,0.789,19,0.285,0.093,,
-or-google/gemma-3-12b-it-A,dx-addressee-2-deictic,0shot,all,0.296,27,0.293,0.088,,format=0.037;other_participant=0.037;speaker_confusion=0.63
-or-google/gemma-3-12b-it-A,dx-addressee-2-deictic,0shot,free,0.444,18,0.292,0.117,,format=0.056;other_participant=0.056;speaker_confusion=0.444
-or-google/gemma-3-12b-it-A,dx-addressee-2-third,0shot,all,0.576,33,0.285,0.086,,
-or-google/gemma-3-12b-it-A,dx-addressee-2-third,0shot,free,0.652,23,0.279,0.099,,
-or-google/gemma-3-12b-it-A,sb-k1,0shot,all,0.958,24,0.125,0.041,,
-or-google/gemma-3-12b-it-A,an-narr,0shot,all,0.333,24,0.250,0.096,,
-or-google/gemma-3-12b-it-A,an-other-any,0shot,all,0.500,24,0.250,0.102,,
-or-google/gemma-3-12b-it-A,an-me-any,0shot,all,0.000,24,0.250,0.000,,
-or-google/gemma-3-12b-it-A,an-you-voc,0shot,all,0.250,24,0.250,0.088,1.0,
-or-google/gemma-3-12b-it-A,an-you-novoc,0shot,all,0.000,24,0.250,0.000,,
-or-google/gemma-3-12b-it-A,adj-adj,0shot,all,0.840,25,0.333,0.073,,
-or-google/gemma-3-12b-it-A,adj-voc,0shot,all,0.880,25,0.333,0.065,,
-or-google/gemma-3-12b-it-A,adj-third,0shot,all,0.880,25,0.333,0.065,,
-or-google/gemma-3-12b-it-A,cm-mutate,0shot,all,0.200,20,0.200,0.089,,
-or-google/gemma-3-12b-it-A,cm-rebind,0shot,all,1.000,20,0.200,0.000,,
-or-google/gemma-3-12b-it-A,cm-copy,0shot,all,0.900,20,0.200,0.067,,
-or-google/gemma-3-27b-it-A,attr,0shot,all,0.567,30,0.161,0.090,,
-or-google/gemma-3-27b-it-A,codevar,0shot,all,0.700,30,0.274,0.084,,
-or-google/gemma-3-27b-it-A,dialogue,0shot,all,0.933,30,0.311,0.045,,
-or-google/gemma-3-27b-it-A,dx-owner-3-deictic,0shot,all,0.607,28,0.333,0.092,,other=0.393
-or-google/gemma-3-27b-it-A,dx-owner-3-deictic,0shot,free,0.625,8,0.333,0.171,,other=0.375
-or-google/gemma-3-27b-it-A,dx-owner-3-third,0shot,all,0.786,28,0.333,0.077,,
-or-google/gemma-3-27b-it-A,dx-owner-3-third,0shot,free,0.875,8,0.333,0.117,,
-or-google/gemma-3-27b-it-A,dx-self-3-deictic,0shot,all,0.370,27,0.284,0.093,,format=0.185;other_participant=0.444
-or-google/gemma-3-27b-it-A,dx-self-3-deictic,0shot,free,0.474,19,0.281,0.115,,format=0.211;other_participant=0.316
-or-google/gemma-3-27b-it-A,dx-self-3-third,0shot,all,0.844,32,0.286,0.064,,
-or-google/gemma-3-27b-it-A,dx-self-3-third,0shot,free,0.864,22,0.284,0.073,,
-or-google/gemma-3-27b-it-A,dx-self-2-deictic,0shot,all,0.242,33,0.280,0.075,,format=0.242;other=0.515
-or-google/gemma-3-27b-it-A,dx-self-2-deictic,0shot,free,0.348,23,0.275,0.099,,format=0.217;other=0.435
-or-google/gemma-3-27b-it-A,dx-self-2-third,0shot,all,0.714,28,0.295,0.085,,
-or-google/gemma-3-27b-it-A,dx-self-2-third,0shot,free,0.895,19,0.289,0.070,,
-or-google/gemma-3-27b-it-A,dx-addressee-3-deictic,0shot,all,0.394,33,0.283,0.085,,other_participant=0.303;speaker_confusion=0.303
-or-google/gemma-3-27b-it-A,dx-addressee-3-deictic,0shot,free,0.545,22,0.280,0.106,,other_participant=0.182;speaker_confusion=0.273
-or-google/gemma-3-27b-it-A,dx-addressee-3-third,0shot,all,0.741,27,0.287,0.084,,
-or-google/gemma-3-27b-it-A,dx-addressee-3-third,0shot,free,0.789,19,0.285,0.093,,
-or-google/gemma-3-27b-it-A,dx-addressee-2-deictic,0shot,all,0.259,27,0.293,0.084,,format=0.037;speaker_confusion=0.704
-or-google/gemma-3-27b-it-A,dx-addressee-2-deictic,0shot,free,0.389,18,0.292,0.115,,format=0.056;speaker_confusion=0.556
-or-google/gemma-3-27b-it-A,dx-addressee-2-third,0shot,all,0.636,33,0.285,0.084,,
-or-google/gemma-3-27b-it-A,dx-addressee-2-third,0shot,free,0.783,23,0.279,0.086,,
-or-google/gemma-3-27b-it-A,sb-k1,0shot,all,0.583,24,0.125,0.101,,
-or-google/gemma-3-27b-it-A,an-narr,0shot,all,0.500,24,0.250,0.102,,
-or-google/gemma-3-27b-it-A,an-other-any,0shot,all,0.792,24,0.250,0.083,,
-or-google/gemma-3-27b-it-A,an-me-any,0shot,all,0.042,24,0.250,0.041,1.0,
-or-google/gemma-3-27b-it-A,an-you-voc,0shot,all,0.417,24,0.250,0.101,1.0,
-or-google/gemma-3-27b-it-A,an-you-novoc,0shot,all,0.333,24,0.250,0.096,0.5,
-or-google/gemma-3-27b-it-A,adj-adj,0shot,all,0.920,25,0.333,0.054,,
-or-google/gemma-3-27b-it-A,adj-voc,0shot,all,1.000,25,0.333,0.000,,
-or-google/gemma-3-27b-it-A,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-google/gemma-3-27b-it-A,cm-mutate,0shot,all,1.000,20,0.200,0.000,,
-or-google/gemma-3-27b-it-A,cm-rebind,0shot,all,0.900,20,0.200,0.067,,
-or-google/gemma-3-27b-it-A,cm-copy,0shot,all,0.450,20,0.200,0.111,,
-or-google/gemma-3-4b-it-A,attr,0shot,all,0.867,30,0.161,0.062,,
-or-google/gemma-3-4b-it-A,codevar,0shot,all,0.533,30,0.274,0.091,,
-or-google/gemma-3-4b-it-A,dialogue,0shot,all,0.333,30,0.311,0.086,,
-or-google/gemma-3-4b-it-A,dx-owner-3-deictic,0shot,all,0.500,28,0.333,0.095,,format=0.036;other=0.464
-or-google/gemma-3-4b-it-A,dx-owner-3-deictic,0shot,free,0.875,8,0.333,0.117,,other=0.125
-or-google/gemma-3-4b-it-A,dx-owner-3-third,0shot,all,0.357,28,0.333,0.091,,
-or-google/gemma-3-4b-it-A,dx-owner-3-third,0shot,free,0.750,8,0.333,0.153,,
-or-google/gemma-3-4b-it-A,dx-self-3-deictic,0shot,all,0.259,27,0.284,0.084,,format=0.148;other_participant=0.593
-or-google/gemma-3-4b-it-A,dx-self-3-deictic,0shot,free,0.368,19,0.281,0.111,,format=0.158;other_participant=0.474
-or-google/gemma-3-4b-it-A,dx-self-3-third,0shot,all,0.562,32,0.286,0.088,,
-or-google/gemma-3-4b-it-A,dx-self-3-third,0shot,free,0.682,22,0.284,0.099,,
-or-google/gemma-3-4b-it-A,dx-self-2-deictic,0shot,all,0.303,33,0.280,0.080,,format=0.303;other=0.364;other_object=0.03
-or-google/gemma-3-4b-it-A,dx-self-2-deictic,0shot,free,0.435,23,0.275,0.103,,format=0.217;other=0.304;other_object=0.043
-or-google/gemma-3-4b-it-A,dx-self-2-third,0shot,all,0.464,28,0.295,0.094,,
-or-google/gemma-3-4b-it-A,dx-self-2-third,0shot,free,0.684,19,0.289,0.107,,
-or-google/gemma-3-4b-it-A,dx-addressee-3-deictic,0shot,all,0.303,33,0.283,0.080,,format=0.03;other_participant=0.182;speaker_confusion=0.485
-or-google/gemma-3-4b-it-A,dx-addressee-3-deictic,0shot,free,0.409,22,0.280,0.105,,other_participant=0.091;speaker_confusion=0.5
-or-google/gemma-3-4b-it-A,dx-addressee-3-third,0shot,all,0.444,27,0.287,0.096,,
-or-google/gemma-3-4b-it-A,dx-addressee-3-third,0shot,free,0.526,19,0.285,0.115,,
-or-google/gemma-3-4b-it-A,dx-addressee-2-deictic,0shot,all,0.259,27,0.293,0.084,,format=0.074;other_participant=0.037;speaker_confusion=0.63
-or-google/gemma-3-4b-it-A,dx-addressee-2-deictic,0shot,free,0.389,18,0.292,0.115,,format=0.111;speaker_confusion=0.5
-or-google/gemma-3-4b-it-A,dx-addressee-2-third,0shot,all,0.545,33,0.285,0.087,,
-or-google/gemma-3-4b-it-A,dx-addressee-2-third,0shot,free,0.696,23,0.279,0.096,,
-or-google/gemma-3-4b-it-A,sb-k1,0shot,all,0.875,24,0.125,0.068,,
-or-google/gemma-3-4b-it-A,an-narr,0shot,all,0.500,24,0.250,0.102,,
-or-google/gemma-3-4b-it-A,an-other-any,0shot,all,0.250,24,0.250,0.088,,
-or-google/gemma-3-4b-it-A,an-me-any,0shot,all,0.083,24,0.250,0.056,1.0,
-or-google/gemma-3-4b-it-A,an-you-voc,0shot,all,0.833,24,0.250,0.076,0.95,
-or-google/gemma-3-4b-it-A,an-you-novoc,0shot,all,0.000,24,0.250,0.000,,
-or-google/gemma-3-4b-it-A,adj-adj,0shot,all,0.680,25,0.333,0.093,,
-or-google/gemma-3-4b-it-A,adj-voc,0shot,all,0.800,25,0.333,0.080,,
-or-google/gemma-3-4b-it-A,adj-third,0shot,all,0.520,25,0.333,0.100,,
-or-google/gemma-3-4b-it-A,cm-mutate,0shot,all,0.900,20,0.200,0.067,,
-or-google/gemma-3-4b-it-A,cm-rebind,0shot,all,0.000,20,0.200,0.000,,
-or-google/gemma-3-4b-it-A,cm-copy,0shot,all,0.000,20,0.200,0.000,,
-or-z-ai/glm-4.6-B,dx-owner-3-deictic,0shot,all,0.964,28,0.333,0.035,,format=0.036
-or-z-ai/glm-4.6-B,dx-owner-3-deictic,0shot,free,0.875,8,0.333,0.117,,format=0.125
-or-z-ai/glm-4.6-B,dx-owner-3-third,0shot,all,1.000,28,0.333,0.000,,
-or-z-ai/glm-4.6-B,dx-owner-3-third,0shot,free,1.000,8,0.333,0.000,,
-or-z-ai/glm-4.6-B,dx-self-3-deictic,0shot,all,0.963,27,0.284,0.036,,format=0.037
-or-z-ai/glm-4.6-B,dx-self-3-deictic,0shot,free,0.947,19,0.281,0.051,,format=0.053
-or-z-ai/glm-4.6-B,dx-self-3-third,0shot,all,1.000,32,0.286,0.000,,
-or-z-ai/glm-4.6-B,dx-self-3-third,0shot,free,1.000,22,0.284,0.000,,
-or-z-ai/glm-4.6-B,dx-self-2-deictic,0shot,all,0.939,33,0.280,0.042,,format=0.061
-or-z-ai/glm-4.6-B,dx-self-2-deictic,0shot,free,0.957,23,0.275,0.043,,format=0.043
-or-z-ai/glm-4.6-B,dx-self-2-third,0shot,all,1.000,28,0.295,0.000,,
-or-z-ai/glm-4.6-B,dx-self-2-third,0shot,free,1.000,19,0.289,0.000,,
-or-z-ai/glm-4.6-B,dx-addressee-3-deictic,0shot,all,0.970,33,0.283,0.030,,format=0.03
-or-z-ai/glm-4.6-B,dx-addressee-3-deictic,0shot,free,0.955,22,0.280,0.044,,format=0.045
-or-z-ai/glm-4.6-B,dx-addressee-3-third,0shot,all,1.000,27,0.287,0.000,,
-or-z-ai/glm-4.6-B,dx-addressee-3-third,0shot,free,1.000,19,0.285,0.000,,
-or-z-ai/glm-4.6-B,dx-addressee-2-deictic,0shot,all,0.926,27,0.293,0.050,,format=0.037;other_participant=0.037
-or-z-ai/glm-4.6-B,dx-addressee-2-deictic,0shot,free,0.889,18,0.292,0.074,,format=0.056;other_participant=0.056
-or-z-ai/glm-4.6-B,dx-addressee-2-third,0shot,all,1.000,33,0.285,0.000,,
-or-z-ai/glm-4.6-B,dx-addressee-2-third,0shot,free,1.000,23,0.279,0.000,,
-or-z-ai/glm-4.6-B,an-narr,0shot,all,1.000,24,0.250,0.000,,
-or-z-ai/glm-4.6-B,an-other-any,0shot,all,0.958,24,0.250,0.041,,
-or-z-ai/glm-4.6-B,an-me-any,0shot,all,1.000,24,0.250,0.000,0.917,
-or-z-ai/glm-4.6-B,an-you-voc,0shot,all,0.917,24,0.250,0.056,0.591,
-or-z-ai/glm-4.6-B,an-you-novoc,0shot,all,1.000,24,0.250,0.000,0.0,
-or-z-ai/glm-4.6-B,adj-adj,0shot,all,0.960,25,0.333,0.039,,
-or-z-ai/glm-4.6-B,adj-voc,0shot,all,1.000,25,0.333,0.000,,
-or-z-ai/glm-4.6-B,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-z-ai/glm-4.6-A,attr,0shot,all,0.967,30,0.161,0.033,,
-or-z-ai/glm-4.6-A,codevar,0shot,all,0.900,30,0.274,0.055,,
-or-z-ai/glm-4.6-A,dialogue,0shot,all,1.000,30,0.311,0.000,,
-or-z-ai/glm-4.6-A,dx-owner-3-deictic,0shot,all,0.857,28,0.333,0.066,,other=0.143
-or-z-ai/glm-4.6-A,dx-owner-3-deictic,0shot,free,1.000,8,0.333,0.000,,
-or-z-ai/glm-4.6-A,dx-owner-3-third,0shot,all,1.000,28,0.333,0.000,,
-or-z-ai/glm-4.6-A,dx-owner-3-third,0shot,free,1.000,8,0.333,0.000,,
-or-z-ai/glm-4.6-A,dx-self-3-deictic,0shot,all,0.704,27,0.284,0.088,,other_participant=0.296
-or-z-ai/glm-4.6-A,dx-self-3-deictic,0shot,free,0.737,19,0.281,0.101,,other_participant=0.263
-or-z-ai/glm-4.6-A,dx-self-3-third,0shot,all,0.875,32,0.286,0.059,,
-or-z-ai/glm-4.6-A,dx-self-3-third,0shot,free,1.000,22,0.284,0.000,,
-or-z-ai/glm-4.6-A,dx-self-2-deictic,0shot,all,0.485,33,0.280,0.087,,other=0.333;other_object=0.091;other_participant=0.091
-or-z-ai/glm-4.6-A,dx-self-2-deictic,0shot,free,0.522,23,0.275,0.104,,other=0.217;other_object=0.13;other_participant=0.13
-or-z-ai/glm-4.6-A,dx-self-2-third,0shot,all,0.786,28,0.295,0.077,,
-or-z-ai/glm-4.6-A,dx-self-2-third,0shot,free,0.895,19,0.289,0.070,,
-or-z-ai/glm-4.6-A,dx-addressee-3-deictic,0shot,all,0.606,33,0.283,0.085,,other_participant=0.121;speaker_confusion=0.273
-or-z-ai/glm-4.6-A,dx-addressee-3-deictic,0shot,free,0.545,22,0.280,0.106,,other_participant=0.136;speaker_confusion=0.318
-or-z-ai/glm-4.6-A,dx-addressee-3-third,0shot,all,0.926,27,0.287,0.050,,
-or-z-ai/glm-4.6-A,dx-addressee-3-third,0shot,free,0.947,19,0.285,0.051,,
-or-z-ai/glm-4.6-A,dx-addressee-2-deictic,0shot,all,0.556,27,0.293,0.096,,other_participant=0.148;speaker_confusion=0.296
-or-z-ai/glm-4.6-A,dx-addressee-2-deictic,0shot,free,0.611,18,0.292,0.115,,other_participant=0.167;speaker_confusion=0.222
-or-z-ai/glm-4.6-A,dx-addressee-2-third,0shot,all,0.818,33,0.285,0.067,,
-or-z-ai/glm-4.6-A,dx-addressee-2-third,0shot,free,0.913,23,0.279,0.059,,
-or-z-ai/glm-4.6-A,sb-k1,0shot,all,1.000,24,0.125,0.000,,
-or-z-ai/glm-4.6-A,an-narr,0shot,all,0.792,24,0.250,0.083,,
-or-z-ai/glm-4.6-A,an-other-any,0shot,all,0.875,24,0.250,0.068,,
-or-z-ai/glm-4.6-A,an-me-any,0shot,all,0.542,24,0.250,0.102,1.0,
-or-z-ai/glm-4.6-A,an-you-voc,0shot,all,1.000,24,0.250,0.000,1.0,
-or-z-ai/glm-4.6-A,an-you-novoc,0shot,all,0.542,24,0.250,0.102,0.231,
-or-z-ai/glm-4.6-A,adj-adj,0shot,all,0.920,25,0.333,0.054,,
-or-z-ai/glm-4.6-A,adj-voc,0shot,all,1.000,25,0.333,0.000,,
-or-z-ai/glm-4.6-A,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-z-ai/glm-4.6-A,cm-mutate,0shot,all,1.000,20,0.200,0.000,,
-or-z-ai/glm-4.6-A,cm-rebind,0shot,all,0.850,20,0.200,0.080,,
-or-z-ai/glm-4.6-A,cm-copy,0shot,all,0.950,20,0.200,0.049,,
-or-openai/gpt-oss-120b-B,dx-owner-3-deictic,0shot,all,0.929,28,0.333,0.049,,other=0.071
-or-openai/gpt-oss-120b-B,dx-owner-3-deictic,0shot,free,0.875,8,0.333,0.117,,other=0.125
-or-openai/gpt-oss-120b-B,dx-owner-3-third,0shot,all,1.000,28,0.333,0.000,,
-or-openai/gpt-oss-120b-B,dx-owner-3-third,0shot,free,1.000,8,0.333,0.000,,
-or-openai/gpt-oss-120b-B,dx-self-3-deictic,0shot,all,0.963,27,0.284,0.036,,other_participant=0.037
-or-openai/gpt-oss-120b-B,dx-self-3-deictic,0shot,free,0.947,19,0.281,0.051,,other_participant=0.053
-or-openai/gpt-oss-120b-B,dx-self-3-third,0shot,all,1.000,32,0.286,0.000,,
-or-openai/gpt-oss-120b-B,dx-self-3-third,0shot,free,1.000,22,0.284,0.000,,
-or-openai/gpt-oss-120b-B,dx-self-2-deictic,0shot,all,0.879,33,0.280,0.057,,format=0.03;other=0.061;other_participant=0.03
-or-openai/gpt-oss-120b-B,dx-self-2-deictic,0shot,free,0.870,23,0.275,0.070,,format=0.043;other=0.087
-or-openai/gpt-oss-120b-B,dx-self-2-third,0shot,all,1.000,28,0.295,0.000,,
-or-openai/gpt-oss-120b-B,dx-self-2-third,0shot,free,1.000,19,0.289,0.000,,
-or-openai/gpt-oss-120b-B,dx-addressee-3-deictic,0shot,all,0.879,33,0.283,0.057,,other_participant=0.091;speaker_confusion=0.03
-or-openai/gpt-oss-120b-B,dx-addressee-3-deictic,0shot,free,0.864,22,0.280,0.073,,other_participant=0.091;speaker_confusion=0.045
-or-openai/gpt-oss-120b-B,dx-addressee-3-third,0shot,all,1.000,27,0.287,0.000,,
-or-openai/gpt-oss-120b-B,dx-addressee-3-third,0shot,free,1.000,19,0.285,0.000,,
-or-openai/gpt-oss-120b-B,dx-addressee-2-deictic,0shot,all,0.556,27,0.293,0.096,,format=0.037;other_participant=0.222;speaker_confusion=0.185
-or-openai/gpt-oss-120b-B,dx-addressee-2-deictic,0shot,free,0.389,18,0.292,0.115,,format=0.056;other_participant=0.278;speaker_confusion=0.278
-or-openai/gpt-oss-120b-B,dx-addressee-2-third,0shot,all,1.000,33,0.285,0.000,,
-or-openai/gpt-oss-120b-B,dx-addressee-2-third,0shot,free,1.000,23,0.279,0.000,,
-or-openai/gpt-oss-120b-B,an-narr,0shot,all,0.833,24,0.250,0.076,,
-or-openai/gpt-oss-120b-B,an-other-any,0shot,all,0.875,24,0.250,0.068,,
-or-openai/gpt-oss-120b-B,an-me-any,0shot,all,0.542,24,0.250,0.102,0.462,
-or-openai/gpt-oss-120b-B,an-you-voc,0shot,all,0.875,24,0.250,0.068,0.905,
-or-openai/gpt-oss-120b-B,an-you-novoc,0shot,all,0.833,24,0.250,0.076,0.05,
-or-openai/gpt-oss-120b-B,adj-adj,0shot,all,1.000,25,0.333,0.000,,
-or-openai/gpt-oss-120b-B,adj-voc,0shot,all,1.000,25,0.333,0.000,,
-or-openai/gpt-oss-120b-B,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-openai/gpt-oss-120b-A,attr,0shot,all,0.250,16,0.164,0.108,,
-or-openai/gpt-oss-120b-A,codevar,0shot,all,0.000,13,0.258,0.000,,
-or-openai/gpt-oss-120b-A,dialogue,0shot,all,0.444,9,0.306,0.166,,
-or-openai/gpt-oss-120b-A,dx-owner-3-deictic,0shot,all,0.167,12,0.333,0.108,,format=0.5;other=0.333
-or-openai/gpt-oss-120b-A,dx-owner-3-third,0shot,all,0.556,9,0.333,0.166,,
-or-openai/gpt-oss-120b-A,dx-self-3-deictic,0shot,all,0.250,8,0.281,0.153,,format=0.625;other_participant=0.125
-or-openai/gpt-oss-120b-A,dx-self-3-third,0shot,all,0.500,14,0.274,0.134,,
-or-openai/gpt-oss-120b-A,dx-self-3-third,0shot,free,0.375,8,0.271,0.171,,
-or-openai/gpt-oss-120b-A,dx-self-2-deictic,0shot,all,0.083,12,0.278,0.080,,format=0.667;other=0.25
-or-openai/gpt-oss-120b-A,dx-self-2-deictic,0shot,free,0.000,9,0.278,0.000,,format=0.778;other=0.222
-or-openai/gpt-oss-120b-A,dx-self-2-third,0shot,all,0.545,11,0.311,0.150,,
-or-openai/gpt-oss-120b-A,dx-self-2-third,0shot,free,0.545,11,0.311,0.150,,
-or-openai/gpt-oss-120b-A,dx-addressee-3-deictic,0shot,all,0.111,18,0.287,0.074,,format=0.611;other_participant=0.111;speaker_confusion=0.167
-or-openai/gpt-oss-120b-A,dx-addressee-3-deictic,0shot,free,0.182,11,0.288,0.116,,format=0.545;other_participant=0.182;speaker_confusion=0.091
-or-openai/gpt-oss-120b-A,dx-addressee-3-third,0shot,all,0.692,13,0.276,0.128,,
-or-openai/gpt-oss-120b-A,dx-addressee-3-third,0shot,free,0.600,10,0.275,0.155,,
-or-openai/gpt-oss-120b-A,dx-addressee-2-deictic,0shot,all,0.100,10,0.292,0.095,,format=0.8;speaker_confusion=0.1
-or-openai/gpt-oss-120b-A,dx-addressee-2-third,0shot,all,0.450,20,0.279,0.111,,
-or-openai/gpt-oss-120b-A,dx-addressee-2-third,0shot,free,0.267,15,0.272,0.114,,
-or-openai/gpt-oss-120b-A,sb-k1,0shot,all,0.333,9,0.125,0.157,,
-or-openai/gpt-oss-120b-A,an-narr,0shot,all,0.167,12,0.250,0.108,,
-or-openai/gpt-oss-120b-A,an-other-any,0shot,all,0.000,11,0.250,0.000,,
-or-openai/gpt-oss-120b-A,an-me-any,0shot,all,0.000,9,0.250,0.000,,
-or-openai/gpt-oss-120b-A,an-you-voc,0shot,all,0.375,8,0.250,0.171,1.0,
-or-openai/gpt-oss-120b-A,an-you-novoc,0shot,all,0.125,8,0.250,0.117,1.0,
-or-openai/gpt-oss-120b-A,adj-adj,0shot,all,0.100,10,0.333,0.095,,
-or-openai/gpt-oss-120b-A,adj-voc,0shot,all,0.111,9,0.333,0.105,,
-or-openai/gpt-oss-120b-A,adj-third,0shot,all,0.455,11,0.333,0.150,,
-or-openai/gpt-oss-120b-A,cm-mutate,0shot,all,0.500,8,0.200,0.177,,
-or-openai/gpt-oss-120b-A,cm-rebind,0shot,all,0.375,8,0.200,0.171,,
-or-openai/gpt-oss-120b-A,cm-copy,0shot,all,0.100,10,0.200,0.095,,
-or-nousresearch/hermes-3-llama-3.1-405b-A,attr,0shot,all,0.933,30,0.161,0.045,,
-or-nousresearch/hermes-3-llama-3.1-405b-A,codevar,0shot,all,0.700,30,0.274,0.084,,
-or-nousresearch/hermes-3-llama-3.1-405b-A,dialogue,0shot,all,1.000,30,0.311,0.000,,
-or-nousresearch/hermes-3-llama-3.1-405b-A,dx-owner-3-deictic,0shot,all,0.786,28,0.333,0.077,,other=0.214
-or-nousresearch/hermes-3-llama-3.1-405b-A,dx-owner-3-deictic,0shot,free,0.750,8,0.333,0.153,,other=0.25
-or-nousresearch/hermes-3-llama-3.1-405b-A,dx-owner-3-third,0shot,all,0.893,28,0.333,0.059,,
-or-nousresearch/hermes-3-llama-3.1-405b-A,dx-owner-3-third,0shot,free,0.625,8,0.333,0.171,,
-or-nousresearch/hermes-3-llama-3.1-405b-A,dx-self-3-deictic,0shot,all,0.667,27,0.284,0.091,,other_participant=0.333
-or-nousresearch/hermes-3-llama-3.1-405b-A,dx-self-3-deictic,0shot,free,0.737,19,0.281,0.101,,other_participant=0.263
-or-nousresearch/hermes-3-llama-3.1-405b-A,dx-self-3-third,0shot,all,1.000,32,0.286,0.000,,
-or-nousresearch/hermes-3-llama-3.1-405b-A,dx-self-3-third,0shot,free,1.000,22,0.284,0.000,,
-or-nousresearch/hermes-3-llama-3.1-405b-A,dx-self-2-deictic,0shot,all,0.455,33,0.280,0.087,,other=0.333;other_object=0.182;other_participant=0.03
-or-nousresearch/hermes-3-llama-3.1-405b-A,dx-self-2-deictic,0shot,free,0.522,23,0.275,0.104,,other=0.174;other_object=0.261;other_participant=0.043
-or-nousresearch/hermes-3-llama-3.1-405b-A,dx-self-2-third,0shot,all,0.929,28,0.295,0.049,,
-or-nousresearch/hermes-3-llama-3.1-405b-A,dx-self-2-third,0shot,free,1.000,19,0.289,0.000,,
-or-nousresearch/hermes-3-llama-3.1-405b-A,dx-addressee-3-deictic,0shot,all,0.697,33,0.283,0.080,,other_participant=0.061;speaker_confusion=0.242
-or-nousresearch/hermes-3-llama-3.1-405b-A,dx-addressee-3-deictic,0shot,free,0.818,22,0.280,0.082,,other_participant=0.045;speaker_confusion=0.136
-or-nousresearch/hermes-3-llama-3.1-405b-A,dx-addressee-3-third,0shot,all,0.963,27,0.287,0.036,,
-or-nousresearch/hermes-3-llama-3.1-405b-A,dx-addressee-3-third,0shot,free,0.947,19,0.285,0.051,,
-or-nousresearch/hermes-3-llama-3.1-405b-A,dx-addressee-2-deictic,0shot,all,0.370,27,0.293,0.093,,other_participant=0.259;speaker_confusion=0.37
-or-nousresearch/hermes-3-llama-3.1-405b-A,dx-addressee-2-deictic,0shot,free,0.333,18,0.292,0.111,,other_participant=0.278;speaker_confusion=0.389
-or-nousresearch/hermes-3-llama-3.1-405b-A,dx-addressee-2-third,0shot,all,0.909,33,0.285,0.050,,
-or-nousresearch/hermes-3-llama-3.1-405b-A,dx-addressee-2-third,0shot,free,0.957,23,0.279,0.043,,
-or-nousresearch/hermes-3-llama-3.1-405b-A,sb-k1,0shot,all,1.000,24,0.125,0.000,,
-or-nousresearch/hermes-3-llama-3.1-405b-A,an-narr,0shot,all,0.750,24,0.250,0.088,,
-or-nousresearch/hermes-3-llama-3.1-405b-A,an-other-any,0shot,all,0.917,24,0.250,0.056,,
-or-nousresearch/hermes-3-llama-3.1-405b-A,an-me-any,0shot,all,0.458,24,0.250,0.102,0.909,
-or-nousresearch/hermes-3-llama-3.1-405b-A,an-you-voc,0shot,all,1.000,24,0.250,0.000,1.0,
-or-nousresearch/hermes-3-llama-3.1-405b-A,an-you-novoc,0shot,all,0.375,24,0.250,0.099,0.0,
-or-nousresearch/hermes-3-llama-3.1-405b-A,adj-adj,0shot,all,1.000,25,0.333,0.000,,
-or-nousresearch/hermes-3-llama-3.1-405b-A,adj-voc,0shot,all,1.000,25,0.333,0.000,,
-or-nousresearch/hermes-3-llama-3.1-405b-A,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-nousresearch/hermes-3-llama-3.1-405b-A,cm-mutate,0shot,all,0.900,20,0.200,0.067,,
-or-nousresearch/hermes-3-llama-3.1-405b-A,cm-rebind,0shot,all,0.950,20,0.200,0.049,,
-or-nousresearch/hermes-3-llama-3.1-405b-A,cm-copy,0shot,all,1.000,20,0.200,0.000,,
-or-moonshotai/kimi-k2-0905-A,attr,0shot,all,1.000,30,0.161,0.000,,
-or-moonshotai/kimi-k2-0905-A,codevar,0shot,all,0.933,30,0.274,0.045,,
-or-moonshotai/kimi-k2-0905-A,dialogue,0shot,all,1.000,30,0.311,0.000,,
-or-moonshotai/kimi-k2-0905-A,dx-owner-3-deictic,0shot,all,0.893,28,0.333,0.059,,other=0.107
-or-moonshotai/kimi-k2-0905-A,dx-owner-3-deictic,0shot,free,1.000,8,0.333,0.000,,
-or-moonshotai/kimi-k2-0905-A,dx-owner-3-third,0shot,all,1.000,28,0.333,0.000,,
-or-moonshotai/kimi-k2-0905-A,dx-owner-3-third,0shot,free,1.000,8,0.333,0.000,,
-or-moonshotai/kimi-k2-0905-A,dx-self-3-deictic,0shot,all,0.615,26,0.285,0.095,,other_participant=0.385
-or-moonshotai/kimi-k2-0905-A,dx-self-3-deictic,0shot,free,0.579,19,0.281,0.113,,other_participant=0.421
-or-moonshotai/kimi-k2-0905-A,dx-self-3-third,0shot,all,1.000,31,0.285,0.000,,
-or-moonshotai/kimi-k2-0905-A,dx-self-3-third,0shot,free,1.000,22,0.284,0.000,,
-or-moonshotai/kimi-k2-0905-A,dx-self-2-deictic,0shot,all,0.484,31,0.282,0.090,,other=0.484;other_object=0.032
-or-moonshotai/kimi-k2-0905-A,dx-self-2-deictic,0shot,free,0.500,22,0.277,0.107,,other=0.455;other_object=0.045
-or-moonshotai/kimi-k2-0905-A,dx-self-2-third,0shot,all,0.893,28,0.295,0.059,,
-or-moonshotai/kimi-k2-0905-A,dx-self-2-third,0shot,free,0.947,19,0.289,0.051,,
-or-moonshotai/kimi-k2-0905-A,dx-addressee-3-deictic,0shot,all,0.667,33,0.283,0.082,,other_participant=0.121;speaker_confusion=0.212
-or-moonshotai/kimi-k2-0905-A,dx-addressee-3-deictic,0shot,free,0.727,22,0.280,0.095,,other_participant=0.091;speaker_confusion=0.182
-or-moonshotai/kimi-k2-0905-A,dx-addressee-3-third,0shot,all,0.963,27,0.287,0.036,,
-or-moonshotai/kimi-k2-0905-A,dx-addressee-3-third,0shot,free,1.000,19,0.285,0.000,,
-or-moonshotai/kimi-k2-0905-A,dx-addressee-2-deictic,0shot,all,0.423,26,0.292,0.097,,other_participant=0.038;speaker_confusion=0.538
-or-moonshotai/kimi-k2-0905-A,dx-addressee-2-deictic,0shot,free,0.588,17,0.289,0.119,,speaker_confusion=0.412
-or-moonshotai/kimi-k2-0905-A,dx-addressee-2-third,0shot,all,0.970,33,0.285,0.030,,
-or-moonshotai/kimi-k2-0905-A,dx-addressee-2-third,0shot,free,1.000,23,0.279,0.000,,
-or-moonshotai/kimi-k2-0905-A,sb-k1,0shot,all,1.000,24,0.125,0.000,,
-or-moonshotai/kimi-k2-0905-A,an-narr,0shot,all,0.875,24,0.250,0.068,,
-or-moonshotai/kimi-k2-0905-A,an-other-any,0shot,all,0.958,24,0.250,0.041,,
-or-moonshotai/kimi-k2-0905-A,an-me-any,0shot,all,0.250,24,0.250,0.088,1.0,
-or-moonshotai/kimi-k2-0905-A,an-you-voc,0shot,all,0.958,24,0.250,0.041,1.0,
-or-moonshotai/kimi-k2-0905-A,an-you-novoc,0shot,all,0.792,24,0.250,0.083,0.0,
-or-moonshotai/kimi-k2-0905-A,adj-adj,0shot,all,1.000,25,0.333,0.000,,
-or-moonshotai/kimi-k2-0905-A,adj-voc,0shot,all,1.000,25,0.333,0.000,,
-or-moonshotai/kimi-k2-0905-A,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-moonshotai/kimi-k2-0905-A,cm-mutate,0shot,all,1.000,20,0.200,0.000,,
-or-moonshotai/kimi-k2-0905-A,cm-rebind,0shot,all,1.000,20,0.200,0.000,,
-or-moonshotai/kimi-k2-0905-A,cm-copy,0shot,all,0.950,20,0.200,0.049,,
-or-meta-llama/llama-3.1-8b-instruct-A,attr,0shot,all,0.733,30,0.161,0.081,,
-or-meta-llama/llama-3.1-8b-instruct-A,codevar,0shot,all,0.367,30,0.274,0.088,,
-or-meta-llama/llama-3.1-8b-instruct-A,dialogue,0shot,all,0.900,30,0.311,0.055,,
-or-meta-llama/llama-3.1-8b-instruct-A,dx-owner-3-deictic,0shot,all,0.607,28,0.333,0.092,,other=0.393
-or-meta-llama/llama-3.1-8b-instruct-A,dx-owner-3-deictic,0shot,free,0.750,8,0.333,0.153,,other=0.25
-or-meta-llama/llama-3.1-8b-instruct-A,dx-owner-3-third,0shot,all,0.786,28,0.333,0.077,,
-or-meta-llama/llama-3.1-8b-instruct-A,dx-owner-3-third,0shot,free,0.875,8,0.333,0.117,,
-or-meta-llama/llama-3.1-8b-instruct-A,dx-self-3-deictic,0shot,all,0.444,27,0.284,0.096,,other_participant=0.556
-or-meta-llama/llama-3.1-8b-instruct-A,dx-self-3-deictic,0shot,free,0.526,19,0.281,0.115,,other_participant=0.474
-or-meta-llama/llama-3.1-8b-instruct-A,dx-self-3-third,0shot,all,0.688,32,0.286,0.082,,
-or-meta-llama/llama-3.1-8b-instruct-A,dx-self-3-third,0shot,free,0.727,22,0.284,0.095,,
-or-meta-llama/llama-3.1-8b-instruct-A,dx-self-2-deictic,0shot,all,0.333,33,0.280,0.082,,other=0.545;other_object=0.061;other_participant=0.061
-or-meta-llama/llama-3.1-8b-instruct-A,dx-self-2-deictic,0shot,free,0.435,23,0.275,0.103,,other=0.391;other_object=0.087;other_participant=0.087
-or-meta-llama/llama-3.1-8b-instruct-A,dx-self-2-third,0shot,all,0.571,28,0.295,0.093,,
-or-meta-llama/llama-3.1-8b-instruct-A,dx-self-2-third,0shot,free,0.737,19,0.289,0.101,,
-or-meta-llama/llama-3.1-8b-instruct-A,dx-addressee-3-deictic,0shot,all,0.303,33,0.283,0.080,,other_participant=0.242;speaker_confusion=0.455
-or-meta-llama/llama-3.1-8b-instruct-A,dx-addressee-3-deictic,0shot,free,0.318,22,0.280,0.099,,other_participant=0.273;speaker_confusion=0.409
-or-meta-llama/llama-3.1-8b-instruct-A,dx-addressee-3-third,0shot,all,0.667,27,0.287,0.091,,
-or-meta-llama/llama-3.1-8b-instruct-A,dx-addressee-3-third,0shot,free,0.684,19,0.285,0.107,,
-or-meta-llama/llama-3.1-8b-instruct-A,dx-addressee-2-deictic,0shot,all,0.333,27,0.293,0.091,,other_participant=0.148;speaker_confusion=0.519
-or-meta-llama/llama-3.1-8b-instruct-A,dx-addressee-2-deictic,0shot,free,0.333,18,0.292,0.111,,other_participant=0.167;speaker_confusion=0.5
-or-meta-llama/llama-3.1-8b-instruct-A,dx-addressee-2-third,0shot,all,0.606,33,0.285,0.085,,
-or-meta-llama/llama-3.1-8b-instruct-A,dx-addressee-2-third,0shot,free,0.696,23,0.279,0.096,,
-or-meta-llama/llama-3.1-8b-instruct-A,sb-k1,0shot,all,0.917,24,0.125,0.056,,
-or-meta-llama/llama-3.1-8b-instruct-A,an-narr,0shot,all,0.458,24,0.250,0.102,,
-or-meta-llama/llama-3.1-8b-instruct-A,an-other-any,0shot,all,0.667,24,0.250,0.096,,
-or-meta-llama/llama-3.1-8b-instruct-A,an-me-any,0shot,all,0.000,24,0.250,0.000,,
-or-meta-llama/llama-3.1-8b-instruct-A,an-you-voc,0shot,all,0.167,24,0.250,0.076,1.0,
-or-meta-llama/llama-3.1-8b-instruct-A,an-you-novoc,0shot,all,0.125,24,0.250,0.068,0.0,
-or-meta-llama/llama-3.1-8b-instruct-A,adj-adj,0shot,all,0.840,25,0.333,0.073,,
-or-meta-llama/llama-3.1-8b-instruct-A,adj-voc,0shot,all,0.800,25,0.333,0.080,,
-or-meta-llama/llama-3.1-8b-instruct-A,adj-third,0shot,all,0.920,25,0.333,0.054,,
-or-meta-llama/llama-3.1-8b-instruct-A,cm-mutate,0shot,all,0.650,20,0.200,0.107,,
-or-meta-llama/llama-3.1-8b-instruct-A,cm-rebind,0shot,all,0.550,20,0.200,0.111,,
-or-meta-llama/llama-3.1-8b-instruct-A,cm-copy,0shot,all,0.150,20,0.200,0.080,,
-or-meta-llama/llama-3.2-1b-instruct-A,attr,0shot,all,0.767,30,0.161,0.077,,
-or-meta-llama/llama-3.2-1b-instruct-A,codevar,0shot,all,0.133,30,0.274,0.062,,
-or-meta-llama/llama-3.2-1b-instruct-A,dialogue,0shot,all,0.500,30,0.311,0.091,,
-or-meta-llama/llama-3.2-1b-instruct-A,dx-owner-3-deictic,0shot,all,0.214,28,0.333,0.077,,format=0.143;other=0.643
-or-meta-llama/llama-3.2-1b-instruct-A,dx-owner-3-deictic,0shot,free,0.125,8,0.333,0.117,,format=0.125;other=0.75
-or-meta-llama/llama-3.2-1b-instruct-A,dx-owner-3-third,0shot,all,0.321,28,0.333,0.088,,
-or-meta-llama/llama-3.2-1b-instruct-A,dx-owner-3-third,0shot,free,0.375,8,0.333,0.171,,
-or-meta-llama/llama-3.2-1b-instruct-A,dx-self-3-deictic,0shot,all,0.222,27,0.284,0.080,,format=0.259;other_participant=0.519
-or-meta-llama/llama-3.2-1b-instruct-A,dx-self-3-deictic,0shot,free,0.210,19,0.281,0.093,,format=0.263;other_participant=0.526
-or-meta-llama/llama-3.2-1b-instruct-A,dx-self-3-third,0shot,all,0.406,32,0.286,0.087,,
-or-meta-llama/llama-3.2-1b-instruct-A,dx-self-3-third,0shot,free,0.545,22,0.284,0.106,,
-or-meta-llama/llama-3.2-1b-instruct-A,dx-self-2-deictic,0shot,all,0.151,33,0.280,0.062,,format=0.121;other=0.515;other_object=0.091;other_participant=0.121
-or-meta-llama/llama-3.2-1b-instruct-A,dx-self-2-deictic,0shot,free,0.174,23,0.275,0.079,,format=0.174;other=0.391;other_object=0.087;other_participant=0.174
-or-meta-llama/llama-3.2-1b-instruct-A,dx-self-2-third,0shot,all,0.429,28,0.295,0.093,,
-or-meta-llama/llama-3.2-1b-instruct-A,dx-self-2-third,0shot,free,0.579,19,0.289,0.113,,
-or-meta-llama/llama-3.2-1b-instruct-A,dx-addressee-3-deictic,0shot,all,0.182,33,0.283,0.067,,format=0.152;other_participant=0.242;speaker_confusion=0.424
-or-meta-llama/llama-3.2-1b-instruct-A,dx-addressee-3-deictic,0shot,free,0.136,22,0.280,0.073,,format=0.136;other_participant=0.273;speaker_confusion=0.455
-or-meta-llama/llama-3.2-1b-instruct-A,dx-addressee-3-third,0shot,all,0.259,27,0.287,0.084,,
-or-meta-llama/llama-3.2-1b-instruct-A,dx-addressee-3-third,0shot,free,0.368,19,0.285,0.111,,
-or-meta-llama/llama-3.2-1b-instruct-A,dx-addressee-2-deictic,0shot,all,0.185,27,0.293,0.075,,format=0.259;other_participant=0.222;speaker_confusion=0.333
-or-meta-llama/llama-3.2-1b-instruct-A,dx-addressee-2-deictic,0shot,free,0.167,18,0.292,0.088,,format=0.222;other_participant=0.222;speaker_confusion=0.389
-or-meta-llama/llama-3.2-1b-instruct-A,dx-addressee-2-third,0shot,all,0.333,33,0.285,0.082,,
-or-meta-llama/llama-3.2-1b-instruct-A,dx-addressee-2-third,0shot,free,0.435,23,0.279,0.103,,
-or-meta-llama/llama-3.2-1b-instruct-A,sb-k1,0shot,all,0.542,24,0.125,0.102,,
-or-meta-llama/llama-3.2-1b-instruct-A,an-narr,0shot,all,0.375,24,0.250,0.099,,
-or-meta-llama/llama-3.2-1b-instruct-A,an-other-any,0shot,all,0.292,24,0.250,0.093,,
-or-meta-llama/llama-3.2-1b-instruct-A,an-me-any,0shot,all,0.083,24,0.250,0.056,0.0,
-or-meta-llama/llama-3.2-1b-instruct-A,an-you-voc,0shot,all,0.250,24,0.250,0.088,0.0,
-or-meta-llama/llama-3.2-1b-instruct-A,an-you-novoc,0shot,all,0.250,24,0.250,0.088,0.0,
-or-meta-llama/llama-3.2-1b-instruct-A,adj-adj,0shot,all,0.360,25,0.333,0.096,,
-or-meta-llama/llama-3.2-1b-instruct-A,adj-voc,0shot,all,0.520,25,0.333,0.100,,
-or-meta-llama/llama-3.2-1b-instruct-A,adj-third,0shot,all,0.640,25,0.333,0.096,,
-or-meta-llama/llama-3.2-1b-instruct-A,cm-mutate,0shot,all,0.550,20,0.200,0.111,,
-or-meta-llama/llama-3.2-1b-instruct-A,cm-rebind,0shot,all,0.000,20,0.200,0.000,,
-or-meta-llama/llama-3.2-1b-instruct-A,cm-copy,0shot,all,0.050,20,0.200,0.049,,
-or-meta-llama/llama-3.2-3b-instruct-A,attr,0shot,all,0.500,30,0.161,0.091,,
-or-meta-llama/llama-3.2-3b-instruct-A,codevar,0shot,all,0.467,30,0.274,0.091,,
-or-meta-llama/llama-3.2-3b-instruct-A,dialogue,0shot,all,0.800,30,0.311,0.073,,
-or-meta-llama/llama-3.2-3b-instruct-A,dx-owner-3-deictic,0shot,all,0.714,28,0.333,0.085,,other=0.286
-or-meta-llama/llama-3.2-3b-instruct-A,dx-owner-3-deictic,0shot,free,0.750,8,0.333,0.153,,other=0.25
-or-meta-llama/llama-3.2-3b-instruct-A,dx-owner-3-third,0shot,all,0.536,28,0.333,0.094,,
-or-meta-llama/llama-3.2-3b-instruct-A,dx-owner-3-third,0shot,free,0.375,8,0.333,0.171,,
-or-meta-llama/llama-3.2-3b-instruct-A,dx-self-3-deictic,0shot,all,0.407,27,0.284,0.095,,format=0.037;other_participant=0.556
-or-meta-llama/llama-3.2-3b-instruct-A,dx-self-3-deictic,0shot,free,0.526,19,0.281,0.115,,format=0.053;other_participant=0.421
-or-meta-llama/llama-3.2-3b-instruct-A,dx-self-3-third,0shot,all,0.625,32,0.286,0.086,,
-or-meta-llama/llama-3.2-3b-instruct-A,dx-self-3-third,0shot,free,0.636,22,0.284,0.103,,
-or-meta-llama/llama-3.2-3b-instruct-A,dx-self-2-deictic,0shot,all,0.273,33,0.280,0.077,,other=0.545;other_object=0.152;other_participant=0.03
-or-meta-llama/llama-3.2-3b-instruct-A,dx-self-2-deictic,0shot,free,0.348,23,0.275,0.099,,other=0.435;other_object=0.217
-or-meta-llama/llama-3.2-3b-instruct-A,dx-self-2-third,0shot,all,0.571,28,0.295,0.093,,
-or-meta-llama/llama-3.2-3b-instruct-A,dx-self-2-third,0shot,free,0.632,19,0.289,0.111,,
-or-meta-llama/llama-3.2-3b-instruct-A,dx-addressee-3-deictic,0shot,all,0.364,33,0.283,0.084,,other_participant=0.212;speaker_confusion=0.424
-or-meta-llama/llama-3.2-3b-instruct-A,dx-addressee-3-deictic,0shot,free,0.409,22,0.280,0.105,,other_participant=0.273;speaker_confusion=0.318
-or-meta-llama/llama-3.2-3b-instruct-A,dx-addressee-3-third,0shot,all,0.593,27,0.287,0.095,,
-or-meta-llama/llama-3.2-3b-instruct-A,dx-addressee-3-third,0shot,free,0.579,19,0.285,0.113,,
-or-meta-llama/llama-3.2-3b-instruct-A,dx-addressee-2-deictic,0shot,all,0.259,27,0.293,0.084,,other_participant=0.111;speaker_confusion=0.63
-or-meta-llama/llama-3.2-3b-instruct-A,dx-addressee-2-deictic,0shot,free,0.389,18,0.292,0.115,,other_participant=0.056;speaker_confusion=0.556
-or-meta-llama/llama-3.2-3b-instruct-A,dx-addressee-2-third,0shot,all,0.576,33,0.285,0.086,,
-or-meta-llama/llama-3.2-3b-instruct-A,dx-addressee-2-third,0shot,free,0.522,23,0.279,0.104,,
-or-meta-llama/llama-3.2-3b-instruct-A,sb-k1,0shot,all,0.583,24,0.125,0.101,,
-or-meta-llama/llama-3.2-3b-instruct-A,an-narr,0shot,all,0.458,24,0.250,0.102,,
-or-meta-llama/llama-3.2-3b-instruct-A,an-other-any,0shot,all,0.458,24,0.250,0.102,,
-or-meta-llama/llama-3.2-3b-instruct-A,an-me-any,0shot,all,0.500,24,0.250,0.102,1.0,
-or-meta-llama/llama-3.2-3b-instruct-A,an-you-voc,0shot,all,0.000,24,0.250,0.000,,
-or-meta-llama/llama-3.2-3b-instruct-A,an-you-novoc,0shot,all,0.125,24,0.250,0.068,0.0,
-or-meta-llama/llama-3.2-3b-instruct-A,adj-adj,0shot,all,0.960,25,0.333,0.039,,
-or-meta-llama/llama-3.2-3b-instruct-A,adj-voc,0shot,all,0.960,25,0.333,0.039,,
-or-meta-llama/llama-3.2-3b-instruct-A,adj-third,0shot,all,0.880,25,0.333,0.065,,
-or-meta-llama/llama-3.2-3b-instruct-A,cm-mutate,0shot,all,0.850,20,0.200,0.080,,
-or-meta-llama/llama-3.2-3b-instruct-A,cm-rebind,0shot,all,0.200,20,0.200,0.089,,
-or-meta-llama/llama-3.2-3b-instruct-A,cm-copy,0shot,all,0.100,20,0.200,0.067,,
-or-meta-llama/llama-3.3-70b-instruct-A,attr,0shot,all,0.933,30,0.161,0.045,,
-or-meta-llama/llama-3.3-70b-instruct-A,codevar,0shot,all,0.733,30,0.274,0.081,,
-or-meta-llama/llama-3.3-70b-instruct-A,dialogue,0shot,all,1.000,30,0.311,0.000,,
-or-meta-llama/llama-3.3-70b-instruct-A,dx-owner-3-deictic,0shot,all,0.786,28,0.333,0.077,,other=0.214
-or-meta-llama/llama-3.3-70b-instruct-A,dx-owner-3-deictic,0shot,free,0.625,8,0.333,0.171,,other=0.375
-or-meta-llama/llama-3.3-70b-instruct-A,dx-owner-3-third,0shot,all,0.929,28,0.333,0.049,,
-or-meta-llama/llama-3.3-70b-instruct-A,dx-owner-3-third,0shot,free,0.750,8,0.333,0.153,,
-or-meta-llama/llama-3.3-70b-instruct-A,dx-self-3-deictic,0shot,all,0.704,27,0.284,0.088,,format=0.037;other_participant=0.259
-or-meta-llama/llama-3.3-70b-instruct-A,dx-self-3-deictic,0shot,free,0.789,19,0.281,0.093,,format=0.053;other_participant=0.158
-or-meta-llama/llama-3.3-70b-instruct-A,dx-self-3-third,0shot,all,0.969,32,0.286,0.031,,
-or-meta-llama/llama-3.3-70b-instruct-A,dx-self-3-third,0shot,free,1.000,22,0.284,0.000,,
-or-meta-llama/llama-3.3-70b-instruct-A,dx-self-2-deictic,0shot,all,0.485,33,0.280,0.087,,other=0.485;other_object=0.03
-or-meta-llama/llama-3.3-70b-instruct-A,dx-self-2-deictic,0shot,free,0.522,23,0.275,0.104,,other=0.435;other_object=0.043
-or-meta-llama/llama-3.3-70b-instruct-A,dx-self-2-third,0shot,all,0.893,28,0.295,0.059,,
-or-meta-llama/llama-3.3-70b-instruct-A,dx-self-2-third,0shot,free,0.947,19,0.289,0.051,,
-or-meta-llama/llama-3.3-70b-instruct-A,dx-addressee-3-deictic,0shot,all,0.727,33,0.283,0.077,,other_participant=0.091;speaker_confusion=0.182
-or-meta-llama/llama-3.3-70b-instruct-A,dx-addressee-3-deictic,0shot,free,0.636,22,0.280,0.103,,other_participant=0.091;speaker_confusion=0.273
-or-meta-llama/llama-3.3-70b-instruct-A,dx-addressee-3-third,0shot,all,0.963,27,0.287,0.036,,
-or-meta-llama/llama-3.3-70b-instruct-A,dx-addressee-3-third,0shot,free,0.947,19,0.285,0.051,,
-or-meta-llama/llama-3.3-70b-instruct-A,dx-addressee-2-deictic,0shot,all,0.444,27,0.293,0.096,,other_participant=0.111;speaker_confusion=0.444
-or-meta-llama/llama-3.3-70b-instruct-A,dx-addressee-2-deictic,0shot,free,0.444,18,0.292,0.117,,other_participant=0.111;speaker_confusion=0.444
-or-meta-llama/llama-3.3-70b-instruct-A,dx-addressee-2-third,0shot,all,0.970,33,0.285,0.030,,
-or-meta-llama/llama-3.3-70b-instruct-A,dx-addressee-2-third,0shot,free,0.957,23,0.279,0.043,,
-or-meta-llama/llama-3.3-70b-instruct-A,sb-k1,0shot,all,1.000,24,0.125,0.000,,
-or-meta-llama/llama-3.3-70b-instruct-A,an-narr,0shot,all,0.875,24,0.250,0.068,,
-or-meta-llama/llama-3.3-70b-instruct-A,an-other-any,0shot,all,0.917,24,0.250,0.056,,
-or-meta-llama/llama-3.3-70b-instruct-A,an-me-any,0shot,all,0.250,24,0.250,0.088,1.0,
-or-meta-llama/llama-3.3-70b-instruct-A,an-you-voc,0shot,all,0.542,24,0.250,0.102,1.0,
-or-meta-llama/llama-3.3-70b-instruct-A,an-you-novoc,0shot,all,0.417,24,0.250,0.101,0.0,
-or-meta-llama/llama-3.3-70b-instruct-A,adj-adj,0shot,all,1.000,25,0.333,0.000,,
-or-meta-llama/llama-3.3-70b-instruct-A,adj-voc,0shot,all,1.000,25,0.333,0.000,,
-or-meta-llama/llama-3.3-70b-instruct-A,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-meta-llama/llama-3.3-70b-instruct-A,cm-mutate,0shot,all,1.000,20,0.200,0.000,,
-or-meta-llama/llama-3.3-70b-instruct-A,cm-rebind,0shot,all,0.950,20,0.200,0.049,,
-or-meta-llama/llama-3.3-70b-instruct-A,cm-copy,0shot,all,0.900,20,0.200,0.067,,
-or-meta-llama/llama-4-maverick-A,attr,0shot,all,1.000,30,0.161,0.000,,
-or-meta-llama/llama-4-maverick-A,codevar,0shot,all,1.000,30,0.274,0.000,,
-or-meta-llama/llama-4-maverick-A,dialogue,0shot,all,1.000,30,0.311,0.000,,
-or-meta-llama/llama-4-maverick-A,dx-owner-3-deictic,0shot,all,0.893,28,0.333,0.059,,other=0.107
-or-meta-llama/llama-4-maverick-A,dx-owner-3-deictic,0shot,free,0.875,8,0.333,0.117,,other=0.125
-or-meta-llama/llama-4-maverick-A,dx-owner-3-third,0shot,all,1.000,28,0.333,0.000,,
-or-meta-llama/llama-4-maverick-A,dx-owner-3-third,0shot,free,1.000,8,0.333,0.000,,
-or-meta-llama/llama-4-maverick-A,dx-self-3-deictic,0shot,all,0.778,27,0.284,0.080,,format=0.037;other_participant=0.185
-or-meta-llama/llama-4-maverick-A,dx-self-3-deictic,0shot,free,0.895,19,0.281,0.070,,format=0.053;other_participant=0.053
-or-meta-llama/llama-4-maverick-A,dx-self-3-third,0shot,all,0.938,32,0.286,0.043,,
-or-meta-llama/llama-4-maverick-A,dx-self-3-third,0shot,free,1.000,22,0.284,0.000,,
-or-meta-llama/llama-4-maverick-A,dx-self-2-deictic,0shot,all,0.636,33,0.280,0.084,,other=0.333;other_object=0.03
-or-meta-llama/llama-4-maverick-A,dx-self-2-deictic,0shot,free,0.652,23,0.275,0.099,,other=0.304;other_object=0.043
-or-meta-llama/llama-4-maverick-A,dx-self-2-third,0shot,all,0.964,28,0.295,0.035,,
-or-meta-llama/llama-4-maverick-A,dx-self-2-third,0shot,free,0.947,19,0.289,0.051,,
-or-meta-llama/llama-4-maverick-A,dx-addressee-3-deictic,0shot,all,0.697,33,0.283,0.080,,other_participant=0.091;speaker_confusion=0.212
-or-meta-llama/llama-4-maverick-A,dx-addressee-3-deictic,0shot,free,0.727,22,0.280,0.095,,other_participant=0.045;speaker_confusion=0.227
-or-meta-llama/llama-4-maverick-A,dx-addressee-3-third,0shot,all,1.000,27,0.287,0.000,,
-or-meta-llama/llama-4-maverick-A,dx-addressee-3-third,0shot,free,1.000,19,0.285,0.000,,
-or-meta-llama/llama-4-maverick-A,dx-addressee-2-deictic,0shot,all,0.741,27,0.293,0.084,,other_participant=0.074;speaker_confusion=0.185
-or-meta-llama/llama-4-maverick-A,dx-addressee-2-deictic,0shot,free,0.833,18,0.292,0.088,,other_participant=0.056;speaker_confusion=0.111
-or-meta-llama/llama-4-maverick-A,dx-addressee-2-third,0shot,all,0.939,33,0.285,0.042,,
-or-meta-llama/llama-4-maverick-A,dx-addressee-2-third,0shot,free,1.000,23,0.279,0.000,,
-or-meta-llama/llama-4-maverick-A,sb-k1,0shot,all,1.000,24,0.125,0.000,,
-or-meta-llama/llama-4-maverick-A,an-narr,0shot,all,0.833,24,0.250,0.076,,
-or-meta-llama/llama-4-maverick-A,an-other-any,0shot,all,1.000,24,0.250,0.000,,
-or-meta-llama/llama-4-maverick-A,an-me-any,0shot,all,0.542,24,0.250,0.102,1.0,
-or-meta-llama/llama-4-maverick-A,an-you-voc,0shot,all,0.792,24,0.250,0.083,1.0,
-or-meta-llama/llama-4-maverick-A,an-you-novoc,0shot,all,0.833,24,0.250,0.076,0.0,
-or-meta-llama/llama-4-maverick-A,adj-adj,0shot,all,1.000,25,0.333,0.000,,
-or-meta-llama/llama-4-maverick-A,adj-voc,0shot,all,1.000,25,0.333,0.000,,
-or-meta-llama/llama-4-maverick-A,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-meta-llama/llama-4-maverick-A,cm-mutate,0shot,all,1.000,20,0.200,0.000,,
-or-meta-llama/llama-4-maverick-A,cm-rebind,0shot,all,0.950,20,0.200,0.049,,
-or-meta-llama/llama-4-maverick-A,cm-copy,0shot,all,0.900,20,0.200,0.067,,
-or-mistralai/ministral-3b-2512-A,attr,0shot,all,0.800,30,0.161,0.073,,
-or-mistralai/ministral-3b-2512-A,codevar,0shot,all,0.667,30,0.274,0.086,,
-or-mistralai/ministral-3b-2512-A,dialogue,0shot,all,0.700,30,0.311,0.084,,
-or-mistralai/ministral-3b-2512-A,dx-owner-3-deictic,0shot,all,0.536,28,0.333,0.094,,other=0.464
-or-mistralai/ministral-3b-2512-A,dx-owner-3-deictic,0shot,free,0.750,8,0.333,0.153,,other=0.25
-or-mistralai/ministral-3b-2512-A,dx-owner-3-third,0shot,all,0.786,28,0.333,0.077,,
-or-mistralai/ministral-3b-2512-A,dx-owner-3-third,0shot,free,0.875,8,0.333,0.117,,
-or-mistralai/ministral-3b-2512-A,dx-self-3-deictic,0shot,all,0.222,27,0.284,0.080,,format=0.111;other_participant=0.667
-or-mistralai/ministral-3b-2512-A,dx-self-3-deictic,0shot,free,0.316,19,0.281,0.107,,format=0.158;other_participant=0.526
-or-mistralai/ministral-3b-2512-A,dx-self-3-third,0shot,all,0.688,32,0.286,0.082,,
-or-mistralai/ministral-3b-2512-A,dx-self-3-third,0shot,free,0.818,22,0.284,0.082,,
-or-mistralai/ministral-3b-2512-A,dx-self-2-deictic,0shot,all,0.394,33,0.280,0.085,,format=0.091;other=0.424;other_object=0.091
-or-mistralai/ministral-3b-2512-A,dx-self-2-deictic,0shot,free,0.435,23,0.275,0.103,,format=0.13;other=0.304;other_object=0.13
-or-mistralai/ministral-3b-2512-A,dx-self-2-third,0shot,all,0.679,28,0.295,0.088,,
-or-mistralai/ministral-3b-2512-A,dx-self-2-third,0shot,free,0.842,19,0.289,0.084,,
-or-mistralai/ministral-3b-2512-A,dx-addressee-3-deictic,0shot,all,0.303,33,0.283,0.080,,other_participant=0.212;speaker_confusion=0.485
-or-mistralai/ministral-3b-2512-A,dx-addressee-3-deictic,0shot,free,0.409,22,0.280,0.105,,other_participant=0.182;speaker_confusion=0.409
-or-mistralai/ministral-3b-2512-A,dx-addressee-3-third,0shot,all,0.593,27,0.287,0.095,,
-or-mistralai/ministral-3b-2512-A,dx-addressee-3-third,0shot,free,0.579,19,0.285,0.113,,
-or-mistralai/ministral-3b-2512-A,dx-addressee-2-deictic,0shot,all,0.333,27,0.293,0.091,,format=0.111;other_participant=0.074;speaker_confusion=0.481
-or-mistralai/ministral-3b-2512-A,dx-addressee-2-deictic,0shot,free,0.500,18,0.292,0.118,,format=0.111;other_participant=0.111;speaker_confusion=0.278
-or-mistralai/ministral-3b-2512-A,dx-addressee-2-third,0shot,all,0.545,33,0.285,0.087,,
-or-mistralai/ministral-3b-2512-A,dx-addressee-2-third,0shot,free,0.739,23,0.279,0.092,,
-or-mistralai/ministral-3b-2512-A,sb-k1,0shot,all,0.875,24,0.125,0.068,,
-or-mistralai/ministral-3b-2512-A,an-narr,0shot,all,0.500,24,0.250,0.102,,
-or-mistralai/ministral-3b-2512-A,an-other-any,0shot,all,0.417,24,0.250,0.101,,
-or-mistralai/ministral-3b-2512-A,an-me-any,0shot,all,0.042,24,0.250,0.041,0.0,
-or-mistralai/ministral-3b-2512-A,an-you-voc,0shot,all,0.042,24,0.250,0.041,1.0,
-or-mistralai/ministral-3b-2512-A,an-you-novoc,0shot,all,0.125,24,0.250,0.068,0.0,
-or-mistralai/ministral-3b-2512-A,adj-adj,0shot,all,0.560,25,0.333,0.099,,
-or-mistralai/ministral-3b-2512-A,adj-voc,0shot,all,0.680,25,0.333,0.093,,
-or-mistralai/ministral-3b-2512-A,adj-third,0shot,all,0.920,25,0.333,0.054,,
-or-mistralai/ministral-3b-2512-A,cm-mutate,0shot,all,0.900,20,0.200,0.067,,
-or-mistralai/ministral-3b-2512-A,cm-rebind,0shot,all,0.450,20,0.200,0.111,,
-or-mistralai/ministral-3b-2512-A,cm-copy,0shot,all,0.350,20,0.200,0.107,,
-or-mistralai/ministral-8b-2512-A,attr,0shot,all,0.600,30,0.161,0.089,,
-or-mistralai/ministral-8b-2512-A,codevar,0shot,all,0.767,30,0.274,0.077,,
-or-mistralai/ministral-8b-2512-A,dialogue,0shot,all,0.733,30,0.311,0.081,,
-or-mistralai/ministral-8b-2512-A,dx-owner-3-deictic,0shot,all,0.786,28,0.333,0.077,,other=0.214
-or-mistralai/ministral-8b-2512-A,dx-owner-3-deictic,0shot,free,0.875,8,0.333,0.117,,other=0.125
-or-mistralai/ministral-8b-2512-A,dx-owner-3-third,0shot,all,0.607,28,0.333,0.092,,
-or-mistralai/ministral-8b-2512-A,dx-owner-3-third,0shot,free,0.750,8,0.333,0.153,,
-or-mistralai/ministral-8b-2512-A,dx-self-3-deictic,0shot,all,0.222,27,0.284,0.080,,other_participant=0.778
-or-mistralai/ministral-8b-2512-A,dx-self-3-deictic,0shot,free,0.263,19,0.281,0.101,,other_participant=0.737
-or-mistralai/ministral-8b-2512-A,dx-self-3-third,0shot,all,0.562,32,0.286,0.088,,
-or-mistralai/ministral-8b-2512-A,dx-self-3-third,0shot,free,0.591,22,0.284,0.105,,
-or-mistralai/ministral-8b-2512-A,dx-self-2-deictic,0shot,all,0.303,33,0.280,0.080,,format=0.091;other=0.576;other_object=0.03
-or-mistralai/ministral-8b-2512-A,dx-self-2-deictic,0shot,free,0.391,23,0.275,0.102,,format=0.087;other=0.522
-or-mistralai/ministral-8b-2512-A,dx-self-2-third,0shot,all,0.714,28,0.295,0.085,,
-or-mistralai/ministral-8b-2512-A,dx-self-2-third,0shot,free,0.737,19,0.289,0.101,,
-or-mistralai/ministral-8b-2512-A,dx-addressee-3-deictic,0shot,all,0.424,33,0.283,0.086,,other_participant=0.152;speaker_confusion=0.424
-or-mistralai/ministral-8b-2512-A,dx-addressee-3-deictic,0shot,free,0.455,22,0.280,0.106,,other_participant=0.182;speaker_confusion=0.364
-or-mistralai/ministral-8b-2512-A,dx-addressee-3-third,0shot,all,0.556,27,0.287,0.096,,
-or-mistralai/ministral-8b-2512-A,dx-addressee-3-third,0shot,free,0.526,19,0.285,0.115,,
-or-mistralai/ministral-8b-2512-A,dx-addressee-2-deictic,0shot,all,0.259,27,0.293,0.084,,other_participant=0.037;speaker_confusion=0.704
-or-mistralai/ministral-8b-2512-A,dx-addressee-2-deictic,0shot,free,0.389,18,0.292,0.115,,other_participant=0.056;speaker_confusion=0.556
-or-mistralai/ministral-8b-2512-A,dx-addressee-2-third,0shot,all,0.455,33,0.285,0.087,,
-or-mistralai/ministral-8b-2512-A,dx-addressee-2-third,0shot,free,0.522,23,0.279,0.104,,
-or-mistralai/ministral-8b-2512-A,sb-k1,0shot,all,0.875,24,0.125,0.068,,
-or-mistralai/ministral-8b-2512-A,an-narr,0shot,all,0.500,24,0.250,0.102,,
-or-mistralai/ministral-8b-2512-A,an-other-any,0shot,all,0.625,24,0.250,0.099,,
-or-mistralai/ministral-8b-2512-A,an-me-any,0shot,all,0.042,24,0.250,0.041,1.0,
-or-mistralai/ministral-8b-2512-A,an-you-voc,0shot,all,0.458,24,0.250,0.102,1.0,
-or-mistralai/ministral-8b-2512-A,an-you-novoc,0shot,all,0.000,24,0.250,0.000,,
-or-mistralai/ministral-8b-2512-A,adj-adj,0shot,all,0.920,25,0.333,0.054,,
-or-mistralai/ministral-8b-2512-A,adj-voc,0shot,all,1.000,25,0.333,0.000,,
-or-mistralai/ministral-8b-2512-A,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-mistralai/ministral-8b-2512-A,cm-mutate,0shot,all,1.000,20,0.200,0.000,,
-or-mistralai/ministral-8b-2512-A,cm-rebind,0shot,all,0.800,20,0.200,0.089,,
-or-mistralai/ministral-8b-2512-A,cm-copy,0shot,all,0.200,20,0.200,0.089,,
-or-mistralai/mistral-large-2512-A,attr,0shot,all,0.812,16,0.161,0.098,,
-or-mistralai/mistral-large-2512-A,codevar,0shot,all,0.917,12,0.274,0.080,,
-or-mistralai/mistral-large-2512-A,dialogue,0shot,all,1.000,15,0.311,0.000,,
-or-mistralai/mistral-large-2512-A,dx-owner-3-deictic,0shot,all,0.917,12,0.333,0.080,,other=0.083
-or-mistralai/mistral-large-2512-A,dx-self-3-deictic,0shot,all,0.615,13,0.276,0.135,,format=0.077;other_participant=0.308
-or-mistralai/mistral-large-2512-A,dx-self-3-deictic,0shot,free,0.500,10,0.283,0.158,,format=0.1;other_participant=0.4
-or-mistralai/mistral-large-2512-A,dx-self-3-third,0shot,all,1.000,19,0.281,0.000,,
-or-mistralai/mistral-large-2512-A,dx-self-3-third,0shot,free,1.000,11,0.273,0.000,,
-or-mistralai/mistral-large-2512-A,dx-self-2-deictic,0shot,all,0.350,20,0.279,0.107,,format=0.05;other=0.5;other_object=0.05;other_participant=0.05
-or-mistralai/mistral-large-2512-A,dx-self-2-deictic,0shot,free,0.357,14,0.274,0.128,,format=0.071;other=0.429;other_object=0.071;other_participant=0.071
-or-mistralai/mistral-large-2512-A,dx-self-2-third,0shot,all,0.917,12,0.306,0.080,,
-or-mistralai/mistral-large-2512-A,dx-addressee-3-deictic,0shot,all,0.562,16,0.276,0.124,,other_participant=0.25;speaker_confusion=0.188
-or-mistralai/mistral-large-2512-A,dx-addressee-3-deictic,0shot,free,0.636,11,0.273,0.145,,other_participant=0.091;speaker_confusion=0.273
-or-mistralai/mistral-large-2512-A,dx-addressee-3-third,0shot,all,0.941,17,0.294,0.057,,
-or-mistralai/mistral-large-2512-A,dx-addressee-3-third,0shot,free,1.000,13,0.295,0.000,,
-or-mistralai/mistral-large-2512-A,dx-addressee-2-deictic,0shot,all,0.625,16,0.286,0.121,,speaker_confusion=0.375
-or-mistralai/mistral-large-2512-A,dx-addressee-2-deictic,0shot,free,0.727,11,0.288,0.134,,speaker_confusion=0.273
-or-mistralai/mistral-large-2512-A,dx-addressee-2-third,0shot,all,0.938,16,0.292,0.060,,
-or-mistralai/mistral-large-2512-A,dx-addressee-2-third,0shot,free,0.909,11,0.288,0.087,,
-or-mistralai/mistral-large-2512-A,sb-k1,0shot,all,0.818,11,0.125,0.116,,
-or-mistralai/mistral-small-3.2-24b-instruct-A,attr,0shot,all,0.867,30,0.161,0.062,,
-or-mistralai/mistral-small-3.2-24b-instruct-A,codevar,0shot,all,0.933,30,0.274,0.045,,
-or-mistralai/mistral-small-3.2-24b-instruct-A,dialogue,0shot,all,0.933,30,0.311,0.045,,
-or-mistralai/mistral-small-3.2-24b-instruct-A,dx-owner-3-deictic,0shot,all,0.643,28,0.333,0.091,,other=0.357
-or-mistralai/mistral-small-3.2-24b-instruct-A,dx-owner-3-deictic,0shot,free,0.750,8,0.333,0.153,,other=0.25
-or-mistralai/mistral-small-3.2-24b-instruct-A,dx-owner-3-third,0shot,all,0.786,28,0.333,0.077,,
-or-mistralai/mistral-small-3.2-24b-instruct-A,dx-owner-3-third,0shot,free,0.625,8,0.333,0.171,,
-or-mistralai/mistral-small-3.2-24b-instruct-A,dx-self-3-deictic,0shot,all,0.407,27,0.284,0.095,,other_participant=0.593
-or-mistralai/mistral-small-3.2-24b-instruct-A,dx-self-3-deictic,0shot,free,0.421,19,0.281,0.113,,other_participant=0.579
-or-mistralai/mistral-small-3.2-24b-instruct-A,dx-self-3-third,0shot,all,0.781,32,0.286,0.073,,
-or-mistralai/mistral-small-3.2-24b-instruct-A,dx-self-3-third,0shot,free,0.909,22,0.284,0.061,,
-or-mistralai/mistral-small-3.2-24b-instruct-A,dx-self-2-deictic,0shot,all,0.364,33,0.280,0.084,,other=0.606;other_participant=0.03
-or-mistralai/mistral-small-3.2-24b-instruct-A,dx-self-2-deictic,0shot,free,0.391,23,0.275,0.102,,other=0.565;other_participant=0.043
-or-mistralai/mistral-small-3.2-24b-instruct-A,dx-self-2-third,0shot,all,0.714,28,0.295,0.085,,
-or-mistralai/mistral-small-3.2-24b-instruct-A,dx-self-2-third,0shot,free,0.789,19,0.289,0.093,,
-or-mistralai/mistral-small-3.2-24b-instruct-A,dx-addressee-3-deictic,0shot,all,0.455,33,0.283,0.087,,other_participant=0.182;speaker_confusion=0.364
-or-mistralai/mistral-small-3.2-24b-instruct-A,dx-addressee-3-deictic,0shot,free,0.545,22,0.280,0.106,,other_participant=0.091;speaker_confusion=0.364
-or-mistralai/mistral-small-3.2-24b-instruct-A,dx-addressee-3-third,0shot,all,0.741,27,0.287,0.084,,
-or-mistralai/mistral-small-3.2-24b-instruct-A,dx-addressee-3-third,0shot,free,0.737,19,0.285,0.101,,
-or-mistralai/mistral-small-3.2-24b-instruct-A,dx-addressee-2-deictic,0shot,all,0.259,27,0.293,0.084,,other_participant=0.074;speaker_confusion=0.667
-or-mistralai/mistral-small-3.2-24b-instruct-A,dx-addressee-2-deictic,0shot,free,0.389,18,0.292,0.115,,other_participant=0.056;speaker_confusion=0.556
-or-mistralai/mistral-small-3.2-24b-instruct-A,dx-addressee-2-third,0shot,all,0.758,33,0.285,0.075,,
-or-mistralai/mistral-small-3.2-24b-instruct-A,dx-addressee-2-third,0shot,free,0.913,23,0.279,0.059,,
-or-mistralai/mistral-small-3.2-24b-instruct-A,sb-k1,0shot,all,1.000,24,0.125,0.000,,
-or-mistralai/mistral-small-3.2-24b-instruct-A,an-narr,0shot,all,0.542,24,0.250,0.102,,
-or-mistralai/mistral-small-3.2-24b-instruct-A,an-other-any,0shot,all,0.792,24,0.250,0.083,,
-or-mistralai/mistral-small-3.2-24b-instruct-A,an-me-any,0shot,all,0.375,24,0.250,0.099,1.0,
-or-mistralai/mistral-small-3.2-24b-instruct-A,an-you-voc,0shot,all,0.750,24,0.250,0.088,1.0,
-or-mistralai/mistral-small-3.2-24b-instruct-A,an-you-novoc,0shot,all,0.083,24,0.250,0.056,0.0,
-or-mistralai/mistral-small-3.2-24b-instruct-A,adj-adj,0shot,all,1.000,25,0.333,0.000,,
-or-mistralai/mistral-small-3.2-24b-instruct-A,adj-voc,0shot,all,1.000,25,0.333,0.000,,
-or-mistralai/mistral-small-3.2-24b-instruct-A,adj-third,0shot,all,0.960,25,0.333,0.039,,
-or-mistralai/mistral-small-3.2-24b-instruct-A,cm-mutate,0shot,all,0.950,20,0.200,0.049,,
-or-mistralai/mistral-small-3.2-24b-instruct-A,cm-rebind,0shot,all,0.600,20,0.200,0.110,,
-or-mistralai/mistral-small-3.2-24b-instruct-A,cm-copy,0shot,all,0.700,20,0.200,0.102,,
-or-microsoft/phi-4-A,attr,0shot,all,1.000,30,0.161,0.000,,
-or-microsoft/phi-4-A,codevar,0shot,all,0.733,30,0.274,0.081,,
-or-microsoft/phi-4-A,dialogue,0shot,all,0.900,30,0.311,0.055,,
-or-microsoft/phi-4-A,dx-owner-3-deictic,0shot,all,0.857,28,0.333,0.066,,other=0.143
-or-microsoft/phi-4-A,dx-owner-3-deictic,0shot,free,0.625,8,0.333,0.171,,other=0.375
-or-microsoft/phi-4-A,dx-owner-3-third,0shot,all,1.000,28,0.333,0.000,,
-or-microsoft/phi-4-A,dx-owner-3-third,0shot,free,1.000,8,0.333,0.000,,
-or-microsoft/phi-4-A,dx-self-3-deictic,0shot,all,0.518,27,0.284,0.096,,other_participant=0.481
-or-microsoft/phi-4-A,dx-self-3-deictic,0shot,free,0.632,19,0.281,0.111,,other_participant=0.368
-or-microsoft/phi-4-A,dx-self-3-third,0shot,all,1.000,32,0.286,0.000,,
-or-microsoft/phi-4-A,dx-self-3-third,0shot,free,1.000,22,0.284,0.000,,
-or-microsoft/phi-4-A,dx-self-2-deictic,0shot,all,0.455,33,0.280,0.087,,other=0.394;other_object=0.091;other_participant=0.061
-or-microsoft/phi-4-A,dx-self-2-deictic,0shot,free,0.522,23,0.275,0.104,,other=0.348;other_object=0.13
-or-microsoft/phi-4-A,dx-self-2-third,0shot,all,0.786,28,0.295,0.077,,
-or-microsoft/phi-4-A,dx-self-2-third,0shot,free,0.737,19,0.289,0.101,,
-or-microsoft/phi-4-A,dx-addressee-3-deictic,0shot,all,0.606,33,0.283,0.085,,other_participant=0.091;speaker_confusion=0.303
-or-microsoft/phi-4-A,dx-addressee-3-deictic,0shot,free,0.591,22,0.280,0.105,,other_participant=0.136;speaker_confusion=0.273
-or-microsoft/phi-4-A,dx-addressee-3-third,0shot,all,0.889,27,0.287,0.060,,
-or-microsoft/phi-4-A,dx-addressee-3-third,0shot,free,0.842,19,0.285,0.084,,
-or-microsoft/phi-4-A,dx-addressee-2-deictic,0shot,all,0.370,27,0.293,0.093,,other_participant=0.074;speaker_confusion=0.556
-or-microsoft/phi-4-A,dx-addressee-2-deictic,0shot,free,0.389,18,0.292,0.115,,other_participant=0.056;speaker_confusion=0.556
-or-microsoft/phi-4-A,dx-addressee-2-third,0shot,all,0.758,33,0.285,0.075,,
-or-microsoft/phi-4-A,dx-addressee-2-third,0shot,free,0.739,23,0.279,0.092,,
-or-microsoft/phi-4-A,sb-k1,0shot,all,1.000,24,0.125,0.000,,
-or-microsoft/phi-4-A,an-narr,0shot,all,0.708,24,0.250,0.093,,
-or-microsoft/phi-4-A,an-other-any,0shot,all,0.708,24,0.250,0.093,,
-or-microsoft/phi-4-A,an-me-any,0shot,all,0.292,24,0.250,0.093,1.0,
-or-microsoft/phi-4-A,an-you-voc,0shot,all,0.708,24,0.250,0.093,1.0,
-or-microsoft/phi-4-A,an-you-novoc,0shot,all,0.375,24,0.250,0.099,0.0,
-or-microsoft/phi-4-A,adj-adj,0shot,all,1.000,25,0.333,0.000,,
-or-microsoft/phi-4-A,adj-voc,0shot,all,1.000,25,0.333,0.000,,
-or-microsoft/phi-4-A,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-microsoft/phi-4-A,cm-mutate,0shot,all,0.600,20,0.200,0.110,,
-or-microsoft/phi-4-A,cm-rebind,0shot,all,0.950,20,0.200,0.049,,
-or-microsoft/phi-4-A,cm-copy,0shot,all,0.850,20,0.200,0.080,,
-or-qwen/qwen-2.5-72b-instruct-A,attr,0shot,all,1.000,30,0.161,0.000,,
-or-qwen/qwen-2.5-72b-instruct-A,codevar,0shot,all,0.833,30,0.274,0.068,,
-or-qwen/qwen-2.5-72b-instruct-A,dialogue,0shot,all,0.967,30,0.311,0.033,,
-or-qwen/qwen-2.5-72b-instruct-A,dx-owner-3-deictic,0shot,all,0.786,28,0.333,0.077,,other=0.214
-or-qwen/qwen-2.5-72b-instruct-A,dx-owner-3-deictic,0shot,free,0.625,8,0.333,0.171,,other=0.375
-or-qwen/qwen-2.5-72b-instruct-A,dx-owner-3-third,0shot,all,1.000,28,0.333,0.000,,
-or-qwen/qwen-2.5-72b-instruct-A,dx-owner-3-third,0shot,free,1.000,8,0.333,0.000,,
-or-qwen/qwen-2.5-72b-instruct-A,dx-self-3-deictic,0shot,all,0.593,27,0.284,0.095,,other_participant=0.407
-or-qwen/qwen-2.5-72b-instruct-A,dx-self-3-deictic,0shot,free,0.684,19,0.281,0.107,,other_participant=0.316
-or-qwen/qwen-2.5-72b-instruct-A,dx-self-3-third,0shot,all,0.969,32,0.286,0.031,,
-or-qwen/qwen-2.5-72b-instruct-A,dx-self-3-third,0shot,free,1.000,22,0.284,0.000,,
-or-qwen/qwen-2.5-72b-instruct-A,dx-self-2-deictic,0shot,all,0.455,33,0.280,0.087,,other=0.485;other_object=0.03;other_participant=0.03
-or-qwen/qwen-2.5-72b-instruct-A,dx-self-2-deictic,0shot,free,0.565,23,0.275,0.103,,other=0.391;other_object=0.043
-or-qwen/qwen-2.5-72b-instruct-A,dx-self-2-third,0shot,all,1.000,28,0.295,0.000,,
-or-qwen/qwen-2.5-72b-instruct-A,dx-self-2-third,0shot,free,1.000,19,0.289,0.000,,
-or-qwen/qwen-2.5-72b-instruct-A,dx-addressee-3-deictic,0shot,all,0.727,33,0.283,0.077,,other_participant=0.091;speaker_confusion=0.182
-or-qwen/qwen-2.5-72b-instruct-A,dx-addressee-3-deictic,0shot,free,0.773,22,0.280,0.089,,other_participant=0.045;speaker_confusion=0.182
-or-qwen/qwen-2.5-72b-instruct-A,dx-addressee-3-third,0shot,all,0.926,27,0.287,0.050,,
-or-qwen/qwen-2.5-72b-instruct-A,dx-addressee-3-third,0shot,free,0.895,19,0.285,0.070,,
-or-qwen/qwen-2.5-72b-instruct-A,dx-addressee-2-deictic,0shot,all,0.556,27,0.293,0.096,,other_participant=0.148;speaker_confusion=0.296
-or-qwen/qwen-2.5-72b-instruct-A,dx-addressee-2-deictic,0shot,free,0.611,18,0.292,0.115,,other_participant=0.111;speaker_confusion=0.278
-or-qwen/qwen-2.5-72b-instruct-A,dx-addressee-2-third,0shot,all,0.939,33,0.285,0.042,,
-or-qwen/qwen-2.5-72b-instruct-A,dx-addressee-2-third,0shot,free,0.957,23,0.279,0.043,,
-or-qwen/qwen-2.5-72b-instruct-A,sb-k1,0shot,all,1.000,24,0.125,0.000,,
-or-qwen/qwen-2.5-72b-instruct-A,an-narr,0shot,all,0.708,24,0.250,0.093,,
-or-qwen/qwen-2.5-72b-instruct-A,an-other-any,0shot,all,0.917,24,0.250,0.056,,
-or-qwen/qwen-2.5-72b-instruct-A,an-me-any,0shot,all,0.250,24,0.250,0.088,0.833,
-or-qwen/qwen-2.5-72b-instruct-A,an-you-voc,0shot,all,0.750,24,0.250,0.088,0.889,
-or-qwen/qwen-2.5-72b-instruct-A,an-you-novoc,0shot,all,0.417,24,0.250,0.101,0.0,
-or-qwen/qwen-2.5-72b-instruct-A,adj-adj,0shot,all,0.960,25,0.333,0.039,,
-or-qwen/qwen-2.5-72b-instruct-A,adj-voc,0shot,all,1.000,25,0.333,0.000,,
-or-qwen/qwen-2.5-72b-instruct-A,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-qwen/qwen-2.5-72b-instruct-A,cm-mutate,0shot,all,1.000,20,0.200,0.000,,
-or-qwen/qwen-2.5-72b-instruct-A,cm-rebind,0shot,all,0.750,20,0.200,0.097,,
-or-qwen/qwen-2.5-72b-instruct-A,cm-copy,0shot,all,0.900,20,0.200,0.067,,
-or-qwen/qwen-2.5-7b-instruct-A,attr,0shot,all,0.933,30,0.161,0.045,,
-or-qwen/qwen-2.5-7b-instruct-A,codevar,0shot,all,0.667,30,0.274,0.086,,
-or-qwen/qwen-2.5-7b-instruct-A,dialogue,0shot,all,0.900,30,0.311,0.055,,
-or-qwen/qwen-2.5-7b-instruct-A,dx-owner-3-deictic,0shot,all,0.536,28,0.333,0.094,,format=0.036;other=0.429
-or-qwen/qwen-2.5-7b-instruct-A,dx-owner-3-deictic,0shot,free,0.500,8,0.333,0.177,,other=0.5
-or-qwen/qwen-2.5-7b-instruct-A,dx-owner-3-third,0shot,all,0.964,28,0.333,0.035,,
-or-qwen/qwen-2.5-7b-instruct-A,dx-owner-3-third,0shot,free,1.000,8,0.333,0.000,,
-or-qwen/qwen-2.5-7b-instruct-A,dx-self-3-deictic,0shot,all,0.370,27,0.284,0.093,,other_participant=0.63
-or-qwen/qwen-2.5-7b-instruct-A,dx-self-3-deictic,0shot,free,0.474,19,0.281,0.115,,other_participant=0.526
-or-qwen/qwen-2.5-7b-instruct-A,dx-self-3-third,0shot,all,0.719,32,0.286,0.080,,
-or-qwen/qwen-2.5-7b-instruct-A,dx-self-3-third,0shot,free,0.818,22,0.284,0.082,,
-or-qwen/qwen-2.5-7b-instruct-A,dx-self-2-deictic,0shot,all,0.455,33,0.280,0.087,,other=0.545
-or-qwen/qwen-2.5-7b-instruct-A,dx-self-2-deictic,0shot,free,0.609,23,0.275,0.102,,other=0.391
-or-qwen/qwen-2.5-7b-instruct-A,dx-self-2-third,0shot,all,0.714,28,0.295,0.085,,
-or-qwen/qwen-2.5-7b-instruct-A,dx-self-2-third,0shot,free,0.842,19,0.289,0.084,,
-or-qwen/qwen-2.5-7b-instruct-A,dx-addressee-3-deictic,0shot,all,0.455,33,0.283,0.087,,other_participant=0.182;speaker_confusion=0.364
-or-qwen/qwen-2.5-7b-instruct-A,dx-addressee-3-deictic,0shot,free,0.636,22,0.280,0.103,,other_participant=0.091;speaker_confusion=0.273
-or-qwen/qwen-2.5-7b-instruct-A,dx-addressee-3-third,0shot,all,0.741,27,0.287,0.084,,
-or-qwen/qwen-2.5-7b-instruct-A,dx-addressee-3-third,0shot,free,0.842,19,0.285,0.084,,
-or-qwen/qwen-2.5-7b-instruct-A,dx-addressee-2-deictic,0shot,all,0.444,27,0.293,0.096,,speaker_confusion=0.556
-or-qwen/qwen-2.5-7b-instruct-A,dx-addressee-2-deictic,0shot,free,0.611,18,0.292,0.115,,speaker_confusion=0.389
-or-qwen/qwen-2.5-7b-instruct-A,dx-addressee-2-third,0shot,all,0.667,33,0.285,0.082,,
-or-qwen/qwen-2.5-7b-instruct-A,dx-addressee-2-third,0shot,free,0.739,23,0.279,0.092,,
-or-qwen/qwen-2.5-7b-instruct-A,sb-k1,0shot,all,1.000,24,0.125,0.000,,
-or-qwen/qwen-2.5-7b-instruct-A,an-narr,0shot,all,0.500,24,0.250,0.102,,
-or-qwen/qwen-2.5-7b-instruct-A,an-other-any,0shot,all,0.583,24,0.250,0.101,,
-or-qwen/qwen-2.5-7b-instruct-A,an-me-any,0shot,all,0.125,24,0.250,0.068,0.667,
-or-qwen/qwen-2.5-7b-instruct-A,an-you-voc,0shot,all,0.917,24,0.250,0.056,1.0,
-or-qwen/qwen-2.5-7b-instruct-A,an-you-novoc,0shot,all,0.333,24,0.250,0.096,0.5,
-or-qwen/qwen-2.5-7b-instruct-A,adj-adj,0shot,all,0.720,25,0.333,0.090,,
-or-qwen/qwen-2.5-7b-instruct-A,adj-voc,0shot,all,0.840,25,0.333,0.073,,
-or-qwen/qwen-2.5-7b-instruct-A,adj-third,0shot,all,0.960,25,0.333,0.039,,
-or-qwen/qwen-2.5-7b-instruct-A,cm-mutate,0shot,all,0.700,20,0.200,0.102,,
-or-qwen/qwen-2.5-7b-instruct-A,cm-rebind,0shot,all,0.500,20,0.200,0.112,,
-or-qwen/qwen-2.5-7b-instruct-A,cm-copy,0shot,all,0.550,20,0.200,0.111,,
-or-qwen/qwen3-235b-a22b-2507-A,attr,0shot,all,0.800,30,0.161,0.073,,
-or-qwen/qwen3-235b-a22b-2507-A,codevar,0shot,all,0.733,30,0.274,0.081,,
-or-qwen/qwen3-235b-a22b-2507-A,dialogue,0shot,all,0.867,30,0.311,0.062,,
-or-qwen/qwen3-235b-a22b-2507-A,dx-owner-3-deictic,0shot,all,0.571,28,0.333,0.093,,format=0.107;other=0.321
-or-qwen/qwen3-235b-a22b-2507-A,dx-owner-3-deictic,0shot,free,0.625,8,0.333,0.171,,format=0.125;other=0.25
-or-qwen/qwen3-235b-a22b-2507-A,dx-owner-3-third,0shot,all,0.786,28,0.333,0.077,,
-or-qwen/qwen3-235b-a22b-2507-A,dx-owner-3-third,0shot,free,0.750,8,0.333,0.153,,
-or-qwen/qwen3-235b-a22b-2507-A,dx-self-3-deictic,0shot,all,0.296,27,0.284,0.088,,format=0.444;other_participant=0.259
-or-qwen/qwen3-235b-a22b-2507-A,dx-self-3-deictic,0shot,free,0.263,19,0.281,0.101,,format=0.474;other_participant=0.263
-or-qwen/qwen3-235b-a22b-2507-A,dx-self-3-third,0shot,all,0.938,32,0.286,0.043,,
-or-qwen/qwen3-235b-a22b-2507-A,dx-self-3-third,0shot,free,0.909,22,0.284,0.061,,
-or-qwen/qwen3-235b-a22b-2507-A,dx-self-2-deictic,0shot,all,0.303,33,0.280,0.080,,format=0.364;other=0.152;other_object=0.121;other_participant=0.061
-or-qwen/qwen3-235b-a22b-2507-A,dx-self-2-deictic,0shot,free,0.217,23,0.275,0.086,,format=0.348;other=0.174;other_object=0.174;other_participant=0.087
-or-qwen/qwen3-235b-a22b-2507-A,dx-self-2-third,0shot,all,0.714,28,0.295,0.085,,
-or-qwen/qwen3-235b-a22b-2507-A,dx-self-2-third,0shot,free,0.789,19,0.289,0.093,,
-or-qwen/qwen3-235b-a22b-2507-A,dx-addressee-3-deictic,0shot,all,0.303,33,0.283,0.080,,format=0.273;other_participant=0.212;speaker_confusion=0.212
-or-qwen/qwen3-235b-a22b-2507-A,dx-addressee-3-deictic,0shot,free,0.318,22,0.280,0.099,,format=0.227;other_participant=0.273;speaker_confusion=0.182
-or-qwen/qwen3-235b-a22b-2507-A,dx-addressee-3-third,0shot,all,0.926,27,0.287,0.050,,
-or-qwen/qwen3-235b-a22b-2507-A,dx-addressee-3-third,0shot,free,0.895,19,0.285,0.070,,
-or-qwen/qwen3-235b-a22b-2507-A,dx-addressee-2-deictic,0shot,all,0.333,27,0.293,0.091,,format=0.333;other_participant=0.222;speaker_confusion=0.111
-or-qwen/qwen3-235b-a22b-2507-A,dx-addressee-2-deictic,0shot,free,0.278,18,0.292,0.106,,format=0.333;other_participant=0.222;speaker_confusion=0.167
-or-qwen/qwen3-235b-a22b-2507-A,dx-addressee-2-third,0shot,all,0.909,33,0.285,0.050,,
-or-qwen/qwen3-235b-a22b-2507-A,dx-addressee-2-third,0shot,free,0.913,23,0.279,0.059,,
-or-qwen/qwen3-235b-a22b-2507-A,sb-k1,0shot,all,0.750,24,0.125,0.088,,
-or-qwen/qwen3-235b-a22b-2507-A,an-narr,0shot,all,0.458,24,0.250,0.102,,
-or-qwen/qwen3-235b-a22b-2507-A,an-other-any,0shot,all,0.708,24,0.250,0.093,,
-or-qwen/qwen3-235b-a22b-2507-A,an-me-any,0shot,all,0.125,24,0.250,0.068,0.667,
-or-qwen/qwen3-235b-a22b-2507-A,an-you-voc,0shot,all,0.833,24,0.250,0.076,0.9,
-or-qwen/qwen3-235b-a22b-2507-A,an-you-novoc,0shot,all,0.333,24,0.250,0.096,0.25,
-or-qwen/qwen3-235b-a22b-2507-A,adj-adj,0shot,all,0.840,25,0.333,0.073,,
-or-qwen/qwen3-235b-a22b-2507-A,adj-voc,0shot,all,0.920,25,0.333,0.054,,
-or-qwen/qwen3-235b-a22b-2507-A,adj-third,0shot,all,0.880,25,0.333,0.065,,
-or-qwen/qwen3-235b-a22b-2507-A,cm-mutate,0shot,all,0.900,20,0.200,0.067,,
-or-qwen/qwen3-235b-a22b-2507-A,cm-rebind,0shot,all,0.750,20,0.200,0.097,,
-or-qwen/qwen3-235b-a22b-2507-A,cm-copy,0shot,all,0.800,20,0.200,0.089,,
-or-qwen/qwen3-32b-A,attr,0shot,all,0.947,19,0.163,0.051,,
-or-qwen/qwen3-32b-A,codevar,0shot,all,0.727,22,0.286,0.095,,
-or-qwen/qwen3-32b-A,dialogue,0shot,all,1.000,19,0.303,0.000,,
-or-qwen/qwen3-32b-A,dx-owner-3-deictic,0shot,all,0.684,19,0.333,0.107,,other=0.316
-or-qwen/qwen3-32b-A,dx-owner-3-third,0shot,all,1.000,17,0.333,0.000,,
-or-qwen/qwen3-32b-A,dx-self-3-deictic,0shot,all,0.368,19,0.281,0.111,,other_participant=0.632
-or-qwen/qwen3-32b-A,dx-self-3-deictic,0shot,free,0.357,14,0.280,0.128,,other_participant=0.643
-or-qwen/qwen3-32b-A,dx-self-3-third,0shot,all,0.818,22,0.280,0.082,,
-or-qwen/qwen3-32b-A,dx-self-3-third,0shot,free,0.824,17,0.279,0.092,,
-or-qwen/qwen3-32b-A,dx-self-2-deictic,0shot,all,0.471,17,0.265,0.121,,other=0.235;other_object=0.235;other_participant=0.059
-or-qwen/qwen3-32b-A,dx-self-2-deictic,0shot,free,0.455,11,0.250,0.150,,other=0.091;other_object=0.364;other_participant=0.091
-or-qwen/qwen3-32b-A,dx-self-2-third,0shot,all,0.800,20,0.292,0.089,,
-or-qwen/qwen3-32b-A,dx-self-2-third,0shot,free,0.833,12,0.285,0.108,,
-or-qwen/qwen3-32b-A,dx-addressee-3-deictic,0shot,all,0.280,25,0.287,0.090,,other_participant=0.28;speaker_confusion=0.44
-or-qwen/qwen3-32b-A,dx-addressee-3-deictic,0shot,free,0.400,15,0.283,0.127,,other_participant=0.2;speaker_confusion=0.4
-or-qwen/qwen3-32b-A,dx-addressee-3-third,0shot,all,0.905,21,0.282,0.064,,
-or-qwen/qwen3-32b-A,dx-addressee-3-third,0shot,free,0.857,14,0.280,0.093,,
-or-qwen/qwen3-32b-A,dx-addressee-2-deictic,0shot,all,0.210,19,0.303,0.093,,other_participant=0.158;speaker_confusion=0.632
-or-qwen/qwen3-32b-A,dx-addressee-2-deictic,0shot,free,0.214,14,0.304,0.110,,other_participant=0.214;speaker_confusion=0.571
-or-qwen/qwen3-32b-A,dx-addressee-2-third,0shot,all,0.714,21,0.286,0.099,,
-or-qwen/qwen3-32b-A,dx-addressee-2-third,0shot,free,0.857,14,0.280,0.093,,
-or-qwen/qwen3-32b-A,sb-k1,0shot,all,1.000,16,0.125,0.000,,
-or-qwen/qwen3-32b-A,an-narr,0shot,all,0.867,15,0.250,0.088,,
-or-qwen/qwen3-32b-A,an-other-any,0shot,all,0.786,14,0.250,0.110,,
-or-qwen/qwen3-32b-A,an-me-any,0shot,all,0.118,17,0.250,0.078,0.5,
-or-qwen/qwen3-32b-A,an-you-voc,0shot,all,0.909,11,0.250,0.087,1.0,
-or-qwen/qwen3-32b-A,an-you-novoc,0shot,all,0.692,13,0.250,0.128,0.0,
-or-qwen/qwen3-32b-A,adj-adj,0shot,all,1.000,14,0.333,0.000,,
-or-qwen/qwen3-32b-A,adj-voc,0shot,all,1.000,16,0.333,0.000,,
-or-qwen/qwen3-32b-A,adj-third,0shot,all,1.000,16,0.333,0.000,,
-or-qwen/qwen3-32b-A,cm-mutate,0shot,all,1.000,10,0.200,0.000,,
-or-qwen/qwen3-32b-A,cm-rebind,0shot,all,0.889,9,0.200,0.105,,
-or-qwen/qwen3-32b-A,cm-copy,0shot,all,0.000,11,0.200,0.000,,
-or-qwen/qwen3.5-397b-a17b-B,dx-owner-3-deictic,0shot,all,1.000,28,0.333,0.000,,
-or-qwen/qwen3.5-397b-a17b-B,dx-owner-3-deictic,0shot,free,1.000,8,0.333,0.000,,
-or-qwen/qwen3.5-397b-a17b-B,dx-owner-3-third,0shot,all,0.964,28,0.333,0.035,,
-or-qwen/qwen3.5-397b-a17b-B,dx-owner-3-third,0shot,free,0.875,8,0.333,0.117,,
-or-qwen/qwen3.5-397b-a17b-B,dx-self-3-deictic,0shot,all,0.926,27,0.284,0.050,,format=0.074
-or-qwen/qwen3.5-397b-a17b-B,dx-self-3-deictic,0shot,free,0.895,19,0.281,0.070,,format=0.105
-or-qwen/qwen3.5-397b-a17b-B,dx-self-3-third,0shot,all,1.000,32,0.286,0.000,,
-or-qwen/qwen3.5-397b-a17b-B,dx-self-3-third,0shot,free,1.000,22,0.284,0.000,,
-or-qwen/qwen3.5-397b-a17b-B,dx-self-2-deictic,0shot,all,0.849,33,0.280,0.062,,format=0.121;other_object=0.03
-or-qwen/qwen3.5-397b-a17b-B,dx-self-2-deictic,0shot,free,0.870,23,0.275,0.070,,format=0.087;other_object=0.043
-or-qwen/qwen3.5-397b-a17b-B,dx-self-2-third,0shot,all,1.000,28,0.295,0.000,,
-or-qwen/qwen3.5-397b-a17b-B,dx-self-2-third,0shot,free,1.000,19,0.289,0.000,,
-or-qwen/qwen3.5-397b-a17b-B,dx-addressee-3-deictic,0shot,all,0.909,33,0.283,0.050,,format=0.091
-or-qwen/qwen3.5-397b-a17b-B,dx-addressee-3-deictic,0shot,free,0.909,22,0.280,0.061,,format=0.091
-or-qwen/qwen3.5-397b-a17b-B,dx-addressee-3-third,0shot,all,0.926,27,0.287,0.050,,
-or-qwen/qwen3.5-397b-a17b-B,dx-addressee-3-third,0shot,free,0.947,19,0.285,0.051,,
-or-qwen/qwen3.5-397b-a17b-B,dx-addressee-2-deictic,0shot,all,0.889,27,0.293,0.060,,format=0.037;other_participant=0.037;speaker_confusion=0.037
-or-qwen/qwen3.5-397b-a17b-B,dx-addressee-2-deictic,0shot,free,0.833,18,0.292,0.088,,format=0.056;other_participant=0.056;speaker_confusion=0.056
-or-qwen/qwen3.5-397b-a17b-B,dx-addressee-2-third,0shot,all,1.000,33,0.285,0.000,,
-or-qwen/qwen3.5-397b-a17b-B,dx-addressee-2-third,0shot,free,1.000,23,0.279,0.000,,
-or-qwen/qwen3.5-397b-a17b-B,an-narr,0shot,all,1.000,24,0.250,0.000,,
-or-qwen/qwen3.5-397b-a17b-B,an-other-any,0shot,all,0.917,24,0.250,0.056,,
-or-qwen/qwen3.5-397b-a17b-B,an-me-any,0shot,all,0.750,24,0.250,0.088,0.944,
-or-qwen/qwen3.5-397b-a17b-B,an-you-voc,0shot,all,0.875,24,0.250,0.068,0.81,
-or-qwen/qwen3.5-397b-a17b-B,an-you-novoc,0shot,all,0.875,24,0.250,0.068,0.0,
-or-qwen/qwen3.5-397b-a17b-B,adj-adj,0shot,all,1.000,25,0.333,0.000,,
-or-qwen/qwen3.5-397b-a17b-B,adj-voc,0shot,all,0.960,25,0.333,0.039,,
-or-qwen/qwen3.5-397b-a17b-B,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-qwen/qwen3.5-397b-a17b-A,attr,0shot,all,1.000,28,0.163,0.000,,
-or-qwen/qwen3.5-397b-a17b-A,codevar,0shot,all,1.000,30,0.274,0.000,,
-or-qwen/qwen3.5-397b-a17b-A,dialogue,0shot,all,1.000,28,0.309,0.000,,
-or-qwen/qwen3.5-397b-a17b-A,dx-owner-3-deictic,0shot,all,1.000,28,0.333,0.000,,
-or-qwen/qwen3.5-397b-a17b-A,dx-owner-3-deictic,0shot,free,1.000,8,0.333,0.000,,
-or-qwen/qwen3.5-397b-a17b-A,dx-owner-3-third,0shot,all,1.000,28,0.333,0.000,,
-or-qwen/qwen3.5-397b-a17b-A,dx-owner-3-third,0shot,free,1.000,8,0.333,0.000,,
-or-qwen/qwen3.5-397b-a17b-A,dx-self-3-deictic,0shot,all,0.885,26,0.285,0.063,,other_participant=0.115
-or-qwen/qwen3.5-397b-a17b-A,dx-self-3-deictic,0shot,free,0.895,19,0.281,0.070,,other_participant=0.105
-or-qwen/qwen3.5-397b-a17b-A,dx-self-3-third,0shot,all,1.000,32,0.286,0.000,,
-or-qwen/qwen3.5-397b-a17b-A,dx-self-3-third,0shot,free,1.000,22,0.284,0.000,,
-or-qwen/qwen3.5-397b-a17b-A,dx-self-2-deictic,0shot,all,0.667,33,0.280,0.082,,other=0.303;other_participant=0.03
-or-qwen/qwen3.5-397b-a17b-A,dx-self-2-deictic,0shot,free,0.696,23,0.275,0.096,,other=0.304
-or-qwen/qwen3.5-397b-a17b-A,dx-self-2-third,0shot,all,0.964,28,0.295,0.035,,
-or-qwen/qwen3.5-397b-a17b-A,dx-self-2-third,0shot,free,0.947,19,0.289,0.051,,
-or-qwen/qwen3.5-397b-a17b-A,dx-addressee-3-deictic,0shot,all,0.688,32,0.284,0.082,,other_participant=0.094;speaker_confusion=0.219
-or-qwen/qwen3.5-397b-a17b-A,dx-addressee-3-deictic,0shot,free,0.667,21,0.282,0.103,,other_participant=0.095;speaker_confusion=0.238
-or-qwen/qwen3.5-397b-a17b-A,dx-addressee-3-third,0shot,all,1.000,26,0.285,0.000,,
-or-qwen/qwen3.5-397b-a17b-A,dx-addressee-3-third,0shot,free,1.000,19,0.285,0.000,,
-or-qwen/qwen3.5-397b-a17b-A,dx-addressee-2-deictic,0shot,all,0.630,27,0.293,0.093,,other_participant=0.111;speaker_confusion=0.259
-or-qwen/qwen3.5-397b-a17b-A,dx-addressee-2-deictic,0shot,free,0.611,18,0.292,0.115,,other_participant=0.056;speaker_confusion=0.333
-or-qwen/qwen3.5-397b-a17b-A,dx-addressee-2-third,0shot,all,1.000,32,0.286,0.000,,
-or-qwen/qwen3.5-397b-a17b-A,dx-addressee-2-third,0shot,free,1.000,22,0.280,0.000,,
-or-qwen/qwen3.5-397b-a17b-A,sb-k1,0shot,all,1.000,24,0.125,0.000,,
-or-qwen/qwen3.5-397b-a17b-A,an-narr,0shot,all,1.000,23,0.250,0.000,,
-or-qwen/qwen3.5-397b-a17b-A,an-other-any,0shot,all,0.957,23,0.250,0.043,,
-or-qwen/qwen3.5-397b-a17b-A,an-me-any,0shot,all,0.500,24,0.250,0.102,1.0,
-or-qwen/qwen3.5-397b-a17b-A,an-you-voc,0shot,all,1.000,24,0.250,0.000,0.958,
-or-qwen/qwen3.5-397b-a17b-A,an-you-novoc,0shot,all,0.958,24,0.250,0.041,0.0,
-or-qwen/qwen3.5-397b-a17b-A,adj-adj,0shot,all,1.000,25,0.333,0.000,,
-or-qwen/qwen3.5-397b-a17b-A,adj-voc,0shot,all,1.000,25,0.333,0.000,,
-or-qwen/qwen3.5-397b-a17b-A,adj-third,0shot,all,1.000,25,0.333,0.000,,
-or-qwen/qwen3.5-397b-a17b-A,cm-mutate,0shot,all,1.000,20,0.200,0.000,,
-or-qwen/qwen3.5-397b-a17b-A,cm-rebind,0shot,all,0.900,20,0.200,0.067,,
-or-qwen/qwen3.5-397b-a17b-A,cm-copy,0shot,all,0.900,20,0.200,0.067,,
-smollm2-135m,attr,0shot,all,0.386,1210,0.168,0.014,,
-smollm2-135m,attr,3shot_collide,all,0.474,1210,0.168,0.014,,
-smollm2-135m,attr,3shot,all,0.461,1210,0.168,0.014,,
-smollm2-135m,codevar,0shot,all,0.280,1200,0.267,0.013,,
-smollm2-135m,codevar,3shot_collide,all,0.353,1200,0.267,0.014,,
-smollm2-135m,codevar,3shot,all,0.349,1200,0.267,0.014,,
-smollm2-135m,dialogue,0shot,all,0.432,1200,0.312,0.014,,
-smollm2-135m,dialogue,3shot_collide,all,0.391,1200,0.312,0.014,,
-smollm2-135m,dialogue,3shot,all,0.432,1200,0.312,0.014,,
-smollm2-135m,dx-owner-3-deictic,0shot,all,0.500,120,0.333,0.046,,other_participant=0.383;speaker_confusion=0.108;tie=0.008
-smollm2-135m,dx-owner-3-deictic,0shot,free,0.425,40,0.333,0.078,,other_participant=0.525;speaker_confusion=0.05
-smollm2-135m,dx-owner-3-deictic,3shot_collide,all,0.267,120,0.333,0.040,,other_participant=0.458;speaker_confusion=0.275
-smollm2-135m,dx-owner-3-deictic,3shot_collide,free,0.125,40,0.333,0.052,,other_participant=0.7;speaker_confusion=0.175
-smollm2-135m,dx-owner-3-deictic,3shot,all,0.408,120,0.333,0.045,,other_participant=0.392;speaker_confusion=0.2
-smollm2-135m,dx-owner-3-deictic,3shot,free,0.300,40,0.333,0.072,,other_participant=0.525;speaker_confusion=0.175
-smollm2-135m,dx-owner-3-third,0shot,all,0.483,120,0.333,0.046,,
-smollm2-135m,dx-owner-3-third,0shot,free,0.425,40,0.333,0.078,,
-smollm2-135m,dx-owner-3-third,3shot_collide,all,0.350,120,0.333,0.043,,
-smollm2-135m,dx-owner-3-third,3shot_collide,free,0.125,40,0.333,0.052,,
-smollm2-135m,dx-owner-3-third,3shot,all,0.417,120,0.333,0.045,,
-smollm2-135m,dx-owner-3-third,3shot,free,0.275,40,0.333,0.071,,
-smollm2-135m,dx-self-3-deictic,0shot,all,0.294,180,0.287,0.034,,other_object=0.267;previous_owner=0.061;speaker_confusion=0.361;tie=0.017
-smollm2-135m,dx-self-3-deictic,0shot,free,0.254,126,0.286,0.039,,other_object=0.333;previous_owner=0.04;speaker_confusion=0.365;tie=0.008
-smollm2-135m,dx-self-3-deictic,3shot_collide,all,0.228,180,0.287,0.031,,other_object=0.256;previous_owner=0.072;speaker_confusion=0.433;tie=0.011
-smollm2-135m,dx-self-3-deictic,3shot_collide,free,0.175,126,0.286,0.034,,other_object=0.286;previous_owner=0.048;speaker_confusion=0.484;tie=0.008
-smollm2-135m,dx-self-3-deictic,3shot,all,0.261,180,0.287,0.033,,other_object=0.239;previous_owner=0.072;speaker_confusion=0.417;tie=0.011
-smollm2-135m,dx-self-3-deictic,3shot,free,0.191,126,0.286,0.035,,other_object=0.294;previous_owner=0.048;speaker_confusion=0.468
-smollm2-135m,dx-self-3-third,0shot,all,0.261,180,0.287,0.033,,
-smollm2-135m,dx-self-3-third,0shot,free,0.214,126,0.286,0.037,,
-smollm2-135m,dx-self-3-third,3shot_collide,all,0.272,180,0.287,0.033,,
-smollm2-135m,dx-self-3-third,3shot_collide,free,0.198,126,0.286,0.035,,
-smollm2-135m,dx-self-3-third,3shot,all,0.244,180,0.287,0.032,,
-smollm2-135m,dx-self-3-third,3shot,free,0.135,126,0.286,0.030,,
-smollm2-135m,dx-self-2-deictic,0shot,all,0.250,180,0.287,0.032,,speaker_confusion=0.733;tie=0.017
-smollm2-135m,dx-self-2-deictic,0shot,free,0.214,126,0.286,0.037,,speaker_confusion=0.77;tie=0.016
-smollm2-135m,dx-self-2-deictic,3shot_collide,all,0.272,180,0.287,0.033,,speaker_confusion=0.722;tie=0.006
-smollm2-135m,dx-self-2-deictic,3shot_collide,free,0.214,126,0.286,0.037,,speaker_confusion=0.778;tie=0.008
-smollm2-135m,dx-self-2-deictic,3shot,all,0.272,180,0.287,0.033,,speaker_confusion=0.722;tie=0.006
-smollm2-135m,dx-self-2-deictic,3shot,free,0.222,126,0.286,0.037,,speaker_confusion=0.77;tie=0.008
-smollm2-135m,dx-self-2-third,0shot,all,0.311,180,0.287,0.035,,
-smollm2-135m,dx-self-2-third,0shot,free,0.246,126,0.286,0.038,,
-smollm2-135m,dx-self-2-third,3shot_collide,all,0.333,180,0.287,0.035,,
-smollm2-135m,dx-self-2-third,3shot_collide,free,0.254,126,0.286,0.039,,
-smollm2-135m,dx-self-2-third,3shot,all,0.328,180,0.287,0.035,,
-smollm2-135m,dx-self-2-third,3shot,free,0.214,126,0.286,0.037,,
-smollm2-135m,dx-addressee-3-deictic,0shot,all,0.328,180,0.287,0.035,,other_object=0.122;previous_owner=0.178;speaker_confusion=0.356;tie=0.017
-smollm2-135m,dx-addressee-3-deictic,0shot,free,0.270,126,0.286,0.040,,other_object=0.103;previous_owner=0.222;speaker_confusion=0.389;tie=0.016
-smollm2-135m,dx-addressee-3-deictic,3shot_collide,all,0.311,180,0.287,0.035,,other_object=0.156;previous_owner=0.183;speaker_confusion=0.344;tie=0.006
-smollm2-135m,dx-addressee-3-deictic,3shot_collide,free,0.238,126,0.286,0.038,,other_object=0.167;previous_owner=0.23;speaker_confusion=0.365
-smollm2-135m,dx-addressee-3-deictic,3shot,all,0.306,180,0.287,0.034,,other_object=0.144;previous_owner=0.217;speaker_confusion=0.322;tie=0.011
-smollm2-135m,dx-addressee-3-deictic,3shot,free,0.230,126,0.286,0.037,,other_object=0.143;previous_owner=0.27;speaker_confusion=0.341;tie=0.016
-smollm2-135m,dx-addressee-3-third,0shot,all,0.278,180,0.287,0.033,,
-smollm2-135m,dx-addressee-3-third,0shot,free,0.294,126,0.286,0.041,,
-smollm2-135m,dx-addressee-3-third,3shot_collide,all,0.272,180,0.287,0.033,,
-smollm2-135m,dx-addressee-3-third,3shot_collide,free,0.214,126,0.286,0.037,,
-smollm2-135m,dx-addressee-3-third,3shot,all,0.267,180,0.287,0.033,,
-smollm2-135m,dx-addressee-3-third,3shot,free,0.182,126,0.286,0.034,,
-smollm2-135m,dx-addressee-2-deictic,0shot,all,0.194,180,0.287,0.029,,speaker_confusion=0.8;tie=0.006
-smollm2-135m,dx-addressee-2-deictic,0shot,free,0.167,126,0.286,0.033,,speaker_confusion=0.833
-smollm2-135m,dx-addressee-2-deictic,3shot_collide,all,0.194,180,0.287,0.029,,speaker_confusion=0.8;tie=0.006
-smollm2-135m,dx-addressee-2-deictic,3shot_collide,free,0.111,126,0.286,0.028,,speaker_confusion=0.881;tie=0.008
-smollm2-135m,dx-addressee-2-deictic,3shot,all,0.183,180,0.287,0.029,,speaker_confusion=0.8;tie=0.017
-smollm2-135m,dx-addressee-2-deictic,3shot,free,0.111,126,0.286,0.028,,speaker_confusion=0.881;tie=0.008
-smollm2-135m,dx-addressee-2-third,0shot,all,0.206,180,0.287,0.030,,
-smollm2-135m,dx-addressee-2-third,0shot,free,0.143,126,0.286,0.031,,
-smollm2-135m,dx-addressee-2-third,3shot_collide,all,0.267,180,0.287,0.033,,
-smollm2-135m,dx-addressee-2-third,3shot_collide,free,0.175,126,0.286,0.034,,
-smollm2-135m,dx-addressee-2-third,3shot,all,0.283,180,0.287,0.034,,
-smollm2-135m,dx-addressee-2-third,3shot,free,0.151,126,0.286,0.032,,
-smollm2-135m,sb-k1,0shot,all,0.328,64,0.125,0.059,,
-smollm2-135m,sb-k1,3shot_collide,all,0.219,64,0.125,0.052,,
-smollm2-135m,sb-k1,3shot,all,0.234,64,0.125,0.053,,
-smollm2-135m,sb-k23,0shot,all,0.078,128,0.027,0.024,,
-smollm2-135m,sb-k23,3shot_collide,all,0.102,128,0.027,0.027,,
-smollm2-135m,sb-k23,3shot,all,0.094,128,0.027,0.026,,
-smollm2-135m,sb-split,0shot,all,0.070,128,0.027,0.023,,
-smollm2-135m,sb-split,3shot_collide,all,0.016,128,0.027,0.011,,
-smollm2-135m,sb-split,3shot,all,0.016,128,0.027,0.011,,
-smollm2-135m,sb-dyn,0shot,all,0.055,256,0.027,0.014,,
-smollm2-135m,sb-dyn,3shot_collide,all,0.016,256,0.027,0.008,,
-smollm2-135m,sb-dyn,3shot,all,0.019,256,0.027,0.009,,
-smollm2-135m,an-narr,0shot,all,0.416,640,0.250,0.019,,
-smollm2-135m,an-narr,3shot_collide,all,0.247,640,0.250,0.017,,
-smollm2-135m,an-narr,3shot,all,0.314,640,0.250,0.018,,
-smollm2-135m,an-other-any,0shot,all,0.372,320,0.250,0.027,,
-smollm2-135m,an-other-any,3shot_collide,all,0.303,320,0.250,0.026,,
-smollm2-135m,an-other-any,3shot,all,0.319,320,0.250,0.026,,
-smollm2-135m,an-me-any,0shot,all,0.419,160,0.250,0.039,,
-smollm2-135m,an-me-any,3shot_collide,all,0.362,160,0.250,0.038,,
-smollm2-135m,an-me-any,3shot,all,0.419,160,0.250,0.039,,
-smollm2-135m,an-you-voc,0shot,all,0.263,80,0.250,0.049,,
-smollm2-135m,an-you-voc,3shot_collide,all,0.150,80,0.250,0.040,,
-smollm2-135m,an-you-voc,3shot,all,0.025,80,0.250,0.018,,
-smollm2-135m,an-you-novoc,0shot,all,0.275,80,0.250,0.050,,
-smollm2-135m,an-you-novoc,3shot_collide,all,0.087,80,0.250,0.032,,
-smollm2-135m,an-you-novoc,3shot,all,0.025,80,0.250,0.018,,
-smollm2-135m,adj-adj,0shot,all,0.381,260,0.333,0.030,,
-smollm2-135m,adj-adj,3shot_collide,all,0.119,260,0.333,0.020,,
-smollm2-135m,adj-adj,3shot,all,0.354,260,0.333,0.030,,
-smollm2-135m,adj-voc,0shot,all,0.546,260,0.333,0.031,,
-smollm2-135m,adj-voc,3shot_collide,all,0.265,260,0.333,0.027,,
-smollm2-135m,adj-voc,3shot,all,0.492,260,0.333,0.031,,
-smollm2-135m,adj-third,0shot,all,0.519,260,0.333,0.031,,
-smollm2-135m,adj-third,3shot_collide,all,0.408,260,0.333,0.030,,
-smollm2-135m,adj-third,3shot,all,0.511,260,0.333,0.031,,
-smollm2-135m,cm-mutate,0shot,all,0.425,200,0.200,0.035,,
-smollm2-135m,cm-mutate,3shot_collide,all,0.270,200,0.200,0.031,,
-smollm2-135m,cm-mutate,3shot,all,0.270,200,0.200,0.031,,
-smollm2-135m,cm-rebind,0shot,all,0.025,200,0.200,0.011,,
-smollm2-135m,cm-rebind,3shot_collide,all,0.070,200,0.200,0.018,,
-smollm2-135m,cm-rebind,3shot,all,0.020,200,0.200,0.010,,
-smollm2-135m,cm-copy,0shot,all,0.040,200,0.200,0.014,,
-smollm2-135m,cm-copy,3shot_collide,all,0.055,200,0.200,0.016,,
-smollm2-135m,cm-copy,3shot,all,0.025,200,0.200,0.011,,
-pythia-160m,attr,0shot,all,0.052,1210,0.168,0.006,,
-pythia-160m,attr,3shot_collide,all,0.096,1210,0.168,0.009,,
-pythia-160m,attr,3shot,all,0.125,1210,0.168,0.009,,
-pythia-160m,codevar,0shot,all,0.097,1200,0.267,0.009,,
-pythia-160m,codevar,3shot_collide,all,0.211,1200,0.267,0.012,,
-pythia-160m,codevar,3shot,all,0.199,1200,0.267,0.011,,
-pythia-160m,dialogue,0shot,all,0.102,1200,0.312,0.009,,
-pythia-160m,dialogue,3shot_collide,all,0.113,1200,0.312,0.009,,
-pythia-160m,dialogue,3shot,all,0.158,1200,0.312,0.011,,
-pythia-160m,dx-owner-3-deictic,0shot,all,0.058,120,0.333,0.021,,other_participant=0.483;speaker_confusion=0.217;tie=0.242
-pythia-160m,dx-owner-3-deictic,0shot,free,0.025,40,0.333,0.025,,other_participant=0.5;speaker_confusion=0.175;tie=0.3
-pythia-160m,dx-owner-3-deictic,3shot_collide,all,0.025,120,0.333,0.014,,other_participant=0.575;speaker_confusion=0.275;tie=0.125
-pythia-160m,dx-owner-3-deictic,3shot_collide,free,0.025,40,0.333,0.025,,other_participant=0.675;speaker_confusion=0.2;tie=0.1
-pythia-160m,dx-owner-3-deictic,3shot,all,0.067,120,0.333,0.023,,other_participant=0.392;speaker_confusion=0.358;tie=0.183
-pythia-160m,dx-owner-3-deictic,3shot,free,0.025,40,0.333,0.025,,other_participant=0.5;speaker_confusion=0.325;tie=0.15
-pythia-160m,dx-owner-3-third,0shot,all,0.200,120,0.333,0.036,,
-pythia-160m,dx-owner-3-third,0shot,free,0.175,40,0.333,0.060,,
-pythia-160m,dx-owner-3-third,3shot_collide,all,0.067,120,0.333,0.023,,
-pythia-160m,dx-owner-3-third,3shot_collide,free,0.050,40,0.333,0.035,,
-pythia-160m,dx-owner-3-third,3shot,all,0.192,120,0.333,0.036,,
-pythia-160m,dx-owner-3-third,3shot,free,0.125,40,0.333,0.052,,
-pythia-160m,dx-self-3-deictic,0shot,all,0.050,180,0.287,0.016,,other_object=0.256;previous_owner=0.106;speaker_confusion=0.4;tie=0.189
-pythia-160m,dx-self-3-deictic,0shot,free,0.032,126,0.286,0.016,,other_object=0.286;previous_owner=0.079;speaker_confusion=0.452;tie=0.151
-pythia-160m,dx-self-3-deictic,3shot_collide,all,0.178,180,0.287,0.029,,other_object=0.2;previous_owner=0.106;speaker_confusion=0.394;tie=0.122
-pythia-160m,dx-self-3-deictic,3shot_collide,free,0.111,126,0.286,0.028,,other_object=0.246;previous_owner=0.095;speaker_confusion=0.476;tie=0.071
-pythia-160m,dx-self-3-deictic,3shot,all,0.161,180,0.287,0.027,,other_object=0.183;previous_owner=0.094;speaker_confusion=0.433;tie=0.128
-pythia-160m,dx-self-3-deictic,3shot,free,0.095,126,0.286,0.026,,other_object=0.198;previous_owner=0.087;speaker_confusion=0.54;tie=0.079
-pythia-160m,dx-self-3-third,0shot,all,0.078,180,0.287,0.020,,
-pythia-160m,dx-self-3-third,0shot,free,0.087,126,0.286,0.025,,
-pythia-160m,dx-self-3-third,3shot_collide,all,0.117,180,0.287,0.024,,
-pythia-160m,dx-self-3-third,3shot_collide,free,0.103,126,0.286,0.027,,
-pythia-160m,dx-self-3-third,3shot,all,0.122,180,0.287,0.024,,
-pythia-160m,dx-self-3-third,3shot,free,0.087,126,0.286,0.025,,
-pythia-160m,dx-self-2-deictic,0shot,all,0.050,180,0.287,0.016,,speaker_confusion=0.717;tie=0.233
-pythia-160m,dx-self-2-deictic,0shot,free,0.040,126,0.286,0.017,,speaker_confusion=0.738;tie=0.222
-pythia-160m,dx-self-2-deictic,3shot_collide,all,0.178,180,0.287,0.029,,speaker_confusion=0.711;tie=0.111
-pythia-160m,dx-self-2-deictic,3shot_collide,free,0.087,126,0.286,0.025,,speaker_confusion=0.794;tie=0.119
-pythia-160m,dx-self-2-deictic,3shot,all,0.150,180,0.287,0.027,,speaker_confusion=0.7;tie=0.15
-pythia-160m,dx-self-2-deictic,3shot,free,0.071,126,0.286,0.023,,speaker_confusion=0.794;tie=0.135
-pythia-160m,dx-self-2-third,0shot,all,0.067,180,0.287,0.019,,
-pythia-160m,dx-self-2-third,0shot,free,0.064,126,0.286,0.022,,
-pythia-160m,dx-self-2-third,3shot_collide,all,0.139,180,0.287,0.026,,
-pythia-160m,dx-self-2-third,3shot_collide,free,0.119,126,0.286,0.029,,
-pythia-160m,dx-self-2-third,3shot,all,0.089,180,0.287,0.021,,
-pythia-160m,dx-self-2-third,3shot,free,0.079,126,0.286,0.024,,
-pythia-160m,dx-addressee-3-deictic,0shot,all,0.117,180,0.287,0.024,,other_object=0.139;previous_owner=0.206;speaker_confusion=0.333;tie=0.206
-pythia-160m,dx-addressee-3-deictic,0shot,free,0.071,126,0.286,0.023,,other_object=0.135;previous_owner=0.254;speaker_confusion=0.365;tie=0.175
-pythia-160m,dx-addressee-3-deictic,3shot_collide,all,0.172,180,0.287,0.028,,other_object=0.178;previous_owner=0.206;speaker_confusion=0.344;tie=0.1
-pythia-160m,dx-addressee-3-deictic,3shot_collide,free,0.087,126,0.286,0.025,,other_object=0.167;previous_owner=0.262;speaker_confusion=0.405;tie=0.079
-pythia-160m,dx-addressee-3-deictic,3shot,all,0.150,180,0.287,0.027,,other_object=0.128;previous_owner=0.222;speaker_confusion=0.344;tie=0.156
-pythia-160m,dx-addressee-3-deictic,3shot,free,0.087,126,0.286,0.025,,other_object=0.111;previous_owner=0.278;speaker_confusion=0.397;tie=0.127
-pythia-160m,dx-addressee-3-third,0shot,all,0.083,180,0.287,0.021,,
-pythia-160m,dx-addressee-3-third,0shot,free,0.064,126,0.286,0.022,,
-pythia-160m,dx-addressee-3-third,3shot_collide,all,0.128,180,0.287,0.025,,
-pythia-160m,dx-addressee-3-third,3shot_collide,free,0.111,126,0.286,0.028,,
-pythia-160m,dx-addressee-3-third,3shot,all,0.139,180,0.287,0.026,,
-pythia-160m,dx-addressee-3-third,3shot,free,0.103,126,0.286,0.027,,
-pythia-160m,dx-addressee-2-deictic,0shot,all,0.089,180,0.287,0.021,,speaker_confusion=0.75;tie=0.161
-pythia-160m,dx-addressee-2-deictic,0shot,free,0.056,126,0.286,0.020,,speaker_confusion=0.817;tie=0.127
-pythia-160m,dx-addressee-2-deictic,3shot_collide,all,0.128,180,0.287,0.025,,speaker_confusion=0.733;tie=0.139
-pythia-160m,dx-addressee-2-deictic,3shot_collide,free,0.087,126,0.286,0.025,,speaker_confusion=0.841;tie=0.071
-pythia-160m,dx-addressee-2-deictic,3shot,all,0.117,180,0.287,0.024,,speaker_confusion=0.761;tie=0.122
-pythia-160m,dx-addressee-2-deictic,3shot,free,0.040,126,0.286,0.017,,speaker_confusion=0.857;tie=0.103
-pythia-160m,dx-addressee-2-third,0shot,all,0.067,180,0.287,0.019,,
-pythia-160m,dx-addressee-2-third,0shot,free,0.087,126,0.286,0.025,,
-pythia-160m,dx-addressee-2-third,3shot_collide,all,0.139,180,0.287,0.026,,
-pythia-160m,dx-addressee-2-third,3shot_collide,free,0.111,126,0.286,0.028,,
-pythia-160m,dx-addressee-2-third,3shot,all,0.100,180,0.287,0.022,,
-pythia-160m,dx-addressee-2-third,3shot,free,0.064,126,0.286,0.022,,
-pythia-160m,sb-k1,0shot,all,0.219,64,0.125,0.052,,
-pythia-160m,sb-k1,3shot_collide,all,0.219,64,0.125,0.052,,
-pythia-160m,sb-k1,3shot,all,0.281,64,0.125,0.056,,
-pythia-160m,sb-k23,0shot,all,0.094,128,0.027,0.026,,
-pythia-160m,sb-k23,3shot_collide,all,0.047,128,0.027,0.019,,
-pythia-160m,sb-k23,3shot,all,0.039,128,0.027,0.017,,
-pythia-160m,sb-split,0shot,all,0.047,128,0.027,0.019,,
-pythia-160m,sb-split,3shot_collide,all,0.055,128,0.027,0.020,,
-pythia-160m,sb-split,3shot,all,0.031,128,0.027,0.015,,
-pythia-160m,sb-dyn,0shot,all,0.070,256,0.027,0.016,,
-pythia-160m,sb-dyn,3shot_collide,all,0.043,256,0.027,0.013,,
-pythia-160m,sb-dyn,3shot,all,0.047,256,0.027,0.013,,
-pythia-160m,an-narr,0shot,all,0.061,640,0.250,0.009,,
-pythia-160m,an-narr,3shot_collide,all,0.016,640,0.250,0.005,,
-pythia-160m,an-narr,3shot,all,0.080,640,0.250,0.011,,
-pythia-160m,an-other-any,0shot,all,0.209,320,0.250,0.023,,
-pythia-160m,an-other-any,3shot_collide,all,0.234,320,0.250,0.024,,
-pythia-160m,an-other-any,3shot,all,0.244,320,0.250,0.024,,
-pythia-160m,an-me-any,0shot,all,0.575,160,0.250,0.039,,
-pythia-160m,an-me-any,3shot_collide,all,0.456,160,0.250,0.039,,
-pythia-160m,an-me-any,3shot,all,0.450,160,0.250,0.039,,
-pythia-160m,an-you-voc,0shot,all,0.013,80,0.250,0.012,,
-pythia-160m,an-you-voc,3shot_collide,all,0.300,80,0.250,0.051,,
-pythia-160m,an-you-voc,3shot,all,0.375,80,0.250,0.054,,
-pythia-160m,an-you-novoc,0shot,all,0.175,80,0.250,0.043,,
-pythia-160m,an-you-novoc,3shot_collide,all,0.237,80,0.250,0.048,,
-pythia-160m,an-you-novoc,3shot,all,0.412,80,0.250,0.055,,
-pythia-160m,adj-adj,0shot,all,0.108,260,0.333,0.019,,
-pythia-160m,adj-adj,3shot_collide,all,0.015,260,0.333,0.008,,
-pythia-160m,adj-adj,3shot,all,0.096,260,0.333,0.018,,
-pythia-160m,adj-voc,0shot,all,0.139,260,0.333,0.021,,
-pythia-160m,adj-voc,3shot_collide,all,0.015,260,0.333,0.008,,
-pythia-160m,adj-voc,3shot,all,0.119,260,0.333,0.020,,
-pythia-160m,adj-third,0shot,all,0.211,260,0.333,0.025,,
-pythia-160m,adj-third,3shot_collide,all,0.046,260,0.333,0.013,,
-pythia-160m,adj-third,3shot,all,0.131,260,0.333,0.021,,
-pythia-160m,cm-mutate,0shot,all,0.240,200,0.200,0.030,,
-pythia-160m,cm-mutate,3shot_collide,all,0.160,200,0.200,0.026,,
-pythia-160m,cm-mutate,3shot,all,0.170,200,0.200,0.027,,
-pythia-160m,cm-rebind,0shot,all,0.100,200,0.200,0.021,,
-pythia-160m,cm-rebind,3shot_collide,all,0.090,200,0.200,0.020,,
-pythia-160m,cm-rebind,3shot,all,0.040,200,0.200,0.014,,
-pythia-160m,cm-copy,0shot,all,0.040,200,0.200,0.014,,
-pythia-160m,cm-copy,3shot_collide,all,0.095,200,0.200,0.021,,
-pythia-160m,cm-copy,3shot,all,0.060,200,0.200,0.017,,
-smollm2-360m,attr,0shot,all,0.452,1210,0.168,0.014,,
-smollm2-360m,attr,3shot_collide,all,0.598,1210,0.168,0.014,,
-smollm2-360m,attr,3shot,all,0.607,1210,0.168,0.014,,
-smollm2-360m,codevar,0shot,all,0.310,1200,0.267,0.013,,
-smollm2-360m,codevar,3shot_collide,all,0.398,1200,0.267,0.014,,
-smollm2-360m,codevar,3shot,all,0.383,1200,0.267,0.014,,
-smollm2-360m,dialogue,0shot,all,0.576,1200,0.312,0.014,,
-smollm2-360m,dialogue,3shot_collide,all,0.462,1200,0.312,0.014,,
-smollm2-360m,dialogue,3shot,all,0.496,1200,0.312,0.014,,
-smollm2-360m,dx-owner-3-deictic,0shot,all,0.317,120,0.333,0.043,,other_participant=0.35;speaker_confusion=0.308;tie=0.025
-smollm2-360m,dx-owner-3-deictic,0shot,free,0.250,40,0.333,0.069,,other_participant=0.525;speaker_confusion=0.225
-smollm2-360m,dx-owner-3-deictic,3shot_collide,all,0.125,120,0.333,0.030,,other_participant=0.483;speaker_confusion=0.392
-smollm2-360m,dx-owner-3-deictic,3shot_collide,free,0.025,40,0.333,0.025,,other_participant=0.65;speaker_confusion=0.325
-smollm2-360m,dx-owner-3-deictic,3shot,all,0.225,120,0.333,0.038,,other_participant=0.35;speaker_confusion=0.417;tie=0.008
-smollm2-360m,dx-owner-3-deictic,3shot,free,0.175,40,0.333,0.060,,other_participant=0.5;speaker_confusion=0.325
-smollm2-360m,dx-owner-3-third,0shot,all,0.533,120,0.333,0.045,,
-smollm2-360m,dx-owner-3-third,0shot,free,0.600,40,0.333,0.077,,
-smollm2-360m,dx-owner-3-third,3shot_collide,all,0.358,120,0.333,0.044,,
-smollm2-360m,dx-owner-3-third,3shot_collide,free,0.175,40,0.333,0.060,,
-smollm2-360m,dx-owner-3-third,3shot,all,0.408,120,0.333,0.045,,
-smollm2-360m,dx-owner-3-third,3shot,free,0.425,40,0.333,0.078,,
-smollm2-360m,dx-self-3-deictic,0shot,all,0.350,180,0.287,0.036,,other_object=0.233;previous_owner=0.039;speaker_confusion=0.372;tie=0.006
-smollm2-360m,dx-self-3-deictic,0shot,free,0.302,126,0.286,0.041,,other_object=0.238;previous_owner=0.04;speaker_confusion=0.421
-smollm2-360m,dx-self-3-deictic,3shot_collide,all,0.361,180,0.287,0.036,,other_object=0.272;previous_owner=0.061;speaker_confusion=0.283;tie=0.022
-smollm2-360m,dx-self-3-deictic,3shot_collide,free,0.444,126,0.286,0.044,,other_object=0.254;previous_owner=0.032;speaker_confusion=0.246;tie=0.024
-smollm2-360m,dx-self-3-deictic,3shot,all,0.339,180,0.287,0.035,,other_object=0.283;previous_owner=0.061;speaker_confusion=0.306;tie=0.011
-smollm2-360m,dx-self-3-deictic,3shot,free,0.397,126,0.286,0.044,,other_object=0.286;previous_owner=0.032;speaker_confusion=0.27;tie=0.016
-smollm2-360m,dx-self-3-third,0shot,all,0.300,180,0.287,0.034,,
-smollm2-360m,dx-self-3-third,0shot,free,0.206,126,0.286,0.036,,
-smollm2-360m,dx-self-3-third,3shot_collide,all,0.372,180,0.287,0.036,,
-smollm2-360m,dx-self-3-third,3shot_collide,free,0.349,126,0.286,0.043,,
-smollm2-360m,dx-self-3-third,3shot,all,0.339,180,0.287,0.035,,
-smollm2-360m,dx-self-3-third,3shot,free,0.286,126,0.286,0.040,,
-smollm2-360m,dx-self-2-deictic,0shot,all,0.306,180,0.287,0.034,,speaker_confusion=0.683;tie=0.011
-smollm2-360m,dx-self-2-deictic,0shot,free,0.214,126,0.286,0.037,,speaker_confusion=0.77;tie=0.016
-smollm2-360m,dx-self-2-deictic,3shot_collide,all,0.322,180,0.287,0.035,,speaker_confusion=0.667;tie=0.011
-smollm2-360m,dx-self-2-deictic,3shot_collide,free,0.381,126,0.286,0.043,,speaker_confusion=0.603;tie=0.016
-smollm2-360m,dx-self-2-deictic,3shot,all,0.261,180,0.287,0.033,,speaker_confusion=0.706;tie=0.033
-smollm2-360m,dx-self-2-deictic,3shot,free,0.309,126,0.286,0.041,,speaker_confusion=0.643;tie=0.048
-smollm2-360m,dx-self-2-third,0shot,all,0.322,180,0.287,0.035,,
-smollm2-360m,dx-self-2-third,0shot,free,0.254,126,0.286,0.039,,
-smollm2-360m,dx-self-2-third,3shot_collide,all,0.350,180,0.287,0.036,,
-smollm2-360m,dx-self-2-third,3shot_collide,free,0.349,126,0.286,0.043,,
-smollm2-360m,dx-self-2-third,3shot,all,0.294,180,0.287,0.034,,
-smollm2-360m,dx-self-2-third,3shot,free,0.294,126,0.286,0.041,,
-smollm2-360m,dx-addressee-3-deictic,0shot,all,0.211,180,0.287,0.030,,other_object=0.183;previous_owner=0.139;speaker_confusion=0.45;tie=0.017
-smollm2-360m,dx-addressee-3-deictic,0shot,free,0.198,126,0.286,0.035,,other_object=0.143;previous_owner=0.183;speaker_confusion=0.452;tie=0.024
-smollm2-360m,dx-addressee-3-deictic,3shot_collide,all,0.283,180,0.287,0.034,,other_object=0.233;previous_owner=0.117;speaker_confusion=0.339;tie=0.028
-smollm2-360m,dx-addressee-3-deictic,3shot_collide,free,0.309,126,0.286,0.041,,other_object=0.198;previous_owner=0.151;speaker_confusion=0.31;tie=0.032
-smollm2-360m,dx-addressee-3-deictic,3shot,all,0.283,180,0.287,0.034,,other_object=0.233;previous_owner=0.089;speaker_confusion=0.383;tie=0.011
-smollm2-360m,dx-addressee-3-deictic,3shot,free,0.294,126,0.286,0.041,,other_object=0.183;previous_owner=0.119;speaker_confusion=0.389;tie=0.016
-smollm2-360m,dx-addressee-3-third,0shot,all,0.272,180,0.287,0.033,,
-smollm2-360m,dx-addressee-3-third,0shot,free,0.222,126,0.286,0.037,,
-smollm2-360m,dx-addressee-3-third,3shot_collide,all,0.272,180,0.287,0.033,,
-smollm2-360m,dx-addressee-3-third,3shot_collide,free,0.254,126,0.286,0.039,,
-smollm2-360m,dx-addressee-3-third,3shot,all,0.300,180,0.287,0.034,,
-smollm2-360m,dx-addressee-3-third,3shot,free,0.262,126,0.286,0.039,,
-smollm2-360m,dx-addressee-2-deictic,0shot,all,0.250,180,0.287,0.032,,speaker_confusion=0.744;tie=0.006
-smollm2-360m,dx-addressee-2-deictic,0shot,free,0.151,126,0.286,0.032,,speaker_confusion=0.841;tie=0.008
-smollm2-360m,dx-addressee-2-deictic,3shot_collide,all,0.339,180,0.287,0.035,,speaker_confusion=0.644;tie=0.017
-smollm2-360m,dx-addressee-2-deictic,3shot_collide,free,0.389,126,0.286,0.043,,speaker_confusion=0.603;tie=0.008
-smollm2-360m,dx-addressee-2-deictic,3shot,all,0.317,180,0.287,0.035,,speaker_confusion=0.672;tie=0.011
-smollm2-360m,dx-addressee-2-deictic,3shot,free,0.365,126,0.286,0.043,,speaker_confusion=0.635
-smollm2-360m,dx-addressee-2-third,0shot,all,0.333,180,0.287,0.035,,
-smollm2-360m,dx-addressee-2-third,0shot,free,0.246,126,0.286,0.038,,
-smollm2-360m,dx-addressee-2-third,3shot_collide,all,0.328,180,0.287,0.035,,
-smollm2-360m,dx-addressee-2-third,3shot_collide,free,0.357,126,0.286,0.043,,
-smollm2-360m,dx-addressee-2-third,3shot,all,0.344,180,0.287,0.035,,
-smollm2-360m,dx-addressee-2-third,3shot,free,0.349,126,0.286,0.043,,
-smollm2-360m,sb-k1,0shot,all,0.391,64,0.125,0.061,,
-smollm2-360m,sb-k1,3shot_collide,all,0.562,64,0.125,0.062,,
-smollm2-360m,sb-k1,3shot,all,0.500,64,0.125,0.062,,
-smollm2-360m,sb-k23,0shot,all,0.156,128,0.027,0.032,,
-smollm2-360m,sb-k23,3shot_collide,all,0.227,128,0.027,0.037,,
-smollm2-360m,sb-k23,3shot,all,0.258,128,0.027,0.039,,
-smollm2-360m,sb-split,0shot,all,0.102,128,0.027,0.027,,
-smollm2-360m,sb-split,3shot_collide,all,0.031,128,0.027,0.015,,
-smollm2-360m,sb-split,3shot,all,0.047,128,0.027,0.019,,
-smollm2-360m,sb-dyn,0shot,all,0.086,256,0.027,0.018,,
-smollm2-360m,sb-dyn,3shot_collide,all,0.035,256,0.027,0.011,,
-smollm2-360m,sb-dyn,3shot,all,0.047,256,0.027,0.013,,
-smollm2-360m,an-narr,0shot,all,0.317,640,0.250,0.018,,
-smollm2-360m,an-narr,3shot_collide,all,0.159,640,0.250,0.015,,
-smollm2-360m,an-narr,3shot,all,0.278,640,0.250,0.018,,
-smollm2-360m,an-other-any,0shot,all,0.181,320,0.250,0.021,,
-smollm2-360m,an-other-any,3shot_collide,all,0.338,320,0.250,0.026,,
-smollm2-360m,an-other-any,3shot,all,0.266,320,0.250,0.025,,
-smollm2-360m,an-me-any,0shot,all,0.438,160,0.250,0.039,,
-smollm2-360m,an-me-any,3shot_collide,all,0.006,160,0.250,0.006,,
-smollm2-360m,an-me-any,3shot,all,0.019,160,0.250,0.011,,
-smollm2-360m,an-you-voc,0shot,all,0.600,80,0.250,0.055,,
-smollm2-360m,an-you-voc,3shot_collide,all,0.263,80,0.250,0.049,,
-smollm2-360m,an-you-voc,3shot,all,0.263,80,0.250,0.049,,
-smollm2-360m,an-you-novoc,0shot,all,0.400,80,0.250,0.055,,
-smollm2-360m,an-you-novoc,3shot_collide,all,0.463,80,0.250,0.056,,
-smollm2-360m,an-you-novoc,3shot,all,0.588,80,0.250,0.055,,
-smollm2-360m,adj-adj,0shot,all,0.400,260,0.333,0.030,,
-smollm2-360m,adj-adj,3shot_collide,all,0.158,260,0.333,0.023,,
-smollm2-360m,adj-adj,3shot,all,0.258,260,0.333,0.027,,
-smollm2-360m,adj-voc,0shot,all,0.423,260,0.333,0.031,,
-smollm2-360m,adj-voc,3shot_collide,all,0.235,260,0.333,0.026,,
-smollm2-360m,adj-voc,3shot,all,0.277,260,0.333,0.028,,
-smollm2-360m,adj-third,0shot,all,0.581,260,0.333,0.031,,
-smollm2-360m,adj-third,3shot_collide,all,0.288,260,0.333,0.028,,
-smollm2-360m,adj-third,3shot,all,0.354,260,0.333,0.030,,
-smollm2-360m,cm-mutate,0shot,all,0.565,200,0.200,0.035,,
-smollm2-360m,cm-mutate,3shot_collide,all,0.465,200,0.200,0.035,,
-smollm2-360m,cm-mutate,3shot,all,0.370,200,0.200,0.034,,
-smollm2-360m,cm-rebind,0shot,all,0.035,200,0.200,0.013,,
-smollm2-360m,cm-rebind,3shot_collide,all,0.260,200,0.200,0.031,,
-smollm2-360m,cm-rebind,3shot,all,0.110,200,0.200,0.022,,
-smollm2-360m,cm-copy,0shot,all,0.010,200,0.200,0.007,,
-smollm2-360m,cm-copy,3shot_collide,all,0.315,200,0.200,0.033,,
-smollm2-360m,cm-copy,3shot,all,0.150,200,0.200,0.025,,
-pythia-410m,attr,0shot,all,0.526,1210,0.168,0.014,,
-pythia-410m,attr,3shot_collide,all,0.567,1210,0.168,0.014,,
-pythia-410m,attr,3shot,all,0.619,1210,0.168,0.014,,
-pythia-410m,codevar,0shot,all,0.250,1200,0.267,0.013,,
-pythia-410m,codevar,3shot_collide,all,0.383,1200,0.267,0.014,,
-pythia-410m,codevar,3shot,all,0.348,1200,0.267,0.014,,
-pythia-410m,dialogue,0shot,all,0.391,1200,0.312,0.014,,
-pythia-410m,dialogue,3shot_collide,all,0.409,1200,0.312,0.014,,
-pythia-410m,dialogue,3shot,all,0.451,1200,0.312,0.014,,
-pythia-410m,dx-owner-3-deictic,0shot,all,0.408,120,0.333,0.045,,other_participant=0.433;speaker_confusion=0.15;tie=0.008
-pythia-410m,dx-owner-3-deictic,0shot,free,0.400,40,0.333,0.077,,other_participant=0.45;speaker_confusion=0.125;tie=0.025
-pythia-410m,dx-owner-3-deictic,3shot_collide,all,0.117,120,0.333,0.029,,other_participant=0.483;speaker_confusion=0.4
-pythia-410m,dx-owner-3-deictic,3shot_collide,free,0.100,40,0.333,0.047,,other_participant=0.6;speaker_confusion=0.3
-pythia-410m,dx-owner-3-deictic,3shot,all,0.400,120,0.333,0.045,,other_participant=0.367;speaker_confusion=0.217;tie=0.017
-pythia-410m,dx-owner-3-deictic,3shot,free,0.525,40,0.333,0.079,,other_participant=0.325;speaker_confusion=0.15
-pythia-410m,dx-owner-3-third,0shot,all,0.450,120,0.333,0.045,,
-pythia-410m,dx-owner-3-third,0shot,free,0.450,40,0.333,0.079,,
-pythia-410m,dx-owner-3-third,3shot_collide,all,0.233,120,0.333,0.039,,
-pythia-410m,dx-owner-3-third,3shot_collide,free,0.175,40,0.333,0.060,,
-pythia-410m,dx-owner-3-third,3shot,all,0.467,120,0.333,0.045,,
-pythia-410m,dx-owner-3-third,3shot,free,0.450,40,0.333,0.079,,
-pythia-410m,dx-self-3-deictic,0shot,all,0.283,180,0.287,0.034,,other_object=0.244;previous_owner=0.128;speaker_confusion=0.339;tie=0.006
-pythia-410m,dx-self-3-deictic,0shot,free,0.318,126,0.286,0.042,,other_object=0.262;previous_owner=0.087;speaker_confusion=0.333
-pythia-410m,dx-self-3-deictic,3shot_collide,all,0.294,180,0.287,0.034,,other_object=0.278;previous_owner=0.094;speaker_confusion=0.311;tie=0.022
-pythia-410m,dx-self-3-deictic,3shot_collide,free,0.333,126,0.286,0.042,,other_object=0.302;previous_owner=0.056;speaker_confusion=0.286;tie=0.024
-pythia-410m,dx-self-3-deictic,3shot,all,0.322,180,0.287,0.035,,other_object=0.289;previous_owner=0.072;speaker_confusion=0.317
-pythia-410m,dx-self-3-deictic,3shot,free,0.373,126,0.286,0.043,,other_object=0.31;previous_owner=0.048;speaker_confusion=0.27
-pythia-410m,dx-self-3-third,0shot,all,0.311,180,0.287,0.035,,
-pythia-410m,dx-self-3-third,0shot,free,0.365,126,0.286,0.043,,
-pythia-410m,dx-self-3-third,3shot_collide,all,0.333,180,0.287,0.035,,
-pythia-410m,dx-self-3-third,3shot_collide,free,0.389,126,0.286,0.043,,
-pythia-410m,dx-self-3-third,3shot,all,0.294,180,0.287,0.034,,
-pythia-410m,dx-self-3-third,3shot,free,0.365,126,0.286,0.043,,
-pythia-410m,dx-self-2-deictic,0shot,all,0.239,180,0.287,0.032,,speaker_confusion=0.75;tie=0.011
-pythia-410m,dx-self-2-deictic,0shot,free,0.191,126,0.286,0.035,,speaker_confusion=0.802;tie=0.008
-pythia-410m,dx-self-2-deictic,3shot_collide,all,0.306,180,0.287,0.034,,speaker_confusion=0.689;tie=0.006
-pythia-410m,dx-self-2-deictic,3shot_collide,free,0.333,126,0.286,0.042,,speaker_confusion=0.659;tie=0.008
-pythia-410m,dx-self-2-deictic,3shot,all,0.294,180,0.287,0.034,,speaker_confusion=0.706
-pythia-410m,dx-self-2-deictic,3shot,free,0.302,126,0.286,0.041,,speaker_confusion=0.698
-pythia-410m,dx-self-2-third,0shot,all,0.256,180,0.287,0.033,,
-pythia-410m,dx-self-2-third,0shot,free,0.278,126,0.286,0.040,,
-pythia-410m,dx-self-2-third,3shot_collide,all,0.283,180,0.287,0.034,,
-pythia-410m,dx-self-2-third,3shot_collide,free,0.325,126,0.286,0.042,,
-pythia-410m,dx-self-2-third,3shot,all,0.328,180,0.287,0.035,,
-pythia-410m,dx-self-2-third,3shot,free,0.373,126,0.286,0.043,,
-pythia-410m,dx-addressee-3-deictic,0shot,all,0.361,180,0.287,0.036,,other_object=0.133;previous_owner=0.172;speaker_confusion=0.333
-pythia-410m,dx-addressee-3-deictic,0shot,free,0.309,126,0.286,0.041,,other_object=0.103;previous_owner=0.214;speaker_confusion=0.373
-pythia-410m,dx-addressee-3-deictic,3shot_collide,all,0.283,180,0.287,0.034,,other_object=0.178;previous_owner=0.15;speaker_confusion=0.383;tie=0.006
-pythia-410m,dx-addressee-3-deictic,3shot_collide,free,0.278,126,0.286,0.040,,other_object=0.151;previous_owner=0.167;speaker_confusion=0.397;tie=0.008
-pythia-410m,dx-addressee-3-deictic,3shot,all,0.322,180,0.287,0.035,,other_object=0.2;previous_owner=0.122;speaker_confusion=0.35;tie=0.006
-pythia-410m,dx-addressee-3-deictic,3shot,free,0.333,126,0.286,0.042,,other_object=0.151;previous_owner=0.159;speaker_confusion=0.349;tie=0.008
-pythia-410m,dx-addressee-3-third,0shot,all,0.283,180,0.287,0.034,,
-pythia-410m,dx-addressee-3-third,0shot,free,0.318,126,0.286,0.042,,
-pythia-410m,dx-addressee-3-third,3shot_collide,all,0.350,180,0.287,0.036,,
-pythia-410m,dx-addressee-3-third,3shot_collide,free,0.381,126,0.286,0.043,,
-pythia-410m,dx-addressee-3-third,3shot,all,0.322,180,0.287,0.035,,
-pythia-410m,dx-addressee-3-third,3shot,free,0.397,126,0.286,0.044,,
-pythia-410m,dx-addressee-2-deictic,0shot,all,0.233,180,0.287,0.032,,speaker_confusion=0.761;tie=0.006
-pythia-410m,dx-addressee-2-deictic,0shot,free,0.151,126,0.286,0.032,,speaker_confusion=0.849
-pythia-410m,dx-addressee-2-deictic,3shot_collide,all,0.278,180,0.287,0.033,,speaker_confusion=0.717;tie=0.006
-pythia-410m,dx-addressee-2-deictic,3shot_collide,free,0.222,126,0.286,0.037,,speaker_confusion=0.77;tie=0.008
-pythia-410m,dx-addressee-2-deictic,3shot,all,0.239,180,0.287,0.032,,speaker_confusion=0.756;tie=0.006
-pythia-410m,dx-addressee-2-deictic,3shot,free,0.191,126,0.286,0.035,,speaker_confusion=0.81
-pythia-410m,dx-addressee-2-third,0shot,all,0.261,180,0.287,0.033,,
-pythia-410m,dx-addressee-2-third,0shot,free,0.302,126,0.286,0.041,,
-pythia-410m,dx-addressee-2-third,3shot_collide,all,0.350,180,0.287,0.036,,
-pythia-410m,dx-addressee-2-third,3shot_collide,free,0.365,126,0.286,0.043,,
-pythia-410m,dx-addressee-2-third,3shot,all,0.350,180,0.287,0.036,,
-pythia-410m,dx-addressee-2-third,3shot,free,0.381,126,0.286,0.043,,
-pythia-410m,sb-k1,0shot,all,0.578,64,0.125,0.062,,
-pythia-410m,sb-k1,3shot_collide,all,0.375,64,0.125,0.060,,
-pythia-410m,sb-k1,3shot,all,0.391,64,0.125,0.061,,
-pythia-410m,sb-k23,0shot,all,0.102,128,0.027,0.027,,
-pythia-410m,sb-k23,3shot_collide,all,0.227,128,0.027,0.037,,
-pythia-410m,sb-k23,3shot,all,0.219,128,0.027,0.036,,
-pythia-410m,sb-split,0shot,all,0.125,128,0.027,0.029,,
-pythia-410m,sb-split,3shot_collide,all,0.039,128,0.027,0.017,,
-pythia-410m,sb-split,3shot,all,0.078,128,0.027,0.024,,
-pythia-410m,sb-dyn,0shot,all,0.105,256,0.027,0.019,,
-pythia-410m,sb-dyn,3shot_collide,all,0.027,256,0.027,0.010,,
-pythia-410m,sb-dyn,3shot,all,0.055,256,0.027,0.014,,
-pythia-410m,an-narr,0shot,all,0.372,640,0.250,0.019,,
-pythia-410m,an-narr,3shot_collide,all,0.119,640,0.250,0.013,,
-pythia-410m,an-narr,3shot,all,0.356,640,0.250,0.019,,
-pythia-410m,an-other-any,0shot,all,0.241,320,0.250,0.024,,
-pythia-410m,an-other-any,3shot_collide,all,0.356,320,0.250,0.027,,
-pythia-410m,an-other-any,3shot,all,0.256,320,0.250,0.024,,
-pythia-410m,an-me-any,0shot,all,0.219,160,0.250,0.033,,
-pythia-410m,an-me-any,3shot_collide,all,0.231,160,0.250,0.033,,
-pythia-410m,an-me-any,3shot,all,0.206,160,0.250,0.032,,
-pythia-410m,an-you-voc,0shot,all,0.300,80,0.250,0.051,,
-pythia-410m,an-you-voc,3shot_collide,all,0.113,80,0.250,0.035,,
-pythia-410m,an-you-voc,3shot,all,0.075,80,0.250,0.029,,
-pythia-410m,an-you-novoc,0shot,all,0.787,80,0.250,0.046,,
-pythia-410m,an-you-novoc,3shot_collide,all,0.087,80,0.250,0.032,,
-pythia-410m,an-you-novoc,3shot,all,0.163,80,0.250,0.041,,
-pythia-410m,adj-adj,0shot,all,0.354,260,0.333,0.030,,
-pythia-410m,adj-adj,3shot_collide,all,0.088,260,0.333,0.018,,
-pythia-410m,adj-adj,3shot,all,0.396,260,0.333,0.030,,
-pythia-410m,adj-voc,0shot,all,0.415,260,0.333,0.031,,
-pythia-410m,adj-voc,3shot_collide,all,0.112,260,0.333,0.019,,
-pythia-410m,adj-voc,3shot,all,0.396,260,0.333,0.030,,
-pythia-410m,adj-third,0shot,all,0.488,260,0.333,0.031,,
-pythia-410m,adj-third,3shot_collide,all,0.342,260,0.333,0.029,,
-pythia-410m,adj-third,3shot,all,0.469,260,0.333,0.031,,
-pythia-410m,cm-mutate,0shot,all,0.320,200,0.200,0.033,,
-pythia-410m,cm-mutate,3shot_collide,all,0.415,200,0.200,0.035,,
-pythia-410m,cm-mutate,3shot,all,0.340,200,0.200,0.034,,
-pythia-410m,cm-rebind,0shot,all,0.130,200,0.200,0.024,,
-pythia-410m,cm-rebind,3shot_collide,all,0.325,200,0.200,0.033,,
-pythia-410m,cm-rebind,3shot,all,0.155,200,0.200,0.026,,
-pythia-410m,cm-copy,0shot,all,0.125,200,0.200,0.023,,
-pythia-410m,cm-copy,3shot_collide,all,0.315,200,0.200,0.033,,
-pythia-410m,cm-copy,3shot,all,0.270,200,0.200,0.031,,
-qwen2.5-0.5b,attr,0shot,all,0.388,1210,0.168,0.014,,
-qwen2.5-0.5b,attr,3shot_collide,all,0.786,1210,0.168,0.012,,
-qwen2.5-0.5b,attr,3shot,all,0.946,1210,0.168,0.006,,
-qwen2.5-0.5b,codevar,0shot,all,0.326,1200,0.267,0.013,,
-qwen2.5-0.5b,codevar,3shot_collide,all,0.422,1200,0.267,0.014,,
-qwen2.5-0.5b,codevar,3shot,all,0.417,1200,0.267,0.014,,
-qwen2.5-0.5b,dialogue,0shot,all,0.450,1200,0.312,0.014,,
-qwen2.5-0.5b,dialogue,3shot_collide,all,0.473,1200,0.312,0.014,,
-qwen2.5-0.5b,dialogue,3shot,all,0.463,1200,0.312,0.014,,
-qwen2.5-0.5b,dx-owner-3-deictic,0shot,all,0.450,120,0.333,0.045,,other_participant=0.325;speaker_confusion=0.217;tie=0.008
-qwen2.5-0.5b,dx-owner-3-deictic,0shot,free,0.475,40,0.333,0.079,,other_participant=0.4;speaker_confusion=0.1;tie=0.025
-qwen2.5-0.5b,dx-owner-3-deictic,3shot_collide,all,0.133,120,0.333,0.031,,other_participant=0.525;speaker_confusion=0.333;tie=0.008
-qwen2.5-0.5b,dx-owner-3-deictic,3shot_collide,free,0.025,40,0.333,0.025,,other_participant=0.725;speaker_confusion=0.25
-qwen2.5-0.5b,dx-owner-3-deictic,3shot,all,0.225,120,0.333,0.038,,other_participant=0.417;speaker_confusion=0.342;tie=0.017
-qwen2.5-0.5b,dx-owner-3-deictic,3shot,free,0.150,40,0.333,0.057,,other_participant=0.575;speaker_confusion=0.275
-qwen2.5-0.5b,dx-owner-3-third,0shot,all,0.492,120,0.333,0.046,,
-qwen2.5-0.5b,dx-owner-3-third,0shot,free,0.500,40,0.333,0.079,,
-qwen2.5-0.5b,dx-owner-3-third,3shot_collide,all,0.317,120,0.333,0.043,,
-qwen2.5-0.5b,dx-owner-3-third,3shot_collide,free,0.150,40,0.333,0.057,,
-qwen2.5-0.5b,dx-owner-3-third,3shot,all,0.467,120,0.333,0.045,,
-qwen2.5-0.5b,dx-owner-3-third,3shot,free,0.450,40,0.333,0.079,,
-qwen2.5-0.5b,dx-self-3-deictic,0shot,all,0.300,180,0.287,0.034,,other_object=0.283;previous_owner=0.061;speaker_confusion=0.35;tie=0.006
-qwen2.5-0.5b,dx-self-3-deictic,0shot,free,0.373,126,0.286,0.043,,other_object=0.278;previous_owner=0.024;speaker_confusion=0.317;tie=0.008
-qwen2.5-0.5b,dx-self-3-deictic,3shot_collide,all,0.306,180,0.287,0.034,,other_object=0.306;previous_owner=0.05;speaker_confusion=0.339
-qwen2.5-0.5b,dx-self-3-deictic,3shot_collide,free,0.341,126,0.286,0.042,,other_object=0.317;previous_owner=0.032;speaker_confusion=0.31
-qwen2.5-0.5b,dx-self-3-deictic,3shot,all,0.311,180,0.287,0.035,,other_object=0.322;previous_owner=0.033;speaker_confusion=0.333
-qwen2.5-0.5b,dx-self-3-deictic,3shot,free,0.325,126,0.286,0.042,,other_object=0.349;previous_owner=0.024;speaker_confusion=0.302
-qwen2.5-0.5b,dx-self-3-third,0shot,all,0.239,180,0.287,0.032,,
-qwen2.5-0.5b,dx-self-3-third,0shot,free,0.095,126,0.286,0.026,,
-qwen2.5-0.5b,dx-self-3-third,3shot_collide,all,0.328,180,0.287,0.035,,
-qwen2.5-0.5b,dx-self-3-third,3shot_collide,free,0.381,126,0.286,0.043,,
-qwen2.5-0.5b,dx-self-3-third,3shot,all,0.272,180,0.287,0.033,,
-qwen2.5-0.5b,dx-self-3-third,3shot,free,0.302,126,0.286,0.041,,
-qwen2.5-0.5b,dx-self-2-deictic,0shot,all,0.272,180,0.287,0.033,,speaker_confusion=0.711;tie=0.017
-qwen2.5-0.5b,dx-self-2-deictic,0shot,free,0.318,126,0.286,0.042,,speaker_confusion=0.667;tie=0.016
-qwen2.5-0.5b,dx-self-2-deictic,3shot_collide,all,0.328,180,0.287,0.035,,speaker_confusion=0.661;tie=0.011
-qwen2.5-0.5b,dx-self-2-deictic,3shot_collide,free,0.389,126,0.286,0.043,,speaker_confusion=0.603;tie=0.008
-qwen2.5-0.5b,dx-self-2-deictic,3shot,all,0.306,180,0.287,0.034,,speaker_confusion=0.694
-qwen2.5-0.5b,dx-self-2-deictic,3shot,free,0.373,126,0.286,0.043,,speaker_confusion=0.627
-qwen2.5-0.5b,dx-self-2-third,0shot,all,0.333,180,0.287,0.035,,
-qwen2.5-0.5b,dx-self-2-third,0shot,free,0.214,126,0.286,0.037,,
-qwen2.5-0.5b,dx-self-2-third,3shot_collide,all,0.317,180,0.287,0.035,,
-qwen2.5-0.5b,dx-self-2-third,3shot_collide,free,0.349,126,0.286,0.043,,
-qwen2.5-0.5b,dx-self-2-third,3shot,all,0.322,180,0.287,0.035,,
-qwen2.5-0.5b,dx-self-2-third,3shot,free,0.341,126,0.286,0.042,,
-qwen2.5-0.5b,dx-addressee-3-deictic,0shot,all,0.306,180,0.287,0.034,,other_object=0.194;previous_owner=0.15;speaker_confusion=0.333;tie=0.017
-qwen2.5-0.5b,dx-addressee-3-deictic,0shot,free,0.349,126,0.286,0.043,,other_object=0.127;previous_owner=0.167;speaker_confusion=0.341;tie=0.016
-qwen2.5-0.5b,dx-addressee-3-deictic,3shot_collide,all,0.278,180,0.287,0.033,,other_object=0.222;previous_owner=0.139;speaker_confusion=0.344;tie=0.017
-qwen2.5-0.5b,dx-addressee-3-deictic,3shot_collide,free,0.302,126,0.286,0.041,,other_object=0.198;previous_owner=0.159;speaker_confusion=0.325;tie=0.016
-qwen2.5-0.5b,dx-addressee-3-deictic,3shot,all,0.306,180,0.287,0.034,,other_object=0.233;previous_owner=0.111;speaker_confusion=0.339;tie=0.011
-qwen2.5-0.5b,dx-addressee-3-deictic,3shot,free,0.318,126,0.286,0.042,,other_object=0.19;previous_owner=0.111;speaker_confusion=0.365;tie=0.016
-qwen2.5-0.5b,dx-addressee-3-third,0shot,all,0.317,180,0.287,0.035,,
-qwen2.5-0.5b,dx-addressee-3-third,0shot,free,0.159,126,0.286,0.033,,
-qwen2.5-0.5b,dx-addressee-3-third,3shot_collide,all,0.328,180,0.287,0.035,,
-qwen2.5-0.5b,dx-addressee-3-third,3shot_collide,free,0.302,126,0.286,0.041,,
-qwen2.5-0.5b,dx-addressee-3-third,3shot,all,0.311,180,0.287,0.035,,
-qwen2.5-0.5b,dx-addressee-3-third,3shot,free,0.302,126,0.286,0.041,,
-qwen2.5-0.5b,dx-addressee-2-deictic,0shot,all,0.233,180,0.287,0.032,,speaker_confusion=0.761;tie=0.006
-qwen2.5-0.5b,dx-addressee-2-deictic,0shot,free,0.214,126,0.286,0.037,,speaker_confusion=0.786
-qwen2.5-0.5b,dx-addressee-2-deictic,3shot_collide,all,0.394,180,0.287,0.036,,speaker_confusion=0.583;tie=0.022
-qwen2.5-0.5b,dx-addressee-2-deictic,3shot_collide,free,0.429,126,0.286,0.044,,speaker_confusion=0.556;tie=0.016
-qwen2.5-0.5b,dx-addressee-2-deictic,3shot,all,0.378,180,0.287,0.036,,speaker_confusion=0.583;tie=0.039
-qwen2.5-0.5b,dx-addressee-2-deictic,3shot,free,0.405,126,0.286,0.044,,speaker_confusion=0.556;tie=0.04
-qwen2.5-0.5b,dx-addressee-2-third,0shot,all,0.272,180,0.287,0.033,,
-qwen2.5-0.5b,dx-addressee-2-third,0shot,free,0.159,126,0.286,0.033,,
-qwen2.5-0.5b,dx-addressee-2-third,3shot_collide,all,0.344,180,0.287,0.035,,
-qwen2.5-0.5b,dx-addressee-2-third,3shot_collide,free,0.373,126,0.286,0.043,,
-qwen2.5-0.5b,dx-addressee-2-third,3shot,all,0.350,180,0.287,0.036,,
-qwen2.5-0.5b,dx-addressee-2-third,3shot,free,0.373,126,0.286,0.043,,
-qwen2.5-0.5b,sb-k1,0shot,all,0.469,64,0.125,0.062,,
-qwen2.5-0.5b,sb-k1,3shot_collide,all,0.484,64,0.125,0.062,,
-qwen2.5-0.5b,sb-k1,3shot,all,0.828,64,0.125,0.047,,
-qwen2.5-0.5b,sb-k23,0shot,all,0.125,128,0.027,0.029,,
-qwen2.5-0.5b,sb-k23,3shot_collide,all,0.266,128,0.027,0.039,,
-qwen2.5-0.5b,sb-k23,3shot,all,0.352,128,0.027,0.042,,
-qwen2.5-0.5b,sb-split,0shot,all,0.164,128,0.027,0.033,,
-qwen2.5-0.5b,sb-split,3shot_collide,all,0.117,128,0.027,0.028,,
-qwen2.5-0.5b,sb-split,3shot,all,0.148,128,0.027,0.031,,
-qwen2.5-0.5b,sb-dyn,0shot,all,0.137,256,0.027,0.021,,
-qwen2.5-0.5b,sb-dyn,3shot_collide,all,0.047,256,0.027,0.013,,
-qwen2.5-0.5b,sb-dyn,3shot,all,0.059,256,0.027,0.015,,
-qwen2.5-0.5b,an-narr,0shot,all,0.342,640,0.250,0.019,,
-qwen2.5-0.5b,an-narr,3shot_collide,all,0.189,640,0.250,0.015,,
-qwen2.5-0.5b,an-narr,3shot,all,0.212,640,0.250,0.016,,
-qwen2.5-0.5b,an-other-any,0shot,all,0.403,320,0.250,0.027,,
-qwen2.5-0.5b,an-other-any,3shot_collide,all,0.250,320,0.250,0.024,,
-qwen2.5-0.5b,an-other-any,3shot,all,0.269,320,0.250,0.025,,
-qwen2.5-0.5b,an-me-any,0shot,all,0.469,160,0.250,0.040,,
-qwen2.5-0.5b,an-me-any,3shot_collide,all,0.019,160,0.250,0.011,,
-qwen2.5-0.5b,an-me-any,3shot,all,0.013,160,0.250,0.009,,
-qwen2.5-0.5b,an-you-voc,0shot,all,0.113,80,0.250,0.035,,
-qwen2.5-0.5b,an-you-voc,3shot_collide,all,0.163,80,0.250,0.041,,
-qwen2.5-0.5b,an-you-voc,3shot,all,0.188,80,0.250,0.044,,
-qwen2.5-0.5b,an-you-novoc,0shot,all,0.150,80,0.250,0.040,,
-qwen2.5-0.5b,an-you-novoc,3shot_collide,all,0.275,80,0.250,0.050,,
-qwen2.5-0.5b,an-you-novoc,3shot,all,0.263,80,0.250,0.049,,
-qwen2.5-0.5b,adj-adj,0shot,all,0.373,260,0.333,0.030,,
-qwen2.5-0.5b,adj-adj,3shot_collide,all,0.123,260,0.333,0.020,,
-qwen2.5-0.5b,adj-adj,3shot,all,0.235,260,0.333,0.026,,
-qwen2.5-0.5b,adj-voc,0shot,all,0.419,260,0.333,0.031,,
-qwen2.5-0.5b,adj-voc,3shot_collide,all,0.146,260,0.333,0.022,,
-qwen2.5-0.5b,adj-voc,3shot,all,0.238,260,0.333,0.026,,
-qwen2.5-0.5b,adj-third,0shot,all,0.523,260,0.333,0.031,,
-qwen2.5-0.5b,adj-third,3shot_collide,all,0.504,260,0.333,0.031,,
-qwen2.5-0.5b,adj-third,3shot,all,0.550,260,0.333,0.031,,
-qwen2.5-0.5b,cm-mutate,0shot,all,0.580,200,0.200,0.035,,
-qwen2.5-0.5b,cm-mutate,3shot_collide,all,0.660,200,0.200,0.034,,
-qwen2.5-0.5b,cm-mutate,3shot,all,0.760,200,0.200,0.030,,
-qwen2.5-0.5b,cm-rebind,0shot,all,0.050,200,0.200,0.015,,
-qwen2.5-0.5b,cm-rebind,3shot_collide,all,0.455,200,0.200,0.035,,
-qwen2.5-0.5b,cm-rebind,3shot,all,0.385,200,0.200,0.034,,
-qwen2.5-0.5b,cm-copy,0shot,all,0.035,200,0.200,0.013,,
-qwen2.5-0.5b,cm-copy,3shot_collide,all,0.400,200,0.200,0.035,,
-qwen2.5-0.5b,cm-copy,3shot,all,0.435,200,0.200,0.035,,
-qwen3-0.6b-base,attr,0shot,all,0.626,1210,0.168,0.014,,
-qwen3-0.6b-base,attr,3shot_collide,all,0.842,1210,0.168,0.011,,
-qwen3-0.6b-base,attr,3shot,all,0.946,1210,0.168,0.006,,
-qwen3-0.6b-base,codevar,0shot,all,0.397,1200,0.267,0.014,,
-qwen3-0.6b-base,codevar,3shot_collide,all,0.512,1200,0.267,0.014,,
-qwen3-0.6b-base,codevar,3shot,all,0.517,1200,0.267,0.014,,
-qwen3-0.6b-base,dialogue,0shot,all,0.550,1200,0.312,0.014,,
-qwen3-0.6b-base,dialogue,3shot_collide,all,0.569,1200,0.312,0.014,,
-qwen3-0.6b-base,dialogue,3shot,all,0.579,1200,0.312,0.014,,
-qwen3-0.6b-base,dx-owner-3-deictic,0shot,all,0.467,120,0.333,0.045,,other_participant=0.433;speaker_confusion=0.1
-qwen3-0.6b-base,dx-owner-3-deictic,0shot,free,0.400,40,0.333,0.077,,other_participant=0.575;speaker_confusion=0.025
-qwen3-0.6b-base,dx-owner-3-deictic,3shot_collide,all,0.308,120,0.333,0.042,,other_participant=0.408;speaker_confusion=0.275;tie=0.008
-qwen3-0.6b-base,dx-owner-3-deictic,3shot_collide,free,0.200,40,0.333,0.063,,other_participant=0.625;speaker_confusion=0.175
-qwen3-0.6b-base,dx-owner-3-deictic,3shot,all,0.442,120,0.333,0.045,,other_participant=0.325;speaker_confusion=0.225;tie=0.008
-qwen3-0.6b-base,dx-owner-3-deictic,3shot,free,0.425,40,0.333,0.078,,other_participant=0.4;speaker_confusion=0.15;tie=0.025
-qwen3-0.6b-base,dx-owner-3-third,0shot,all,0.542,120,0.333,0.045,,
-qwen3-0.6b-base,dx-owner-3-third,0shot,free,0.600,40,0.333,0.077,,
-qwen3-0.6b-base,dx-owner-3-third,3shot_collide,all,0.417,120,0.333,0.045,,
-qwen3-0.6b-base,dx-owner-3-third,3shot_collide,free,0.375,40,0.333,0.076,,
-qwen3-0.6b-base,dx-owner-3-third,3shot,all,0.517,120,0.333,0.046,,
-qwen3-0.6b-base,dx-owner-3-third,3shot,free,0.575,40,0.333,0.078,,
-qwen3-0.6b-base,dx-self-3-deictic,0shot,all,0.389,180,0.287,0.036,,other_object=0.189;previous_owner=0.067;speaker_confusion=0.322;tie=0.033
-qwen3-0.6b-base,dx-self-3-deictic,0shot,free,0.397,126,0.286,0.044,,other_object=0.167;previous_owner=0.071;speaker_confusion=0.349;tie=0.016
-qwen3-0.6b-base,dx-self-3-deictic,3shot_collide,all,0.367,180,0.287,0.036,,other_object=0.261;previous_owner=0.022;speaker_confusion=0.344;tie=0.006
-qwen3-0.6b-base,dx-self-3-deictic,3shot_collide,free,0.436,126,0.286,0.044,,other_object=0.27;previous_owner=0.032;speaker_confusion=0.254;tie=0.008
-qwen3-0.6b-base,dx-self-3-deictic,3shot,all,0.356,180,0.287,0.036,,other_object=0.278;previous_owner=0.039;speaker_confusion=0.317;tie=0.011
-qwen3-0.6b-base,dx-self-3-deictic,3shot,free,0.436,126,0.286,0.044,,other_object=0.286;previous_owner=0.04;speaker_confusion=0.222;tie=0.016
-qwen3-0.6b-base,dx-self-3-third,0shot,all,0.294,180,0.287,0.034,,
-qwen3-0.6b-base,dx-self-3-third,0shot,free,0.309,126,0.286,0.041,,
-qwen3-0.6b-base,dx-self-3-third,3shot_collide,all,0.289,180,0.287,0.034,,
-qwen3-0.6b-base,dx-self-3-third,3shot_collide,free,0.381,126,0.286,0.043,,
-qwen3-0.6b-base,dx-self-3-third,3shot,all,0.306,180,0.287,0.034,,
-qwen3-0.6b-base,dx-self-3-third,3shot,free,0.397,126,0.286,0.044,,
-qwen3-0.6b-base,dx-self-2-deictic,0shot,all,0.372,180,0.287,0.036,,speaker_confusion=0.622;tie=0.006
-qwen3-0.6b-base,dx-self-2-deictic,0shot,free,0.444,126,0.286,0.044,,speaker_confusion=0.548;tie=0.008
-qwen3-0.6b-base,dx-self-2-deictic,3shot_collide,all,0.417,180,0.287,0.037,,speaker_confusion=0.578;tie=0.006
-qwen3-0.6b-base,dx-self-2-deictic,3shot_collide,free,0.532,126,0.286,0.044,,speaker_confusion=0.46;tie=0.008
-qwen3-0.6b-base,dx-self-2-deictic,3shot,all,0.439,180,0.287,0.037,,speaker_confusion=0.544;tie=0.017
-qwen3-0.6b-base,dx-self-2-deictic,3shot,free,0.556,126,0.286,0.044,,speaker_confusion=0.429;tie=0.016
-qwen3-0.6b-base,dx-self-2-third,0shot,all,0.367,180,0.287,0.036,,
-qwen3-0.6b-base,dx-self-2-third,0shot,free,0.436,126,0.286,0.044,,
-qwen3-0.6b-base,dx-self-2-third,3shot_collide,all,0.428,180,0.287,0.037,,
-qwen3-0.6b-base,dx-self-2-third,3shot_collide,free,0.540,126,0.286,0.044,,
-qwen3-0.6b-base,dx-self-2-third,3shot,all,0.450,180,0.287,0.037,,
-qwen3-0.6b-base,dx-self-2-third,3shot,free,0.548,126,0.286,0.044,,
-qwen3-0.6b-base,dx-addressee-3-deictic,0shot,all,0.278,180,0.287,0.033,,other_object=0.189;previous_owner=0.106;speaker_confusion=0.417;tie=0.011
-qwen3-0.6b-base,dx-addressee-3-deictic,0shot,free,0.278,126,0.286,0.040,,other_object=0.19;previous_owner=0.135;speaker_confusion=0.389;tie=0.008
-qwen3-0.6b-base,dx-addressee-3-deictic,3shot_collide,all,0.311,180,0.287,0.035,,other_object=0.244;previous_owner=0.072;speaker_confusion=0.356;tie=0.017
-qwen3-0.6b-base,dx-addressee-3-deictic,3shot_collide,free,0.373,126,0.286,0.043,,other_object=0.183;previous_owner=0.103;speaker_confusion=0.317;tie=0.024
-qwen3-0.6b-base,dx-addressee-3-deictic,3shot,all,0.311,180,0.287,0.035,,other_object=0.244;previous_owner=0.05;speaker_confusion=0.378;tie=0.017
-qwen3-0.6b-base,dx-addressee-3-deictic,3shot,free,0.357,126,0.286,0.043,,other_object=0.198;previous_owner=0.071;speaker_confusion=0.357;tie=0.016
-qwen3-0.6b-base,dx-addressee-3-third,0shot,all,0.333,180,0.287,0.035,,
-qwen3-0.6b-base,dx-addressee-3-third,0shot,free,0.373,126,0.286,0.043,,
-qwen3-0.6b-base,dx-addressee-3-third,3shot_collide,all,0.344,180,0.287,0.035,,
-qwen3-0.6b-base,dx-addressee-3-third,3shot_collide,free,0.436,126,0.286,0.044,,
-qwen3-0.6b-base,dx-addressee-3-third,3shot,all,0.339,180,0.287,0.035,,
-qwen3-0.6b-base,dx-addressee-3-third,3shot,free,0.436,126,0.286,0.044,,
-qwen3-0.6b-base,dx-addressee-2-deictic,0shot,all,0.261,180,0.287,0.033,,speaker_confusion=0.717;tie=0.022
-qwen3-0.6b-base,dx-addressee-2-deictic,0shot,free,0.302,126,0.286,0.041,,speaker_confusion=0.675;tie=0.024
-qwen3-0.6b-base,dx-addressee-2-deictic,3shot_collide,all,0.372,180,0.287,0.036,,speaker_confusion=0.611;tie=0.017
-qwen3-0.6b-base,dx-addressee-2-deictic,3shot_collide,free,0.429,126,0.286,0.044,,speaker_confusion=0.548;tie=0.024
-qwen3-0.6b-base,dx-addressee-2-deictic,3shot,all,0.389,180,0.287,0.036,,speaker_confusion=0.611
-qwen3-0.6b-base,dx-addressee-2-deictic,3shot,free,0.452,126,0.286,0.044,,speaker_confusion=0.548
-qwen3-0.6b-base,dx-addressee-2-third,0shot,all,0.433,180,0.287,0.037,,
-qwen3-0.6b-base,dx-addressee-2-third,0shot,free,0.532,126,0.286,0.044,,
-qwen3-0.6b-base,dx-addressee-2-third,3shot_collide,all,0.472,180,0.287,0.037,,
-qwen3-0.6b-base,dx-addressee-2-third,3shot_collide,free,0.635,126,0.286,0.043,,
-qwen3-0.6b-base,dx-addressee-2-third,3shot,all,0.494,180,0.287,0.037,,
-qwen3-0.6b-base,dx-addressee-2-third,3shot,free,0.651,126,0.286,0.043,,
-qwen3-0.6b-base,sb-k1,0shot,all,0.578,64,0.125,0.062,,
-qwen3-0.6b-base,sb-k1,3shot_collide,all,0.891,64,0.125,0.039,,
-qwen3-0.6b-base,sb-k1,3shot,all,0.953,64,0.125,0.026,,
-qwen3-0.6b-base,sb-k23,0shot,all,0.414,128,0.027,0.043,,
-qwen3-0.6b-base,sb-k23,3shot_collide,all,0.586,128,0.027,0.043,,
-qwen3-0.6b-base,sb-k23,3shot,all,0.688,128,0.027,0.041,,
-qwen3-0.6b-base,sb-split,0shot,all,0.273,128,0.027,0.039,,
-qwen3-0.6b-base,sb-split,3shot_collide,all,0.305,128,0.027,0.041,,
-qwen3-0.6b-base,sb-split,3shot,all,0.359,128,0.027,0.042,,
-qwen3-0.6b-base,sb-dyn,0shot,all,0.117,256,0.027,0.020,,
-qwen3-0.6b-base,sb-dyn,3shot_collide,all,0.113,256,0.027,0.020,,
-qwen3-0.6b-base,sb-dyn,3shot,all,0.113,256,0.027,0.020,,
-qwen3-0.6b-base,an-narr,0shot,all,0.388,640,0.250,0.019,,
-qwen3-0.6b-base,an-narr,3shot_collide,all,0.316,640,0.250,0.018,,
-qwen3-0.6b-base,an-narr,3shot,all,0.391,640,0.250,0.019,,
-qwen3-0.6b-base,an-other-any,0shot,all,0.366,320,0.250,0.027,,
-qwen3-0.6b-base,an-other-any,3shot_collide,all,0.312,320,0.250,0.026,,
-qwen3-0.6b-base,an-other-any,3shot,all,0.244,320,0.250,0.024,,
-qwen3-0.6b-base,an-me-any,0shot,all,0.194,160,0.250,0.031,,
-qwen3-0.6b-base,an-me-any,3shot_collide,all,0.100,160,0.250,0.024,,
-qwen3-0.6b-base,an-me-any,3shot,all,0.056,160,0.250,0.018,,
-qwen3-0.6b-base,an-you-voc,0shot,all,0.350,80,0.250,0.053,,
-qwen3-0.6b-base,an-you-voc,3shot_collide,all,0.350,80,0.250,0.053,,
-qwen3-0.6b-base,an-you-voc,3shot,all,0.312,80,0.250,0.052,,
-qwen3-0.6b-base,an-you-novoc,0shot,all,0.500,80,0.250,0.056,,
-qwen3-0.6b-base,an-you-novoc,3shot_collide,all,0.150,80,0.250,0.040,,
-qwen3-0.6b-base,an-you-novoc,3shot,all,0.087,80,0.250,0.032,,
-qwen3-0.6b-base,adj-adj,0shot,all,0.439,260,0.333,0.031,,
-qwen3-0.6b-base,adj-adj,3shot_collide,all,0.254,260,0.333,0.027,,
-qwen3-0.6b-base,adj-adj,3shot,all,0.311,260,0.333,0.029,,
-qwen3-0.6b-base,adj-voc,0shot,all,0.565,260,0.333,0.031,,
-qwen3-0.6b-base,adj-voc,3shot_collide,all,0.235,260,0.333,0.026,,
-qwen3-0.6b-base,adj-voc,3shot,all,0.288,260,0.333,0.028,,
-qwen3-0.6b-base,adj-third,0shot,all,0.761,260,0.333,0.026,,
-qwen3-0.6b-base,adj-third,3shot_collide,all,0.431,260,0.333,0.031,,
-qwen3-0.6b-base,adj-third,3shot,all,0.442,260,0.333,0.031,,
-qwen3-0.6b-base,cm-mutate,0shot,all,0.800,200,0.200,0.028,,
-qwen3-0.6b-base,cm-mutate,3shot_collide,all,0.770,200,0.200,0.030,,
-qwen3-0.6b-base,cm-mutate,3shot,all,0.780,200,0.200,0.029,,
-qwen3-0.6b-base,cm-rebind,0shot,all,0.070,200,0.200,0.018,,
-qwen3-0.6b-base,cm-rebind,3shot_collide,all,0.310,200,0.200,0.033,,
-qwen3-0.6b-base,cm-rebind,3shot,all,0.355,200,0.200,0.034,,
-qwen3-0.6b-base,cm-copy,0shot,all,0.000,200,0.200,0.000,,
-qwen3-0.6b-base,cm-copy,3shot_collide,all,0.360,200,0.200,0.034,,
-qwen3-0.6b-base,cm-copy,3shot,all,0.290,200,0.200,0.032,,
-llama3.2-1b,attr,0shot,all,0.566,1210,0.168,0.014,,
-llama3.2-1b,attr,3shot_collide,all,0.861,1210,0.168,0.010,,
-llama3.2-1b,attr,3shot,all,0.954,1210,0.168,0.006,,
-llama3.2-1b,codevar,0shot,all,0.309,1200,0.267,0.013,,
-llama3.2-1b,codevar,3shot_collide,all,0.427,1200,0.267,0.014,,
-llama3.2-1b,codevar,3shot,all,0.421,1200,0.267,0.014,,
-llama3.2-1b,dialogue,0shot,all,0.529,1200,0.312,0.014,,
-llama3.2-1b,dialogue,3shot_collide,all,0.531,1200,0.312,0.014,,
-llama3.2-1b,dialogue,3shot,all,0.557,1200,0.312,0.014,,
-llama3.2-1b,dx-owner-3-deictic,0shot,all,0.408,120,0.333,0.045,,other_participant=0.425;speaker_confusion=0.158;tie=0.008
-llama3.2-1b,dx-owner-3-deictic,0shot,free,0.300,40,0.333,0.072,,other_participant=0.55;speaker_confusion=0.15
-llama3.2-1b,dx-owner-3-deictic,3shot_collide,all,0.125,120,0.333,0.030,,other_participant=0.475;speaker_confusion=0.383;tie=0.017
-llama3.2-1b,dx-owner-3-deictic,3shot_collide,free,0.125,40,0.333,0.052,,other_participant=0.55;speaker_confusion=0.325
-llama3.2-1b,dx-owner-3-deictic,3shot,all,0.383,120,0.333,0.044,,other_participant=0.3;speaker_confusion=0.283;tie=0.033
-llama3.2-1b,dx-owner-3-deictic,3shot,free,0.500,40,0.333,0.079,,other_participant=0.275;speaker_confusion=0.175;tie=0.05
-llama3.2-1b,dx-owner-3-third,0shot,all,0.375,120,0.333,0.044,,
-llama3.2-1b,dx-owner-3-third,0shot,free,0.225,40,0.333,0.066,,
-llama3.2-1b,dx-owner-3-third,3shot_collide,all,0.308,120,0.333,0.042,,
-llama3.2-1b,dx-owner-3-third,3shot_collide,free,0.225,40,0.333,0.066,,
-llama3.2-1b,dx-owner-3-third,3shot,all,0.442,120,0.333,0.045,,
-llama3.2-1b,dx-owner-3-third,3shot,free,0.450,40,0.333,0.079,,
-llama3.2-1b,dx-self-3-deictic,0shot,all,0.311,180,0.287,0.035,,other_object=0.228;previous_owner=0.089;speaker_confusion=0.372
-llama3.2-1b,dx-self-3-deictic,0shot,free,0.365,126,0.286,0.043,,other_object=0.222;previous_owner=0.04;speaker_confusion=0.373
-llama3.2-1b,dx-self-3-deictic,3shot_collide,all,0.300,180,0.287,0.034,,other_object=0.328;previous_owner=0.017;speaker_confusion=0.339;tie=0.017
-llama3.2-1b,dx-self-3-deictic,3shot_collide,free,0.405,126,0.286,0.044,,other_object=0.317;previous_owner=0.008;speaker_confusion=0.246;tie=0.024
-llama3.2-1b,dx-self-3-deictic,3shot,all,0.294,180,0.287,0.034,,other_object=0.344;previous_owner=0.017;speaker_confusion=0.339;tie=0.006
-llama3.2-1b,dx-self-3-deictic,3shot,free,0.397,126,0.286,0.044,,other_object=0.333;previous_owner=0.016;speaker_confusion=0.246;tie=0.008
-llama3.2-1b,dx-self-3-third,0shot,all,0.306,180,0.287,0.034,,
-llama3.2-1b,dx-self-3-third,0shot,free,0.254,126,0.286,0.039,,
-llama3.2-1b,dx-self-3-third,3shot_collide,all,0.311,180,0.287,0.035,,
-llama3.2-1b,dx-self-3-third,3shot_collide,free,0.365,126,0.286,0.043,,
-llama3.2-1b,dx-self-3-third,3shot,all,0.239,180,0.287,0.032,,
-llama3.2-1b,dx-self-3-third,3shot,free,0.270,126,0.286,0.040,,
-llama3.2-1b,dx-self-2-deictic,0shot,all,0.278,180,0.287,0.033,,speaker_confusion=0.7;tie=0.022
-llama3.2-1b,dx-self-2-deictic,0shot,free,0.270,126,0.286,0.040,,speaker_confusion=0.706;tie=0.024
-llama3.2-1b,dx-self-2-deictic,3shot_collide,all,0.361,180,0.287,0.036,,speaker_confusion=0.622;tie=0.017
-llama3.2-1b,dx-self-2-deictic,3shot_collide,free,0.476,126,0.286,0.044,,speaker_confusion=0.516;tie=0.008
-llama3.2-1b,dx-self-2-deictic,3shot,all,0.356,180,0.287,0.036,,speaker_confusion=0.639;tie=0.006
-llama3.2-1b,dx-self-2-deictic,3shot,free,0.468,126,0.286,0.044,,speaker_confusion=0.524;tie=0.008
-llama3.2-1b,dx-self-2-third,0shot,all,0.322,180,0.287,0.035,,
-llama3.2-1b,dx-self-2-third,0shot,free,0.341,126,0.286,0.042,,
-llama3.2-1b,dx-self-2-third,3shot_collide,all,0.344,180,0.287,0.035,,
-llama3.2-1b,dx-self-2-third,3shot_collide,free,0.429,126,0.286,0.044,,
-llama3.2-1b,dx-self-2-third,3shot,all,0.339,180,0.287,0.035,,
-llama3.2-1b,dx-self-2-third,3shot,free,0.413,126,0.286,0.044,,
-llama3.2-1b,dx-addressee-3-deictic,0shot,all,0.272,180,0.287,0.033,,other_object=0.133;previous_owner=0.139;speaker_confusion=0.45;tie=0.006
-llama3.2-1b,dx-addressee-3-deictic,0shot,free,0.302,126,0.286,0.041,,other_object=0.079;previous_owner=0.167;speaker_confusion=0.444;tie=0.008
-llama3.2-1b,dx-addressee-3-deictic,3shot_collide,all,0.306,180,0.287,0.034,,other_object=0.289;previous_owner=0.044;speaker_confusion=0.361
-llama3.2-1b,dx-addressee-3-deictic,3shot_collide,free,0.397,126,0.286,0.044,,other_object=0.246;previous_owner=0.04;speaker_confusion=0.317
-llama3.2-1b,dx-addressee-3-deictic,3shot,all,0.294,180,0.287,0.034,,other_object=0.283;previous_owner=0.039;speaker_confusion=0.378;tie=0.006
-llama3.2-1b,dx-addressee-3-deictic,3shot,free,0.405,126,0.286,0.044,,other_object=0.222;previous_owner=0.04;speaker_confusion=0.325;tie=0.008
-llama3.2-1b,dx-addressee-3-third,0shot,all,0.278,180,0.287,0.033,,
-llama3.2-1b,dx-addressee-3-third,0shot,free,0.262,126,0.286,0.039,,
-llama3.2-1b,dx-addressee-3-third,3shot_collide,all,0.328,180,0.287,0.035,,
-llama3.2-1b,dx-addressee-3-third,3shot_collide,free,0.381,126,0.286,0.043,,
-llama3.2-1b,dx-addressee-3-third,3shot,all,0.294,180,0.287,0.034,,
-llama3.2-1b,dx-addressee-3-third,3shot,free,0.373,126,0.286,0.043,,
-llama3.2-1b,dx-addressee-2-deictic,0shot,all,0.244,180,0.287,0.032,,speaker_confusion=0.733;tie=0.022
-llama3.2-1b,dx-addressee-2-deictic,0shot,free,0.191,126,0.286,0.035,,speaker_confusion=0.794;tie=0.016
-llama3.2-1b,dx-addressee-2-deictic,3shot_collide,all,0.306,180,0.287,0.034,,speaker_confusion=0.689;tie=0.006
-llama3.2-1b,dx-addressee-2-deictic,3shot_collide,free,0.413,126,0.286,0.044,,speaker_confusion=0.579;tie=0.008
-llama3.2-1b,dx-addressee-2-deictic,3shot,all,0.311,180,0.287,0.035,,speaker_confusion=0.683;tie=0.006
-llama3.2-1b,dx-addressee-2-deictic,3shot,free,0.405,126,0.286,0.044,,speaker_confusion=0.595
-llama3.2-1b,dx-addressee-2-third,0shot,all,0.350,180,0.287,0.036,,
-llama3.2-1b,dx-addressee-2-third,0shot,free,0.357,126,0.286,0.043,,
-llama3.2-1b,dx-addressee-2-third,3shot_collide,all,0.339,180,0.287,0.035,,
-llama3.2-1b,dx-addressee-2-third,3shot_collide,free,0.413,126,0.286,0.044,,
-llama3.2-1b,dx-addressee-2-third,3shot,all,0.339,180,0.287,0.035,,
-llama3.2-1b,dx-addressee-2-third,3shot,free,0.421,126,0.286,0.044,,
-llama3.2-1b,sb-k1,0shot,all,0.562,64,0.125,0.062,,
-llama3.2-1b,sb-k1,3shot_collide,all,0.734,64,0.125,0.055,,
-llama3.2-1b,sb-k1,3shot,all,0.938,64,0.125,0.030,,
-llama3.2-1b,sb-k23,0shot,all,0.164,128,0.027,0.033,,
-llama3.2-1b,sb-k23,3shot_collide,all,0.492,128,0.027,0.044,,
-llama3.2-1b,sb-k23,3shot,all,0.602,128,0.027,0.043,,
-llama3.2-1b,sb-split,0shot,all,0.281,128,0.027,0.040,,
-llama3.2-1b,sb-split,3shot_collide,all,0.164,128,0.027,0.033,,
-llama3.2-1b,sb-split,3shot,all,0.133,128,0.027,0.030,,
-llama3.2-1b,sb-dyn,0shot,all,0.117,256,0.027,0.020,,
-llama3.2-1b,sb-dyn,3shot_collide,all,0.109,256,0.027,0.019,,
-llama3.2-1b,sb-dyn,3shot,all,0.129,256,0.027,0.021,,
-llama3.2-1b,an-narr,0shot,all,0.405,640,0.250,0.019,,
-llama3.2-1b,an-narr,3shot_collide,all,0.222,640,0.250,0.016,,
-llama3.2-1b,an-narr,3shot,all,0.359,640,0.250,0.019,,
-llama3.2-1b,an-other-any,0shot,all,0.434,320,0.250,0.028,,
-llama3.2-1b,an-other-any,3shot_collide,all,0.103,320,0.250,0.017,,
-llama3.2-1b,an-other-any,3shot,all,0.119,320,0.250,0.018,,
-llama3.2-1b,an-me-any,0shot,all,0.094,160,0.250,0.023,,
-llama3.2-1b,an-me-any,3shot_collide,all,0.006,160,0.250,0.006,,
-llama3.2-1b,an-me-any,3shot,all,0.050,160,0.250,0.017,,
-llama3.2-1b,an-you-voc,0shot,all,0.338,80,0.250,0.053,,
-llama3.2-1b,an-you-voc,3shot_collide,all,0.362,80,0.250,0.054,,
-llama3.2-1b,an-you-voc,3shot,all,0.150,80,0.250,0.040,,
-llama3.2-1b,an-you-novoc,0shot,all,0.138,80,0.250,0.038,,
-llama3.2-1b,an-you-novoc,3shot_collide,all,0.263,80,0.250,0.049,,
-llama3.2-1b,an-you-novoc,3shot,all,0.087,80,0.250,0.032,,
-llama3.2-1b,adj-adj,0shot,all,0.554,260,0.333,0.031,,
-llama3.2-1b,adj-adj,3shot_collide,all,0.108,260,0.333,0.019,,
-llama3.2-1b,adj-adj,3shot,all,0.311,260,0.333,0.029,,
-llama3.2-1b,adj-voc,0shot,all,0.746,260,0.333,0.027,,
-llama3.2-1b,adj-voc,3shot_collide,all,0.158,260,0.333,0.023,,
-llama3.2-1b,adj-voc,3shot,all,0.381,260,0.333,0.030,,
-llama3.2-1b,adj-third,0shot,all,0.546,260,0.333,0.031,,
-llama3.2-1b,adj-third,3shot_collide,all,0.361,260,0.333,0.030,,
-llama3.2-1b,adj-third,3shot,all,0.508,260,0.333,0.031,,
-llama3.2-1b,cm-mutate,0shot,all,0.870,200,0.200,0.024,,
-llama3.2-1b,cm-mutate,3shot_collide,all,0.780,200,0.200,0.029,,
-llama3.2-1b,cm-mutate,3shot,all,0.830,200,0.200,0.027,,
-llama3.2-1b,cm-rebind,0shot,all,0.110,200,0.200,0.022,,
-llama3.2-1b,cm-rebind,3shot_collide,all,0.290,200,0.200,0.032,,
-llama3.2-1b,cm-rebind,3shot,all,0.185,200,0.200,0.028,,
-llama3.2-1b,cm-copy,0shot,all,0.020,200,0.200,0.010,,
-llama3.2-1b,cm-copy,3shot_collide,all,0.305,200,0.200,0.033,,
-llama3.2-1b,cm-copy,3shot,all,0.195,200,0.200,0.028,,
-olmo1-1b-0724,attr,0shot,all,0.432,1210,0.168,0.014,,
-olmo1-1b-0724,attr,3shot_collide,all,0.778,1210,0.168,0.012,,
-olmo1-1b-0724,attr,3shot,all,0.826,1210,0.168,0.011,,
-olmo1-1b-0724,codevar,0shot,all,0.318,1200,0.267,0.013,,
-olmo1-1b-0724,codevar,3shot_collide,all,0.400,1200,0.267,0.014,,
-olmo1-1b-0724,codevar,3shot,all,0.381,1200,0.267,0.014,,
-olmo1-1b-0724,dialogue,0shot,all,0.491,1200,0.312,0.014,,
-olmo1-1b-0724,dialogue,3shot_collide,all,0.503,1200,0.312,0.014,,
-olmo1-1b-0724,dialogue,3shot,all,0.514,1200,0.312,0.014,,
-olmo1-1b-0724,dx-owner-3-deictic,0shot,all,0.325,120,0.333,0.043,,other_participant=0.358;speaker_confusion=0.283;tie=0.033
-olmo1-1b-0724,dx-owner-3-deictic,0shot,free,0.225,40,0.333,0.066,,other_participant=0.45;speaker_confusion=0.25;tie=0.075
-olmo1-1b-0724,dx-owner-3-deictic,3shot_collide,all,0.192,120,0.333,0.036,,other_participant=0.492;speaker_confusion=0.3;tie=0.017
-olmo1-1b-0724,dx-owner-3-deictic,3shot_collide,free,0.150,40,0.333,0.057,,other_participant=0.675;speaker_confusion=0.15;tie=0.025
-olmo1-1b-0724,dx-owner-3-deictic,3shot,all,0.308,120,0.333,0.042,,other_participant=0.35;speaker_confusion=0.333;tie=0.008
-olmo1-1b-0724,dx-owner-3-deictic,3shot,free,0.325,40,0.333,0.074,,other_participant=0.425;speaker_confusion=0.225;tie=0.025
-olmo1-1b-0724,dx-owner-3-third,0shot,all,0.483,120,0.333,0.046,,
-olmo1-1b-0724,dx-owner-3-third,0shot,free,0.500,40,0.333,0.079,,
-olmo1-1b-0724,dx-owner-3-third,3shot_collide,all,0.350,120,0.333,0.043,,
-olmo1-1b-0724,dx-owner-3-third,3shot_collide,free,0.350,40,0.333,0.075,,
-olmo1-1b-0724,dx-owner-3-third,3shot,all,0.433,120,0.333,0.045,,
-olmo1-1b-0724,dx-owner-3-third,3shot,free,0.600,40,0.333,0.077,,
-olmo1-1b-0724,dx-self-3-deictic,0shot,all,0.322,180,0.287,0.035,,other_object=0.256;previous_owner=0.061;speaker_confusion=0.35;tie=0.011
-olmo1-1b-0724,dx-self-3-deictic,0shot,free,0.349,126,0.286,0.043,,other_object=0.23;previous_owner=0.032;speaker_confusion=0.373;tie=0.016
-olmo1-1b-0724,dx-self-3-deictic,3shot_collide,all,0.328,180,0.287,0.035,,other_object=0.328;previous_owner=0.017;speaker_confusion=0.317;tie=0.011
-olmo1-1b-0724,dx-self-3-deictic,3shot_collide,free,0.397,126,0.286,0.044,,other_object=0.341;previous_owner=0.008;speaker_confusion=0.246;tie=0.008
-olmo1-1b-0724,dx-self-3-deictic,3shot,all,0.350,180,0.287,0.036,,other_object=0.339;previous_owner=0.006;speaker_confusion=0.294;tie=0.011
-olmo1-1b-0724,dx-self-3-deictic,3shot,free,0.444,126,0.286,0.044,,other_object=0.325;speaker_confusion=0.214;tie=0.016
-olmo1-1b-0724,dx-self-3-third,0shot,all,0.272,180,0.287,0.033,,
-olmo1-1b-0724,dx-self-3-third,0shot,free,0.341,126,0.286,0.042,,
-olmo1-1b-0724,dx-self-3-third,3shot_collide,all,0.289,180,0.287,0.034,,
-olmo1-1b-0724,dx-self-3-third,3shot_collide,free,0.357,126,0.286,0.043,,
-olmo1-1b-0724,dx-self-3-third,3shot,all,0.272,180,0.287,0.033,,
-olmo1-1b-0724,dx-self-3-third,3shot,free,0.309,126,0.286,0.041,,
-olmo1-1b-0724,dx-self-2-deictic,0shot,all,0.394,180,0.287,0.036,,speaker_confusion=0.6;tie=0.006
-olmo1-1b-0724,dx-self-2-deictic,0shot,free,0.397,126,0.286,0.044,,speaker_confusion=0.595;tie=0.008
-olmo1-1b-0724,dx-self-2-deictic,3shot_collide,all,0.367,180,0.287,0.036,,speaker_confusion=0.617;tie=0.017
-olmo1-1b-0724,dx-self-2-deictic,3shot_collide,free,0.397,126,0.286,0.044,,speaker_confusion=0.579;tie=0.024
-olmo1-1b-0724,dx-self-2-deictic,3shot,all,0.378,180,0.287,0.036,,speaker_confusion=0.594;tie=0.028
-olmo1-1b-0724,dx-self-2-deictic,3shot,free,0.429,126,0.286,0.044,,speaker_confusion=0.556;tie=0.016
-olmo1-1b-0724,dx-self-2-third,0shot,all,0.289,180,0.287,0.034,,
-olmo1-1b-0724,dx-self-2-third,0shot,free,0.357,126,0.286,0.043,,
-olmo1-1b-0724,dx-self-2-third,3shot_collide,all,0.350,180,0.287,0.036,,
-olmo1-1b-0724,dx-self-2-third,3shot_collide,free,0.429,126,0.286,0.044,,
-olmo1-1b-0724,dx-self-2-third,3shot,all,0.361,180,0.287,0.036,,
-olmo1-1b-0724,dx-self-2-third,3shot,free,0.444,126,0.286,0.044,,
-olmo1-1b-0724,dx-addressee-3-deictic,0shot,all,0.250,180,0.287,0.032,,other_object=0.183;previous_owner=0.128;speaker_confusion=0.422;tie=0.017
-olmo1-1b-0724,dx-addressee-3-deictic,0shot,free,0.270,126,0.286,0.040,,other_object=0.143;previous_owner=0.159;speaker_confusion=0.413;tie=0.016
-olmo1-1b-0724,dx-addressee-3-deictic,3shot_collide,all,0.283,180,0.287,0.034,,other_object=0.261;previous_owner=0.106;speaker_confusion=0.35
-olmo1-1b-0724,dx-addressee-3-deictic,3shot_collide,free,0.309,126,0.286,0.041,,other_object=0.222;previous_owner=0.135;speaker_confusion=0.333
-olmo1-1b-0724,dx-addressee-3-deictic,3shot,all,0.267,180,0.287,0.033,,other_object=0.256;previous_owner=0.1;speaker_confusion=0.367;tie=0.011
-olmo1-1b-0724,dx-addressee-3-deictic,3shot,free,0.309,126,0.286,0.041,,other_object=0.214;previous_owner=0.135;speaker_confusion=0.333;tie=0.008
-olmo1-1b-0724,dx-addressee-3-third,0shot,all,0.250,180,0.287,0.032,,
-olmo1-1b-0724,dx-addressee-3-third,0shot,free,0.302,126,0.286,0.041,,
-olmo1-1b-0724,dx-addressee-3-third,3shot_collide,all,0.344,180,0.287,0.035,,
-olmo1-1b-0724,dx-addressee-3-third,3shot_collide,free,0.397,126,0.286,0.044,,
-olmo1-1b-0724,dx-addressee-3-third,3shot,all,0.322,180,0.287,0.035,,
-olmo1-1b-0724,dx-addressee-3-third,3shot,free,0.365,126,0.286,0.043,,
-olmo1-1b-0724,dx-addressee-2-deictic,0shot,all,0.200,180,0.287,0.030,,speaker_confusion=0.789;tie=0.011
-olmo1-1b-0724,dx-addressee-2-deictic,0shot,free,0.191,126,0.286,0.035,,speaker_confusion=0.81
-olmo1-1b-0724,dx-addressee-2-deictic,3shot_collide,all,0.333,180,0.287,0.035,,speaker_confusion=0.65;tie=0.017
-olmo1-1b-0724,dx-addressee-2-deictic,3shot_collide,free,0.373,126,0.286,0.043,,speaker_confusion=0.611;tie=0.016
-olmo1-1b-0724,dx-addressee-2-deictic,3shot,all,0.294,180,0.287,0.034,,speaker_confusion=0.694;tie=0.011
-olmo1-1b-0724,dx-addressee-2-deictic,3shot,free,0.318,126,0.286,0.042,,speaker_confusion=0.667;tie=0.016
-olmo1-1b-0724,dx-addressee-2-third,0shot,all,0.300,180,0.287,0.034,,
-olmo1-1b-0724,dx-addressee-2-third,0shot,free,0.357,126,0.286,0.043,,
-olmo1-1b-0724,dx-addressee-2-third,3shot_collide,all,0.372,180,0.287,0.036,,
-olmo1-1b-0724,dx-addressee-2-third,3shot_collide,free,0.452,126,0.286,0.044,,
-olmo1-1b-0724,dx-addressee-2-third,3shot,all,0.394,180,0.287,0.036,,
-olmo1-1b-0724,dx-addressee-2-third,3shot,free,0.476,126,0.286,0.044,,
-olmo1-1b-0724,sb-k1,0shot,all,0.391,64,0.125,0.061,,
-olmo1-1b-0724,sb-k1,3shot_collide,all,0.781,64,0.125,0.052,,
-olmo1-1b-0724,sb-k1,3shot,all,0.750,64,0.125,0.054,,
-olmo1-1b-0724,sb-k23,0shot,all,0.164,128,0.027,0.033,,
-olmo1-1b-0724,sb-k23,3shot_collide,all,0.352,128,0.027,0.042,,
-olmo1-1b-0724,sb-k23,3shot,all,0.320,128,0.027,0.041,,
-olmo1-1b-0724,sb-split,0shot,all,0.125,128,0.027,0.029,,
-olmo1-1b-0724,sb-split,3shot_collide,all,0.117,128,0.027,0.028,,
-olmo1-1b-0724,sb-split,3shot,all,0.055,128,0.027,0.020,,
-olmo1-1b-0724,sb-dyn,0shot,all,0.062,256,0.027,0.015,,
-olmo1-1b-0724,sb-dyn,3shot_collide,all,0.066,256,0.027,0.016,,
-olmo1-1b-0724,sb-dyn,3shot,all,0.055,256,0.027,0.014,,
-olmo1-1b-0724,an-narr,0shot,all,0.306,640,0.250,0.018,,
-olmo1-1b-0724,an-narr,3shot_collide,all,0.177,640,0.250,0.015,,
-olmo1-1b-0724,an-narr,3shot,all,0.348,640,0.250,0.019,,
-olmo1-1b-0724,an-other-any,0shot,all,0.444,320,0.250,0.028,,
-olmo1-1b-0724,an-other-any,3shot_collide,all,0.256,320,0.250,0.024,,
-olmo1-1b-0724,an-other-any,3shot,all,0.266,320,0.250,0.025,,
-olmo1-1b-0724,an-me-any,0shot,all,0.194,160,0.250,0.031,,
-olmo1-1b-0724,an-me-any,3shot_collide,all,0.031,160,0.250,0.014,,
-olmo1-1b-0724,an-me-any,3shot,all,0.013,160,0.250,0.009,,
-olmo1-1b-0724,an-you-voc,0shot,all,0.200,80,0.250,0.045,,
-olmo1-1b-0724,an-you-voc,3shot_collide,all,0.212,80,0.250,0.046,,
-olmo1-1b-0724,an-you-voc,3shot,all,0.138,80,0.250,0.038,,
-olmo1-1b-0724,an-you-novoc,0shot,all,0.113,80,0.250,0.035,,
-olmo1-1b-0724,an-you-novoc,3shot_collide,all,0.087,80,0.250,0.032,,
-olmo1-1b-0724,an-you-novoc,3shot,all,0.013,80,0.250,0.012,,
-olmo1-1b-0724,adj-adj,0shot,all,0.427,260,0.333,0.031,,
-olmo1-1b-0724,adj-adj,3shot_collide,all,0.142,260,0.333,0.022,,
-olmo1-1b-0724,adj-adj,3shot,all,0.308,260,0.333,0.029,,
-olmo1-1b-0724,adj-voc,0shot,all,0.550,260,0.333,0.031,,
-olmo1-1b-0724,adj-voc,3shot_collide,all,0.246,260,0.333,0.027,,
-olmo1-1b-0724,adj-voc,3shot,all,0.446,260,0.333,0.031,,
-olmo1-1b-0724,adj-third,0shot,all,0.546,260,0.333,0.031,,
-olmo1-1b-0724,adj-third,3shot_collide,all,0.300,260,0.333,0.028,,
-olmo1-1b-0724,adj-third,3shot,all,0.381,260,0.333,0.030,,
-olmo1-1b-0724,cm-mutate,0shot,all,0.635,200,0.200,0.034,,
-olmo1-1b-0724,cm-mutate,3shot_collide,all,0.590,200,0.200,0.035,,
-olmo1-1b-0724,cm-mutate,3shot,all,0.570,200,0.200,0.035,,
-olmo1-1b-0724,cm-rebind,0shot,all,0.030,200,0.200,0.012,,
-olmo1-1b-0724,cm-rebind,3shot_collide,all,0.400,200,0.200,0.035,,
-olmo1-1b-0724,cm-rebind,3shot,all,0.185,200,0.200,0.028,,
-olmo1-1b-0724,cm-copy,0shot,all,0.010,200,0.200,0.007,,
-olmo1-1b-0724,cm-copy,3shot_collide,all,0.415,200,0.200,0.035,,
-olmo1-1b-0724,cm-copy,3shot,all,0.190,200,0.200,0.028,,
-pythia-1b,attr,0shot,all,0.463,1210,0.168,0.014,,
-pythia-1b,attr,3shot_collide,all,0.659,1210,0.168,0.014,,
-pythia-1b,attr,3shot,all,0.707,1210,0.168,0.013,,
-pythia-1b,codevar,0shot,all,0.268,1200,0.267,0.013,,
-pythia-1b,codevar,3shot_collide,all,0.409,1200,0.267,0.014,,
-pythia-1b,codevar,3shot,all,0.364,1200,0.267,0.014,,
-pythia-1b,dialogue,0shot,all,0.517,1200,0.312,0.014,,
-pythia-1b,dialogue,3shot_collide,all,0.474,1200,0.312,0.014,,
-pythia-1b,dialogue,3shot,all,0.532,1200,0.312,0.014,,
-pythia-1b,dx-owner-3-deictic,0shot,all,0.467,120,0.333,0.045,,other_participant=0.35;speaker_confusion=0.167;tie=0.017
-pythia-1b,dx-owner-3-deictic,0shot,free,0.500,40,0.333,0.079,,other_participant=0.375;speaker_confusion=0.1;tie=0.025
-pythia-1b,dx-owner-3-deictic,3shot_collide,all,0.208,120,0.333,0.037,,other_participant=0.5;speaker_confusion=0.283;tie=0.008
-pythia-1b,dx-owner-3-deictic,3shot_collide,free,0.175,40,0.333,0.060,,other_participant=0.575;speaker_confusion=0.25
-pythia-1b,dx-owner-3-deictic,3shot,all,0.375,120,0.333,0.044,,other_participant=0.375;speaker_confusion=0.225;tie=0.025
-pythia-1b,dx-owner-3-deictic,3shot,free,0.375,40,0.333,0.076,,other_participant=0.45;speaker_confusion=0.15;tie=0.025
-pythia-1b,dx-owner-3-third,0shot,all,0.442,120,0.333,0.045,,
-pythia-1b,dx-owner-3-third,0shot,free,0.375,40,0.333,0.076,,
-pythia-1b,dx-owner-3-third,3shot_collide,all,0.333,120,0.333,0.043,,
-pythia-1b,dx-owner-3-third,3shot_collide,free,0.100,40,0.333,0.047,,
-pythia-1b,dx-owner-3-third,3shot,all,0.458,120,0.333,0.045,,
-pythia-1b,dx-owner-3-third,3shot,free,0.400,40,0.333,0.077,,
-pythia-1b,dx-self-3-deictic,0shot,all,0.356,180,0.287,0.036,,other_object=0.217;previous_owner=0.094;speaker_confusion=0.322;tie=0.011
-pythia-1b,dx-self-3-deictic,0shot,free,0.389,126,0.286,0.043,,other_object=0.198;previous_owner=0.056;speaker_confusion=0.341;tie=0.016
-pythia-1b,dx-self-3-deictic,3shot_collide,all,0.267,180,0.287,0.033,,other_object=0.289;previous_owner=0.061;speaker_confusion=0.367;tie=0.017
-pythia-1b,dx-self-3-deictic,3shot_collide,free,0.309,126,0.286,0.041,,other_object=0.31;previous_owner=0.04;speaker_confusion=0.333;tie=0.008
-pythia-1b,dx-self-3-deictic,3shot,all,0.256,180,0.287,0.033,,other_object=0.311;previous_owner=0.094;speaker_confusion=0.311;tie=0.028
-pythia-1b,dx-self-3-deictic,3shot,free,0.294,126,0.286,0.041,,other_object=0.317;previous_owner=0.056;speaker_confusion=0.302;tie=0.032
-pythia-1b,dx-self-3-third,0shot,all,0.322,180,0.287,0.035,,
-pythia-1b,dx-self-3-third,0shot,free,0.373,126,0.286,0.043,,
-pythia-1b,dx-self-3-third,3shot_collide,all,0.300,180,0.287,0.034,,
-pythia-1b,dx-self-3-third,3shot_collide,free,0.365,126,0.286,0.043,,
-pythia-1b,dx-self-3-third,3shot,all,0.256,180,0.287,0.033,,
-pythia-1b,dx-self-3-third,3shot,free,0.325,126,0.286,0.042,,
-pythia-1b,dx-self-2-deictic,0shot,all,0.300,180,0.287,0.034,,speaker_confusion=0.689;tie=0.011
-pythia-1b,dx-self-2-deictic,0shot,free,0.325,126,0.286,0.042,,speaker_confusion=0.659;tie=0.016
-pythia-1b,dx-self-2-deictic,3shot_collide,all,0.339,180,0.287,0.035,,speaker_confusion=0.656;tie=0.006
-pythia-1b,dx-self-2-deictic,3shot_collide,free,0.405,126,0.286,0.044,,speaker_confusion=0.595
-pythia-1b,dx-self-2-deictic,3shot,all,0.322,180,0.287,0.035,,speaker_confusion=0.667;tie=0.011
-pythia-1b,dx-self-2-deictic,3shot,free,0.365,126,0.286,0.043,,speaker_confusion=0.619;tie=0.016
-pythia-1b,dx-self-2-third,0shot,all,0.322,180,0.287,0.035,,
-pythia-1b,dx-self-2-third,0shot,free,0.349,126,0.286,0.043,,
-pythia-1b,dx-self-2-third,3shot_collide,all,0.350,180,0.287,0.036,,
-pythia-1b,dx-self-2-third,3shot_collide,free,0.436,126,0.286,0.044,,
-pythia-1b,dx-self-2-third,3shot,all,0.372,180,0.287,0.036,,
-pythia-1b,dx-self-2-third,3shot,free,0.476,126,0.286,0.044,,
-pythia-1b,dx-addressee-3-deictic,0shot,all,0.322,180,0.287,0.035,,other_object=0.128;previous_owner=0.144;speaker_confusion=0.406
-pythia-1b,dx-addressee-3-deictic,0shot,free,0.309,126,0.286,0.041,,other_object=0.103;previous_owner=0.175;speaker_confusion=0.413
-pythia-1b,dx-addressee-3-deictic,3shot_collide,all,0.233,180,0.287,0.032,,other_object=0.217;previous_owner=0.111;speaker_confusion=0.428;tie=0.011
-pythia-1b,dx-addressee-3-deictic,3shot_collide,free,0.238,126,0.286,0.038,,other_object=0.206;previous_owner=0.127;speaker_confusion=0.421;tie=0.008
-pythia-1b,dx-addressee-3-deictic,3shot,all,0.233,180,0.287,0.032,,other_object=0.217;previous_owner=0.111;speaker_confusion=0.439
-pythia-1b,dx-addressee-3-deictic,3shot,free,0.254,126,0.286,0.039,,other_object=0.214;previous_owner=0.119;speaker_confusion=0.413
-pythia-1b,dx-addressee-3-third,0shot,all,0.328,180,0.287,0.035,,
-pythia-1b,dx-addressee-3-third,0shot,free,0.325,126,0.286,0.042,,
-pythia-1b,dx-addressee-3-third,3shot_collide,all,0.317,180,0.287,0.035,,
-pythia-1b,dx-addressee-3-third,3shot_collide,free,0.373,126,0.286,0.043,,
-pythia-1b,dx-addressee-3-third,3shot,all,0.311,180,0.287,0.035,,
-pythia-1b,dx-addressee-3-third,3shot,free,0.389,126,0.286,0.043,,
-pythia-1b,dx-addressee-2-deictic,0shot,all,0.189,180,0.287,0.029,,speaker_confusion=0.8;tie=0.011
-pythia-1b,dx-addressee-2-deictic,0shot,free,0.151,126,0.286,0.032,,speaker_confusion=0.841;tie=0.008
-pythia-1b,dx-addressee-2-deictic,3shot_collide,all,0.289,180,0.287,0.034,,speaker_confusion=0.694;tie=0.017
-pythia-1b,dx-addressee-2-deictic,3shot_collide,free,0.318,126,0.286,0.042,,speaker_confusion=0.667;tie=0.016
-pythia-1b,dx-addressee-2-deictic,3shot,all,0.261,180,0.287,0.033,,speaker_confusion=0.733;tie=0.006
-pythia-1b,dx-addressee-2-deictic,3shot,free,0.294,126,0.286,0.041,,speaker_confusion=0.706
-pythia-1b,dx-addressee-2-third,0shot,all,0.339,180,0.287,0.035,,
-pythia-1b,dx-addressee-2-third,0shot,free,0.333,126,0.286,0.042,,
-pythia-1b,dx-addressee-2-third,3shot_collide,all,0.322,180,0.287,0.035,,
-pythia-1b,dx-addressee-2-third,3shot_collide,free,0.413,126,0.286,0.044,,
-pythia-1b,dx-addressee-2-third,3shot,all,0.361,180,0.287,0.036,,
-pythia-1b,dx-addressee-2-third,3shot,free,0.444,126,0.286,0.044,,
-pythia-1b,sb-k1,0shot,all,0.281,64,0.125,0.056,,
-pythia-1b,sb-k1,3shot_collide,all,0.484,64,0.125,0.062,,
-pythia-1b,sb-k1,3shot,all,0.469,64,0.125,0.062,,
-pythia-1b,sb-k23,0shot,all,0.203,128,0.027,0.036,,
-pythia-1b,sb-k23,3shot_collide,all,0.250,128,0.027,0.038,,
-pythia-1b,sb-k23,3shot,all,0.266,128,0.027,0.039,,
-pythia-1b,sb-split,0shot,all,0.156,128,0.027,0.032,,
-pythia-1b,sb-split,3shot_collide,all,0.086,128,0.027,0.025,,
-pythia-1b,sb-split,3shot,all,0.109,128,0.027,0.028,,
-pythia-1b,sb-dyn,0shot,all,0.125,256,0.027,0.021,,
-pythia-1b,sb-dyn,3shot_collide,all,0.051,256,0.027,0.014,,
-pythia-1b,sb-dyn,3shot,all,0.082,256,0.027,0.017,,
-pythia-1b,an-narr,0shot,all,0.358,640,0.250,0.019,,
-pythia-1b,an-narr,3shot_collide,all,0.202,640,0.250,0.016,,
-pythia-1b,an-narr,3shot,all,0.294,640,0.250,0.018,,
-pythia-1b,an-other-any,0shot,all,0.275,320,0.250,0.025,,
-pythia-1b,an-other-any,3shot_collide,all,0.253,320,0.250,0.024,,
-pythia-1b,an-other-any,3shot,all,0.247,320,0.250,0.024,,
-pythia-1b,an-me-any,0shot,all,0.275,160,0.250,0.035,,
-pythia-1b,an-me-any,3shot_collide,all,0.037,160,0.250,0.015,,
-pythia-1b,an-me-any,3shot,all,0.025,160,0.250,0.012,,
-pythia-1b,an-you-voc,0shot,all,0.512,80,0.250,0.056,,
-pythia-1b,an-you-voc,3shot_collide,all,0.087,80,0.250,0.032,,
-pythia-1b,an-you-voc,3shot,all,0.050,80,0.250,0.024,,
-pythia-1b,an-you-novoc,0shot,all,0.438,80,0.250,0.056,,
-pythia-1b,an-you-novoc,3shot_collide,all,0.350,80,0.250,0.053,,
-pythia-1b,an-you-novoc,3shot,all,0.225,80,0.250,0.047,,
-pythia-1b,adj-adj,0shot,all,0.335,260,0.333,0.029,,
-pythia-1b,adj-adj,3shot_collide,all,0.123,260,0.333,0.020,,
-pythia-1b,adj-adj,3shot,all,0.377,260,0.333,0.030,,
-pythia-1b,adj-voc,0shot,all,0.408,260,0.333,0.030,,
-pythia-1b,adj-voc,3shot_collide,all,0.262,260,0.333,0.027,,
-pythia-1b,adj-voc,3shot,all,0.431,260,0.333,0.031,,
-pythia-1b,adj-third,0shot,all,0.523,260,0.333,0.031,,
-pythia-1b,adj-third,3shot_collide,all,0.300,260,0.333,0.028,,
-pythia-1b,adj-third,3shot,all,0.419,260,0.333,0.031,,
-pythia-1b,cm-mutate,0shot,all,0.525,200,0.200,0.035,,
-pythia-1b,cm-mutate,3shot_collide,all,0.535,200,0.200,0.035,,
-pythia-1b,cm-mutate,3shot,all,0.560,200,0.200,0.035,,
-pythia-1b,cm-rebind,0shot,all,0.100,200,0.200,0.021,,
-pythia-1b,cm-rebind,3shot_collide,all,0.280,200,0.200,0.032,,
-pythia-1b,cm-rebind,3shot,all,0.290,200,0.200,0.032,,
-pythia-1b,cm-copy,0shot,all,0.045,200,0.200,0.015,,
-pythia-1b,cm-copy,3shot_collide,all,0.225,200,0.200,0.029,,
-pythia-1b,cm-copy,3shot,all,0.250,200,0.200,0.031,,
-tsumugi-release,attr,0shot,all,0.551,1210,0.168,0.014,,
-tsumugi-release,attr,3shot_collide,all,0.896,1210,0.168,0.009,,
-tsumugi-release,attr,3shot,all,0.986,1210,0.168,0.003,,
-tsumugi-release,codevar,0shot,all,0.320,1200,0.267,0.013,,
-tsumugi-release,codevar,3shot_collide,all,0.453,1200,0.267,0.014,,
-tsumugi-release,codevar,3shot,all,0.427,1200,0.267,0.014,,
-tsumugi-release,dialogue,0shot,all,0.597,1200,0.312,0.014,,
-tsumugi-release,dialogue,3shot_collide,all,0.624,1200,0.312,0.014,,
-tsumugi-release,dialogue,3shot,all,0.607,1200,0.312,0.014,,
-tsumugi-release,dx-owner-3-deictic,0shot,all,0.492,120,0.333,0.046,,other_participant=0.342;speaker_confusion=0.142;tie=0.025
-tsumugi-release,dx-owner-3-deictic,0shot,free,0.625,40,0.333,0.076,,other_participant=0.3;speaker_confusion=0.075
-tsumugi-release,dx-owner-3-deictic,3shot_collide,all,0.358,120,0.333,0.044,,other_participant=0.292;speaker_confusion=0.35
-tsumugi-release,dx-owner-3-deictic,3shot_collide,free,0.350,40,0.333,0.075,,other_participant=0.35;speaker_confusion=0.3
-tsumugi-release,dx-owner-3-deictic,3shot,all,0.425,120,0.333,0.045,,other_participant=0.183;speaker_confusion=0.392
-tsumugi-release,dx-owner-3-deictic,3shot,free,0.525,40,0.333,0.079,,other_participant=0.175;speaker_confusion=0.3
-tsumugi-release,dx-owner-3-third,0shot,all,0.525,120,0.333,0.046,,
-tsumugi-release,dx-owner-3-third,0shot,free,0.625,40,0.333,0.076,,
-tsumugi-release,dx-owner-3-third,3shot_collide,all,0.675,120,0.333,0.043,,
-tsumugi-release,dx-owner-3-third,3shot_collide,free,0.700,40,0.333,0.072,,
-tsumugi-release,dx-owner-3-third,3shot,all,0.583,120,0.333,0.045,,
-tsumugi-release,dx-owner-3-third,3shot,free,0.700,40,0.333,0.072,,
-tsumugi-release,dx-self-3-deictic,0shot,all,0.328,180,0.287,0.035,,other_object=0.2;previous_owner=0.089;speaker_confusion=0.367;tie=0.017
-tsumugi-release,dx-self-3-deictic,0shot,free,0.309,126,0.286,0.041,,other_object=0.206;previous_owner=0.056;speaker_confusion=0.421;tie=0.008
-tsumugi-release,dx-self-3-deictic,3shot_collide,all,0.383,180,0.287,0.036,,other_object=0.267;previous_owner=0.067;speaker_confusion=0.272;tie=0.011
-tsumugi-release,dx-self-3-deictic,3shot_collide,free,0.468,126,0.286,0.044,,other_object=0.222;previous_owner=0.048;speaker_confusion=0.254;tie=0.008
-tsumugi-release,dx-self-3-deictic,3shot,all,0.356,180,0.287,0.036,,other_object=0.261;previous_owner=0.067;speaker_confusion=0.317
-tsumugi-release,dx-self-3-deictic,3shot,free,0.429,126,0.286,0.044,,other_object=0.222;previous_owner=0.056;speaker_confusion=0.294
-tsumugi-release,dx-self-3-third,0shot,all,0.400,180,0.287,0.036,,
-tsumugi-release,dx-self-3-third,0shot,free,0.373,126,0.286,0.043,,
-tsumugi-release,dx-self-3-third,3shot_collide,all,0.428,180,0.287,0.037,,
-tsumugi-release,dx-self-3-third,3shot_collide,free,0.500,126,0.286,0.044,,
-tsumugi-release,dx-self-3-third,3shot,all,0.406,180,0.287,0.037,,
-tsumugi-release,dx-self-3-third,3shot,free,0.460,126,0.286,0.044,,
-tsumugi-release,dx-self-2-deictic,0shot,all,0.306,180,0.287,0.034,,speaker_confusion=0.689;tie=0.006
-tsumugi-release,dx-self-2-deictic,0shot,free,0.278,126,0.286,0.040,,speaker_confusion=0.714;tie=0.008
-tsumugi-release,dx-self-2-deictic,3shot_collide,all,0.344,180,0.287,0.035,,speaker_confusion=0.65;tie=0.006
-tsumugi-release,dx-self-2-deictic,3shot_collide,free,0.421,126,0.286,0.044,,speaker_confusion=0.571;tie=0.008
-tsumugi-release,dx-self-2-deictic,3shot,all,0.361,180,0.287,0.036,,speaker_confusion=0.633;tie=0.006
-tsumugi-release,dx-self-2-deictic,3shot,free,0.452,126,0.286,0.044,,speaker_confusion=0.548
-tsumugi-release,dx-self-2-third,0shot,all,0.378,180,0.287,0.036,,
-tsumugi-release,dx-self-2-third,0shot,free,0.397,126,0.286,0.044,,
-tsumugi-release,dx-self-2-third,3shot_collide,all,0.433,180,0.287,0.037,,
-tsumugi-release,dx-self-2-third,3shot_collide,free,0.532,126,0.286,0.044,,
-tsumugi-release,dx-self-2-third,3shot,all,0.439,180,0.287,0.037,,
-tsumugi-release,dx-self-2-third,3shot,free,0.524,126,0.286,0.044,,
-tsumugi-release,dx-addressee-3-deictic,0shot,all,0.328,180,0.287,0.035,,other_object=0.156;previous_owner=0.139;speaker_confusion=0.372;tie=0.006
-tsumugi-release,dx-addressee-3-deictic,0shot,free,0.270,126,0.286,0.040,,other_object=0.103;previous_owner=0.183;speaker_confusion=0.437;tie=0.008
-tsumugi-release,dx-addressee-3-deictic,3shot_collide,all,0.322,180,0.287,0.035,,other_object=0.233;previous_owner=0.094;speaker_confusion=0.35
-tsumugi-release,dx-addressee-3-deictic,3shot_collide,free,0.365,126,0.286,0.043,,other_object=0.19;previous_owner=0.127;speaker_confusion=0.317
-tsumugi-release,dx-addressee-3-deictic,3shot,all,0.344,180,0.287,0.035,,other_object=0.222;previous_owner=0.106;speaker_confusion=0.328
-tsumugi-release,dx-addressee-3-deictic,3shot,free,0.373,126,0.286,0.043,,other_object=0.183;previous_owner=0.135;speaker_confusion=0.31
-tsumugi-release,dx-addressee-3-third,0shot,all,0.428,180,0.287,0.037,,
-tsumugi-release,dx-addressee-3-third,0shot,free,0.397,126,0.286,0.044,,
-tsumugi-release,dx-addressee-3-third,3shot_collide,all,0.361,180,0.287,0.036,,
-tsumugi-release,dx-addressee-3-third,3shot_collide,free,0.405,126,0.286,0.044,,
-tsumugi-release,dx-addressee-3-third,3shot,all,0.406,180,0.287,0.037,,
-tsumugi-release,dx-addressee-3-third,3shot,free,0.421,126,0.286,0.044,,
-tsumugi-release,dx-addressee-2-deictic,0shot,all,0.250,180,0.287,0.032,,speaker_confusion=0.75
-tsumugi-release,dx-addressee-2-deictic,0shot,free,0.214,126,0.286,0.037,,speaker_confusion=0.786
-tsumugi-release,dx-addressee-2-deictic,3shot_collide,all,0.367,180,0.287,0.036,,speaker_confusion=0.622;tie=0.011
-tsumugi-release,dx-addressee-2-deictic,3shot_collide,free,0.421,126,0.286,0.044,,speaker_confusion=0.571;tie=0.008
-tsumugi-release,dx-addressee-2-deictic,3shot,all,0.389,180,0.287,0.036,,speaker_confusion=0.606;tie=0.006
-tsumugi-release,dx-addressee-2-deictic,3shot,free,0.436,126,0.286,0.044,,speaker_confusion=0.556;tie=0.008
-tsumugi-release,dx-addressee-2-third,0shot,all,0.378,180,0.287,0.036,,
-tsumugi-release,dx-addressee-2-third,0shot,free,0.421,126,0.286,0.044,,
-tsumugi-release,dx-addressee-2-third,3shot_collide,all,0.439,180,0.287,0.037,,
-tsumugi-release,dx-addressee-2-third,3shot_collide,free,0.540,126,0.286,0.044,,
-tsumugi-release,dx-addressee-2-third,3shot,all,0.422,180,0.287,0.037,,
-tsumugi-release,dx-addressee-2-third,3shot,free,0.524,126,0.286,0.044,,
-tsumugi-release,sb-k1,0shot,all,0.500,64,0.125,0.062,,
-tsumugi-release,sb-k1,3shot_collide,all,0.953,64,0.125,0.026,,
-tsumugi-release,sb-k1,3shot,all,0.984,64,0.125,0.015,,
-tsumugi-release,sb-k23,0shot,all,0.094,128,0.027,0.026,,
-tsumugi-release,sb-k23,3shot_collide,all,0.758,128,0.027,0.038,,
-tsumugi-release,sb-k23,3shot,all,0.664,128,0.027,0.042,,
-tsumugi-release,sb-split,0shot,all,0.164,128,0.027,0.033,,
-tsumugi-release,sb-split,3shot_collide,all,0.328,128,0.027,0.042,,
-tsumugi-release,sb-split,3shot,all,0.312,128,0.027,0.041,,
-tsumugi-release,sb-dyn,0shot,all,0.117,256,0.027,0.020,,
-tsumugi-release,sb-dyn,3shot_collide,all,0.144,256,0.027,0.022,,
-tsumugi-release,sb-dyn,3shot,all,0.156,256,0.027,0.023,,
-tsumugi-release,an-narr,0shot,all,0.444,640,0.250,0.020,,
-tsumugi-release,an-narr,3shot_collide,all,0.506,640,0.250,0.020,,
-tsumugi-release,an-narr,3shot,all,0.516,640,0.250,0.020,,
-tsumugi-release,an-other-any,0shot,all,0.197,320,0.250,0.022,,
-tsumugi-release,an-other-any,3shot_collide,all,0.409,320,0.250,0.028,,
-tsumugi-release,an-other-any,3shot,all,0.388,320,0.250,0.027,,
-tsumugi-release,an-me-any,0shot,all,0.212,160,0.250,0.032,,
-tsumugi-release,an-me-any,3shot_collide,all,0.037,160,0.250,0.015,,
-tsumugi-release,an-me-any,3shot,all,0.044,160,0.250,0.016,,
-tsumugi-release,an-you-voc,0shot,all,0.500,80,0.250,0.056,,
-tsumugi-release,an-you-voc,3shot_collide,all,0.100,80,0.250,0.034,,
-tsumugi-release,an-you-voc,3shot,all,0.263,80,0.250,0.049,,
-tsumugi-release,an-you-novoc,0shot,all,0.825,80,0.250,0.043,,
-tsumugi-release,an-you-novoc,3shot_collide,all,0.175,80,0.250,0.043,,
-tsumugi-release,an-you-novoc,3shot,all,0.225,80,0.250,0.047,,
-tsumugi-release,adj-adj,0shot,all,0.592,260,0.333,0.030,,
-tsumugi-release,adj-adj,3shot_collide,all,0.350,260,0.333,0.030,,
-tsumugi-release,adj-adj,3shot,all,0.381,260,0.333,0.030,,
-tsumugi-release,adj-voc,0shot,all,0.835,260,0.333,0.023,,
-tsumugi-release,adj-voc,3shot_collide,all,0.485,260,0.333,0.031,,
-tsumugi-release,adj-voc,3shot,all,0.465,260,0.333,0.031,,
-tsumugi-release,adj-third,0shot,all,0.719,260,0.333,0.028,,
-tsumugi-release,adj-third,3shot_collide,all,0.573,260,0.333,0.031,,
-tsumugi-release,adj-third,3shot,all,0.519,260,0.333,0.031,,
-tsumugi-release,cm-mutate,0shot,all,0.585,200,0.200,0.035,,
-tsumugi-release,cm-mutate,3shot_collide,all,0.595,200,0.200,0.035,,
-tsumugi-release,cm-mutate,3shot,all,0.655,200,0.200,0.034,,
-tsumugi-release,cm-rebind,0shot,all,0.090,200,0.200,0.020,,
-tsumugi-release,cm-rebind,3shot_collide,all,0.455,200,0.200,0.035,,
-tsumugi-release,cm-rebind,3shot,all,0.465,200,0.200,0.035,,
-tsumugi-release,cm-copy,0shot,all,0.070,200,0.200,0.018,,
-tsumugi-release,cm-copy,3shot_collide,all,0.575,200,0.200,0.035,,
-tsumugi-release,cm-copy,3shot,all,0.605,200,0.200,0.035,,
-pythia-1.4b,attr,0shot,all,0.517,1210,0.168,0.014,,
-pythia-1.4b,attr,3shot_collide,all,0.659,1210,0.168,0.014,,
-pythia-1.4b,attr,3shot,all,0.717,1210,0.168,0.013,,
-pythia-1.4b,codevar,0shot,all,0.241,1200,0.267,0.012,,
-pythia-1.4b,codevar,3shot_collide,all,0.386,1200,0.267,0.014,,
-pythia-1.4b,codevar,3shot,all,0.383,1200,0.267,0.014,,
-pythia-1.4b,dialogue,0shot,all,0.478,1200,0.312,0.014,,
-pythia-1.4b,dialogue,3shot_collide,all,0.413,1200,0.312,0.014,,
-pythia-1.4b,dialogue,3shot,all,0.433,1200,0.312,0.014,,
-pythia-1.4b,dx-owner-3-deictic,0shot,all,0.358,120,0.333,0.044,,other_participant=0.383;speaker_confusion=0.233;tie=0.025
-pythia-1.4b,dx-owner-3-deictic,0shot,free,0.425,40,0.333,0.078,,other_participant=0.425;speaker_confusion=0.125;tie=0.025
-pythia-1.4b,dx-owner-3-deictic,3shot_collide,all,0.150,120,0.333,0.033,,other_participant=0.508;speaker_confusion=0.308;tie=0.033
-pythia-1.4b,dx-owner-3-deictic,3shot_collide,free,0.125,40,0.333,0.052,,other_participant=0.625;speaker_confusion=0.2;tie=0.05
-pythia-1.4b,dx-owner-3-deictic,3shot,all,0.367,120,0.333,0.044,,other_participant=0.342;speaker_confusion=0.275;tie=0.017
-pythia-1.4b,dx-owner-3-deictic,3shot,free,0.400,40,0.333,0.077,,other_participant=0.375;speaker_confusion=0.225
-pythia-1.4b,dx-owner-3-third,0shot,all,0.517,120,0.333,0.046,,
-pythia-1.4b,dx-owner-3-third,0shot,free,0.675,40,0.333,0.074,,
-pythia-1.4b,dx-owner-3-third,3shot_collide,all,0.342,120,0.333,0.043,,
-pythia-1.4b,dx-owner-3-third,3shot_collide,free,0.300,40,0.333,0.072,,
-pythia-1.4b,dx-owner-3-third,3shot,all,0.442,120,0.333,0.045,,
-pythia-1.4b,dx-owner-3-third,3shot,free,0.575,40,0.333,0.078,,
-pythia-1.4b,dx-self-3-deictic,0shot,all,0.356,180,0.287,0.036,,other_object=0.306;previous_owner=0.094;speaker_confusion=0.233;tie=0.011
-pythia-1.4b,dx-self-3-deictic,0shot,free,0.460,126,0.286,0.044,,other_object=0.286;previous_owner=0.04;speaker_confusion=0.198;tie=0.016
-pythia-1.4b,dx-self-3-deictic,3shot_collide,all,0.333,180,0.287,0.035,,other_object=0.256;previous_owner=0.061;speaker_confusion=0.344;tie=0.006
-pythia-1.4b,dx-self-3-deictic,3shot_collide,free,0.421,126,0.286,0.044,,other_object=0.246;previous_owner=0.04;speaker_confusion=0.286;tie=0.008
-pythia-1.4b,dx-self-3-deictic,3shot,all,0.356,180,0.287,0.036,,other_object=0.233;previous_owner=0.072;speaker_confusion=0.322;tie=0.017
-pythia-1.4b,dx-self-3-deictic,3shot,free,0.444,126,0.286,0.044,,other_object=0.222;previous_owner=0.048;speaker_confusion=0.27;tie=0.016
-pythia-1.4b,dx-self-3-third,0shot,all,0.406,180,0.287,0.037,,
-pythia-1.4b,dx-self-3-third,0shot,free,0.500,126,0.286,0.044,,
-pythia-1.4b,dx-self-3-third,3shot_collide,all,0.328,180,0.287,0.035,,
-pythia-1.4b,dx-self-3-third,3shot_collide,free,0.397,126,0.286,0.044,,
-pythia-1.4b,dx-self-3-third,3shot,all,0.356,180,0.287,0.036,,
-pythia-1.4b,dx-self-3-third,3shot,free,0.444,126,0.286,0.044,,
-pythia-1.4b,dx-self-2-deictic,0shot,all,0.333,180,0.287,0.035,,speaker_confusion=0.656;tie=0.011
-pythia-1.4b,dx-self-2-deictic,0shot,free,0.421,126,0.286,0.044,,speaker_confusion=0.563;tie=0.016
-pythia-1.4b,dx-self-2-deictic,3shot_collide,all,0.356,180,0.287,0.036,,speaker_confusion=0.639;tie=0.006
-pythia-1.4b,dx-self-2-deictic,3shot_collide,free,0.444,126,0.286,0.044,,speaker_confusion=0.556
-pythia-1.4b,dx-self-2-deictic,3shot,all,0.356,180,0.287,0.036,,speaker_confusion=0.639;tie=0.006
-pythia-1.4b,dx-self-2-deictic,3shot,free,0.444,126,0.286,0.044,,speaker_confusion=0.548;tie=0.008
-pythia-1.4b,dx-self-2-third,0shot,all,0.361,180,0.287,0.036,,
-pythia-1.4b,dx-self-2-third,0shot,free,0.492,126,0.286,0.044,,
-pythia-1.4b,dx-self-2-third,3shot_collide,all,0.411,180,0.287,0.037,,
-pythia-1.4b,dx-self-2-third,3shot_collide,free,0.516,126,0.286,0.044,,
-pythia-1.4b,dx-self-2-third,3shot,all,0.400,180,0.287,0.036,,
-pythia-1.4b,dx-self-2-third,3shot,free,0.484,126,0.286,0.044,,
-pythia-1.4b,dx-addressee-3-deictic,0shot,all,0.339,180,0.287,0.035,,other_object=0.15;previous_owner=0.078;speaker_confusion=0.411;tie=0.022
-pythia-1.4b,dx-addressee-3-deictic,0shot,free,0.413,126,0.286,0.044,,other_object=0.103;previous_owner=0.095;speaker_confusion=0.381;tie=0.008
-pythia-1.4b,dx-addressee-3-deictic,3shot_collide,all,0.317,180,0.287,0.035,,other_object=0.217;previous_owner=0.083;speaker_confusion=0.378;tie=0.006
-pythia-1.4b,dx-addressee-3-deictic,3shot_collide,free,0.397,126,0.286,0.044,,other_object=0.143;previous_owner=0.111;speaker_confusion=0.341;tie=0.008
-pythia-1.4b,dx-addressee-3-deictic,3shot,all,0.311,180,0.287,0.035,,other_object=0.222;previous_owner=0.094;speaker_confusion=0.367;tie=0.006
-pythia-1.4b,dx-addressee-3-deictic,3shot,free,0.381,126,0.286,0.043,,other_object=0.151;previous_owner=0.127;speaker_confusion=0.333;tie=0.008
-pythia-1.4b,dx-addressee-3-third,0shot,all,0.389,180,0.287,0.036,,
-pythia-1.4b,dx-addressee-3-third,0shot,free,0.508,126,0.286,0.044,,
-pythia-1.4b,dx-addressee-3-third,3shot_collide,all,0.328,180,0.287,0.035,,
-pythia-1.4b,dx-addressee-3-third,3shot_collide,free,0.429,126,0.286,0.044,,
-pythia-1.4b,dx-addressee-3-third,3shot,all,0.383,180,0.287,0.036,,
-pythia-1.4b,dx-addressee-3-third,3shot,free,0.484,126,0.286,0.044,,
-pythia-1.4b,dx-addressee-2-deictic,0shot,all,0.206,180,0.287,0.030,,speaker_confusion=0.778;tie=0.017
-pythia-1.4b,dx-addressee-2-deictic,0shot,free,0.246,126,0.286,0.038,,speaker_confusion=0.73;tie=0.024
-pythia-1.4b,dx-addressee-2-deictic,3shot_collide,all,0.328,180,0.287,0.035,,speaker_confusion=0.65;tie=0.022
-pythia-1.4b,dx-addressee-2-deictic,3shot_collide,free,0.421,126,0.286,0.044,,speaker_confusion=0.548;tie=0.032
-pythia-1.4b,dx-addressee-2-deictic,3shot,all,0.283,180,0.287,0.034,,speaker_confusion=0.711;tie=0.006
-pythia-1.4b,dx-addressee-2-deictic,3shot,free,0.365,126,0.286,0.043,,speaker_confusion=0.627;tie=0.008
-pythia-1.4b,dx-addressee-2-third,0shot,all,0.356,180,0.287,0.036,,
-pythia-1.4b,dx-addressee-2-third,0shot,free,0.484,126,0.286,0.044,,
-pythia-1.4b,dx-addressee-2-third,3shot_collide,all,0.350,180,0.287,0.036,,
-pythia-1.4b,dx-addressee-2-third,3shot_collide,free,0.460,126,0.286,0.044,,
-pythia-1.4b,dx-addressee-2-third,3shot,all,0.394,180,0.287,0.036,,
-pythia-1.4b,dx-addressee-2-third,3shot,free,0.500,126,0.286,0.044,,
-pythia-1.4b,sb-k1,0shot,all,0.422,64,0.125,0.062,,
-pythia-1.4b,sb-k1,3shot_collide,all,0.547,64,0.125,0.062,,
-pythia-1.4b,sb-k1,3shot,all,0.500,64,0.125,0.062,,
-pythia-1.4b,sb-k23,0shot,all,0.117,128,0.027,0.028,,
-pythia-1.4b,sb-k23,3shot_collide,all,0.352,128,0.027,0.042,,
-pythia-1.4b,sb-k23,3shot,all,0.352,128,0.027,0.042,,
-pythia-1.4b,sb-split,0shot,all,0.180,128,0.027,0.034,,
-pythia-1.4b,sb-split,3shot_collide,all,0.125,128,0.027,0.029,,
-pythia-1.4b,sb-split,3shot,all,0.203,128,0.027,0.036,,
-pythia-1.4b,sb-dyn,0shot,all,0.129,256,0.027,0.021,,
-pythia-1.4b,sb-dyn,3shot_collide,all,0.098,256,0.027,0.019,,
-pythia-1.4b,sb-dyn,3shot,all,0.137,256,0.027,0.021,,
-pythia-1.4b,an-narr,0shot,all,0.322,640,0.250,0.018,,
-pythia-1.4b,an-narr,3shot_collide,all,0.163,640,0.250,0.015,,
-pythia-1.4b,an-narr,3shot,all,0.255,640,0.250,0.017,,
-pythia-1.4b,an-other-any,0shot,all,0.216,320,0.250,0.023,,
-pythia-1.4b,an-other-any,3shot_collide,all,0.278,320,0.250,0.025,,
-pythia-1.4b,an-other-any,3shot,all,0.328,320,0.250,0.026,,
-pythia-1.4b,an-me-any,0shot,all,0.069,160,0.250,0.020,,
-pythia-1.4b,an-me-any,3shot_collide,all,0.006,160,0.250,0.006,,
-pythia-1.4b,an-me-any,3shot,all,0.000,160,0.250,0.000,,
-pythia-1.4b,an-you-voc,0shot,all,0.887,80,0.250,0.035,,
-pythia-1.4b,an-you-voc,3shot_collide,all,0.188,80,0.250,0.044,,
-pythia-1.4b,an-you-voc,3shot,all,0.287,80,0.250,0.051,,
-pythia-1.4b,an-you-novoc,0shot,all,0.512,80,0.250,0.056,,
-pythia-1.4b,an-you-novoc,3shot_collide,all,0.275,80,0.250,0.050,,
-pythia-1.4b,an-you-novoc,3shot,all,0.237,80,0.250,0.048,,
-pythia-1.4b,adj-adj,0shot,all,0.404,260,0.333,0.030,,
-pythia-1.4b,adj-adj,3shot_collide,all,0.146,260,0.333,0.022,,
-pythia-1.4b,adj-adj,3shot,all,0.369,260,0.333,0.030,,
-pythia-1.4b,adj-voc,0shot,all,0.400,260,0.333,0.030,,
-pythia-1.4b,adj-voc,3shot_collide,all,0.196,260,0.333,0.025,,
-pythia-1.4b,adj-voc,3shot,all,0.435,260,0.333,0.031,,
-pythia-1.4b,adj-third,0shot,all,0.631,260,0.333,0.030,,
-pythia-1.4b,adj-third,3shot_collide,all,0.323,260,0.333,0.029,,
-pythia-1.4b,adj-third,3shot,all,0.369,260,0.333,0.030,,
-pythia-1.4b,cm-mutate,0shot,all,0.265,200,0.200,0.031,,
-pythia-1.4b,cm-mutate,3shot_collide,all,0.385,200,0.200,0.034,,
-pythia-1.4b,cm-mutate,3shot,all,0.470,200,0.200,0.035,,
-pythia-1.4b,cm-rebind,0shot,all,0.215,200,0.200,0.029,,
-pythia-1.4b,cm-rebind,3shot_collide,all,0.240,200,0.200,0.030,,
-pythia-1.4b,cm-rebind,3shot,all,0.230,200,0.200,0.030,,
-pythia-1.4b,cm-copy,0shot,all,0.140,200,0.200,0.025,,
-pythia-1.4b,cm-copy,3shot_collide,all,0.325,200,0.200,0.033,,
-pythia-1.4b,cm-copy,3shot,all,0.260,200,0.200,0.031,,
-olmo2-1b,attr,0shot,all,0.326,1210,0.168,0.013,,
-olmo2-1b,attr,3shot_collide,all,0.582,1210,0.168,0.014,,
-olmo2-1b,attr,3shot,all,0.646,1210,0.168,0.014,,
-olmo2-1b,codevar,0shot,all,0.344,1200,0.267,0.014,,
-olmo2-1b,codevar,3shot_collide,all,0.420,1200,0.267,0.014,,
-olmo2-1b,codevar,3shot,all,0.414,1200,0.267,0.014,,
-olmo2-1b,dialogue,0shot,all,0.600,1200,0.312,0.014,,
-olmo2-1b,dialogue,3shot_collide,all,0.625,1200,0.312,0.014,,
-olmo2-1b,dialogue,3shot,all,0.619,1200,0.312,0.014,,
-olmo2-1b,dx-owner-3-deictic,0shot,all,0.492,120,0.333,0.046,,other_participant=0.3;speaker_confusion=0.192;tie=0.017
-olmo2-1b,dx-owner-3-deictic,0shot,free,0.475,40,0.333,0.079,,other_participant=0.4;speaker_confusion=0.1;tie=0.025
-olmo2-1b,dx-owner-3-deictic,3shot_collide,all,0.367,120,0.333,0.044,,other_participant=0.375;speaker_confusion=0.258
-olmo2-1b,dx-owner-3-deictic,3shot_collide,free,0.275,40,0.333,0.071,,other_participant=0.5;speaker_confusion=0.225
-olmo2-1b,dx-owner-3-deictic,3shot,all,0.458,120,0.333,0.045,,other_participant=0.292;speaker_confusion=0.25
-olmo2-1b,dx-owner-3-deictic,3shot,free,0.475,40,0.333,0.079,,other_participant=0.325;speaker_confusion=0.2
-olmo2-1b,dx-owner-3-third,0shot,all,0.575,120,0.333,0.045,,
-olmo2-1b,dx-owner-3-third,0shot,free,0.575,40,0.333,0.078,,
-olmo2-1b,dx-owner-3-third,3shot_collide,all,0.483,120,0.333,0.046,,
-olmo2-1b,dx-owner-3-third,3shot_collide,free,0.350,40,0.333,0.075,,
-olmo2-1b,dx-owner-3-third,3shot,all,0.533,120,0.333,0.045,,
-olmo2-1b,dx-owner-3-third,3shot,free,0.525,40,0.333,0.079,,
-olmo2-1b,dx-self-3-deictic,0shot,all,0.378,180,0.287,0.036,,other_object=0.217;previous_owner=0.067;speaker_confusion=0.333;tie=0.006
-olmo2-1b,dx-self-3-deictic,0shot,free,0.389,126,0.286,0.043,,other_object=0.214;previous_owner=0.048;speaker_confusion=0.341;tie=0.008
-olmo2-1b,dx-self-3-deictic,3shot_collide,all,0.294,180,0.287,0.034,,other_object=0.35;previous_owner=0.05;speaker_confusion=0.306
-olmo2-1b,dx-self-3-deictic,3shot_collide,free,0.357,126,0.286,0.043,,other_object=0.373;previous_owner=0.04;speaker_confusion=0.23
-olmo2-1b,dx-self-3-deictic,3shot,all,0.317,180,0.287,0.035,,other_object=0.333;previous_owner=0.056;speaker_confusion=0.294
-olmo2-1b,dx-self-3-deictic,3shot,free,0.389,126,0.286,0.043,,other_object=0.349;previous_owner=0.048;speaker_confusion=0.214
-olmo2-1b,dx-self-3-third,0shot,all,0.278,180,0.287,0.033,,
-olmo2-1b,dx-self-3-third,0shot,free,0.254,126,0.286,0.039,,
-olmo2-1b,dx-self-3-third,3shot_collide,all,0.361,180,0.287,0.036,,
-olmo2-1b,dx-self-3-third,3shot_collide,free,0.421,126,0.286,0.044,,
-olmo2-1b,dx-self-3-third,3shot,all,0.361,180,0.287,0.036,,
-olmo2-1b,dx-self-3-third,3shot,free,0.389,126,0.286,0.043,,
-olmo2-1b,dx-self-2-deictic,0shot,all,0.378,180,0.287,0.036,,speaker_confusion=0.622
-olmo2-1b,dx-self-2-deictic,0shot,free,0.365,126,0.286,0.043,,speaker_confusion=0.635
-olmo2-1b,dx-self-2-deictic,3shot_collide,all,0.361,180,0.287,0.036,,speaker_confusion=0.639
-olmo2-1b,dx-self-2-deictic,3shot_collide,free,0.460,126,0.286,0.044,,speaker_confusion=0.54
-olmo2-1b,dx-self-2-deictic,3shot,all,0.372,180,0.287,0.036,,speaker_confusion=0.628
-olmo2-1b,dx-self-2-deictic,3shot,free,0.468,126,0.286,0.044,,speaker_confusion=0.532
-olmo2-1b,dx-self-2-third,0shot,all,0.422,180,0.287,0.037,,
-olmo2-1b,dx-self-2-third,0shot,free,0.429,126,0.286,0.044,,
-olmo2-1b,dx-self-2-third,3shot_collide,all,0.383,180,0.287,0.036,,
-olmo2-1b,dx-self-2-third,3shot_collide,free,0.429,126,0.286,0.044,,
-olmo2-1b,dx-self-2-third,3shot,all,0.389,180,0.287,0.036,,
-olmo2-1b,dx-self-2-third,3shot,free,0.381,126,0.286,0.043,,
-olmo2-1b,dx-addressee-3-deictic,0shot,all,0.317,180,0.287,0.035,,other_object=0.122;previous_owner=0.161;speaker_confusion=0.4
-olmo2-1b,dx-addressee-3-deictic,0shot,free,0.254,126,0.286,0.039,,other_object=0.119;previous_owner=0.198;speaker_confusion=0.429
-olmo2-1b,dx-addressee-3-deictic,3shot_collide,all,0.322,180,0.287,0.035,,other_object=0.244;previous_owner=0.083;speaker_confusion=0.35
-olmo2-1b,dx-addressee-3-deictic,3shot_collide,free,0.357,126,0.286,0.043,,other_object=0.19;previous_owner=0.111;speaker_confusion=0.341
-olmo2-1b,dx-addressee-3-deictic,3shot,all,0.317,180,0.287,0.035,,other_object=0.2;previous_owner=0.067;speaker_confusion=0.411;tie=0.006
-olmo2-1b,dx-addressee-3-deictic,3shot,free,0.341,126,0.286,0.042,,other_object=0.167;previous_owner=0.087;speaker_confusion=0.397;tie=0.008
-olmo2-1b,dx-addressee-3-third,0shot,all,0.383,180,0.287,0.036,,
-olmo2-1b,dx-addressee-3-third,0shot,free,0.325,126,0.286,0.042,,
-olmo2-1b,dx-addressee-3-third,3shot_collide,all,0.378,180,0.287,0.036,,
-olmo2-1b,dx-addressee-3-third,3shot_collide,free,0.405,126,0.286,0.044,,
-olmo2-1b,dx-addressee-3-third,3shot,all,0.344,180,0.287,0.035,,
-olmo2-1b,dx-addressee-3-third,3shot,free,0.325,126,0.286,0.042,,
-olmo2-1b,dx-addressee-2-deictic,0shot,all,0.189,180,0.287,0.029,,speaker_confusion=0.806;tie=0.006
-olmo2-1b,dx-addressee-2-deictic,0shot,free,0.159,126,0.286,0.033,,speaker_confusion=0.833;tie=0.008
-olmo2-1b,dx-addressee-2-deictic,3shot_collide,all,0.317,180,0.287,0.035,,speaker_confusion=0.678;tie=0.006
-olmo2-1b,dx-addressee-2-deictic,3shot_collide,free,0.381,126,0.286,0.043,,speaker_confusion=0.611;tie=0.008
-olmo2-1b,dx-addressee-2-deictic,3shot,all,0.356,180,0.287,0.036,,speaker_confusion=0.644
-olmo2-1b,dx-addressee-2-deictic,3shot,free,0.444,126,0.286,0.044,,speaker_confusion=0.556
-olmo2-1b,dx-addressee-2-third,0shot,all,0.433,180,0.287,0.037,,
-olmo2-1b,dx-addressee-2-third,0shot,free,0.436,126,0.286,0.044,,
-olmo2-1b,dx-addressee-2-third,3shot_collide,all,0.417,180,0.287,0.037,,
-olmo2-1b,dx-addressee-2-third,3shot_collide,free,0.508,126,0.286,0.044,,
-olmo2-1b,dx-addressee-2-third,3shot,all,0.417,180,0.287,0.037,,
-olmo2-1b,dx-addressee-2-third,3shot,free,0.492,126,0.286,0.044,,
-olmo2-1b,sb-k1,0shot,all,0.328,64,0.125,0.059,,
-olmo2-1b,sb-k1,3shot_collide,all,0.359,64,0.125,0.060,,
-olmo2-1b,sb-k1,3shot,all,0.422,64,0.125,0.062,,
-olmo2-1b,sb-k23,0shot,all,0.242,128,0.027,0.038,,
-olmo2-1b,sb-k23,3shot_collide,all,0.180,128,0.027,0.034,,
-olmo2-1b,sb-k23,3shot,all,0.242,128,0.027,0.038,,
-olmo2-1b,sb-split,0shot,all,0.055,128,0.027,0.020,,
-olmo2-1b,sb-split,3shot_collide,all,0.070,128,0.027,0.023,,
-olmo2-1b,sb-split,3shot,all,0.039,128,0.027,0.017,,
-olmo2-1b,sb-dyn,0shot,all,0.113,256,0.027,0.020,,
-olmo2-1b,sb-dyn,3shot_collide,all,0.117,256,0.027,0.020,,
-olmo2-1b,sb-dyn,3shot,all,0.102,256,0.027,0.019,,
-olmo2-1b,an-narr,0shot,all,0.477,640,0.250,0.020,,
-olmo2-1b,an-narr,3shot_collide,all,0.373,640,0.250,0.019,,
-olmo2-1b,an-narr,3shot,all,0.392,640,0.250,0.019,,
-olmo2-1b,an-other-any,0shot,all,0.434,320,0.250,0.028,,
-olmo2-1b,an-other-any,3shot_collide,all,0.266,320,0.250,0.025,,
-olmo2-1b,an-other-any,3shot,all,0.272,320,0.250,0.025,,
-olmo2-1b,an-me-any,0shot,all,0.094,160,0.250,0.023,,
-olmo2-1b,an-me-any,3shot_collide,all,0.025,160,0.250,0.012,,
-olmo2-1b,an-me-any,3shot,all,0.013,160,0.250,0.009,,
-olmo2-1b,an-you-voc,0shot,all,0.275,80,0.250,0.050,,
-olmo2-1b,an-you-voc,3shot_collide,all,0.338,80,0.250,0.053,,
-olmo2-1b,an-you-voc,3shot,all,0.237,80,0.250,0.048,,
-olmo2-1b,an-you-novoc,0shot,all,0.325,80,0.250,0.052,,
-olmo2-1b,an-you-novoc,3shot_collide,all,0.400,80,0.250,0.055,,
-olmo2-1b,an-you-novoc,3shot,all,0.362,80,0.250,0.054,,
-olmo2-1b,adj-adj,0shot,all,0.642,260,0.333,0.030,,
-olmo2-1b,adj-adj,3shot_collide,all,0.427,260,0.333,0.031,,
-olmo2-1b,adj-adj,3shot,all,0.473,260,0.333,0.031,,
-olmo2-1b,adj-voc,0shot,all,0.781,260,0.333,0.026,,
-olmo2-1b,adj-voc,3shot_collide,all,0.492,260,0.333,0.031,,
-olmo2-1b,adj-voc,3shot,all,0.439,260,0.333,0.031,,
-olmo2-1b,adj-third,0shot,all,0.635,260,0.333,0.030,,
-olmo2-1b,adj-third,3shot_collide,all,0.488,260,0.333,0.031,,
-olmo2-1b,adj-third,3shot,all,0.469,260,0.333,0.031,,
-olmo2-1b,cm-mutate,0shot,all,0.595,200,0.200,0.035,,
-olmo2-1b,cm-mutate,3shot_collide,all,0.460,200,0.200,0.035,,
-olmo2-1b,cm-mutate,3shot,all,0.425,200,0.200,0.035,,
-olmo2-1b,cm-rebind,0shot,all,0.010,200,0.200,0.007,,
-olmo2-1b,cm-rebind,3shot_collide,all,0.190,200,0.200,0.028,,
-olmo2-1b,cm-rebind,3shot,all,0.130,200,0.200,0.024,,
-olmo2-1b,cm-copy,0shot,all,0.035,200,0.200,0.013,,
-olmo2-1b,cm-copy,3shot_collide,all,0.165,200,0.200,0.026,,
-olmo2-1b,cm-copy,3shot,all,0.080,200,0.200,0.019,,
-qwen2.5-1.5b,attr,0shot,all,0.712,1210,0.168,0.013,,
-qwen2.5-1.5b,attr,3shot_collide,all,0.870,1210,0.168,0.010,,
-qwen2.5-1.5b,attr,3shot,all,0.977,1210,0.168,0.004,,
-qwen2.5-1.5b,codevar,0shot,all,0.389,1200,0.267,0.014,,
-qwen2.5-1.5b,codevar,3shot_collide,all,0.470,1200,0.267,0.014,,
-qwen2.5-1.5b,codevar,3shot,all,0.461,1200,0.267,0.014,,
-qwen2.5-1.5b,dialogue,0shot,all,0.637,1200,0.312,0.014,,
-qwen2.5-1.5b,dialogue,3shot_collide,all,0.588,1200,0.312,0.014,,
-qwen2.5-1.5b,dialogue,3shot,all,0.600,1200,0.312,0.014,,
-qwen2.5-1.5b,dx-owner-3-deictic,0shot,all,0.433,120,0.333,0.045,,other_participant=0.408;speaker_confusion=0.142;tie=0.017
-qwen2.5-1.5b,dx-owner-3-deictic,0shot,free,0.325,40,0.333,0.074,,other_participant=0.55;speaker_confusion=0.125
-qwen2.5-1.5b,dx-owner-3-deictic,3shot_collide,all,0.283,120,0.333,0.041,,other_participant=0.517;speaker_confusion=0.2
-qwen2.5-1.5b,dx-owner-3-deictic,3shot_collide,free,0.125,40,0.333,0.052,,other_participant=0.7;speaker_confusion=0.175
-qwen2.5-1.5b,dx-owner-3-deictic,3shot,all,0.392,120,0.333,0.045,,other_participant=0.367;speaker_confusion=0.233;tie=0.008
-qwen2.5-1.5b,dx-owner-3-deictic,3shot,free,0.500,40,0.333,0.079,,other_participant=0.375;speaker_confusion=0.1;tie=0.025
-qwen2.5-1.5b,dx-owner-3-third,0shot,all,0.525,120,0.333,0.046,,
-qwen2.5-1.5b,dx-owner-3-third,0shot,free,0.550,40,0.333,0.079,,
-qwen2.5-1.5b,dx-owner-3-third,3shot_collide,all,0.458,120,0.333,0.045,,
-qwen2.5-1.5b,dx-owner-3-third,3shot_collide,free,0.400,40,0.333,0.077,,
-qwen2.5-1.5b,dx-owner-3-third,3shot,all,0.483,120,0.333,0.046,,
-qwen2.5-1.5b,dx-owner-3-third,3shot,free,0.700,40,0.333,0.072,,
-qwen2.5-1.5b,dx-self-3-deictic,0shot,all,0.350,180,0.287,0.036,,other_object=0.317;previous_owner=0.056;speaker_confusion=0.244;tie=0.033
-qwen2.5-1.5b,dx-self-3-deictic,0shot,free,0.452,126,0.286,0.044,,other_object=0.278;previous_owner=0.048;speaker_confusion=0.183;tie=0.04
-qwen2.5-1.5b,dx-self-3-deictic,3shot_collide,all,0.339,180,0.287,0.035,,other_object=0.333;previous_owner=0.044;speaker_confusion=0.267;tie=0.017
-qwen2.5-1.5b,dx-self-3-deictic,3shot_collide,free,0.381,126,0.286,0.043,,other_object=0.357;previous_owner=0.04;speaker_confusion=0.198;tie=0.024
-qwen2.5-1.5b,dx-self-3-deictic,3shot,all,0.339,180,0.287,0.035,,other_object=0.317;previous_owner=0.05;speaker_confusion=0.278;tie=0.017
-qwen2.5-1.5b,dx-self-3-deictic,3shot,free,0.389,126,0.286,0.043,,other_object=0.325;previous_owner=0.048;speaker_confusion=0.214;tie=0.024
-qwen2.5-1.5b,dx-self-3-third,0shot,all,0.350,180,0.287,0.036,,
-qwen2.5-1.5b,dx-self-3-third,0shot,free,0.302,126,0.286,0.041,,
-qwen2.5-1.5b,dx-self-3-third,3shot_collide,all,0.278,180,0.287,0.033,,
-qwen2.5-1.5b,dx-self-3-third,3shot_collide,free,0.349,126,0.286,0.043,,
-qwen2.5-1.5b,dx-self-3-third,3shot,all,0.289,180,0.287,0.034,,
-qwen2.5-1.5b,dx-self-3-third,3shot,free,0.365,126,0.286,0.043,,
-qwen2.5-1.5b,dx-self-2-deictic,0shot,all,0.361,180,0.287,0.036,,speaker_confusion=0.6;tie=0.039
-qwen2.5-1.5b,dx-self-2-deictic,0shot,free,0.484,126,0.286,0.044,,speaker_confusion=0.468;tie=0.048
-qwen2.5-1.5b,dx-self-2-deictic,3shot_collide,all,0.428,180,0.287,0.037,,speaker_confusion=0.567;tie=0.006
-qwen2.5-1.5b,dx-self-2-deictic,3shot_collide,free,0.516,126,0.286,0.044,,speaker_confusion=0.476;tie=0.008
-qwen2.5-1.5b,dx-self-2-deictic,3shot,all,0.406,180,0.287,0.037,,speaker_confusion=0.572;tie=0.022
-qwen2.5-1.5b,dx-self-2-deictic,3shot,free,0.508,126,0.286,0.044,,speaker_confusion=0.476;tie=0.016
-qwen2.5-1.5b,dx-self-2-third,0shot,all,0.439,180,0.287,0.037,,
-qwen2.5-1.5b,dx-self-2-third,0shot,free,0.492,126,0.286,0.044,,
-qwen2.5-1.5b,dx-self-2-third,3shot_collide,all,0.444,180,0.287,0.037,,
-qwen2.5-1.5b,dx-self-2-third,3shot_collide,free,0.516,126,0.286,0.044,,
-qwen2.5-1.5b,dx-self-2-third,3shot,all,0.450,180,0.287,0.037,,
-qwen2.5-1.5b,dx-self-2-third,3shot,free,0.524,126,0.286,0.044,,
-qwen2.5-1.5b,dx-addressee-3-deictic,0shot,all,0.317,180,0.287,0.035,,other_object=0.228;previous_owner=0.072;speaker_confusion=0.367;tie=0.017
-qwen2.5-1.5b,dx-addressee-3-deictic,0shot,free,0.333,126,0.286,0.042,,other_object=0.183;previous_owner=0.079;speaker_confusion=0.397;tie=0.008
-qwen2.5-1.5b,dx-addressee-3-deictic,3shot_collide,all,0.244,180,0.287,0.032,,other_object=0.233;previous_owner=0.1;speaker_confusion=0.417;tie=0.006
-qwen2.5-1.5b,dx-addressee-3-deictic,3shot_collide,free,0.238,126,0.286,0.038,,other_object=0.183;previous_owner=0.127;speaker_confusion=0.444;tie=0.008
-qwen2.5-1.5b,dx-addressee-3-deictic,3shot,all,0.261,180,0.287,0.033,,other_object=0.211;previous_owner=0.1;speaker_confusion=0.417;tie=0.011
-qwen2.5-1.5b,dx-addressee-3-deictic,3shot,free,0.270,126,0.286,0.040,,other_object=0.19;previous_owner=0.135;speaker_confusion=0.389;tie=0.016
-qwen2.5-1.5b,dx-addressee-3-third,0shot,all,0.378,180,0.287,0.036,,
-qwen2.5-1.5b,dx-addressee-3-third,0shot,free,0.333,126,0.286,0.042,,
-qwen2.5-1.5b,dx-addressee-3-third,3shot_collide,all,0.339,180,0.287,0.035,,
-qwen2.5-1.5b,dx-addressee-3-third,3shot_collide,free,0.421,126,0.286,0.044,,
-qwen2.5-1.5b,dx-addressee-3-third,3shot,all,0.289,180,0.287,0.034,,
-qwen2.5-1.5b,dx-addressee-3-third,3shot,free,0.365,126,0.286,0.043,,
-qwen2.5-1.5b,dx-addressee-2-deictic,0shot,all,0.278,180,0.287,0.033,,speaker_confusion=0.717;tie=0.006
-qwen2.5-1.5b,dx-addressee-2-deictic,0shot,free,0.318,126,0.286,0.042,,speaker_confusion=0.675;tie=0.008
-qwen2.5-1.5b,dx-addressee-2-deictic,3shot_collide,all,0.328,180,0.287,0.035,,speaker_confusion=0.661;tie=0.011
-qwen2.5-1.5b,dx-addressee-2-deictic,3shot_collide,free,0.341,126,0.286,0.042,,speaker_confusion=0.651;tie=0.008
-qwen2.5-1.5b,dx-addressee-2-deictic,3shot,all,0.317,180,0.287,0.035,,speaker_confusion=0.661;tie=0.022
-qwen2.5-1.5b,dx-addressee-2-deictic,3shot,free,0.309,126,0.286,0.041,,speaker_confusion=0.659;tie=0.032
-qwen2.5-1.5b,dx-addressee-2-third,0shot,all,0.544,180,0.287,0.037,,
-qwen2.5-1.5b,dx-addressee-2-third,0shot,free,0.556,126,0.286,0.044,,
-qwen2.5-1.5b,dx-addressee-2-third,3shot_collide,all,0.411,180,0.287,0.037,,
-qwen2.5-1.5b,dx-addressee-2-third,3shot_collide,free,0.452,126,0.286,0.044,,
-qwen2.5-1.5b,dx-addressee-2-third,3shot,all,0.439,180,0.287,0.037,,
-qwen2.5-1.5b,dx-addressee-2-third,3shot,free,0.468,126,0.286,0.044,,
-qwen2.5-1.5b,sb-k1,0shot,all,0.781,64,0.125,0.052,,
-qwen2.5-1.5b,sb-k1,3shot_collide,all,0.875,64,0.125,0.041,,
-qwen2.5-1.5b,sb-k1,3shot,all,0.969,64,0.125,0.022,,
-qwen2.5-1.5b,sb-k23,0shot,all,0.352,128,0.027,0.042,,
-qwen2.5-1.5b,sb-k23,3shot_collide,all,0.398,128,0.027,0.043,,
-qwen2.5-1.5b,sb-k23,3shot,all,0.406,128,0.027,0.043,,
-qwen2.5-1.5b,sb-split,0shot,all,0.289,128,0.027,0.040,,
-qwen2.5-1.5b,sb-split,3shot_collide,all,0.219,128,0.027,0.036,,
-qwen2.5-1.5b,sb-split,3shot,all,0.234,128,0.027,0.037,,
-qwen2.5-1.5b,sb-dyn,0shot,all,0.211,256,0.027,0.025,,
-qwen2.5-1.5b,sb-dyn,3shot_collide,all,0.117,256,0.027,0.020,,
-qwen2.5-1.5b,sb-dyn,3shot,all,0.168,256,0.027,0.023,,
-qwen2.5-1.5b,an-narr,0shot,all,0.392,640,0.250,0.019,,
-qwen2.5-1.5b,an-narr,3shot_collide,all,0.256,640,0.250,0.017,,
-qwen2.5-1.5b,an-narr,3shot,all,0.395,640,0.250,0.019,,
-qwen2.5-1.5b,an-other-any,0shot,all,0.300,320,0.250,0.026,,
-qwen2.5-1.5b,an-other-any,3shot_collide,all,0.328,320,0.250,0.026,,
-qwen2.5-1.5b,an-other-any,3shot,all,0.319,320,0.250,0.026,,
-qwen2.5-1.5b,an-me-any,0shot,all,0.225,160,0.250,0.033,,
-qwen2.5-1.5b,an-me-any,3shot_collide,all,0.013,160,0.250,0.009,,
-qwen2.5-1.5b,an-me-any,3shot,all,0.050,160,0.250,0.017,,
-qwen2.5-1.5b,an-you-voc,0shot,all,0.375,80,0.250,0.054,,
-qwen2.5-1.5b,an-you-voc,3shot_collide,all,0.050,80,0.250,0.024,,
-qwen2.5-1.5b,an-you-voc,3shot,all,0.100,80,0.250,0.034,,
-qwen2.5-1.5b,an-you-novoc,0shot,all,0.412,80,0.250,0.055,,
-qwen2.5-1.5b,an-you-novoc,3shot_collide,all,0.150,80,0.250,0.040,,
-qwen2.5-1.5b,an-you-novoc,3shot,all,0.237,80,0.250,0.048,,
-qwen2.5-1.5b,adj-adj,0shot,all,0.546,260,0.333,0.031,,
-qwen2.5-1.5b,adj-adj,3shot_collide,all,0.296,260,0.333,0.028,,
-qwen2.5-1.5b,adj-adj,3shot,all,0.465,260,0.333,0.031,,
-qwen2.5-1.5b,adj-voc,0shot,all,0.654,260,0.333,0.029,,
-qwen2.5-1.5b,adj-voc,3shot_collide,all,0.369,260,0.333,0.030,,
-qwen2.5-1.5b,adj-voc,3shot,all,0.469,260,0.333,0.031,,
-qwen2.5-1.5b,adj-third,0shot,all,0.665,260,0.333,0.029,,
-qwen2.5-1.5b,adj-third,3shot_collide,all,0.558,260,0.333,0.031,,
-qwen2.5-1.5b,adj-third,3shot,all,0.592,260,0.333,0.030,,
-qwen2.5-1.5b,cm-mutate,0shot,all,0.790,200,0.200,0.029,,
-qwen2.5-1.5b,cm-mutate,3shot_collide,all,0.800,200,0.200,0.028,,
-qwen2.5-1.5b,cm-mutate,3shot,all,0.850,200,0.200,0.025,,
-qwen2.5-1.5b,cm-rebind,0shot,all,0.020,200,0.200,0.010,,
-qwen2.5-1.5b,cm-rebind,3shot_collide,all,0.370,200,0.200,0.034,,
-qwen2.5-1.5b,cm-rebind,3shot,all,0.370,200,0.200,0.034,,
-qwen2.5-1.5b,cm-copy,0shot,all,0.005,200,0.200,0.005,,
-qwen2.5-1.5b,cm-copy,3shot_collide,all,0.565,200,0.200,0.035,,
-qwen2.5-1.5b,cm-copy,3shot,all,0.550,200,0.200,0.035,,
-qwen3-1.7b-base,attr,0shot,all,0.719,1210,0.168,0.013,,
-qwen3-1.7b-base,attr,3shot_collide,all,0.957,1210,0.168,0.006,,
-qwen3-1.7b-base,attr,3shot,all,0.997,1210,0.168,0.002,,
-qwen3-1.7b-base,codevar,0shot,all,0.459,1200,0.267,0.014,,
-qwen3-1.7b-base,codevar,3shot_collide,all,0.624,1200,0.267,0.014,,
-qwen3-1.7b-base,codevar,3shot,all,0.619,1200,0.267,0.014,,
-qwen3-1.7b-base,dialogue,0shot,all,0.711,1200,0.312,0.013,,
-qwen3-1.7b-base,dialogue,3shot_collide,all,0.757,1200,0.312,0.012,,
-qwen3-1.7b-base,dialogue,3shot,all,0.742,1200,0.312,0.013,,
-qwen3-1.7b-base,dx-owner-3-deictic,0shot,all,0.492,120,0.333,0.046,,other_participant=0.267;speaker_confusion=0.217;tie=0.025
-qwen3-1.7b-base,dx-owner-3-deictic,0shot,free,0.475,40,0.333,0.079,,other_participant=0.375;speaker_confusion=0.1;tie=0.05
-qwen3-1.7b-base,dx-owner-3-deictic,3shot_collide,all,0.433,120,0.333,0.045,,other_participant=0.325;speaker_confusion=0.233;tie=0.008
-qwen3-1.7b-base,dx-owner-3-deictic,3shot_collide,free,0.450,40,0.333,0.079,,other_participant=0.425;speaker_confusion=0.125
-qwen3-1.7b-base,dx-owner-3-deictic,3shot,all,0.533,120,0.333,0.045,,other_participant=0.233;speaker_confusion=0.225;tie=0.008
-qwen3-1.7b-base,dx-owner-3-deictic,3shot,free,0.525,40,0.333,0.079,,other_participant=0.35;speaker_confusion=0.125
-qwen3-1.7b-base,dx-owner-3-third,0shot,all,0.558,120,0.333,0.045,,
-qwen3-1.7b-base,dx-owner-3-third,0shot,free,0.600,40,0.333,0.077,,
-qwen3-1.7b-base,dx-owner-3-third,3shot_collide,all,0.700,120,0.333,0.042,,
-qwen3-1.7b-base,dx-owner-3-third,3shot_collide,free,0.650,40,0.333,0.075,,
-qwen3-1.7b-base,dx-owner-3-third,3shot,all,0.767,120,0.333,0.039,,
-qwen3-1.7b-base,dx-owner-3-third,3shot,free,0.750,40,0.333,0.069,,
-qwen3-1.7b-base,dx-self-3-deictic,0shot,all,0.361,180,0.287,0.036,,other_object=0.233;previous_owner=0.072;speaker_confusion=0.3;tie=0.033
-qwen3-1.7b-base,dx-self-3-deictic,0shot,free,0.500,126,0.286,0.044,,other_object=0.19;previous_owner=0.048;speaker_confusion=0.214;tie=0.048
-qwen3-1.7b-base,dx-self-3-deictic,3shot_collide,all,0.378,180,0.287,0.036,,other_object=0.194;previous_owner=0.083;speaker_confusion=0.333;tie=0.011
-qwen3-1.7b-base,dx-self-3-deictic,3shot_collide,free,0.476,126,0.286,0.044,,other_object=0.167;previous_owner=0.063;speaker_confusion=0.278;tie=0.016
-qwen3-1.7b-base,dx-self-3-deictic,3shot,all,0.378,180,0.287,0.036,,other_object=0.228;previous_owner=0.067;speaker_confusion=0.317;tie=0.011
-qwen3-1.7b-base,dx-self-3-deictic,3shot,free,0.492,126,0.286,0.044,,other_object=0.206;previous_owner=0.063;speaker_confusion=0.222;tie=0.016
-qwen3-1.7b-base,dx-self-3-third,0shot,all,0.467,180,0.287,0.037,,
-qwen3-1.7b-base,dx-self-3-third,0shot,free,0.444,126,0.286,0.044,,
-qwen3-1.7b-base,dx-self-3-third,3shot_collide,all,0.511,180,0.287,0.037,,
-qwen3-1.7b-base,dx-self-3-third,3shot_collide,free,0.595,126,0.286,0.044,,
-qwen3-1.7b-base,dx-self-3-third,3shot,all,0.472,180,0.287,0.037,,
-qwen3-1.7b-base,dx-self-3-third,3shot,free,0.564,126,0.286,0.044,,
-qwen3-1.7b-base,dx-self-2-deictic,0shot,all,0.428,180,0.287,0.037,,speaker_confusion=0.539;tie=0.033
-qwen3-1.7b-base,dx-self-2-deictic,0shot,free,0.516,126,0.286,0.044,,speaker_confusion=0.437;tie=0.048
-qwen3-1.7b-base,dx-self-2-deictic,3shot_collide,all,0.411,180,0.287,0.037,,speaker_confusion=0.578;tie=0.011
-qwen3-1.7b-base,dx-self-2-deictic,3shot_collide,free,0.516,126,0.286,0.044,,speaker_confusion=0.468;tie=0.016
-qwen3-1.7b-base,dx-self-2-deictic,3shot,all,0.483,180,0.287,0.037,,speaker_confusion=0.506;tie=0.011
-qwen3-1.7b-base,dx-self-2-deictic,3shot,free,0.619,126,0.286,0.043,,speaker_confusion=0.365;tie=0.016
-qwen3-1.7b-base,dx-self-2-third,0shot,all,0.578,180,0.287,0.037,,
-qwen3-1.7b-base,dx-self-2-third,0shot,free,0.667,126,0.286,0.042,,
-qwen3-1.7b-base,dx-self-2-third,3shot_collide,all,0.572,180,0.287,0.037,,
-qwen3-1.7b-base,dx-self-2-third,3shot_collide,free,0.691,126,0.286,0.041,,
-qwen3-1.7b-base,dx-self-2-third,3shot,all,0.544,180,0.287,0.037,,
-qwen3-1.7b-base,dx-self-2-third,3shot,free,0.635,126,0.286,0.043,,
-qwen3-1.7b-base,dx-addressee-3-deictic,0shot,all,0.278,180,0.287,0.033,,other_object=0.172;previous_owner=0.111;speaker_confusion=0.422;tie=0.017
-qwen3-1.7b-base,dx-addressee-3-deictic,0shot,free,0.318,126,0.286,0.042,,other_object=0.151;previous_owner=0.143;speaker_confusion=0.373;tie=0.016
-qwen3-1.7b-base,dx-addressee-3-deictic,3shot_collide,all,0.311,180,0.287,0.035,,other_object=0.156;previous_owner=0.094;speaker_confusion=0.422;tie=0.017
-qwen3-1.7b-base,dx-addressee-3-deictic,3shot_collide,free,0.318,126,0.286,0.042,,other_object=0.127;previous_owner=0.111;speaker_confusion=0.421;tie=0.024
-qwen3-1.7b-base,dx-addressee-3-deictic,3shot,all,0.317,180,0.287,0.035,,other_object=0.161;previous_owner=0.078;speaker_confusion=0.411;tie=0.033
-qwen3-1.7b-base,dx-addressee-3-deictic,3shot,free,0.349,126,0.286,0.043,,other_object=0.127;previous_owner=0.103;speaker_confusion=0.373;tie=0.048
-qwen3-1.7b-base,dx-addressee-3-third,0shot,all,0.483,180,0.287,0.037,,
-qwen3-1.7b-base,dx-addressee-3-third,0shot,free,0.484,126,0.286,0.044,,
-qwen3-1.7b-base,dx-addressee-3-third,3shot_collide,all,0.517,180,0.287,0.037,,
-qwen3-1.7b-base,dx-addressee-3-third,3shot_collide,free,0.579,126,0.286,0.044,,
-qwen3-1.7b-base,dx-addressee-3-third,3shot,all,0.478,180,0.287,0.037,,
-qwen3-1.7b-base,dx-addressee-3-third,3shot,free,0.548,126,0.286,0.044,,
-qwen3-1.7b-base,dx-addressee-2-deictic,0shot,all,0.211,180,0.287,0.030,,speaker_confusion=0.75;tie=0.039
-qwen3-1.7b-base,dx-addressee-2-deictic,0shot,free,0.254,126,0.286,0.039,,speaker_confusion=0.69;tie=0.056
-qwen3-1.7b-base,dx-addressee-2-deictic,3shot_collide,all,0.383,180,0.287,0.036,,speaker_confusion=0.594;tie=0.022
-qwen3-1.7b-base,dx-addressee-2-deictic,3shot_collide,free,0.405,126,0.286,0.044,,speaker_confusion=0.563;tie=0.032
-qwen3-1.7b-base,dx-addressee-2-deictic,3shot,all,0.394,180,0.287,0.036,,speaker_confusion=0.583;tie=0.022
-qwen3-1.7b-base,dx-addressee-2-deictic,3shot,free,0.421,126,0.286,0.044,,speaker_confusion=0.548;tie=0.032
-qwen3-1.7b-base,dx-addressee-2-third,0shot,all,0.589,180,0.287,0.037,,
-qwen3-1.7b-base,dx-addressee-2-third,0shot,free,0.667,126,0.286,0.042,,
-qwen3-1.7b-base,dx-addressee-2-third,3shot_collide,all,0.622,180,0.287,0.036,,
-qwen3-1.7b-base,dx-addressee-2-third,3shot_collide,free,0.738,126,0.286,0.039,,
-qwen3-1.7b-base,dx-addressee-2-third,3shot,all,0.611,180,0.287,0.036,,
-qwen3-1.7b-base,dx-addressee-2-third,3shot,free,0.698,126,0.286,0.041,,
-qwen3-1.7b-base,sb-k1,0shot,all,0.766,64,0.125,0.053,,
-qwen3-1.7b-base,sb-k1,3shot_collide,all,1.000,64,0.125,0.000,,
-qwen3-1.7b-base,sb-k1,3shot,all,1.000,64,0.125,0.000,,
-qwen3-1.7b-base,sb-k23,0shot,all,0.383,128,0.027,0.043,,
-qwen3-1.7b-base,sb-k23,3shot_collide,all,0.930,128,0.027,0.023,,
-qwen3-1.7b-base,sb-k23,3shot,all,0.961,128,0.027,0.017,,
-qwen3-1.7b-base,sb-split,0shot,all,0.406,128,0.027,0.043,,
-qwen3-1.7b-base,sb-split,3shot_collide,all,0.570,128,0.027,0.044,,
-qwen3-1.7b-base,sb-split,3shot,all,0.555,128,0.027,0.044,,
-qwen3-1.7b-base,sb-dyn,0shot,all,0.340,256,0.027,0.030,,
-qwen3-1.7b-base,sb-dyn,3shot_collide,all,0.191,256,0.027,0.025,,
-qwen3-1.7b-base,sb-dyn,3shot,all,0.188,256,0.027,0.024,,
-qwen3-1.7b-base,an-narr,0shot,all,0.453,640,0.250,0.020,,
-qwen3-1.7b-base,an-narr,3shot_collide,all,0.487,640,0.250,0.020,,
-qwen3-1.7b-base,an-narr,3shot,all,0.517,640,0.250,0.020,,
-qwen3-1.7b-base,an-other-any,0shot,all,0.525,320,0.250,0.028,,
-qwen3-1.7b-base,an-other-any,3shot_collide,all,0.372,320,0.250,0.027,,
-qwen3-1.7b-base,an-other-any,3shot,all,0.397,320,0.250,0.027,,
-qwen3-1.7b-base,an-me-any,0shot,all,0.062,160,0.250,0.019,,
-qwen3-1.7b-base,an-me-any,3shot_collide,all,0.075,160,0.250,0.021,,
-qwen3-1.7b-base,an-me-any,3shot,all,0.113,160,0.250,0.025,,
-qwen3-1.7b-base,an-you-voc,0shot,all,0.275,80,0.250,0.050,,
-qwen3-1.7b-base,an-you-voc,3shot_collide,all,0.250,80,0.250,0.048,,
-qwen3-1.7b-base,an-you-voc,3shot,all,0.212,80,0.250,0.046,,
-qwen3-1.7b-base,an-you-novoc,0shot,all,0.350,80,0.250,0.053,,
-qwen3-1.7b-base,an-you-novoc,3shot_collide,all,0.225,80,0.250,0.047,,
-qwen3-1.7b-base,an-you-novoc,3shot,all,0.300,80,0.250,0.051,,
-qwen3-1.7b-base,adj-adj,0shot,all,0.761,260,0.333,0.026,,
-qwen3-1.7b-base,adj-adj,3shot_collide,all,0.565,260,0.333,0.031,,
-qwen3-1.7b-base,adj-adj,3shot,all,0.669,260,0.333,0.029,,
-qwen3-1.7b-base,adj-voc,0shot,all,0.927,260,0.333,0.016,,
-qwen3-1.7b-base,adj-voc,3shot_collide,all,0.785,260,0.333,0.025,,
-qwen3-1.7b-base,adj-voc,3shot,all,0.788,260,0.333,0.025,,
-qwen3-1.7b-base,adj-third,0shot,all,0.554,260,0.333,0.031,,
-qwen3-1.7b-base,adj-third,3shot_collide,all,0.804,260,0.333,0.025,,
-qwen3-1.7b-base,adj-third,3shot,all,0.900,260,0.333,0.019,,
-qwen3-1.7b-base,cm-mutate,0shot,all,0.750,200,0.200,0.031,,
-qwen3-1.7b-base,cm-mutate,3shot_collide,all,0.945,200,0.200,0.016,,
-qwen3-1.7b-base,cm-mutate,3shot,all,0.910,200,0.200,0.020,,
-qwen3-1.7b-base,cm-rebind,0shot,all,0.215,200,0.200,0.029,,
-qwen3-1.7b-base,cm-rebind,3shot_collide,all,0.890,200,0.200,0.022,,
-qwen3-1.7b-base,cm-rebind,3shot,all,0.835,200,0.200,0.026,,
-qwen3-1.7b-base,cm-copy,0shot,all,0.110,200,0.200,0.022,,
-qwen3-1.7b-base,cm-copy,3shot_collide,all,0.960,200,0.200,0.014,,
-qwen3-1.7b-base,cm-copy,3shot,all,0.925,200,0.200,0.019,,
-smollm2-1.7b,attr,0shot,all,0.406,1210,0.168,0.014,,
-smollm2-1.7b,attr,3shot_collide,all,0.779,1210,0.168,0.012,,
-smollm2-1.7b,attr,3shot,all,0.831,1210,0.168,0.011,,
-smollm2-1.7b,codevar,0shot,all,0.355,1200,0.267,0.014,,
-smollm2-1.7b,codevar,3shot_collide,all,0.449,1200,0.267,0.014,,
-smollm2-1.7b,codevar,3shot,all,0.463,1200,0.267,0.014,,
-smollm2-1.7b,dialogue,0shot,all,0.599,1200,0.312,0.014,,
-smollm2-1.7b,dialogue,3shot_collide,all,0.614,1200,0.312,0.014,,
-smollm2-1.7b,dialogue,3shot,all,0.645,1200,0.312,0.014,,
-smollm2-1.7b,dx-owner-3-deictic,0shot,all,0.375,120,0.333,0.044,,other_participant=0.392;speaker_confusion=0.225;tie=0.008
-smollm2-1.7b,dx-owner-3-deictic,0shot,free,0.325,40,0.333,0.074,,other_participant=0.5;speaker_confusion=0.15;tie=0.025
-smollm2-1.7b,dx-owner-3-deictic,3shot_collide,all,0.200,120,0.333,0.036,,other_participant=0.492;speaker_confusion=0.308
-smollm2-1.7b,dx-owner-3-deictic,3shot_collide,free,0.150,40,0.333,0.057,,other_participant=0.675;speaker_confusion=0.175
-smollm2-1.7b,dx-owner-3-deictic,3shot,all,0.292,120,0.333,0.042,,other_participant=0.35;speaker_confusion=0.342;tie=0.017
-smollm2-1.7b,dx-owner-3-deictic,3shot,free,0.200,40,0.333,0.063,,other_participant=0.6;speaker_confusion=0.2
-smollm2-1.7b,dx-owner-3-third,0shot,all,0.492,120,0.333,0.046,,
-smollm2-1.7b,dx-owner-3-third,0shot,free,0.450,40,0.333,0.079,,
-smollm2-1.7b,dx-owner-3-third,3shot_collide,all,0.358,120,0.333,0.044,,
-smollm2-1.7b,dx-owner-3-third,3shot_collide,free,0.300,40,0.333,0.072,,
-smollm2-1.7b,dx-owner-3-third,3shot,all,0.508,120,0.333,0.046,,
-smollm2-1.7b,dx-owner-3-third,3shot,free,0.475,40,0.333,0.079,,
-smollm2-1.7b,dx-self-3-deictic,0shot,all,0.378,180,0.287,0.036,,other_object=0.222;previous_owner=0.028;speaker_confusion=0.367;tie=0.006
-smollm2-1.7b,dx-self-3-deictic,0shot,free,0.421,126,0.286,0.044,,other_object=0.222;previous_owner=0.016;speaker_confusion=0.333;tie=0.008
-smollm2-1.7b,dx-self-3-deictic,3shot_collide,all,0.350,180,0.287,0.036,,other_object=0.228;previous_owner=0.056;speaker_confusion=0.344;tie=0.022
-smollm2-1.7b,dx-self-3-deictic,3shot_collide,free,0.429,126,0.286,0.044,,other_object=0.246;previous_owner=0.04;speaker_confusion=0.262;tie=0.024
-smollm2-1.7b,dx-self-3-deictic,3shot,all,0.367,180,0.287,0.036,,other_object=0.261;previous_owner=0.039;speaker_confusion=0.328;tie=0.006
-smollm2-1.7b,dx-self-3-deictic,3shot,free,0.460,126,0.286,0.044,,other_object=0.27;previous_owner=0.04;speaker_confusion=0.222;tie=0.008
-smollm2-1.7b,dx-self-3-third,0shot,all,0.344,180,0.287,0.035,,
-smollm2-1.7b,dx-self-3-third,0shot,free,0.349,126,0.286,0.043,,
-smollm2-1.7b,dx-self-3-third,3shot_collide,all,0.294,180,0.287,0.034,,
-smollm2-1.7b,dx-self-3-third,3shot_collide,free,0.333,126,0.286,0.042,,
-smollm2-1.7b,dx-self-3-third,3shot,all,0.317,180,0.287,0.035,,
-smollm2-1.7b,dx-self-3-third,3shot,free,0.325,126,0.286,0.042,,
-smollm2-1.7b,dx-self-2-deictic,0shot,all,0.367,180,0.287,0.036,,speaker_confusion=0.622;tie=0.011
-smollm2-1.7b,dx-self-2-deictic,0shot,free,0.436,126,0.286,0.044,,speaker_confusion=0.563
-smollm2-1.7b,dx-self-2-deictic,3shot_collide,all,0.394,180,0.287,0.036,,speaker_confusion=0.606
-smollm2-1.7b,dx-self-2-deictic,3shot_collide,free,0.492,126,0.286,0.044,,speaker_confusion=0.508
-smollm2-1.7b,dx-self-2-deictic,3shot,all,0.378,180,0.287,0.036,,speaker_confusion=0.611;tie=0.011
-smollm2-1.7b,dx-self-2-deictic,3shot,free,0.484,126,0.286,0.044,,speaker_confusion=0.508;tie=0.008
-smollm2-1.7b,dx-self-2-third,0shot,all,0.417,180,0.287,0.037,,
-smollm2-1.7b,dx-self-2-third,0shot,free,0.500,126,0.286,0.044,,
-smollm2-1.7b,dx-self-2-third,3shot_collide,all,0.400,180,0.287,0.036,,
-smollm2-1.7b,dx-self-2-third,3shot_collide,free,0.429,126,0.286,0.044,,
-smollm2-1.7b,dx-self-2-third,3shot,all,0.422,180,0.287,0.037,,
-smollm2-1.7b,dx-self-2-third,3shot,free,0.436,126,0.286,0.044,,
-smollm2-1.7b,dx-addressee-3-deictic,0shot,all,0.283,180,0.287,0.034,,other_object=0.222;previous_owner=0.05;speaker_confusion=0.428;tie=0.017
-smollm2-1.7b,dx-addressee-3-deictic,0shot,free,0.341,126,0.286,0.042,,other_object=0.198;previous_owner=0.056;speaker_confusion=0.381;tie=0.024
-smollm2-1.7b,dx-addressee-3-deictic,3shot_collide,all,0.361,180,0.287,0.036,,other_object=0.256;previous_owner=0.067;speaker_confusion=0.317
-smollm2-1.7b,dx-addressee-3-deictic,3shot_collide,free,0.381,126,0.286,0.043,,other_object=0.19;previous_owner=0.095;speaker_confusion=0.333
-smollm2-1.7b,dx-addressee-3-deictic,3shot,all,0.328,180,0.287,0.035,,other_object=0.267;previous_owner=0.072;speaker_confusion=0.328;tie=0.006
-smollm2-1.7b,dx-addressee-3-deictic,3shot,free,0.357,126,0.286,0.043,,other_object=0.206;previous_owner=0.103;speaker_confusion=0.325;tie=0.008
-smollm2-1.7b,dx-addressee-3-third,0shot,all,0.306,180,0.287,0.034,,
-smollm2-1.7b,dx-addressee-3-third,0shot,free,0.318,126,0.286,0.042,,
-smollm2-1.7b,dx-addressee-3-third,3shot_collide,all,0.394,180,0.287,0.036,,
-smollm2-1.7b,dx-addressee-3-third,3shot_collide,free,0.421,126,0.286,0.044,,
-smollm2-1.7b,dx-addressee-3-third,3shot,all,0.389,180,0.287,0.036,,
-smollm2-1.7b,dx-addressee-3-third,3shot,free,0.413,126,0.286,0.044,,
-smollm2-1.7b,dx-addressee-2-deictic,0shot,all,0.222,180,0.287,0.031,,speaker_confusion=0.778
-smollm2-1.7b,dx-addressee-2-deictic,0shot,free,0.230,126,0.286,0.037,,speaker_confusion=0.77
-smollm2-1.7b,dx-addressee-2-deictic,3shot_collide,all,0.378,180,0.287,0.036,,speaker_confusion=0.611;tie=0.011
-smollm2-1.7b,dx-addressee-2-deictic,3shot_collide,free,0.421,126,0.286,0.044,,speaker_confusion=0.571;tie=0.008
-smollm2-1.7b,dx-addressee-2-deictic,3shot,all,0.356,180,0.287,0.036,,speaker_confusion=0.639;tie=0.006
-smollm2-1.7b,dx-addressee-2-deictic,3shot,free,0.381,126,0.286,0.043,,speaker_confusion=0.611;tie=0.008
-smollm2-1.7b,dx-addressee-2-third,0shot,all,0.450,180,0.287,0.037,,
-smollm2-1.7b,dx-addressee-2-third,0shot,free,0.548,126,0.286,0.044,,
-smollm2-1.7b,dx-addressee-2-third,3shot_collide,all,0.406,180,0.287,0.037,,
-smollm2-1.7b,dx-addressee-2-third,3shot_collide,free,0.460,126,0.286,0.044,,
-smollm2-1.7b,dx-addressee-2-third,3shot,all,0.433,180,0.287,0.037,,
-smollm2-1.7b,dx-addressee-2-third,3shot,free,0.484,126,0.286,0.044,,
-smollm2-1.7b,sb-k1,0shot,all,0.422,64,0.125,0.062,,
-smollm2-1.7b,sb-k1,3shot_collide,all,0.719,64,0.125,0.056,,
-smollm2-1.7b,sb-k1,3shot,all,0.719,64,0.125,0.056,,
-smollm2-1.7b,sb-k23,0shot,all,0.203,128,0.027,0.036,,
-smollm2-1.7b,sb-k23,3shot_collide,all,0.367,128,0.027,0.043,,
-smollm2-1.7b,sb-k23,3shot,all,0.398,128,0.027,0.043,,
-smollm2-1.7b,sb-split,0shot,all,0.211,128,0.027,0.036,,
-smollm2-1.7b,sb-split,3shot_collide,all,0.156,128,0.027,0.032,,
-smollm2-1.7b,sb-split,3shot,all,0.141,128,0.027,0.031,,
-smollm2-1.7b,sb-dyn,0shot,all,0.102,256,0.027,0.019,,
-smollm2-1.7b,sb-dyn,3shot_collide,all,0.094,256,0.027,0.018,,
-smollm2-1.7b,sb-dyn,3shot,all,0.070,256,0.027,0.016,,
-smollm2-1.7b,an-narr,0shot,all,0.277,640,0.250,0.018,,
-smollm2-1.7b,an-narr,3shot_collide,all,0.239,640,0.250,0.017,,
-smollm2-1.7b,an-narr,3shot,all,0.294,640,0.250,0.018,,
-smollm2-1.7b,an-other-any,0shot,all,0.391,320,0.250,0.027,,
-smollm2-1.7b,an-other-any,3shot_collide,all,0.175,320,0.250,0.021,,
-smollm2-1.7b,an-other-any,3shot,all,0.141,320,0.250,0.019,,
-smollm2-1.7b,an-me-any,0shot,all,0.144,160,0.250,0.028,,
-smollm2-1.7b,an-me-any,3shot_collide,all,0.069,160,0.250,0.020,,
-smollm2-1.7b,an-me-any,3shot,all,0.013,160,0.250,0.009,,
-smollm2-1.7b,an-you-voc,0shot,all,0.425,80,0.250,0.055,,
-smollm2-1.7b,an-you-voc,3shot_collide,all,0.087,80,0.250,0.032,,
-smollm2-1.7b,an-you-voc,3shot,all,0.312,80,0.250,0.052,,
-smollm2-1.7b,an-you-novoc,0shot,all,0.113,80,0.250,0.035,,
-smollm2-1.7b,an-you-novoc,3shot_collide,all,0.175,80,0.250,0.043,,
-smollm2-1.7b,an-you-novoc,3shot,all,0.300,80,0.250,0.051,,
-smollm2-1.7b,adj-adj,0shot,all,0.535,260,0.333,0.031,,
-smollm2-1.7b,adj-adj,3shot_collide,all,0.254,260,0.333,0.027,,
-smollm2-1.7b,adj-adj,3shot,all,0.373,260,0.333,0.030,,
-smollm2-1.7b,adj-voc,0shot,all,0.542,260,0.333,0.031,,
-smollm2-1.7b,adj-voc,3shot_collide,all,0.262,260,0.333,0.027,,
-smollm2-1.7b,adj-voc,3shot,all,0.358,260,0.333,0.030,,
-smollm2-1.7b,adj-third,0shot,all,0.411,260,0.333,0.030,,
-smollm2-1.7b,adj-third,3shot_collide,all,0.323,260,0.333,0.029,,
-smollm2-1.7b,adj-third,3shot,all,0.481,260,0.333,0.031,,
-smollm2-1.7b,cm-mutate,0shot,all,0.765,200,0.200,0.030,,
-smollm2-1.7b,cm-mutate,3shot_collide,all,0.835,200,0.200,0.026,,
-smollm2-1.7b,cm-mutate,3shot,all,0.780,200,0.200,0.029,,
-smollm2-1.7b,cm-rebind,0shot,all,0.065,200,0.200,0.017,,
-smollm2-1.7b,cm-rebind,3shot_collide,all,0.490,200,0.200,0.035,,
-smollm2-1.7b,cm-rebind,3shot,all,0.515,200,0.200,0.035,,
-smollm2-1.7b,cm-copy,0shot,all,0.020,200,0.200,0.010,,
-smollm2-1.7b,cm-copy,3shot_collide,all,0.505,200,0.200,0.035,,
-smollm2-1.7b,cm-copy,3shot,all,0.430,200,0.200,0.035,,
-pythia-2.8b,attr,0shot,all,0.612,1210,0.168,0.014,,
-pythia-2.8b,attr,3shot_collide,all,0.785,1210,0.168,0.012,,
-pythia-2.8b,attr,3shot,all,0.847,1210,0.168,0.010,,
-pythia-2.8b,codevar,0shot,all,0.329,1200,0.267,0.014,,
-pythia-2.8b,codevar,3shot_collide,all,0.412,1200,0.267,0.014,,
-pythia-2.8b,codevar,3shot,all,0.390,1200,0.267,0.014,,
-pythia-2.8b,dialogue,0shot,all,0.568,1200,0.312,0.014,,
-pythia-2.8b,dialogue,3shot_collide,all,0.510,1200,0.312,0.014,,
-pythia-2.8b,dialogue,3shot,all,0.544,1200,0.312,0.014,,
-pythia-2.8b,dx-owner-3-deictic,0shot,all,0.483,120,0.333,0.046,,other_participant=0.317;speaker_confusion=0.183;tie=0.017
-pythia-2.8b,dx-owner-3-deictic,0shot,free,0.475,40,0.333,0.079,,other_participant=0.375;speaker_confusion=0.15
-pythia-2.8b,dx-owner-3-deictic,3shot_collide,all,0.192,120,0.333,0.036,,other_participant=0.467;speaker_confusion=0.325;tie=0.017
-pythia-2.8b,dx-owner-3-deictic,3shot_collide,free,0.050,40,0.333,0.035,,other_participant=0.7;speaker_confusion=0.25
-pythia-2.8b,dx-owner-3-deictic,3shot,all,0.358,120,0.333,0.044,,other_participant=0.358;speaker_confusion=0.283
-pythia-2.8b,dx-owner-3-deictic,3shot,free,0.125,40,0.333,0.052,,other_participant=0.6;speaker_confusion=0.275
-pythia-2.8b,dx-owner-3-third,0shot,all,0.558,120,0.333,0.045,,
-pythia-2.8b,dx-owner-3-third,0shot,free,0.725,40,0.333,0.071,,
-pythia-2.8b,dx-owner-3-third,3shot_collide,all,0.292,120,0.333,0.042,,
-pythia-2.8b,dx-owner-3-third,3shot_collide,free,0.200,40,0.333,0.063,,
-pythia-2.8b,dx-owner-3-third,3shot,all,0.408,120,0.333,0.045,,
-pythia-2.8b,dx-owner-3-third,3shot,free,0.450,40,0.333,0.079,,
-pythia-2.8b,dx-self-3-deictic,0shot,all,0.289,180,0.287,0.034,,other_object=0.233;previous_owner=0.089;speaker_confusion=0.383;tie=0.006
-pythia-2.8b,dx-self-3-deictic,0shot,free,0.270,126,0.286,0.040,,other_object=0.23;previous_owner=0.056;speaker_confusion=0.437;tie=0.008
-pythia-2.8b,dx-self-3-deictic,3shot_collide,all,0.289,180,0.287,0.034,,other_object=0.272;previous_owner=0.067;speaker_confusion=0.35;tie=0.022
-pythia-2.8b,dx-self-3-deictic,3shot_collide,free,0.357,126,0.286,0.043,,other_object=0.278;previous_owner=0.056;speaker_confusion=0.278;tie=0.032
-pythia-2.8b,dx-self-3-deictic,3shot,all,0.317,180,0.287,0.035,,other_object=0.256;previous_owner=0.061;speaker_confusion=0.361;tie=0.006
-pythia-2.8b,dx-self-3-deictic,3shot,free,0.381,126,0.286,0.043,,other_object=0.27;previous_owner=0.048;speaker_confusion=0.294;tie=0.008
-pythia-2.8b,dx-self-3-third,0shot,all,0.328,180,0.287,0.035,,
-pythia-2.8b,dx-self-3-third,0shot,free,0.341,126,0.286,0.042,,
-pythia-2.8b,dx-self-3-third,3shot_collide,all,0.328,180,0.287,0.035,,
-pythia-2.8b,dx-self-3-third,3shot_collide,free,0.373,126,0.286,0.043,,
-pythia-2.8b,dx-self-3-third,3shot,all,0.350,180,0.287,0.036,,
-pythia-2.8b,dx-self-3-third,3shot,free,0.436,126,0.286,0.044,,
-pythia-2.8b,dx-self-2-deictic,0shot,all,0.272,180,0.287,0.033,,speaker_confusion=0.728
-pythia-2.8b,dx-self-2-deictic,0shot,free,0.246,126,0.286,0.038,,speaker_confusion=0.754
-pythia-2.8b,dx-self-2-deictic,3shot_collide,all,0.372,180,0.287,0.036,,speaker_confusion=0.628
-pythia-2.8b,dx-self-2-deictic,3shot_collide,free,0.436,126,0.286,0.044,,speaker_confusion=0.563
-pythia-2.8b,dx-self-2-deictic,3shot,all,0.367,180,0.287,0.036,,speaker_confusion=0.628;tie=0.006
-pythia-2.8b,dx-self-2-deictic,3shot,free,0.452,126,0.286,0.044,,speaker_confusion=0.54;tie=0.008
-pythia-2.8b,dx-self-2-third,0shot,all,0.344,180,0.287,0.035,,
-pythia-2.8b,dx-self-2-third,0shot,free,0.381,126,0.286,0.043,,
-pythia-2.8b,dx-self-2-third,3shot_collide,all,0.350,180,0.287,0.036,,
-pythia-2.8b,dx-self-2-third,3shot_collide,free,0.405,126,0.286,0.044,,
-pythia-2.8b,dx-self-2-third,3shot,all,0.394,180,0.287,0.036,,
-pythia-2.8b,dx-self-2-third,3shot,free,0.492,126,0.286,0.044,,
-pythia-2.8b,dx-addressee-3-deictic,0shot,all,0.333,180,0.287,0.035,,other_object=0.183;previous_owner=0.15;speaker_confusion=0.322;tie=0.011
-pythia-2.8b,dx-addressee-3-deictic,0shot,free,0.325,126,0.286,0.042,,other_object=0.143;previous_owner=0.206;speaker_confusion=0.31;tie=0.016
-pythia-2.8b,dx-addressee-3-deictic,3shot_collide,all,0.306,180,0.287,0.034,,other_object=0.206;previous_owner=0.122;speaker_confusion=0.356;tie=0.011
-pythia-2.8b,dx-addressee-3-deictic,3shot_collide,free,0.333,126,0.286,0.042,,other_object=0.183;previous_owner=0.159;speaker_confusion=0.31;tie=0.016
-pythia-2.8b,dx-addressee-3-deictic,3shot,all,0.328,180,0.287,0.035,,other_object=0.178;previous_owner=0.133;speaker_confusion=0.339;tie=0.022
-pythia-2.8b,dx-addressee-3-deictic,3shot,free,0.365,126,0.286,0.043,,other_object=0.143;previous_owner=0.167;speaker_confusion=0.294;tie=0.032
-pythia-2.8b,dx-addressee-3-third,0shot,all,0.422,180,0.287,0.037,,
-pythia-2.8b,dx-addressee-3-third,0shot,free,0.436,126,0.286,0.044,,
-pythia-2.8b,dx-addressee-3-third,3shot_collide,all,0.367,180,0.287,0.036,,
-pythia-2.8b,dx-addressee-3-third,3shot_collide,free,0.429,126,0.286,0.044,,
-pythia-2.8b,dx-addressee-3-third,3shot,all,0.400,180,0.287,0.036,,
-pythia-2.8b,dx-addressee-3-third,3shot,free,0.484,126,0.286,0.044,,
-pythia-2.8b,dx-addressee-2-deictic,0shot,all,0.211,180,0.287,0.030,,speaker_confusion=0.789
-pythia-2.8b,dx-addressee-2-deictic,0shot,free,0.159,126,0.286,0.033,,speaker_confusion=0.841
-pythia-2.8b,dx-addressee-2-deictic,3shot_collide,all,0.378,180,0.287,0.036,,speaker_confusion=0.622
-pythia-2.8b,dx-addressee-2-deictic,3shot_collide,free,0.413,126,0.286,0.044,,speaker_confusion=0.587
-pythia-2.8b,dx-addressee-2-deictic,3shot,all,0.356,180,0.287,0.036,,speaker_confusion=0.639;tie=0.006
-pythia-2.8b,dx-addressee-2-deictic,3shot,free,0.365,126,0.286,0.043,,speaker_confusion=0.627;tie=0.008
-pythia-2.8b,dx-addressee-2-third,0shot,all,0.400,180,0.287,0.036,,
-pythia-2.8b,dx-addressee-2-third,0shot,free,0.365,126,0.286,0.043,,
-pythia-2.8b,dx-addressee-2-third,3shot_collide,all,0.406,180,0.287,0.037,,
-pythia-2.8b,dx-addressee-2-third,3shot_collide,free,0.508,126,0.286,0.044,,
-pythia-2.8b,dx-addressee-2-third,3shot,all,0.400,180,0.287,0.036,,
-pythia-2.8b,dx-addressee-2-third,3shot,free,0.468,126,0.286,0.044,,
-pythia-2.8b,sb-k1,0shot,all,0.641,64,0.125,0.060,,
-pythia-2.8b,sb-k1,3shot_collide,all,0.719,64,0.125,0.056,,
-pythia-2.8b,sb-k1,3shot,all,0.734,64,0.125,0.055,,
-pythia-2.8b,sb-k23,0shot,all,0.352,128,0.027,0.042,,
-pythia-2.8b,sb-k23,3shot_collide,all,0.508,128,0.027,0.044,,
-pythia-2.8b,sb-k23,3shot,all,0.469,128,0.027,0.044,,
-pythia-2.8b,sb-split,0shot,all,0.266,128,0.027,0.039,,
-pythia-2.8b,sb-split,3shot_collide,all,0.258,128,0.027,0.039,,
-pythia-2.8b,sb-split,3shot,all,0.188,128,0.027,0.035,,
-pythia-2.8b,sb-dyn,0shot,all,0.144,256,0.027,0.022,,
-pythia-2.8b,sb-dyn,3shot_collide,all,0.117,256,0.027,0.020,,
-pythia-2.8b,sb-dyn,3shot,all,0.117,256,0.027,0.020,,
-pythia-2.8b,an-narr,0shot,all,0.403,640,0.250,0.019,,
-pythia-2.8b,an-narr,3shot_collide,all,0.242,640,0.250,0.017,,
-pythia-2.8b,an-narr,3shot,all,0.348,640,0.250,0.019,,
-pythia-2.8b,an-other-any,0shot,all,0.138,320,0.250,0.019,,
-pythia-2.8b,an-other-any,3shot_collide,all,0.487,320,0.250,0.028,,
-pythia-2.8b,an-other-any,3shot,all,0.512,320,0.250,0.028,,
-pythia-2.8b,an-me-any,0shot,all,0.675,160,0.250,0.037,,
-pythia-2.8b,an-me-any,3shot_collide,all,0.069,160,0.250,0.020,,
-pythia-2.8b,an-me-any,3shot,all,0.019,160,0.250,0.011,,
-pythia-2.8b,an-you-voc,0shot,all,0.200,80,0.250,0.045,,
-pythia-2.8b,an-you-voc,3shot_collide,all,0.025,80,0.250,0.018,,
-pythia-2.8b,an-you-voc,3shot,all,0.013,80,0.250,0.012,,
-pythia-2.8b,an-you-novoc,0shot,all,0.125,80,0.250,0.037,,
-pythia-2.8b,an-you-novoc,3shot_collide,all,0.087,80,0.250,0.032,,
-pythia-2.8b,an-you-novoc,3shot,all,0.138,80,0.250,0.038,,
-pythia-2.8b,adj-adj,0shot,all,0.535,260,0.333,0.031,,
-pythia-2.8b,adj-adj,3shot_collide,all,0.238,260,0.333,0.026,,
-pythia-2.8b,adj-adj,3shot,all,0.339,260,0.333,0.029,,
-pythia-2.8b,adj-voc,0shot,all,0.677,260,0.333,0.029,,
-pythia-2.8b,adj-voc,3shot_collide,all,0.327,260,0.333,0.029,,
-pythia-2.8b,adj-voc,3shot,all,0.431,260,0.333,0.031,,
-pythia-2.8b,adj-third,0shot,all,0.823,260,0.333,0.024,,
-pythia-2.8b,adj-third,3shot_collide,all,0.458,260,0.333,0.031,,
-pythia-2.8b,adj-third,3shot,all,0.581,260,0.333,0.031,,
-pythia-2.8b,cm-mutate,0shot,all,0.765,200,0.200,0.030,,
-pythia-2.8b,cm-mutate,3shot_collide,all,0.535,200,0.200,0.035,,
-pythia-2.8b,cm-mutate,3shot,all,0.655,200,0.200,0.034,,
-pythia-2.8b,cm-rebind,0shot,all,0.100,200,0.200,0.021,,
-pythia-2.8b,cm-rebind,3shot_collide,all,0.430,200,0.200,0.035,,
-pythia-2.8b,cm-rebind,3shot,all,0.290,200,0.200,0.032,,
-pythia-2.8b,cm-copy,0shot,all,0.045,200,0.200,0.015,,
-pythia-2.8b,cm-copy,3shot_collide,all,0.425,200,0.200,0.035,,
-pythia-2.8b,cm-copy,3shot,all,0.385,200,0.200,0.034,,
-falcon3-3b,attr,0shot,all,0.550,1210,0.168,0.014,,
-falcon3-3b,attr,3shot_collide,all,0.918,1210,0.168,0.008,,
-falcon3-3b,attr,3shot,all,0.953,1210,0.168,0.006,,
-falcon3-3b,codevar,0shot,all,0.427,1200,0.267,0.014,,
-falcon3-3b,codevar,3shot_collide,all,0.617,1200,0.267,0.014,,
-falcon3-3b,codevar,3shot,all,0.625,1200,0.267,0.014,,
-falcon3-3b,dialogue,0shot,all,0.718,1200,0.312,0.013,,
-falcon3-3b,dialogue,3shot_collide,all,0.717,1200,0.312,0.013,,
-falcon3-3b,dialogue,3shot,all,0.743,1200,0.312,0.013,,
-falcon3-3b,dx-owner-3-deictic,0shot,all,0.450,120,0.333,0.045,,other_participant=0.358;speaker_confusion=0.183;tie=0.008
-falcon3-3b,dx-owner-3-deictic,0shot,free,0.350,40,0.333,0.075,,other_participant=0.45;speaker_confusion=0.2
-falcon3-3b,dx-owner-3-deictic,3shot,all,0.492,120,0.333,0.046,,other_participant=0.3;speaker_confusion=0.192;tie=0.017
-falcon3-3b,dx-owner-3-deictic,3shot,free,0.350,40,0.333,0.075,,other_participant=0.425;speaker_confusion=0.2;tie=0.025
-falcon3-3b,dx-owner-3-third,0shot,all,0.592,120,0.333,0.045,,
-falcon3-3b,dx-owner-3-third,0shot,free,0.525,40,0.333,0.079,,
-falcon3-3b,dx-owner-3-third,3shot,all,0.633,120,0.333,0.044,,
-falcon3-3b,dx-owner-3-third,3shot,free,0.575,40,0.333,0.078,,
-falcon3-3b,dx-self-3-deictic,0shot,all,0.283,180,0.287,0.034,,other_object=0.233;previous_owner=0.078;speaker_confusion=0.394;tie=0.011
-falcon3-3b,dx-self-3-deictic,0shot,free,0.318,126,0.286,0.042,,other_object=0.198;previous_owner=0.024;speaker_confusion=0.46
-falcon3-3b,dx-self-3-deictic,3shot,all,0.411,180,0.287,0.037,,other_object=0.256;previous_owner=0.072;speaker_confusion=0.233;tie=0.028
-falcon3-3b,dx-self-3-deictic,3shot,free,0.500,126,0.286,0.044,,other_object=0.246;previous_owner=0.04;speaker_confusion=0.198;tie=0.016
-falcon3-3b,dx-self-3-third,0shot,all,0.444,180,0.287,0.037,,
-falcon3-3b,dx-self-3-third,0shot,free,0.389,126,0.286,0.043,,
-falcon3-3b,dx-self-3-third,3shot,all,0.461,180,0.287,0.037,,
-falcon3-3b,dx-self-3-third,3shot,free,0.468,126,0.286,0.044,,
-falcon3-3b,dx-self-2-deictic,0shot,all,0.256,180,0.287,0.033,,speaker_confusion=0.722;tie=0.022
-falcon3-3b,dx-self-2-deictic,0shot,free,0.222,126,0.286,0.037,,speaker_confusion=0.754;tie=0.024
-falcon3-3b,dx-self-2-deictic,3shot,all,0.450,180,0.287,0.037,,speaker_confusion=0.528;tie=0.022
-falcon3-3b,dx-self-2-deictic,3shot,free,0.540,126,0.286,0.044,,speaker_confusion=0.444;tie=0.016
-falcon3-3b,dx-self-2-third,0shot,all,0.556,180,0.287,0.037,,
-falcon3-3b,dx-self-2-third,0shot,free,0.556,126,0.286,0.044,,
-falcon3-3b,dx-self-2-third,3shot,all,0.500,180,0.287,0.037,,
-falcon3-3b,dx-self-2-third,3shot,free,0.556,126,0.286,0.044,,
-falcon3-3b,dx-addressee-3-deictic,0shot,all,0.300,180,0.287,0.034,,other_object=0.167;previous_owner=0.128;speaker_confusion=0.394;tie=0.011
-falcon3-3b,dx-addressee-3-deictic,0shot,free,0.286,126,0.286,0.040,,other_object=0.135;previous_owner=0.159;speaker_confusion=0.405;tie=0.016
-falcon3-3b,dx-addressee-3-deictic,3shot,all,0.339,180,0.287,0.035,,other_object=0.189;previous_owner=0.117;speaker_confusion=0.35;tie=0.006
-falcon3-3b,dx-addressee-3-deictic,3shot,free,0.318,126,0.286,0.042,,other_object=0.167;previous_owner=0.143;speaker_confusion=0.373
-falcon3-3b,dx-addressee-3-third,0shot,all,0.533,180,0.287,0.037,,
-falcon3-3b,dx-addressee-3-third,0shot,free,0.460,126,0.286,0.044,,
-falcon3-3b,dx-addressee-3-third,3shot,all,0.433,180,0.287,0.037,,
-falcon3-3b,dx-addressee-3-third,3shot,free,0.381,126,0.286,0.043,,
-falcon3-3b,dx-addressee-2-deictic,0shot,all,0.239,180,0.287,0.032,,speaker_confusion=0.739;tie=0.022
-falcon3-3b,dx-addressee-2-deictic,0shot,free,0.206,126,0.286,0.036,,speaker_confusion=0.778;tie=0.016
-falcon3-3b,dx-addressee-2-deictic,3shot,all,0.356,180,0.287,0.036,,speaker_confusion=0.633;tie=0.011
-falcon3-3b,dx-addressee-2-deictic,3shot,free,0.397,126,0.286,0.044,,speaker_confusion=0.595;tie=0.008
-falcon3-3b,dx-addressee-2-third,0shot,all,0.511,180,0.287,0.037,,
-falcon3-3b,dx-addressee-2-third,0shot,free,0.484,126,0.286,0.044,,
-falcon3-3b,dx-addressee-2-third,3shot,all,0.489,180,0.287,0.037,,
-falcon3-3b,dx-addressee-2-third,3shot,free,0.516,126,0.286,0.044,,
-qwen2.5-3b,attr,0shot,all,0.703,1210,0.168,0.013,,
-qwen2.5-3b,attr,3shot_collide,all,0.959,1210,0.168,0.006,,
-qwen2.5-3b,attr,3shot,all,0.993,1210,0.168,0.002,,
-qwen2.5-3b,codevar,0shot,all,0.433,1200,0.267,0.014,,
-qwen2.5-3b,codevar,3shot_collide,all,0.522,1200,0.267,0.014,,
-qwen2.5-3b,codevar,3shot,all,0.483,1200,0.267,0.014,,
-qwen2.5-3b,dialogue,0shot,all,0.667,1200,0.312,0.014,,
-qwen2.5-3b,dialogue,3shot_collide,all,0.716,1200,0.312,0.013,,
-qwen2.5-3b,dialogue,3shot,all,0.713,1200,0.312,0.013,,
-qwen2.5-3b,dx-owner-3-deictic,0shot,all,0.492,120,0.333,0.046,,other_participant=0.392;speaker_confusion=0.083;tie=0.033
-qwen2.5-3b,dx-owner-3-deictic,0shot,free,0.425,40,0.333,0.078,,other_participant=0.425;speaker_confusion=0.1;tie=0.05
-qwen2.5-3b,dx-owner-3-deictic,3shot_collide,all,0.467,120,0.333,0.045,,other_participant=0.475;speaker_confusion=0.05;tie=0.008
-qwen2.5-3b,dx-owner-3-deictic,3shot_collide,free,0.375,40,0.333,0.076,,other_participant=0.575;speaker_confusion=0.025;tie=0.025
-qwen2.5-3b,dx-owner-3-deictic,3shot,all,0.433,120,0.333,0.045,,other_participant=0.492;speaker_confusion=0.067;tie=0.008
-qwen2.5-3b,dx-owner-3-deictic,3shot,free,0.325,40,0.333,0.074,,other_participant=0.65;speaker_confusion=0.025
-qwen2.5-3b,dx-owner-3-third,0shot,all,0.567,120,0.333,0.045,,
-qwen2.5-3b,dx-owner-3-third,0shot,free,0.525,40,0.333,0.079,,
-qwen2.5-3b,dx-owner-3-third,3shot_collide,all,0.692,120,0.333,0.042,,
-qwen2.5-3b,dx-owner-3-third,3shot_collide,free,0.600,40,0.333,0.077,,
-qwen2.5-3b,dx-owner-3-third,3shot,all,0.642,120,0.333,0.044,,
-qwen2.5-3b,dx-owner-3-third,3shot,free,0.550,40,0.333,0.079,,
-qwen2.5-3b,dx-self-3-deictic,0shot,all,0.328,180,0.287,0.035,,other_object=0.311;previous_owner=0.033;speaker_confusion=0.294;tie=0.033
-qwen2.5-3b,dx-self-3-deictic,0shot,free,0.389,126,0.286,0.043,,other_object=0.31;previous_owner=0.016;speaker_confusion=0.254;tie=0.032
-qwen2.5-3b,dx-self-3-deictic,3shot_collide,all,0.444,180,0.287,0.037,,other_object=0.222;previous_owner=0.017;speaker_confusion=0.306;tie=0.011
-qwen2.5-3b,dx-self-3-deictic,3shot_collide,free,0.564,126,0.286,0.044,,other_object=0.246;previous_owner=0.008;speaker_confusion=0.167;tie=0.016
-qwen2.5-3b,dx-self-3-deictic,3shot,all,0.428,180,0.287,0.037,,other_object=0.267;previous_owner=0.033;speaker_confusion=0.267;tie=0.006
-qwen2.5-3b,dx-self-3-deictic,3shot,free,0.524,126,0.286,0.044,,other_object=0.27;previous_owner=0.016;speaker_confusion=0.183;tie=0.008
-qwen2.5-3b,dx-self-3-third,0shot,all,0.572,180,0.287,0.037,,
-qwen2.5-3b,dx-self-3-third,0shot,free,0.643,126,0.286,0.043,,
-qwen2.5-3b,dx-self-3-third,3shot_collide,all,0.528,180,0.287,0.037,,
-qwen2.5-3b,dx-self-3-third,3shot_collide,free,0.579,126,0.286,0.044,,
-qwen2.5-3b,dx-self-3-third,3shot,all,0.478,180,0.287,0.037,,
-qwen2.5-3b,dx-self-3-third,3shot,free,0.548,126,0.286,0.044,,
-qwen2.5-3b,dx-self-2-deictic,0shot,all,0.328,180,0.287,0.035,,speaker_confusion=0.661;tie=0.011
-qwen2.5-3b,dx-self-2-deictic,0shot,free,0.405,126,0.286,0.044,,speaker_confusion=0.579;tie=0.016
-qwen2.5-3b,dx-self-2-deictic,3shot_collide,all,0.472,180,0.287,0.037,,speaker_confusion=0.522;tie=0.006
-qwen2.5-3b,dx-self-2-deictic,3shot_collide,free,0.579,126,0.286,0.044,,speaker_confusion=0.421
-qwen2.5-3b,dx-self-2-deictic,3shot,all,0.478,180,0.287,0.037,,speaker_confusion=0.517;tie=0.006
-qwen2.5-3b,dx-self-2-deictic,3shot,free,0.587,126,0.286,0.044,,speaker_confusion=0.405;tie=0.008
-qwen2.5-3b,dx-self-2-third,0shot,all,0.561,180,0.287,0.037,,
-qwen2.5-3b,dx-self-2-third,0shot,free,0.667,126,0.286,0.042,,
-qwen2.5-3b,dx-self-2-third,3shot_collide,all,0.567,180,0.287,0.037,,
-qwen2.5-3b,dx-self-2-third,3shot_collide,free,0.659,126,0.286,0.042,,
-qwen2.5-3b,dx-self-2-third,3shot,all,0.583,180,0.287,0.037,,
-qwen2.5-3b,dx-self-2-third,3shot,free,0.675,126,0.286,0.042,,
-qwen2.5-3b,dx-addressee-3-deictic,0shot,all,0.228,180,0.287,0.031,,other_object=0.272;previous_owner=0.05;speaker_confusion=0.439;tie=0.011
-qwen2.5-3b,dx-addressee-3-deictic,0shot,free,0.286,126,0.286,0.040,,other_object=0.238;previous_owner=0.071;speaker_confusion=0.389;tie=0.016
-qwen2.5-3b,dx-addressee-3-deictic,3shot_collide,all,0.317,180,0.287,0.035,,other_object=0.161;previous_owner=0.044;speaker_confusion=0.467;tie=0.011
-qwen2.5-3b,dx-addressee-3-deictic,3shot_collide,free,0.365,126,0.286,0.043,,other_object=0.135;previous_owner=0.056;speaker_confusion=0.437;tie=0.008
-qwen2.5-3b,dx-addressee-3-deictic,3shot,all,0.322,180,0.287,0.035,,other_object=0.156;previous_owner=0.039;speaker_confusion=0.478;tie=0.006
-qwen2.5-3b,dx-addressee-3-deictic,3shot,free,0.365,126,0.286,0.043,,other_object=0.151;previous_owner=0.048;speaker_confusion=0.429;tie=0.008
-qwen2.5-3b,dx-addressee-3-third,0shot,all,0.572,180,0.287,0.037,,
-qwen2.5-3b,dx-addressee-3-third,0shot,free,0.651,126,0.286,0.043,,
-qwen2.5-3b,dx-addressee-3-third,3shot_collide,all,0.500,180,0.287,0.037,,
-qwen2.5-3b,dx-addressee-3-third,3shot_collide,free,0.556,126,0.286,0.044,,
-qwen2.5-3b,dx-addressee-3-third,3shot,all,0.467,180,0.287,0.037,,
-qwen2.5-3b,dx-addressee-3-third,3shot,free,0.532,126,0.286,0.044,,
-qwen2.5-3b,dx-addressee-2-deictic,0shot,all,0.244,180,0.287,0.032,,speaker_confusion=0.75;tie=0.006
-qwen2.5-3b,dx-addressee-2-deictic,0shot,free,0.262,126,0.286,0.039,,speaker_confusion=0.73;tie=0.008
-qwen2.5-3b,dx-addressee-2-deictic,3shot_collide,all,0.328,180,0.287,0.035,,speaker_confusion=0.65;tie=0.022
-qwen2.5-3b,dx-addressee-2-deictic,3shot_collide,free,0.365,126,0.286,0.043,,speaker_confusion=0.619;tie=0.016
-qwen2.5-3b,dx-addressee-2-deictic,3shot,all,0.344,180,0.287,0.035,,speaker_confusion=0.65;tie=0.006
-qwen2.5-3b,dx-addressee-2-deictic,3shot,free,0.389,126,0.286,0.043,,speaker_confusion=0.611
-qwen2.5-3b,dx-addressee-2-third,0shot,all,0.617,180,0.287,0.036,,
-qwen2.5-3b,dx-addressee-2-third,0shot,free,0.762,126,0.286,0.038,,
-qwen2.5-3b,dx-addressee-2-third,3shot_collide,all,0.600,180,0.287,0.036,,
-qwen2.5-3b,dx-addressee-2-third,3shot_collide,free,0.691,126,0.286,0.041,,
-qwen2.5-3b,dx-addressee-2-third,3shot,all,0.583,180,0.287,0.037,,
-qwen2.5-3b,dx-addressee-2-third,3shot,free,0.675,126,0.286,0.042,,
-qwen2.5-3b,sb-k1,0shot,all,0.812,64,0.125,0.049,,
-qwen2.5-3b,sb-k1,3shot_collide,all,1.000,64,0.125,0.000,,
-qwen2.5-3b,sb-k1,3shot,all,1.000,64,0.125,0.000,,
-qwen2.5-3b,sb-k23,0shot,all,0.609,128,0.027,0.043,,
-qwen2.5-3b,sb-k23,3shot_collide,all,0.844,128,0.027,0.032,,
-qwen2.5-3b,sb-k23,3shot,all,0.859,128,0.027,0.031,,
-qwen2.5-3b,sb-split,0shot,all,0.273,128,0.027,0.039,,
-qwen2.5-3b,sb-split,3shot_collide,all,0.617,128,0.027,0.043,,
-qwen2.5-3b,sb-split,3shot,all,0.578,128,0.027,0.044,,
-qwen2.5-3b,sb-dyn,0shot,all,0.383,256,0.027,0.030,,
-qwen2.5-3b,sb-dyn,3shot_collide,all,0.172,256,0.027,0.024,,
-qwen2.5-3b,sb-dyn,3shot,all,0.211,256,0.027,0.025,,
-qwen2.5-3b,an-narr,0shot,all,0.372,640,0.250,0.019,,
-qwen2.5-3b,an-narr,3shot_collide,all,0.502,640,0.250,0.020,,
-qwen2.5-3b,an-narr,3shot,all,0.455,640,0.250,0.020,,
-qwen2.5-3b,an-other-any,0shot,all,0.400,320,0.250,0.027,,
-qwen2.5-3b,an-other-any,3shot_collide,all,0.284,320,0.250,0.025,,
-qwen2.5-3b,an-other-any,3shot,all,0.234,320,0.250,0.024,,
-qwen2.5-3b,an-me-any,0shot,all,0.000,160,0.250,0.000,,
-qwen2.5-3b,an-me-any,3shot_collide,all,0.113,160,0.250,0.025,,
-qwen2.5-3b,an-me-any,3shot,all,0.138,160,0.250,0.027,,
-qwen2.5-3b,an-you-voc,0shot,all,0.812,80,0.250,0.044,,
-qwen2.5-3b,an-you-voc,3shot_collide,all,0.225,80,0.250,0.047,,
-qwen2.5-3b,an-you-voc,3shot,all,0.438,80,0.250,0.056,,
-qwen2.5-3b,an-you-novoc,0shot,all,0.400,80,0.250,0.055,,
-qwen2.5-3b,an-you-novoc,3shot_collide,all,0.225,80,0.250,0.047,,
-qwen2.5-3b,an-you-novoc,3shot,all,0.388,80,0.250,0.054,,
-qwen2.5-3b,adj-adj,0shot,all,0.589,260,0.333,0.030,,
-qwen2.5-3b,adj-adj,3shot_collide,all,0.561,260,0.333,0.031,,
-qwen2.5-3b,adj-adj,3shot,all,0.661,260,0.333,0.029,,
-qwen2.5-3b,adj-voc,0shot,all,0.677,260,0.333,0.029,,
-qwen2.5-3b,adj-voc,3shot_collide,all,0.596,260,0.333,0.030,,
-qwen2.5-3b,adj-voc,3shot,all,0.612,260,0.333,0.030,,
-qwen2.5-3b,adj-third,0shot,all,0.592,260,0.333,0.030,,
-qwen2.5-3b,adj-third,3shot_collide,all,0.669,260,0.333,0.029,,
-qwen2.5-3b,adj-third,3shot,all,0.665,260,0.333,0.029,,
-qwen2.5-3b,cm-mutate,0shot,all,0.890,200,0.200,0.022,,
-qwen2.5-3b,cm-mutate,3shot_collide,all,0.930,200,0.200,0.018,,
-qwen2.5-3b,cm-mutate,3shot,all,0.890,200,0.200,0.022,,
-qwen2.5-3b,cm-rebind,0shot,all,0.110,200,0.200,0.022,,
-qwen2.5-3b,cm-rebind,3shot_collide,all,0.650,200,0.200,0.034,,
-qwen2.5-3b,cm-rebind,3shot,all,0.550,200,0.200,0.035,,
-qwen2.5-3b,cm-copy,0shot,all,0.090,200,0.200,0.020,,
-qwen2.5-3b,cm-copy,3shot_collide,all,0.820,200,0.200,0.027,,
-qwen2.5-3b,cm-copy,3shot,all,0.800,200,0.200,0.028,,
-qwen3-4b-base,attr,0shot,all,0.973,1210,0.168,0.005,,
-qwen3-4b-base,attr,3shot_collide,all,1.000,1210,0.168,0.000,,
-qwen3-4b-base,attr,3shot,all,1.000,1210,0.168,0.000,,
-qwen3-4b-base,codevar,0shot,all,0.604,1200,0.267,0.014,,
-qwen3-4b-base,codevar,3shot_collide,all,0.693,1200,0.267,0.013,,
-qwen3-4b-base,codevar,3shot,all,0.683,1200,0.267,0.013,,
-qwen3-4b-base,dialogue,0shot,all,0.873,1200,0.312,0.010,,
-qwen3-4b-base,dialogue,3shot_collide,all,0.842,1200,0.312,0.011,,
-qwen3-4b-base,dialogue,3shot,all,0.824,1200,0.312,0.011,,
-qwen3-4b-base,dx-owner-3-deictic,0shot,all,0.708,120,0.333,0.042,,other_participant=0.225;speaker_confusion=0.067
-qwen3-4b-base,dx-owner-3-deictic,0shot,free,0.775,40,0.333,0.066,,other_participant=0.225
-qwen3-4b-base,dx-owner-3-deictic,3shot_collide,all,0.900,120,0.333,0.027,,other_participant=0.075;speaker_confusion=0.017;tie=0.008
-qwen3-4b-base,dx-owner-3-deictic,3shot_collide,free,0.900,40,0.333,0.047,,other_participant=0.075;tie=0.025
-qwen3-4b-base,dx-owner-3-deictic,3shot,all,0.900,120,0.333,0.027,,other_participant=0.075;speaker_confusion=0.025
-qwen3-4b-base,dx-owner-3-deictic,3shot,free,0.925,40,0.333,0.042,,other_participant=0.075
-qwen3-4b-base,dx-owner-3-third,0shot,all,0.858,120,0.333,0.032,,
-qwen3-4b-base,dx-owner-3-third,0shot,free,0.950,40,0.333,0.035,,
-qwen3-4b-base,dx-owner-3-third,3shot_collide,all,0.967,120,0.333,0.016,,
-qwen3-4b-base,dx-owner-3-third,3shot_collide,free,0.950,40,0.333,0.035,,
-qwen3-4b-base,dx-owner-3-third,3shot,all,0.958,120,0.333,0.018,,
-qwen3-4b-base,dx-owner-3-third,3shot,free,1.000,40,0.333,0.000,,
-qwen3-4b-base,dx-self-3-deictic,0shot,all,0.372,180,0.287,0.036,,other_object=0.156;previous_owner=0.122;speaker_confusion=0.333;tie=0.017
-qwen3-4b-base,dx-self-3-deictic,0shot,free,0.468,126,0.286,0.044,,other_object=0.127;previous_owner=0.063;speaker_confusion=0.333;tie=0.008
-qwen3-4b-base,dx-self-3-deictic,3shot_collide,all,0.511,180,0.287,0.037,,other_object=0.2;previous_owner=0.028;speaker_confusion=0.25;tie=0.011
-qwen3-4b-base,dx-self-3-deictic,3shot_collide,free,0.611,126,0.286,0.043,,other_object=0.206;previous_owner=0.024;speaker_confusion=0.159
-qwen3-4b-base,dx-self-3-deictic,3shot,all,0.522,180,0.287,0.037,,other_object=0.178;previous_owner=0.028;speaker_confusion=0.261;tie=0.011
-qwen3-4b-base,dx-self-3-deictic,3shot,free,0.627,126,0.286,0.043,,other_object=0.175;previous_owner=0.016;speaker_confusion=0.175;tie=0.008
-qwen3-4b-base,dx-self-3-third,0shot,all,0.717,180,0.287,0.034,,
-qwen3-4b-base,dx-self-3-third,0shot,free,0.794,126,0.286,0.036,,
-qwen3-4b-base,dx-self-3-third,3shot_collide,all,0.722,180,0.287,0.033,,
-qwen3-4b-base,dx-self-3-third,3shot_collide,free,0.754,126,0.286,0.038,,
-qwen3-4b-base,dx-self-3-third,3shot,all,0.711,180,0.287,0.034,,
-qwen3-4b-base,dx-self-3-third,3shot,free,0.754,126,0.286,0.038,,
-qwen3-4b-base,dx-self-2-deictic,0shot,all,0.444,180,0.287,0.037,,speaker_confusion=0.544;tie=0.011
-qwen3-4b-base,dx-self-2-deictic,0shot,free,0.571,126,0.286,0.044,,speaker_confusion=0.421;tie=0.008
-qwen3-4b-base,dx-self-2-deictic,3shot_collide,all,0.561,180,0.287,0.037,,speaker_confusion=0.411;tie=0.028
-qwen3-4b-base,dx-self-2-deictic,3shot_collide,free,0.714,126,0.286,0.040,,speaker_confusion=0.278;tie=0.008
-qwen3-4b-base,dx-self-2-deictic,3shot,all,0.533,180,0.287,0.037,,speaker_confusion=0.456;tie=0.011
-qwen3-4b-base,dx-self-2-deictic,3shot,free,0.667,126,0.286,0.042,,speaker_confusion=0.317;tie=0.016
-qwen3-4b-base,dx-self-2-third,0shot,all,0.678,180,0.287,0.035,,
-qwen3-4b-base,dx-self-2-third,0shot,free,0.786,126,0.286,0.037,,
-qwen3-4b-base,dx-self-2-third,3shot_collide,all,0.689,180,0.287,0.035,,
-qwen3-4b-base,dx-self-2-third,3shot_collide,free,0.778,126,0.286,0.037,,
-qwen3-4b-base,dx-self-2-third,3shot,all,0.689,180,0.287,0.035,,
-qwen3-4b-base,dx-self-2-third,3shot,free,0.762,126,0.286,0.038,,
-qwen3-4b-base,dx-addressee-3-deictic,0shot,all,0.383,180,0.287,0.036,,other_object=0.111;previous_owner=0.117;speaker_confusion=0.361;tie=0.028
-qwen3-4b-base,dx-addressee-3-deictic,0shot,free,0.484,126,0.286,0.044,,other_object=0.063;previous_owner=0.119;speaker_confusion=0.302;tie=0.032
-qwen3-4b-base,dx-addressee-3-deictic,3shot_collide,all,0.406,180,0.287,0.037,,other_object=0.178;previous_owner=0.044;speaker_confusion=0.372
-qwen3-4b-base,dx-addressee-3-deictic,3shot_collide,free,0.468,126,0.286,0.044,,other_object=0.143;previous_owner=0.056;speaker_confusion=0.333
-qwen3-4b-base,dx-addressee-3-deictic,3shot,all,0.428,180,0.287,0.037,,other_object=0.144;previous_owner=0.05;speaker_confusion=0.372;tie=0.006
-qwen3-4b-base,dx-addressee-3-deictic,3shot,free,0.508,126,0.286,0.044,,other_object=0.111;previous_owner=0.056;speaker_confusion=0.325
-qwen3-4b-base,dx-addressee-3-third,0shot,all,0.744,180,0.287,0.033,,
-qwen3-4b-base,dx-addressee-3-third,0shot,free,0.786,126,0.286,0.037,,
-qwen3-4b-base,dx-addressee-3-third,3shot_collide,all,0.733,180,0.287,0.033,,
-qwen3-4b-base,dx-addressee-3-third,3shot_collide,free,0.770,126,0.286,0.037,,
-qwen3-4b-base,dx-addressee-3-third,3shot,all,0.706,180,0.287,0.034,,
-qwen3-4b-base,dx-addressee-3-third,3shot,free,0.738,126,0.286,0.039,,
-qwen3-4b-base,dx-addressee-2-deictic,0shot,all,0.306,180,0.287,0.034,,speaker_confusion=0.656;tie=0.039
-qwen3-4b-base,dx-addressee-2-deictic,0shot,free,0.413,126,0.286,0.044,,speaker_confusion=0.54;tie=0.048
-qwen3-4b-base,dx-addressee-2-deictic,3shot_collide,all,0.478,180,0.287,0.037,,speaker_confusion=0.494;tie=0.028
-qwen3-4b-base,dx-addressee-2-deictic,3shot_collide,free,0.532,126,0.286,0.044,,speaker_confusion=0.437;tie=0.032
-qwen3-4b-base,dx-addressee-2-deictic,3shot,all,0.456,180,0.287,0.037,,speaker_confusion=0.528;tie=0.017
-qwen3-4b-base,dx-addressee-2-deictic,3shot,free,0.516,126,0.286,0.044,,speaker_confusion=0.468;tie=0.016
-qwen3-4b-base,dx-addressee-2-third,0shot,all,0.661,180,0.287,0.035,,
-qwen3-4b-base,dx-addressee-2-third,0shot,free,0.794,126,0.286,0.036,,
-qwen3-4b-base,dx-addressee-2-third,3shot_collide,all,0.733,180,0.287,0.033,,
-qwen3-4b-base,dx-addressee-2-third,3shot_collide,free,0.809,126,0.286,0.035,,
-qwen3-4b-base,dx-addressee-2-third,3shot,all,0.722,180,0.287,0.033,,
-qwen3-4b-base,dx-addressee-2-third,3shot,free,0.802,126,0.286,0.035,,
-qwen3-4b-base,sb-k1,0shot,all,1.000,64,0.125,0.000,,
-qwen3-4b-base,sb-k1,3shot_collide,all,0.984,64,0.125,0.015,,
-qwen3-4b-base,sb-k1,3shot,all,1.000,64,0.125,0.000,,
-qwen3-4b-base,sb-k23,0shot,all,0.742,128,0.027,0.039,,
-qwen3-4b-base,sb-k23,3shot_collide,all,0.945,128,0.027,0.020,,
-qwen3-4b-base,sb-k23,3shot,all,0.969,128,0.027,0.015,,
-qwen3-4b-base,sb-split,0shot,all,0.688,128,0.027,0.041,,
-qwen3-4b-base,sb-split,3shot_collide,all,0.797,128,0.027,0.036,,
-qwen3-4b-base,sb-split,3shot,all,0.828,128,0.027,0.033,,
-qwen3-4b-base,sb-dyn,0shot,all,0.547,256,0.027,0.031,,
-qwen3-4b-base,sb-dyn,3shot_collide,all,0.371,256,0.027,0.030,,
-qwen3-4b-base,sb-dyn,3shot,all,0.352,256,0.027,0.030,,
-qwen3-4b-base,an-narr,0shot,all,0.655,640,0.250,0.019,,
-qwen3-4b-base,an-narr,3shot_collide,all,0.903,640,0.250,0.012,,
-qwen3-4b-base,an-narr,3shot,all,0.894,640,0.250,0.012,,
-qwen3-4b-base,an-other-any,0shot,all,0.506,320,0.250,0.028,,
-qwen3-4b-base,an-other-any,3shot_collide,all,0.653,320,0.250,0.027,,
-qwen3-4b-base,an-other-any,3shot,all,0.637,320,0.250,0.027,,
-qwen3-4b-base,an-me-any,0shot,all,0.131,160,0.250,0.027,,
-qwen3-4b-base,an-me-any,3shot_collide,all,0.406,160,0.250,0.039,,
-qwen3-4b-base,an-me-any,3shot,all,0.312,160,0.250,0.037,,
-qwen3-4b-base,an-you-voc,0shot,all,0.412,80,0.250,0.055,,
-qwen3-4b-base,an-you-voc,3shot_collide,all,0.800,80,0.250,0.045,,
-qwen3-4b-base,an-you-voc,3shot,all,0.863,80,0.250,0.038,,
-qwen3-4b-base,an-you-novoc,0shot,all,0.775,80,0.250,0.047,,
-qwen3-4b-base,an-you-novoc,3shot_collide,all,0.450,80,0.250,0.056,,
-qwen3-4b-base,an-you-novoc,3shot,all,0.537,80,0.250,0.056,,
-qwen3-4b-base,adj-adj,0shot,all,0.888,260,0.333,0.019,,
-qwen3-4b-base,adj-adj,3shot_collide,all,0.923,260,0.333,0.017,,
-qwen3-4b-base,adj-adj,3shot,all,0.904,260,0.333,0.018,,
-qwen3-4b-base,adj-voc,0shot,all,0.954,260,0.333,0.013,,
-qwen3-4b-base,adj-voc,3shot_collide,all,0.977,260,0.333,0.009,,
-qwen3-4b-base,adj-voc,3shot,all,0.985,260,0.333,0.008,,
-qwen3-4b-base,adj-third,0shot,all,0.946,260,0.333,0.014,,
-qwen3-4b-base,adj-third,3shot_collide,all,0.989,260,0.333,0.007,,
-qwen3-4b-base,adj-third,3shot,all,0.985,260,0.333,0.008,,
-qwen3-4b-base,cm-mutate,0shot,all,0.945,200,0.200,0.016,,
-qwen3-4b-base,cm-mutate,3shot_collide,all,0.945,200,0.200,0.016,,
-qwen3-4b-base,cm-mutate,3shot,all,0.965,200,0.200,0.013,,
-qwen3-4b-base,cm-rebind,0shot,all,0.310,200,0.200,0.033,,
-qwen3-4b-base,cm-rebind,3shot_collide,all,0.985,200,0.200,0.009,,
-qwen3-4b-base,cm-rebind,3shot,all,0.965,200,0.200,0.013,,
-qwen3-4b-base,cm-copy,0shot,all,0.295,200,0.200,0.032,,
-qwen3-4b-base,cm-copy,3shot_collide,all,0.975,200,0.200,0.011,,
-qwen3-4b-base,cm-copy,3shot,all,0.980,200,0.200,0.010,,
-pythia-6.9b,attr,0shot,all,0.529,1210,0.168,0.014,,
-pythia-6.9b,attr,3shot_collide,all,0.821,1210,0.168,0.011,,
-pythia-6.9b,attr,3shot,all,0.872,1210,0.168,0.010,,
-pythia-6.9b,codevar,0shot,all,0.370,1200,0.267,0.014,,
-pythia-6.9b,codevar,3shot_collide,all,0.385,1200,0.267,0.014,,
-pythia-6.9b,codevar,3shot,all,0.397,1200,0.267,0.014,,
-pythia-6.9b,dialogue,0shot,all,0.566,1200,0.312,0.014,,
-pythia-6.9b,dialogue,3shot_collide,all,0.473,1200,0.312,0.014,,
-pythia-6.9b,dialogue,3shot,all,0.499,1200,0.312,0.014,,
-pythia-6.9b,dx-owner-3-deictic,0shot,all,0.450,120,0.333,0.045,,other_participant=0.333;speaker_confusion=0.217
-pythia-6.9b,dx-owner-3-deictic,0shot,free,0.525,40,0.333,0.079,,other_participant=0.35;speaker_confusion=0.125
-pythia-6.9b,dx-owner-3-deictic,3shot_collide,all,0.283,120,0.333,0.041,,other_participant=0.367;speaker_confusion=0.333;tie=0.017
-pythia-6.9b,dx-owner-3-deictic,3shot_collide,free,0.200,40,0.333,0.063,,other_participant=0.55;speaker_confusion=0.25
-pythia-6.9b,dx-owner-3-deictic,3shot,all,0.442,120,0.333,0.045,,other_participant=0.283;speaker_confusion=0.267;tie=0.008
-pythia-6.9b,dx-owner-3-deictic,3shot,free,0.500,40,0.333,0.079,,other_participant=0.325;speaker_confusion=0.15;tie=0.025
-pythia-6.9b,dx-owner-3-third,0shot,all,0.558,120,0.333,0.045,,
-pythia-6.9b,dx-owner-3-third,0shot,free,0.775,40,0.333,0.066,,
-pythia-6.9b,dx-owner-3-third,3shot_collide,all,0.367,120,0.333,0.044,,
-pythia-6.9b,dx-owner-3-third,3shot_collide,free,0.325,40,0.333,0.074,,
-pythia-6.9b,dx-owner-3-third,3shot,all,0.533,120,0.333,0.045,,
-pythia-6.9b,dx-owner-3-third,3shot,free,0.700,40,0.333,0.072,,
-pythia-6.9b,dx-self-3-deictic,0shot,all,0.300,180,0.287,0.034,,other_object=0.222;previous_owner=0.089;speaker_confusion=0.383;tie=0.006
-pythia-6.9b,dx-self-3-deictic,0shot,free,0.333,126,0.286,0.042,,other_object=0.238;previous_owner=0.032;speaker_confusion=0.397
-pythia-6.9b,dx-self-3-deictic,3shot_collide,all,0.344,180,0.287,0.035,,other_object=0.256;previous_owner=0.083;speaker_confusion=0.306;tie=0.011
-pythia-6.9b,dx-self-3-deictic,3shot_collide,free,0.452,126,0.286,0.044,,other_object=0.27;previous_owner=0.063;speaker_confusion=0.198;tie=0.016
-pythia-6.9b,dx-self-3-deictic,3shot,all,0.367,180,0.287,0.036,,other_object=0.267;previous_owner=0.089;speaker_confusion=0.272;tie=0.006
-pythia-6.9b,dx-self-3-deictic,3shot,free,0.476,126,0.286,0.044,,other_object=0.246;previous_owner=0.063;speaker_confusion=0.206;tie=0.008
-pythia-6.9b,dx-self-3-third,0shot,all,0.267,180,0.287,0.033,,
-pythia-6.9b,dx-self-3-third,0shot,free,0.309,126,0.286,0.041,,
-pythia-6.9b,dx-self-3-third,3shot_collide,all,0.372,180,0.287,0.036,,
-pythia-6.9b,dx-self-3-third,3shot_collide,free,0.476,126,0.286,0.044,,
-pythia-6.9b,dx-self-3-third,3shot,all,0.411,180,0.287,0.037,,
-pythia-6.9b,dx-self-3-third,3shot,free,0.524,126,0.286,0.044,,
-pythia-6.9b,dx-self-2-deictic,0shot,all,0.317,180,0.287,0.035,,speaker_confusion=0.678;tie=0.006
-pythia-6.9b,dx-self-2-deictic,0shot,free,0.349,126,0.286,0.043,,speaker_confusion=0.643;tie=0.008
-pythia-6.9b,dx-self-2-deictic,3shot_collide,all,0.339,180,0.287,0.035,,speaker_confusion=0.661
-pythia-6.9b,dx-self-2-deictic,3shot_collide,free,0.436,126,0.286,0.044,,speaker_confusion=0.563
-pythia-6.9b,dx-self-2-deictic,3shot,all,0.383,180,0.287,0.036,,speaker_confusion=0.6;tie=0.017
-pythia-6.9b,dx-self-2-deictic,3shot,free,0.484,126,0.286,0.044,,speaker_confusion=0.492;tie=0.024
-pythia-6.9b,dx-self-2-third,0shot,all,0.339,180,0.287,0.035,,
-pythia-6.9b,dx-self-2-third,0shot,free,0.397,126,0.286,0.044,,
-pythia-6.9b,dx-self-2-third,3shot_collide,all,0.400,180,0.287,0.036,,
-pythia-6.9b,dx-self-2-third,3shot_collide,free,0.516,126,0.286,0.044,,
-pythia-6.9b,dx-self-2-third,3shot,all,0.383,180,0.287,0.036,,
-pythia-6.9b,dx-self-2-third,3shot,free,0.484,126,0.286,0.044,,
-pythia-6.9b,dx-addressee-3-deictic,0shot,all,0.356,180,0.287,0.036,,other_object=0.128;previous_owner=0.167;speaker_confusion=0.35
-pythia-6.9b,dx-addressee-3-deictic,0shot,free,0.309,126,0.286,0.041,,other_object=0.119;previous_owner=0.214;speaker_confusion=0.357
-pythia-6.9b,dx-addressee-3-deictic,3shot_collide,all,0.333,180,0.287,0.035,,other_object=0.211;previous_owner=0.128;speaker_confusion=0.328
-pythia-6.9b,dx-addressee-3-deictic,3shot_collide,free,0.381,126,0.286,0.043,,other_object=0.159;previous_owner=0.135;speaker_confusion=0.325
-pythia-6.9b,dx-addressee-3-deictic,3shot,all,0.350,180,0.287,0.036,,other_object=0.211;previous_owner=0.133;speaker_confusion=0.289;tie=0.017
-pythia-6.9b,dx-addressee-3-deictic,3shot,free,0.405,126,0.286,0.044,,other_object=0.159;previous_owner=0.151;speaker_confusion=0.262;tie=0.024
-pythia-6.9b,dx-addressee-3-third,0shot,all,0.350,180,0.287,0.036,,
-pythia-6.9b,dx-addressee-3-third,0shot,free,0.397,126,0.286,0.044,,
-pythia-6.9b,dx-addressee-3-third,3shot_collide,all,0.383,180,0.287,0.036,,
-pythia-6.9b,dx-addressee-3-third,3shot_collide,free,0.468,126,0.286,0.044,,
-pythia-6.9b,dx-addressee-3-third,3shot,all,0.333,180,0.287,0.035,,
-pythia-6.9b,dx-addressee-3-third,3shot,free,0.389,126,0.286,0.043,,
-pythia-6.9b,dx-addressee-2-deictic,0shot,all,0.206,180,0.287,0.030,,speaker_confusion=0.783;tie=0.011
-pythia-6.9b,dx-addressee-2-deictic,0shot,free,0.182,126,0.286,0.034,,speaker_confusion=0.81;tie=0.008
-pythia-6.9b,dx-addressee-2-deictic,3shot_collide,all,0.278,180,0.287,0.033,,speaker_confusion=0.689;tie=0.033
-pythia-6.9b,dx-addressee-2-deictic,3shot_collide,free,0.341,126,0.286,0.042,,speaker_confusion=0.627;tie=0.032
-pythia-6.9b,dx-addressee-2-deictic,3shot,all,0.278,180,0.287,0.033,,speaker_confusion=0.711;tie=0.011
-pythia-6.9b,dx-addressee-2-deictic,3shot,free,0.318,126,0.286,0.042,,speaker_confusion=0.667;tie=0.016
-pythia-6.9b,dx-addressee-2-third,0shot,all,0.389,180,0.287,0.036,,
-pythia-6.9b,dx-addressee-2-third,0shot,free,0.436,126,0.286,0.044,,
-pythia-6.9b,dx-addressee-2-third,3shot_collide,all,0.428,180,0.287,0.037,,
-pythia-6.9b,dx-addressee-2-third,3shot_collide,free,0.540,126,0.286,0.044,,
-pythia-6.9b,dx-addressee-2-third,3shot,all,0.400,180,0.287,0.036,,
-pythia-6.9b,dx-addressee-2-third,3shot,free,0.492,126,0.286,0.044,,
-pythia-6.9b,sb-k1,0shot,all,0.578,64,0.125,0.062,,
-pythia-6.9b,sb-k1,3shot_collide,all,0.703,64,0.125,0.057,,
-pythia-6.9b,sb-k1,3shot,all,0.766,64,0.125,0.053,,
-pythia-6.9b,sb-k23,0shot,all,0.242,128,0.027,0.038,,
-pythia-6.9b,sb-k23,3shot_collide,all,0.500,128,0.027,0.044,,
-pythia-6.9b,sb-k23,3shot,all,0.531,128,0.027,0.044,,
-pythia-6.9b,sb-split,0shot,all,0.102,128,0.027,0.027,,
-pythia-6.9b,sb-split,3shot_collide,all,0.203,128,0.027,0.036,,
-pythia-6.9b,sb-split,3shot,all,0.180,128,0.027,0.034,,
-pythia-6.9b,sb-dyn,0shot,all,0.113,256,0.027,0.020,,
-pythia-6.9b,sb-dyn,3shot_collide,all,0.117,256,0.027,0.020,,
-pythia-6.9b,sb-dyn,3shot,all,0.078,256,0.027,0.017,,
-pythia-6.9b,an-narr,0shot,all,0.402,640,0.250,0.019,,
-pythia-6.9b,an-narr,3shot_collide,all,0.270,640,0.250,0.018,,
-pythia-6.9b,an-narr,3shot,all,0.436,640,0.250,0.020,,
-pythia-6.9b,an-other-any,0shot,all,0.650,320,0.250,0.027,,
-pythia-6.9b,an-other-any,3shot_collide,all,0.341,320,0.250,0.026,,
-pythia-6.9b,an-other-any,3shot,all,0.447,320,0.250,0.028,,
-pythia-6.9b,an-me-any,0shot,all,0.150,160,0.250,0.028,,
-pythia-6.9b,an-me-any,3shot_collide,all,0.069,160,0.250,0.020,,
-pythia-6.9b,an-me-any,3shot,all,0.062,160,0.250,0.019,,
-pythia-6.9b,an-you-voc,0shot,all,0.175,80,0.250,0.043,,
-pythia-6.9b,an-you-voc,3shot_collide,all,0.075,80,0.250,0.029,,
-pythia-6.9b,an-you-voc,3shot,all,0.062,80,0.250,0.027,,
-pythia-6.9b,an-you-novoc,0shot,all,0.050,80,0.250,0.024,,
-pythia-6.9b,an-you-novoc,3shot_collide,all,0.200,80,0.250,0.045,,
-pythia-6.9b,an-you-novoc,3shot,all,0.138,80,0.250,0.038,,
-pythia-6.9b,adj-adj,0shot,all,0.415,260,0.333,0.031,,
-pythia-6.9b,adj-adj,3shot_collide,all,0.158,260,0.333,0.023,,
-pythia-6.9b,adj-adj,3shot,all,0.262,260,0.333,0.027,,
-pythia-6.9b,adj-voc,0shot,all,0.561,260,0.333,0.031,,
-pythia-6.9b,adj-voc,3shot_collide,all,0.238,260,0.333,0.026,,
-pythia-6.9b,adj-voc,3shot,all,0.508,260,0.333,0.031,,
-pythia-6.9b,adj-third,0shot,all,0.673,260,0.333,0.029,,
-pythia-6.9b,adj-third,3shot_collide,all,0.385,260,0.333,0.030,,
-pythia-6.9b,adj-third,3shot,all,0.450,260,0.333,0.031,,
-pythia-6.9b,cm-mutate,0shot,all,0.540,200,0.200,0.035,,
-pythia-6.9b,cm-mutate,3shot_collide,all,0.425,200,0.200,0.035,,
-pythia-6.9b,cm-mutate,3shot,all,0.625,200,0.200,0.034,,
-pythia-6.9b,cm-rebind,0shot,all,0.180,200,0.200,0.027,,
-pythia-6.9b,cm-rebind,3shot_collide,all,0.225,200,0.200,0.029,,
-pythia-6.9b,cm-rebind,3shot,all,0.180,200,0.200,0.027,,
-pythia-6.9b,cm-copy,0shot,all,0.105,200,0.200,0.022,,
-pythia-6.9b,cm-copy,3shot_collide,all,0.330,200,0.200,0.033,,
-pythia-6.9b,cm-copy,3shot,all,0.205,200,0.200,0.029,,
-falcon3-7b,attr,0shot,all,0.752,1210,0.168,0.012,,
-falcon3-7b,attr,3shot_collide,all,0.995,1210,0.168,0.002,,
-falcon3-7b,attr,3shot,all,0.998,1210,0.168,0.001,,
-falcon3-7b,codevar,0shot,all,0.624,1200,0.267,0.014,,
-falcon3-7b,codevar,3shot_collide,all,0.829,1200,0.267,0.011,,
-falcon3-7b,codevar,3shot,all,0.827,1200,0.267,0.011,,
-falcon3-7b,dialogue,0shot,all,0.859,1200,0.312,0.010,,
-falcon3-7b,dialogue,3shot_collide,all,0.877,1200,0.312,0.009,,
-falcon3-7b,dialogue,3shot,all,0.843,1200,0.312,0.011,,
-falcon3-7b,dx-owner-3-deictic,0shot,all,0.567,120,0.333,0.045,,other_participant=0.367;speaker_confusion=0.067
-falcon3-7b,dx-owner-3-deictic,0shot,free,0.350,40,0.333,0.075,,other_participant=0.55;speaker_confusion=0.1
-falcon3-7b,dx-owner-3-deictic,3shot,all,0.833,120,0.333,0.034,,other_participant=0.083;speaker_confusion=0.083
-falcon3-7b,dx-owner-3-deictic,3shot,free,0.800,40,0.333,0.063,,other_participant=0.1;speaker_confusion=0.1
-falcon3-7b,dx-owner-3-third,0shot,all,0.775,120,0.333,0.038,,
-falcon3-7b,dx-owner-3-third,0shot,free,0.675,40,0.333,0.074,,
-falcon3-7b,dx-owner-3-third,3shot,all,0.908,120,0.333,0.026,,
-falcon3-7b,dx-owner-3-third,3shot,free,0.900,40,0.333,0.047,,
-falcon3-7b,dx-self-3-deictic,0shot,all,0.456,180,0.287,0.037,,other_object=0.139;previous_owner=0.089;speaker_confusion=0.317
-falcon3-7b,dx-self-3-deictic,0shot,free,0.476,126,0.286,0.044,,other_object=0.151;previous_owner=0.04;speaker_confusion=0.333
-falcon3-7b,dx-self-3-deictic,3shot,all,0.517,180,0.287,0.037,,other_object=0.133;previous_owner=0.056;speaker_confusion=0.294
-falcon3-7b,dx-self-3-deictic,3shot,free,0.627,126,0.286,0.043,,other_object=0.103;previous_owner=0.032;speaker_confusion=0.238
-falcon3-7b,dx-self-3-third,0shot,all,0.728,180,0.287,0.033,,
-falcon3-7b,dx-self-3-third,0shot,free,0.714,126,0.286,0.040,,
-falcon3-7b,dx-self-3-third,3shot,all,0.683,180,0.287,0.035,,
-falcon3-7b,dx-self-3-third,3shot,free,0.714,126,0.286,0.040,,
-falcon3-7b,dx-self-2-deictic,0shot,all,0.344,180,0.287,0.035,,speaker_confusion=0.65;tie=0.006
-falcon3-7b,dx-self-2-deictic,0shot,free,0.325,126,0.286,0.042,,speaker_confusion=0.667;tie=0.008
-falcon3-7b,dx-self-2-deictic,3shot,all,0.494,180,0.287,0.037,,speaker_confusion=0.506
-falcon3-7b,dx-self-2-deictic,3shot,free,0.595,126,0.286,0.044,,speaker_confusion=0.405
-falcon3-7b,dx-self-2-third,0shot,all,0.694,180,0.287,0.034,,
-falcon3-7b,dx-self-2-third,0shot,free,0.730,126,0.286,0.040,,
-falcon3-7b,dx-self-2-third,3shot,all,0.683,180,0.287,0.035,,
-falcon3-7b,dx-self-2-third,3shot,free,0.738,126,0.286,0.039,,
-falcon3-7b,dx-addressee-3-deictic,0shot,all,0.361,180,0.287,0.036,,other_object=0.217;previous_owner=0.1;speaker_confusion=0.322
-falcon3-7b,dx-addressee-3-deictic,0shot,free,0.318,126,0.286,0.042,,other_object=0.206;previous_owner=0.135;speaker_confusion=0.341
-falcon3-7b,dx-addressee-3-deictic,3shot,all,0.378,180,0.287,0.036,,other_object=0.133;previous_owner=0.111;speaker_confusion=0.378
-falcon3-7b,dx-addressee-3-deictic,3shot,free,0.405,126,0.286,0.044,,other_object=0.103;previous_owner=0.143;speaker_confusion=0.349
-falcon3-7b,dx-addressee-3-third,0shot,all,0.717,180,0.287,0.034,,
-falcon3-7b,dx-addressee-3-third,0shot,free,0.691,126,0.286,0.041,,
-falcon3-7b,dx-addressee-3-third,3shot,all,0.633,180,0.287,0.036,,
-falcon3-7b,dx-addressee-3-third,3shot,free,0.603,126,0.286,0.044,,
-falcon3-7b,dx-addressee-2-deictic,0shot,all,0.278,180,0.287,0.033,,speaker_confusion=0.722
-falcon3-7b,dx-addressee-2-deictic,0shot,free,0.191,126,0.286,0.035,,speaker_confusion=0.81
-falcon3-7b,dx-addressee-2-deictic,3shot,all,0.356,180,0.287,0.036,,speaker_confusion=0.644
-falcon3-7b,dx-addressee-2-deictic,3shot,free,0.357,126,0.286,0.043,,speaker_confusion=0.643
-falcon3-7b,dx-addressee-2-third,0shot,all,0.628,180,0.287,0.036,,
-falcon3-7b,dx-addressee-2-third,0shot,free,0.682,126,0.286,0.042,,
-falcon3-7b,dx-addressee-2-third,3shot,all,0.706,180,0.287,0.034,,
-falcon3-7b,dx-addressee-2-third,3shot,free,0.778,126,0.286,0.037,,
-falcon3-7b,sb-k1,0shot,all,0.703,64,0.125,0.057,,
-falcon3-7b,sb-k1,3shot_collide,all,1.000,64,0.125,0.000,,
-falcon3-7b,sb-k1,3shot,all,1.000,64,0.125,0.000,,
-falcon3-7b,sb-k23,0shot,all,0.414,128,0.027,0.043,,
-falcon3-7b,sb-k23,3shot_collide,all,0.930,128,0.027,0.023,,
-falcon3-7b,sb-k23,3shot,all,0.930,128,0.027,0.023,,
-falcon3-7b,sb-split,0shot,all,0.492,128,0.027,0.044,,
-falcon3-7b,sb-split,3shot_collide,all,0.836,128,0.027,0.033,,
-falcon3-7b,sb-split,3shot,all,0.789,128,0.027,0.036,,
-falcon3-7b,sb-dyn,0shot,all,0.410,256,0.027,0.031,,
-falcon3-7b,sb-dyn,3shot_collide,all,0.223,256,0.027,0.026,,
-falcon3-7b,sb-dyn,3shot,all,0.203,256,0.027,0.025,,
-falcon3-7b,an-narr,0shot,all,0.505,640,0.250,0.020,,
-falcon3-7b,an-narr,3shot_collide,all,0.831,640,0.250,0.015,,
-falcon3-7b,an-narr,3shot,all,0.873,640,0.250,0.013,,
-falcon3-7b,an-other-any,0shot,all,0.428,320,0.250,0.028,,
-falcon3-7b,an-other-any,3shot_collide,all,0.463,320,0.250,0.028,,
-falcon3-7b,an-other-any,3shot,all,0.494,320,0.250,0.028,,
-falcon3-7b,an-me-any,0shot,all,0.094,160,0.250,0.023,,
-falcon3-7b,an-me-any,3shot_collide,all,0.125,160,0.250,0.026,,
-falcon3-7b,an-me-any,3shot,all,0.075,160,0.250,0.021,,
-falcon3-7b,an-you-voc,0shot,all,0.400,80,0.250,0.055,,
-falcon3-7b,an-you-voc,3shot_collide,all,0.463,80,0.250,0.056,,
-falcon3-7b,an-you-voc,3shot,all,0.662,80,0.250,0.053,,
-falcon3-7b,an-you-novoc,0shot,all,0.438,80,0.250,0.056,,
-falcon3-7b,an-you-novoc,3shot_collide,all,0.138,80,0.250,0.038,,
-falcon3-7b,an-you-novoc,3shot,all,0.250,80,0.250,0.048,,
-falcon3-7b,adj-adj,0shot,all,0.858,260,0.333,0.022,,
-falcon3-7b,adj-adj,3shot_collide,all,0.819,260,0.333,0.024,,
-falcon3-7b,adj-adj,3shot,all,0.885,260,0.333,0.020,,
-falcon3-7b,adj-voc,0shot,all,0.896,260,0.333,0.019,,
-falcon3-7b,adj-voc,3shot_collide,all,0.977,260,0.333,0.009,,
-falcon3-7b,adj-voc,3shot,all,0.981,260,0.333,0.009,,
-falcon3-7b,adj-third,0shot,all,0.989,260,0.333,0.007,,
-falcon3-7b,adj-third,3shot_collide,all,0.965,260,0.333,0.011,,
-falcon3-7b,adj-third,3shot,all,0.981,260,0.333,0.009,,
-falcon3-7b,cm-mutate,0shot,all,0.840,200,0.200,0.026,,
-falcon3-7b,cm-mutate,3shot_collide,all,0.950,200,0.200,0.015,,
-falcon3-7b,cm-mutate,3shot,all,0.970,200,0.200,0.012,,
-falcon3-7b,cm-rebind,0shot,all,0.225,200,0.200,0.029,,
-falcon3-7b,cm-rebind,3shot_collide,all,1.000,200,0.200,0.000,,
-falcon3-7b,cm-rebind,3shot,all,0.990,200,0.200,0.007,,
-falcon3-7b,cm-copy,0shot,all,0.120,200,0.200,0.023,,
-falcon3-7b,cm-copy,3shot_collide,all,0.995,200,0.200,0.005,,
-falcon3-7b,cm-copy,3shot,all,0.990,200,0.200,0.007,,
-olmo2-7b-base,attr,0shot,all,0.456,1210,0.168,0.014,,
-olmo2-7b-base,attr,3shot_collide,all,0.881,1210,0.168,0.009,,
-olmo2-7b-base,attr,3shot,all,0.919,1210,0.168,0.008,,
-olmo2-7b-base,codevar,0shot,all,0.372,1200,0.267,0.014,,
-olmo2-7b-base,codevar,3shot_collide,all,0.472,1200,0.267,0.014,,
-olmo2-7b-base,codevar,3shot,all,0.485,1200,0.267,0.014,,
-olmo2-7b-base,dialogue,0shot,all,0.767,1200,0.312,0.012,,
-olmo2-7b-base,dialogue,3shot_collide,all,0.797,1200,0.312,0.012,,
-olmo2-7b-base,dialogue,3shot,all,0.803,1200,0.312,0.011,,
-olmo2-7b-base,dx-owner-3-deictic,0shot,all,0.592,120,0.333,0.045,,other_participant=0.317;speaker_confusion=0.092
-olmo2-7b-base,dx-owner-3-deictic,0shot,free,0.400,40,0.333,0.077,,other_participant=0.525;speaker_confusion=0.075
-olmo2-7b-base,dx-owner-3-deictic,3shot_collide,all,0.692,120,0.333,0.042,,other_participant=0.283;speaker_confusion=0.025
-olmo2-7b-base,dx-owner-3-deictic,3shot_collide,free,0.600,40,0.333,0.077,,other_participant=0.375;speaker_confusion=0.025
-olmo2-7b-base,dx-owner-3-deictic,3shot,all,0.692,120,0.333,0.042,,other_participant=0.275;speaker_confusion=0.033
-olmo2-7b-base,dx-owner-3-deictic,3shot,free,0.625,40,0.333,0.076,,other_participant=0.375
-olmo2-7b-base,dx-owner-3-third,0shot,all,0.667,120,0.333,0.043,,
-olmo2-7b-base,dx-owner-3-third,0shot,free,0.475,40,0.333,0.079,,
-olmo2-7b-base,dx-owner-3-third,3shot_collide,all,0.617,120,0.333,0.044,,
-olmo2-7b-base,dx-owner-3-third,3shot_collide,free,0.525,40,0.333,0.079,,
-olmo2-7b-base,dx-owner-3-third,3shot,all,0.742,120,0.333,0.040,,
-olmo2-7b-base,dx-owner-3-third,3shot,free,0.650,40,0.333,0.075,,
-olmo2-7b-base,dx-self-3-deictic,0shot,all,0.383,180,0.287,0.036,,other_object=0.311;previous_owner=0.056;speaker_confusion=0.25
-olmo2-7b-base,dx-self-3-deictic,0shot,free,0.365,126,0.286,0.043,,other_object=0.341;previous_owner=0.016;speaker_confusion=0.278
-olmo2-7b-base,dx-self-3-deictic,3shot_collide,all,0.422,180,0.287,0.037,,other_object=0.267;previous_owner=0.061;speaker_confusion=0.25
-olmo2-7b-base,dx-self-3-deictic,3shot_collide,free,0.452,126,0.286,0.044,,other_object=0.294;previous_owner=0.048;speaker_confusion=0.206
-olmo2-7b-base,dx-self-3-deictic,3shot,all,0.411,180,0.287,0.037,,other_object=0.294;previous_owner=0.039;speaker_confusion=0.256
-olmo2-7b-base,dx-self-3-deictic,3shot,free,0.413,126,0.286,0.044,,other_object=0.317;previous_owner=0.024;speaker_confusion=0.246
-olmo2-7b-base,dx-self-3-third,0shot,all,0.461,180,0.287,0.037,,
-olmo2-7b-base,dx-self-3-third,0shot,free,0.357,126,0.286,0.043,,
-olmo2-7b-base,dx-self-3-third,3shot_collide,all,0.489,180,0.287,0.037,,
-olmo2-7b-base,dx-self-3-third,3shot_collide,free,0.460,126,0.286,0.044,,
-olmo2-7b-base,dx-self-3-third,3shot,all,0.550,180,0.287,0.037,,
-olmo2-7b-base,dx-self-3-third,3shot,free,0.524,126,0.286,0.044,,
-olmo2-7b-base,dx-self-2-deictic,0shot,all,0.339,180,0.287,0.035,,speaker_confusion=0.656;tie=0.006
-olmo2-7b-base,dx-self-2-deictic,0shot,free,0.309,126,0.286,0.041,,speaker_confusion=0.683;tie=0.008
-olmo2-7b-base,dx-self-2-deictic,3shot_collide,all,0.428,180,0.287,0.037,,speaker_confusion=0.572
-olmo2-7b-base,dx-self-2-deictic,3shot_collide,free,0.508,126,0.286,0.044,,speaker_confusion=0.492
-olmo2-7b-base,dx-self-2-deictic,3shot,all,0.361,180,0.287,0.036,,speaker_confusion=0.639
-olmo2-7b-base,dx-self-2-deictic,3shot,free,0.413,126,0.286,0.044,,speaker_confusion=0.587
-olmo2-7b-base,dx-self-2-third,0shot,all,0.456,180,0.287,0.037,,
-olmo2-7b-base,dx-self-2-third,0shot,free,0.476,126,0.286,0.044,,
-olmo2-7b-base,dx-self-2-third,3shot_collide,all,0.550,180,0.287,0.037,,
-olmo2-7b-base,dx-self-2-third,3shot_collide,free,0.556,126,0.286,0.044,,
-olmo2-7b-base,dx-self-2-third,3shot,all,0.550,180,0.287,0.037,,
-olmo2-7b-base,dx-self-2-third,3shot,free,0.571,126,0.286,0.044,,
-olmo2-7b-base,dx-addressee-3-deictic,0shot,all,0.333,180,0.287,0.035,,other_object=0.206;previous_owner=0.089;speaker_confusion=0.372
-olmo2-7b-base,dx-addressee-3-deictic,0shot,free,0.341,126,0.286,0.042,,other_object=0.183;previous_owner=0.103;speaker_confusion=0.373
-olmo2-7b-base,dx-addressee-3-deictic,3shot_collide,all,0.317,180,0.287,0.035,,other_object=0.211;previous_owner=0.094;speaker_confusion=0.378
-olmo2-7b-base,dx-addressee-3-deictic,3shot_collide,free,0.333,126,0.286,0.042,,other_object=0.151;previous_owner=0.119;speaker_confusion=0.397
-olmo2-7b-base,dx-addressee-3-deictic,3shot,all,0.300,180,0.287,0.034,,other_object=0.206;previous_owner=0.117;speaker_confusion=0.378
-olmo2-7b-base,dx-addressee-3-deictic,3shot,free,0.278,126,0.286,0.040,,other_object=0.159;previous_owner=0.135;speaker_confusion=0.429
-olmo2-7b-base,dx-addressee-3-third,0shot,all,0.494,180,0.287,0.037,,
-olmo2-7b-base,dx-addressee-3-third,0shot,free,0.389,126,0.286,0.043,,
-olmo2-7b-base,dx-addressee-3-third,3shot_collide,all,0.533,180,0.287,0.037,,
-olmo2-7b-base,dx-addressee-3-third,3shot_collide,free,0.476,126,0.286,0.044,,
-olmo2-7b-base,dx-addressee-3-third,3shot,all,0.572,180,0.287,0.037,,
-olmo2-7b-base,dx-addressee-3-third,3shot,free,0.532,126,0.286,0.044,,
-olmo2-7b-base,dx-addressee-2-deictic,0shot,all,0.272,180,0.287,0.033,,speaker_confusion=0.728
-olmo2-7b-base,dx-addressee-2-deictic,0shot,free,0.222,126,0.286,0.037,,speaker_confusion=0.778
-olmo2-7b-base,dx-addressee-2-deictic,3shot_collide,all,0.356,180,0.287,0.036,,speaker_confusion=0.644
-olmo2-7b-base,dx-addressee-2-deictic,3shot_collide,free,0.365,126,0.286,0.043,,speaker_confusion=0.635
-olmo2-7b-base,dx-addressee-2-deictic,3shot,all,0.339,180,0.287,0.035,,speaker_confusion=0.661
-olmo2-7b-base,dx-addressee-2-deictic,3shot,free,0.333,126,0.286,0.042,,speaker_confusion=0.667
-olmo2-7b-base,dx-addressee-2-third,0shot,all,0.450,180,0.287,0.037,,
-olmo2-7b-base,dx-addressee-2-third,0shot,free,0.444,126,0.286,0.044,,
-olmo2-7b-base,dx-addressee-2-third,3shot_collide,all,0.594,180,0.287,0.037,,
-olmo2-7b-base,dx-addressee-2-third,3shot_collide,free,0.619,126,0.286,0.043,,
-olmo2-7b-base,dx-addressee-2-third,3shot,all,0.628,180,0.287,0.036,,
-olmo2-7b-base,dx-addressee-2-third,3shot,free,0.619,126,0.286,0.043,,
-olmo2-7b-base,sb-k1,0shot,all,0.516,64,0.125,0.062,,
-olmo2-7b-base,sb-k1,3shot_collide,all,1.000,64,0.125,0.000,,
-olmo2-7b-base,sb-k1,3shot,all,0.969,64,0.125,0.022,,
-olmo2-7b-base,sb-k23,0shot,all,0.266,128,0.027,0.039,,
-olmo2-7b-base,sb-k23,3shot_collide,all,0.820,128,0.027,0.034,,
-olmo2-7b-base,sb-k23,3shot,all,0.820,128,0.027,0.034,,
-olmo2-7b-base,sb-split,0shot,all,0.102,128,0.027,0.027,,
-olmo2-7b-base,sb-split,3shot_collide,all,0.461,128,0.027,0.044,,
-olmo2-7b-base,sb-split,3shot,all,0.484,128,0.027,0.044,,
-olmo2-7b-base,sb-dyn,0shot,all,0.098,256,0.027,0.019,,
-olmo2-7b-base,sb-dyn,3shot_collide,all,0.168,256,0.027,0.023,,
-olmo2-7b-base,sb-dyn,3shot,all,0.168,256,0.027,0.023,,
-olmo2-7b-base,an-narr,0shot,all,0.489,640,0.250,0.020,,
-olmo2-7b-base,an-narr,3shot_collide,all,0.698,640,0.250,0.018,,
-olmo2-7b-base,an-narr,3shot,all,0.662,640,0.250,0.019,,
-olmo2-7b-base,an-other-any,0shot,all,0.072,320,0.250,0.014,,
-olmo2-7b-base,an-other-any,3shot_collide,all,0.506,320,0.250,0.028,,
-olmo2-7b-base,an-other-any,3shot,all,0.494,320,0.250,0.028,,
-olmo2-7b-base,an-me-any,0shot,all,0.656,160,0.250,0.037,,
-olmo2-7b-base,an-me-any,3shot_collide,all,0.294,160,0.250,0.036,,
-olmo2-7b-base,an-me-any,3shot,all,0.131,160,0.250,0.027,,
-olmo2-7b-base,an-you-voc,0shot,all,0.725,80,0.250,0.050,,
-olmo2-7b-base,an-you-voc,3shot_collide,all,0.362,80,0.250,0.054,,
-olmo2-7b-base,an-you-voc,3shot,all,0.400,80,0.250,0.055,,
-olmo2-7b-base,an-you-novoc,0shot,all,0.300,80,0.250,0.051,,
-olmo2-7b-base,an-you-novoc,3shot_collide,all,0.050,80,0.250,0.024,,
-olmo2-7b-base,an-you-novoc,3shot,all,0.013,80,0.250,0.012,,
-olmo2-7b-base,adj-adj,0shot,all,0.869,260,0.333,0.021,,
-olmo2-7b-base,adj-adj,3shot_collide,all,0.915,260,0.333,0.017,,
-olmo2-7b-base,adj-adj,3shot,all,0.896,260,0.333,0.019,,
-olmo2-7b-base,adj-voc,0shot,all,0.900,260,0.333,0.019,,
-olmo2-7b-base,adj-voc,3shot_collide,all,0.935,260,0.333,0.015,,
-olmo2-7b-base,adj-voc,3shot,all,0.923,260,0.333,0.017,,
-olmo2-7b-base,adj-third,0shot,all,0.731,260,0.333,0.028,,
-olmo2-7b-base,adj-third,3shot_collide,all,0.765,260,0.333,0.026,,
-olmo2-7b-base,adj-third,3shot,all,0.800,260,0.333,0.025,,
-olmo2-7b-base,cm-mutate,0shot,all,0.830,200,0.200,0.027,,
-olmo2-7b-base,cm-mutate,3shot_collide,all,0.755,200,0.200,0.030,,
-olmo2-7b-base,cm-mutate,3shot,all,0.770,200,0.200,0.030,,
-olmo2-7b-base,cm-rebind,0shot,all,0.095,200,0.200,0.021,,
-olmo2-7b-base,cm-rebind,3shot_collide,all,0.620,200,0.200,0.034,,
-olmo2-7b-base,cm-rebind,3shot,all,0.530,200,0.200,0.035,,
-olmo2-7b-base,cm-copy,0shot,all,0.030,200,0.200,0.012,,
-olmo2-7b-base,cm-copy,3shot_collide,all,0.735,200,0.200,0.031,,
-olmo2-7b-base,cm-copy,3shot,all,0.670,200,0.200,0.033,,
-qwen2.5-7b,attr,0shot,all,0.791,1210,0.168,0.012,,
-qwen2.5-7b,attr,3shot_collide,all,0.995,1210,0.168,0.002,,
-qwen2.5-7b,attr,3shot,all,0.998,1210,0.168,0.001,,
-qwen2.5-7b,codevar,0shot,all,0.614,1200,0.267,0.014,,
-qwen2.5-7b,codevar,3shot_collide,all,0.746,1200,0.267,0.013,,
-qwen2.5-7b,codevar,3shot,all,0.700,1200,0.267,0.013,,
-qwen2.5-7b,dialogue,0shot,all,0.819,1200,0.312,0.011,,
-qwen2.5-7b,dialogue,3shot_collide,all,0.852,1200,0.312,0.010,,
-qwen2.5-7b,dialogue,3shot,all,0.836,1200,0.312,0.011,,
-qwen2.5-7b,dx-owner-3-deictic,0shot,all,0.558,120,0.333,0.045,,other_participant=0.35;speaker_confusion=0.083;tie=0.008
-qwen2.5-7b,dx-owner-3-deictic,0shot,free,0.575,40,0.333,0.078,,other_participant=0.375;speaker_confusion=0.05
-qwen2.5-7b,dx-owner-3-deictic,3shot_collide,all,0.658,120,0.333,0.043,,other_participant=0.267;speaker_confusion=0.067;tie=0.008
-qwen2.5-7b,dx-owner-3-deictic,3shot_collide,free,0.575,40,0.333,0.078,,other_participant=0.375;speaker_confusion=0.05
-qwen2.5-7b,dx-owner-3-deictic,3shot,all,0.767,120,0.333,0.039,,other_participant=0.183;speaker_confusion=0.05
-qwen2.5-7b,dx-owner-3-deictic,3shot,free,0.800,40,0.333,0.063,,other_participant=0.2
-qwen2.5-7b,dx-owner-3-third,0shot,all,0.792,120,0.333,0.037,,
-qwen2.5-7b,dx-owner-3-third,0shot,free,0.850,40,0.333,0.057,,
-qwen2.5-7b,dx-owner-3-third,3shot_collide,all,0.783,120,0.333,0.038,,
-qwen2.5-7b,dx-owner-3-third,3shot_collide,free,0.750,40,0.333,0.069,,
-qwen2.5-7b,dx-owner-3-third,3shot,all,0.892,120,0.333,0.028,,
-qwen2.5-7b,dx-owner-3-third,3shot,free,0.900,40,0.333,0.047,,
-qwen2.5-7b,dx-self-3-deictic,0shot,all,0.417,180,0.287,0.037,,other_object=0.261;previous_owner=0.044;speaker_confusion=0.261;tie=0.017
-qwen2.5-7b,dx-self-3-deictic,0shot,free,0.564,126,0.286,0.044,,other_object=0.246;previous_owner=0.016;speaker_confusion=0.151;tie=0.024
-qwen2.5-7b,dx-self-3-deictic,3shot_collide,all,0.528,180,0.287,0.037,,other_object=0.167;previous_owner=0.061;speaker_confusion=0.228;tie=0.017
-qwen2.5-7b,dx-self-3-deictic,3shot_collide,free,0.556,126,0.286,0.044,,other_object=0.167;previous_owner=0.063;speaker_confusion=0.198;tie=0.016
-qwen2.5-7b,dx-self-3-deictic,3shot,all,0.483,180,0.287,0.037,,other_object=0.194;previous_owner=0.061;speaker_confusion=0.239;tie=0.022
-qwen2.5-7b,dx-self-3-deictic,3shot,free,0.532,126,0.286,0.044,,other_object=0.198;previous_owner=0.048;speaker_confusion=0.198;tie=0.024
-qwen2.5-7b,dx-self-3-third,0shot,all,0.506,180,0.287,0.037,,
-qwen2.5-7b,dx-self-3-third,0shot,free,0.532,126,0.286,0.044,,
-qwen2.5-7b,dx-self-3-third,3shot_collide,all,0.622,180,0.287,0.036,,
-qwen2.5-7b,dx-self-3-third,3shot_collide,free,0.651,126,0.286,0.043,,
-qwen2.5-7b,dx-self-3-third,3shot,all,0.556,180,0.287,0.037,,
-qwen2.5-7b,dx-self-3-third,3shot,free,0.619,126,0.286,0.043,,
-qwen2.5-7b,dx-self-2-deictic,0shot,all,0.433,180,0.287,0.037,,speaker_confusion=0.561;tie=0.006
-qwen2.5-7b,dx-self-2-deictic,0shot,free,0.556,126,0.286,0.044,,speaker_confusion=0.437;tie=0.008
-qwen2.5-7b,dx-self-2-deictic,3shot_collide,all,0.589,180,0.287,0.037,,speaker_confusion=0.4;tie=0.011
-qwen2.5-7b,dx-self-2-deictic,3shot_collide,free,0.682,126,0.286,0.042,,speaker_confusion=0.317
-qwen2.5-7b,dx-self-2-deictic,3shot,all,0.594,180,0.287,0.037,,speaker_confusion=0.394;tie=0.011
-qwen2.5-7b,dx-self-2-deictic,3shot,free,0.706,126,0.286,0.041,,speaker_confusion=0.278;tie=0.016
-qwen2.5-7b,dx-self-2-third,0shot,all,0.600,180,0.287,0.036,,
-qwen2.5-7b,dx-self-2-third,0shot,free,0.682,126,0.286,0.042,,
-qwen2.5-7b,dx-self-2-third,3shot_collide,all,0.650,180,0.287,0.036,,
-qwen2.5-7b,dx-self-2-third,3shot_collide,free,0.730,126,0.286,0.040,,
-qwen2.5-7b,dx-self-2-third,3shot,all,0.650,180,0.287,0.036,,
-qwen2.5-7b,dx-self-2-third,3shot,free,0.722,126,0.286,0.040,,
-qwen2.5-7b,dx-addressee-3-deictic,0shot,all,0.378,180,0.287,0.036,,other_object=0.306;previous_owner=0.017;speaker_confusion=0.294;tie=0.006
-qwen2.5-7b,dx-addressee-3-deictic,0shot,free,0.516,126,0.286,0.044,,other_object=0.222;previous_owner=0.016;speaker_confusion=0.238;tie=0.008
-qwen2.5-7b,dx-addressee-3-deictic,3shot_collide,all,0.356,180,0.287,0.036,,other_object=0.2;previous_owner=0.089;speaker_confusion=0.339;tie=0.017
-qwen2.5-7b,dx-addressee-3-deictic,3shot_collide,free,0.389,126,0.286,0.043,,other_object=0.167;previous_owner=0.095;speaker_confusion=0.325;tie=0.024
-qwen2.5-7b,dx-addressee-3-deictic,3shot,all,0.383,180,0.287,0.036,,other_object=0.2;previous_owner=0.1;speaker_confusion=0.311;tie=0.006
-qwen2.5-7b,dx-addressee-3-deictic,3shot,free,0.436,126,0.286,0.044,,other_object=0.143;previous_owner=0.119;speaker_confusion=0.294;tie=0.008
-qwen2.5-7b,dx-addressee-3-third,0shot,all,0.556,180,0.287,0.037,,
-qwen2.5-7b,dx-addressee-3-third,0shot,free,0.564,126,0.286,0.044,,
-qwen2.5-7b,dx-addressee-3-third,3shot_collide,all,0.600,180,0.287,0.036,,
-qwen2.5-7b,dx-addressee-3-third,3shot_collide,free,0.635,126,0.286,0.043,,
-qwen2.5-7b,dx-addressee-3-third,3shot,all,0.583,180,0.287,0.037,,
-qwen2.5-7b,dx-addressee-3-third,3shot,free,0.651,126,0.286,0.043,,
-qwen2.5-7b,dx-addressee-2-deictic,0shot,all,0.350,180,0.287,0.036,,speaker_confusion=0.639;tie=0.011
-qwen2.5-7b,dx-addressee-2-deictic,0shot,free,0.444,126,0.286,0.044,,speaker_confusion=0.54;tie=0.016
-qwen2.5-7b,dx-addressee-2-deictic,3shot_collide,all,0.400,180,0.287,0.036,,speaker_confusion=0.589;tie=0.011
-qwen2.5-7b,dx-addressee-2-deictic,3shot_collide,free,0.452,126,0.286,0.044,,speaker_confusion=0.532;tie=0.016
-qwen2.5-7b,dx-addressee-2-deictic,3shot,all,0.428,180,0.287,0.037,,speaker_confusion=0.567;tie=0.006
-qwen2.5-7b,dx-addressee-2-deictic,3shot,free,0.484,126,0.286,0.044,,speaker_confusion=0.508;tie=0.008
-qwen2.5-7b,dx-addressee-2-third,0shot,all,0.600,180,0.287,0.036,,
-qwen2.5-7b,dx-addressee-2-third,0shot,free,0.714,126,0.286,0.040,,
-qwen2.5-7b,dx-addressee-2-third,3shot_collide,all,0.700,180,0.287,0.034,,
-qwen2.5-7b,dx-addressee-2-third,3shot_collide,free,0.786,126,0.286,0.037,,
-qwen2.5-7b,dx-addressee-2-third,3shot,all,0.694,180,0.287,0.034,,
-qwen2.5-7b,dx-addressee-2-third,3shot,free,0.754,126,0.286,0.038,,
-qwen2.5-7b,sb-k1,0shot,all,1.000,64,0.125,0.000,,
-qwen2.5-7b,sb-k1,3shot_collide,all,1.000,64,0.125,0.000,,
-qwen2.5-7b,sb-k1,3shot,all,1.000,64,0.125,0.000,,
-qwen2.5-7b,sb-k23,0shot,all,0.750,128,0.027,0.038,,
-qwen2.5-7b,sb-k23,3shot_collide,all,0.977,128,0.027,0.013,,
-qwen2.5-7b,sb-k23,3shot,all,0.992,128,0.027,0.008,,
-qwen2.5-7b,sb-split,0shot,all,0.641,128,0.027,0.042,,
-qwen2.5-7b,sb-split,3shot_collide,all,0.883,128,0.027,0.028,,
-qwen2.5-7b,sb-split,3shot,all,0.875,128,0.027,0.029,,
-qwen2.5-7b,sb-dyn,0shot,all,0.512,256,0.027,0.031,,
-qwen2.5-7b,sb-dyn,3shot_collide,all,0.355,256,0.027,0.030,,
-qwen2.5-7b,sb-dyn,3shot,all,0.379,256,0.027,0.030,,
-qwen2.5-7b,an-narr,0shot,all,0.455,640,0.250,0.020,,
-qwen2.5-7b,an-narr,3shot_collide,all,0.819,640,0.250,0.015,,
-qwen2.5-7b,an-narr,3shot,all,0.820,640,0.250,0.015,,
-qwen2.5-7b,an-other-any,0shot,all,0.144,320,0.250,0.020,,
-qwen2.5-7b,an-other-any,3shot_collide,all,0.606,320,0.250,0.027,,
-qwen2.5-7b,an-other-any,3shot,all,0.512,320,0.250,0.028,,
-qwen2.5-7b,an-me-any,0shot,all,0.013,160,0.250,0.009,,
-qwen2.5-7b,an-me-any,3shot_collide,all,0.256,160,0.250,0.035,,
-qwen2.5-7b,an-me-any,3shot,all,0.156,160,0.250,0.029,,
-qwen2.5-7b,an-you-voc,0shot,all,0.887,80,0.250,0.035,,
-qwen2.5-7b,an-you-voc,3shot_collide,all,0.588,80,0.250,0.055,,
-qwen2.5-7b,an-you-voc,3shot,all,0.613,80,0.250,0.054,,
-qwen2.5-7b,an-you-novoc,0shot,all,0.988,80,0.250,0.012,,
-qwen2.5-7b,an-you-novoc,3shot_collide,all,0.275,80,0.250,0.050,,
-qwen2.5-7b,an-you-novoc,3shot,all,0.500,80,0.250,0.056,,
-qwen2.5-7b,adj-adj,0shot,all,0.819,260,0.333,0.024,,
-qwen2.5-7b,adj-adj,3shot_collide,all,0.927,260,0.333,0.016,,
-qwen2.5-7b,adj-adj,3shot,all,0.915,260,0.333,0.017,,
-qwen2.5-7b,adj-voc,0shot,all,0.896,260,0.333,0.019,,
-qwen2.5-7b,adj-voc,3shot_collide,all,0.973,260,0.333,0.010,,
-qwen2.5-7b,adj-voc,3shot,all,0.977,260,0.333,0.009,,
-qwen2.5-7b,adj-third,0shot,all,0.985,260,0.333,0.008,,
-qwen2.5-7b,adj-third,3shot_collide,all,0.873,260,0.333,0.021,,
-qwen2.5-7b,adj-third,3shot,all,0.788,260,0.333,0.025,,
-qwen2.5-7b,cm-mutate,0shot,all,0.895,200,0.200,0.022,,
-qwen2.5-7b,cm-mutate,3shot_collide,all,0.990,200,0.200,0.007,,
-qwen2.5-7b,cm-mutate,3shot,all,0.990,200,0.200,0.007,,
-qwen2.5-7b,cm-rebind,0shot,all,0.505,200,0.200,0.035,,
-qwen2.5-7b,cm-rebind,3shot_collide,all,0.985,200,0.200,0.009,,
-qwen2.5-7b,cm-rebind,3shot,all,0.975,200,0.200,0.011,,
-qwen2.5-7b,cm-copy,0shot,all,0.250,200,0.200,0.031,,
-qwen2.5-7b,cm-copy,3shot_collide,all,0.975,200,0.200,0.011,,
-qwen2.5-7b,cm-copy,3shot,all,0.985,200,0.200,0.009,,
-llama31-8b-base,attr,0shot,all,0.662,1210,0.168,0.014,,
-llama31-8b-base,attr,3shot_collide,all,0.993,1210,0.168,0.003,,
-llama31-8b-base,attr,3shot,all,0.999,1210,0.168,0.001,,
-llama31-8b-base,codevar,0shot,all,0.565,1200,0.267,0.014,,
-llama31-8b-base,codevar,3shot_collide,all,0.686,1200,0.267,0.013,,
-llama31-8b-base,codevar,3shot,all,0.706,1200,0.267,0.013,,
-llama31-8b-base,dialogue,0shot,all,0.818,1200,0.312,0.011,,
-llama31-8b-base,dialogue,3shot_collide,all,0.840,1200,0.312,0.011,,
-llama31-8b-base,dialogue,3shot,all,0.825,1200,0.312,0.011,,
-llama31-8b-base,dx-owner-3-deictic,0shot,all,0.608,120,0.333,0.045,,other_participant=0.342;speaker_confusion=0.017;tie=0.033
-llama31-8b-base,dx-owner-3-deictic,0shot,free,0.575,40,0.333,0.078,,other_participant=0.425
-llama31-8b-base,dx-owner-3-deictic,3shot_collide,all,0.808,120,0.333,0.036,,other_participant=0.158;speaker_confusion=0.025;tie=0.008
-llama31-8b-base,dx-owner-3-deictic,3shot_collide,free,0.750,40,0.333,0.069,,other_participant=0.225;tie=0.025
-llama31-8b-base,dx-owner-3-deictic,3shot,all,0.767,120,0.333,0.039,,other_participant=0.2;speaker_confusion=0.025;tie=0.008
-llama31-8b-base,dx-owner-3-deictic,3shot,free,0.800,40,0.333,0.063,,other_participant=0.175;tie=0.025
-llama31-8b-base,dx-owner-3-third,0shot,all,0.592,120,0.333,0.045,,
-llama31-8b-base,dx-owner-3-third,0shot,free,0.650,40,0.333,0.075,,
-llama31-8b-base,dx-owner-3-third,3shot_collide,all,0.708,120,0.333,0.042,,
-llama31-8b-base,dx-owner-3-third,3shot_collide,free,0.800,40,0.333,0.063,,
-llama31-8b-base,dx-owner-3-third,3shot,all,0.700,120,0.333,0.042,,
-llama31-8b-base,dx-owner-3-third,3shot,free,0.825,40,0.333,0.060,,
-llama31-8b-base,dx-self-3-deictic,0shot,all,0.422,180,0.287,0.037,,other_object=0.189;previous_owner=0.044;speaker_confusion=0.317;tie=0.028
-llama31-8b-base,dx-self-3-deictic,0shot,free,0.468,126,0.286,0.044,,other_object=0.143;previous_owner=0.008;speaker_confusion=0.341;tie=0.04
-llama31-8b-base,dx-self-3-deictic,3shot_collide,all,0.494,180,0.287,0.037,,other_object=0.183;previous_owner=0.033;speaker_confusion=0.278;tie=0.011
-llama31-8b-base,dx-self-3-deictic,3shot_collide,free,0.564,126,0.286,0.044,,other_object=0.198;previous_owner=0.04;speaker_confusion=0.183;tie=0.016
-llama31-8b-base,dx-self-3-deictic,3shot,all,0.517,180,0.287,0.037,,other_object=0.156;previous_owner=0.033;speaker_confusion=0.278;tie=0.017
-llama31-8b-base,dx-self-3-deictic,3shot,free,0.595,126,0.286,0.044,,other_object=0.143;previous_owner=0.024;speaker_confusion=0.214;tie=0.024
-llama31-8b-base,dx-self-3-third,0shot,all,0.644,180,0.287,0.036,,
-llama31-8b-base,dx-self-3-third,0shot,free,0.706,126,0.286,0.041,,
-llama31-8b-base,dx-self-3-third,3shot_collide,all,0.633,180,0.287,0.036,,
-llama31-8b-base,dx-self-3-third,3shot_collide,free,0.746,126,0.286,0.039,,
-llama31-8b-base,dx-self-3-third,3shot,all,0.644,180,0.287,0.036,,
-llama31-8b-base,dx-self-3-third,3shot,free,0.746,126,0.286,0.039,,
-llama31-8b-base,dx-self-2-deictic,0shot,all,0.322,180,0.287,0.035,,speaker_confusion=0.661;tie=0.017
-llama31-8b-base,dx-self-2-deictic,0shot,free,0.381,126,0.286,0.043,,speaker_confusion=0.595;tie=0.024
-llama31-8b-base,dx-self-2-deictic,3shot_collide,all,0.478,180,0.287,0.037,,speaker_confusion=0.522
-llama31-8b-base,dx-self-2-deictic,3shot_collide,free,0.564,126,0.286,0.044,,speaker_confusion=0.437
-llama31-8b-base,dx-self-2-deictic,3shot,all,0.489,180,0.287,0.037,,speaker_confusion=0.489;tie=0.022
-llama31-8b-base,dx-self-2-deictic,3shot,free,0.579,126,0.286,0.044,,speaker_confusion=0.389;tie=0.032
-llama31-8b-base,dx-self-2-third,0shot,all,0.706,180,0.287,0.034,,
-llama31-8b-base,dx-self-2-third,0shot,free,0.794,126,0.286,0.036,,
-llama31-8b-base,dx-self-2-third,3shot_collide,all,0.700,180,0.287,0.034,,
-llama31-8b-base,dx-self-2-third,3shot_collide,free,0.794,126,0.286,0.036,,
-llama31-8b-base,dx-self-2-third,3shot,all,0.644,180,0.287,0.036,,
-llama31-8b-base,dx-self-2-third,3shot,free,0.754,126,0.286,0.038,,
-llama31-8b-base,dx-addressee-3-deictic,0shot,all,0.367,180,0.287,0.036,,other_object=0.122;previous_owner=0.106;speaker_confusion=0.367;tie=0.039
-llama31-8b-base,dx-addressee-3-deictic,0shot,free,0.389,126,0.286,0.043,,other_object=0.087;previous_owner=0.143;speaker_confusion=0.349;tie=0.032
-llama31-8b-base,dx-addressee-3-deictic,3shot_collide,all,0.350,180,0.287,0.036,,other_object=0.272;previous_owner=0.072;speaker_confusion=0.289;tie=0.017
-llama31-8b-base,dx-addressee-3-deictic,3shot_collide,free,0.413,126,0.286,0.044,,other_object=0.198;previous_owner=0.071;speaker_confusion=0.302;tie=0.016
-llama31-8b-base,dx-addressee-3-deictic,3shot,all,0.411,180,0.287,0.037,,other_object=0.222;previous_owner=0.061;speaker_confusion=0.306
-llama31-8b-base,dx-addressee-3-deictic,3shot,free,0.476,126,0.286,0.044,,other_object=0.167;previous_owner=0.071;speaker_confusion=0.286
-llama31-8b-base,dx-addressee-3-third,0shot,all,0.650,180,0.287,0.036,,
-llama31-8b-base,dx-addressee-3-third,0shot,free,0.691,126,0.286,0.041,,
-llama31-8b-base,dx-addressee-3-third,3shot_collide,all,0.594,180,0.287,0.037,,
-llama31-8b-base,dx-addressee-3-third,3shot_collide,free,0.675,126,0.286,0.042,,
-llama31-8b-base,dx-addressee-3-third,3shot,all,0.633,180,0.287,0.036,,
-llama31-8b-base,dx-addressee-3-third,3shot,free,0.706,126,0.286,0.041,,
-llama31-8b-base,dx-addressee-2-deictic,0shot,all,0.200,180,0.287,0.030,,speaker_confusion=0.761;tie=0.039
-llama31-8b-base,dx-addressee-2-deictic,0shot,free,0.159,126,0.286,0.033,,speaker_confusion=0.817;tie=0.024
-llama31-8b-base,dx-addressee-2-deictic,3shot_collide,all,0.378,180,0.287,0.036,,speaker_confusion=0.606;tie=0.017
-llama31-8b-base,dx-addressee-2-deictic,3shot_collide,free,0.444,126,0.286,0.044,,speaker_confusion=0.54;tie=0.016
-llama31-8b-base,dx-addressee-2-deictic,3shot,all,0.372,180,0.287,0.036,,speaker_confusion=0.6;tie=0.028
-llama31-8b-base,dx-addressee-2-deictic,3shot,free,0.421,126,0.286,0.044,,speaker_confusion=0.548;tie=0.032
-llama31-8b-base,dx-addressee-2-third,0shot,all,0.683,180,0.287,0.035,,
-llama31-8b-base,dx-addressee-2-third,0shot,free,0.754,126,0.286,0.038,,
-llama31-8b-base,dx-addressee-2-third,3shot_collide,all,0.694,180,0.287,0.034,,
-llama31-8b-base,dx-addressee-2-third,3shot_collide,free,0.802,126,0.286,0.035,,
-llama31-8b-base,dx-addressee-2-third,3shot,all,0.694,180,0.287,0.034,,
-llama31-8b-base,dx-addressee-2-third,3shot,free,0.818,126,0.286,0.034,,
-llama31-8b-base,sb-k1,0shot,all,0.750,64,0.125,0.054,,
-llama31-8b-base,sb-k1,3shot_collide,all,1.000,64,0.125,0.000,,
-llama31-8b-base,sb-k1,3shot,all,1.000,64,0.125,0.000,,
-llama31-8b-base,sb-k23,0shot,all,0.547,128,0.027,0.044,,
-llama31-8b-base,sb-k23,3shot_collide,all,0.984,128,0.027,0.011,,
-llama31-8b-base,sb-k23,3shot,all,0.977,128,0.027,0.013,,
-llama31-8b-base,sb-split,0shot,all,0.438,128,0.027,0.044,,
-llama31-8b-base,sb-split,3shot_collide,all,0.906,128,0.027,0.026,,
-llama31-8b-base,sb-split,3shot,all,0.898,128,0.027,0.027,,
-llama31-8b-base,sb-dyn,0shot,all,0.438,256,0.027,0.031,,
-llama31-8b-base,sb-dyn,3shot_collide,all,0.434,256,0.027,0.031,,
-llama31-8b-base,sb-dyn,3shot,all,0.398,256,0.027,0.031,,
-llama31-8b-base,an-narr,0shot,all,0.570,640,0.250,0.020,,
-llama31-8b-base,an-narr,3shot_collide,all,0.847,640,0.250,0.014,,
-llama31-8b-base,an-narr,3shot,all,0.831,640,0.250,0.015,,
-llama31-8b-base,an-other-any,0shot,all,0.575,320,0.250,0.028,,
-llama31-8b-base,an-other-any,3shot_collide,all,0.575,320,0.250,0.028,,
-llama31-8b-base,an-other-any,3shot,all,0.469,320,0.250,0.028,,
-llama31-8b-base,an-me-any,0shot,all,0.006,160,0.250,0.006,,
-llama31-8b-base,an-me-any,3shot_collide,all,0.356,160,0.250,0.038,,
-llama31-8b-base,an-me-any,3shot,all,0.319,160,0.250,0.037,,
-llama31-8b-base,an-you-voc,0shot,all,0.200,80,0.250,0.045,,
-llama31-8b-base,an-you-voc,3shot_collide,all,0.463,80,0.250,0.056,,
-llama31-8b-base,an-you-voc,3shot,all,0.700,80,0.250,0.051,,
-llama31-8b-base,an-you-novoc,0shot,all,0.787,80,0.250,0.046,,
-llama31-8b-base,an-you-novoc,3shot_collide,all,0.287,80,0.250,0.051,,
-llama31-8b-base,an-you-novoc,3shot,all,0.487,80,0.250,0.056,,
-llama31-8b-base,adj-adj,0shot,all,0.865,260,0.333,0.021,,
-llama31-8b-base,adj-adj,3shot_collide,all,0.958,260,0.333,0.013,,
-llama31-8b-base,adj-adj,3shot,all,0.935,260,0.333,0.015,,
-llama31-8b-base,adj-voc,0shot,all,0.892,260,0.333,0.019,,
-llama31-8b-base,adj-voc,3shot_collide,all,0.992,260,0.333,0.005,,
-llama31-8b-base,adj-voc,3shot,all,0.981,260,0.333,0.009,,
-llama31-8b-base,adj-third,0shot,all,0.846,260,0.333,0.022,,
-llama31-8b-base,adj-third,3shot_collide,all,0.869,260,0.333,0.021,,
-llama31-8b-base,adj-third,3shot,all,0.765,260,0.333,0.026,,
-llama31-8b-base,cm-mutate,0shot,all,0.855,200,0.200,0.025,,
-llama31-8b-base,cm-mutate,3shot_collide,all,0.965,200,0.200,0.013,,
-llama31-8b-base,cm-mutate,3shot,all,0.935,200,0.200,0.017,,
-llama31-8b-base,cm-rebind,0shot,all,0.275,200,0.200,0.032,,
-llama31-8b-base,cm-rebind,3shot_collide,all,0.935,200,0.200,0.017,,
-llama31-8b-base,cm-rebind,3shot,all,0.905,200,0.200,0.021,,
-llama31-8b-base,cm-copy,0shot,all,0.120,200,0.200,0.023,,
-llama31-8b-base,cm-copy,3shot_collide,all,0.920,200,0.200,0.019,,
-llama31-8b-base,cm-copy,3shot,all,0.890,200,0.200,0.022,,
-gemma2-9b,attr,0shot,all,0.762,1210,0.168,0.012,,
-gemma2-9b,attr,3shot_collide,all,0.983,1210,0.168,0.004,,
-gemma2-9b,attr,3shot,all,0.997,1210,0.168,0.002,,
-gemma2-9b,codevar,0shot,all,0.614,1200,0.267,0.014,,
-gemma2-9b,codevar,3shot_collide,all,0.739,1200,0.267,0.013,,
-gemma2-9b,codevar,3shot,all,0.759,1200,0.267,0.012,,
-gemma2-9b,dialogue,0shot,all,0.839,1200,0.312,0.011,,
-gemma2-9b,dialogue,3shot_collide,all,0.903,1200,0.312,0.009,,
-gemma2-9b,dialogue,3shot,all,0.895,1200,0.312,0.009,,
-gemma2-9b,dx-owner-3-deictic,0shot,all,0.642,120,0.333,0.044,,other_participant=0.3;speaker_confusion=0.025;tie=0.033
-gemma2-9b,dx-owner-3-deictic,0shot,free,0.600,40,0.333,0.077,,other_participant=0.35;tie=0.05
-gemma2-9b,dx-owner-3-deictic,3shot_collide,all,0.942,120,0.333,0.021,,other_participant=0.042;speaker_confusion=0.008;tie=0.008
-gemma2-9b,dx-owner-3-deictic,3shot_collide,free,0.975,40,0.333,0.025,,tie=0.025
-gemma2-9b,dx-owner-3-deictic,3shot,all,0.867,120,0.333,0.031,,other_participant=0.117;tie=0.017
-gemma2-9b,dx-owner-3-deictic,3shot,free,0.925,40,0.333,0.042,,other_participant=0.05;tie=0.025
-gemma2-9b,dx-owner-3-third,0shot,all,0.733,120,0.333,0.040,,
-gemma2-9b,dx-owner-3-third,0shot,free,0.675,40,0.333,0.074,,
-gemma2-9b,dx-owner-3-third,3shot_collide,all,0.917,120,0.333,0.025,,
-gemma2-9b,dx-owner-3-third,3shot_collide,free,0.975,40,0.333,0.025,,
-gemma2-9b,dx-owner-3-third,3shot,all,0.900,120,0.333,0.027,,
-gemma2-9b,dx-owner-3-third,3shot,free,0.975,40,0.333,0.025,,
-gemma2-9b,dx-self-3-deictic,0shot,all,0.367,180,0.287,0.036,,other_object=0.233;previous_owner=0.072;speaker_confusion=0.289;tie=0.039
-gemma2-9b,dx-self-3-deictic,0shot,free,0.413,126,0.286,0.044,,other_object=0.238;previous_owner=0.032;speaker_confusion=0.278;tie=0.04
-gemma2-9b,dx-self-3-deictic,3shot_collide,all,0.483,180,0.287,0.037,,other_object=0.117;previous_owner=0.056;speaker_confusion=0.317;tie=0.028
-gemma2-9b,dx-self-3-deictic,3shot_collide,free,0.548,126,0.286,0.044,,other_object=0.119;previous_owner=0.048;speaker_confusion=0.246;tie=0.04
-gemma2-9b,dx-self-3-deictic,3shot,all,0.522,180,0.287,0.037,,other_object=0.089;previous_owner=0.061;speaker_confusion=0.306;tie=0.022
-gemma2-9b,dx-self-3-deictic,3shot,free,0.603,126,0.286,0.044,,other_object=0.095;previous_owner=0.048;speaker_confusion=0.238;tie=0.016
-gemma2-9b,dx-self-3-third,0shot,all,0.650,180,0.287,0.036,,
-gemma2-9b,dx-self-3-third,0shot,free,0.706,126,0.286,0.041,,
-gemma2-9b,dx-self-3-third,3shot_collide,all,0.694,180,0.287,0.034,,
-gemma2-9b,dx-self-3-third,3shot_collide,free,0.682,126,0.286,0.042,,
-gemma2-9b,dx-self-3-third,3shot,all,0.700,180,0.287,0.034,,
-gemma2-9b,dx-self-3-third,3shot,free,0.706,126,0.286,0.041,,
-gemma2-9b,dx-self-2-deictic,0shot,all,0.356,180,0.287,0.036,,speaker_confusion=0.622;tie=0.022
-gemma2-9b,dx-self-2-deictic,0shot,free,0.413,126,0.286,0.044,,speaker_confusion=0.571;tie=0.016
-gemma2-9b,dx-self-2-deictic,3shot_collide,all,0.517,180,0.287,0.037,,speaker_confusion=0.422;tie=0.061
-gemma2-9b,dx-self-2-deictic,3shot_collide,free,0.579,126,0.286,0.044,,speaker_confusion=0.349;tie=0.071
-gemma2-9b,dx-self-2-deictic,3shot,all,0.511,180,0.287,0.037,,speaker_confusion=0.439;tie=0.05
-gemma2-9b,dx-self-2-deictic,3shot,free,0.571,126,0.286,0.044,,speaker_confusion=0.365;tie=0.063
-gemma2-9b,dx-self-2-third,0shot,all,0.656,180,0.287,0.035,,
-gemma2-9b,dx-self-2-third,0shot,free,0.714,126,0.286,0.040,,
-gemma2-9b,dx-self-2-third,3shot_collide,all,0.711,180,0.287,0.034,,
-gemma2-9b,dx-self-2-third,3shot_collide,free,0.754,126,0.286,0.038,,
-gemma2-9b,dx-self-2-third,3shot,all,0.700,180,0.287,0.034,,
-gemma2-9b,dx-self-2-third,3shot,free,0.746,126,0.286,0.039,,
-gemma2-9b,dx-addressee-3-deictic,0shot,all,0.272,180,0.287,0.033,,other_object=0.2;previous_owner=0.106;speaker_confusion=0.389;tie=0.033
-gemma2-9b,dx-addressee-3-deictic,0shot,free,0.278,126,0.286,0.040,,other_object=0.175;previous_owner=0.127;speaker_confusion=0.381;tie=0.04
-gemma2-9b,dx-addressee-3-deictic,3shot_collide,all,0.300,180,0.287,0.034,,other_object=0.15;previous_owner=0.133;speaker_confusion=0.372;tie=0.044
-gemma2-9b,dx-addressee-3-deictic,3shot_collide,free,0.286,126,0.286,0.040,,other_object=0.087;previous_owner=0.167;speaker_confusion=0.413;tie=0.048
-gemma2-9b,dx-addressee-3-deictic,3shot,all,0.344,180,0.287,0.035,,other_object=0.122;previous_owner=0.156;speaker_confusion=0.339;tie=0.039
-gemma2-9b,dx-addressee-3-deictic,3shot,free,0.325,126,0.286,0.042,,other_object=0.079;previous_owner=0.175;speaker_confusion=0.365;tie=0.056
-gemma2-9b,dx-addressee-3-third,0shot,all,0.644,180,0.287,0.036,,
-gemma2-9b,dx-addressee-3-third,0shot,free,0.643,126,0.286,0.043,,
-gemma2-9b,dx-addressee-3-third,3shot_collide,all,0.717,180,0.287,0.034,,
-gemma2-9b,dx-addressee-3-third,3shot_collide,free,0.714,126,0.286,0.040,,
-gemma2-9b,dx-addressee-3-third,3shot,all,0.694,180,0.287,0.034,,
-gemma2-9b,dx-addressee-3-third,3shot,free,0.682,126,0.286,0.042,,
-gemma2-9b,dx-addressee-2-deictic,0shot,all,0.200,180,0.287,0.030,,speaker_confusion=0.778;tie=0.022
-gemma2-9b,dx-addressee-2-deictic,0shot,free,0.214,126,0.286,0.037,,speaker_confusion=0.778;tie=0.008
-gemma2-9b,dx-addressee-2-deictic,3shot_collide,all,0.306,180,0.287,0.034,,speaker_confusion=0.644;tie=0.05
-gemma2-9b,dx-addressee-2-deictic,3shot_collide,free,0.302,126,0.286,0.041,,speaker_confusion=0.651;tie=0.048
-gemma2-9b,dx-addressee-2-deictic,3shot,all,0.333,180,0.287,0.035,,speaker_confusion=0.622;tie=0.044
-gemma2-9b,dx-addressee-2-deictic,3shot,free,0.349,126,0.286,0.043,,speaker_confusion=0.603;tie=0.048
-gemma2-9b,dx-addressee-2-third,0shot,all,0.667,180,0.287,0.035,,
-gemma2-9b,dx-addressee-2-third,0shot,free,0.746,126,0.286,0.039,,
-gemma2-9b,dx-addressee-2-third,3shot_collide,all,0.722,180,0.287,0.033,,
-gemma2-9b,dx-addressee-2-third,3shot_collide,free,0.770,126,0.286,0.037,,
-gemma2-9b,dx-addressee-2-third,3shot,all,0.733,180,0.287,0.033,,
-gemma2-9b,dx-addressee-2-third,3shot,free,0.778,126,0.286,0.037,,
-gemma2-9b,sb-k1,0shot,all,0.953,64,0.125,0.026,,
-gemma2-9b,sb-k1,3shot_collide,all,1.000,64,0.125,0.000,,
-gemma2-9b,sb-k1,3shot,all,1.000,64,0.125,0.000,,
-gemma2-9b,sb-k23,0shot,all,0.578,128,0.027,0.044,,
-gemma2-9b,sb-k23,3shot_collide,all,0.992,128,0.027,0.008,,
-gemma2-9b,sb-k23,3shot,all,0.977,128,0.027,0.013,,
-gemma2-9b,sb-split,0shot,all,0.523,128,0.027,0.044,,
-gemma2-9b,sb-split,3shot_collide,all,0.859,128,0.027,0.031,,
-gemma2-9b,sb-split,3shot,all,0.805,128,0.027,0.035,,
-gemma2-9b,sb-dyn,0shot,all,0.422,256,0.027,0.031,,
-gemma2-9b,sb-dyn,3shot_collide,all,0.387,256,0.027,0.030,,
-gemma2-9b,sb-dyn,3shot,all,0.367,256,0.027,0.030,,
-gemma2-9b,an-narr,0shot,all,0.622,640,0.250,0.019,,
-gemma2-9b,an-narr,3shot_collide,all,0.953,640,0.250,0.008,,
-gemma2-9b,an-narr,3shot,all,0.928,640,0.250,0.010,,
-gemma2-9b,an-other-any,0shot,all,0.219,320,0.250,0.023,,
-gemma2-9b,an-other-any,3shot_collide,all,0.691,320,0.250,0.026,,
-gemma2-9b,an-other-any,3shot,all,0.613,320,0.250,0.027,,
-gemma2-9b,an-me-any,0shot,all,0.356,160,0.250,0.038,,
-gemma2-9b,an-me-any,3shot_collide,all,0.331,160,0.250,0.037,,
-gemma2-9b,an-me-any,3shot,all,0.300,160,0.250,0.036,,
-gemma2-9b,an-you-voc,0shot,all,0.325,80,0.250,0.052,,
-gemma2-9b,an-you-voc,3shot_collide,all,0.400,80,0.250,0.055,,
-gemma2-9b,an-you-voc,3shot,all,0.450,80,0.250,0.056,,
-gemma2-9b,an-you-novoc,0shot,all,0.400,80,0.250,0.055,,
-gemma2-9b,an-you-novoc,3shot_collide,all,0.125,80,0.250,0.037,,
-gemma2-9b,an-you-novoc,3shot,all,0.113,80,0.250,0.035,,
-gemma2-9b,adj-adj,0shot,all,0.946,260,0.333,0.014,,
-gemma2-9b,adj-adj,3shot_collide,all,0.985,260,0.333,0.008,,
-gemma2-9b,adj-adj,3shot,all,0.996,260,0.333,0.004,,
-gemma2-9b,adj-voc,0shot,all,0.973,260,0.333,0.010,,
-gemma2-9b,adj-voc,3shot_collide,all,0.996,260,0.333,0.004,,
-gemma2-9b,adj-voc,3shot,all,1.000,260,0.333,0.000,,
-gemma2-9b,adj-third,0shot,all,0.985,260,0.333,0.008,,
-gemma2-9b,adj-third,3shot_collide,all,0.969,260,0.333,0.011,,
-gemma2-9b,adj-third,3shot,all,0.965,260,0.333,0.011,,
-gemma2-9b,cm-mutate,0shot,all,0.860,200,0.200,0.025,,
-gemma2-9b,cm-mutate,3shot_collide,all,0.960,200,0.200,0.014,,
-gemma2-9b,cm-mutate,3shot,all,0.995,200,0.200,0.005,,
-gemma2-9b,cm-rebind,0shot,all,0.670,200,0.200,0.033,,
-gemma2-9b,cm-rebind,3shot_collide,all,0.990,200,0.200,0.007,,
-gemma2-9b,cm-rebind,3shot,all,0.990,200,0.200,0.007,,
-gemma2-9b,cm-copy,0shot,all,0.270,200,0.200,0.031,,
-gemma2-9b,cm-copy,3shot_collide,all,0.980,200,0.200,0.010,,
-gemma2-9b,cm-copy,3shot,all,0.985,200,0.200,0.009,,
-olmo2-13b,dx-owner-3-deictic,0shot,all,0.683,120,0.333,0.043,,other_participant=0.308;speaker_confusion=0.008
-olmo2-13b,dx-owner-3-deictic,0shot,free,0.650,40,0.333,0.075,,other_participant=0.35
-olmo2-13b,dx-owner-3-deictic,3shot_collide,all,0.792,120,0.333,0.037,,other_participant=0.2;speaker_confusion=0.008
-olmo2-13b,dx-owner-3-deictic,3shot_collide,free,0.600,40,0.333,0.077,,other_participant=0.4
-olmo2-13b,dx-owner-3-deictic,3shot,all,0.733,120,0.333,0.040,,other_participant=0.242;speaker_confusion=0.025
-olmo2-13b,dx-owner-3-deictic,3shot,free,0.575,40,0.333,0.078,,other_participant=0.375;speaker_confusion=0.05
-olmo2-13b,dx-owner-3-third,0shot,all,0.667,120,0.333,0.043,,
-olmo2-13b,dx-owner-3-third,0shot,free,0.650,40,0.333,0.075,,
-olmo2-13b,dx-owner-3-third,3shot_collide,all,0.825,120,0.333,0.035,,
-olmo2-13b,dx-owner-3-third,3shot_collide,free,0.825,40,0.333,0.060,,
-olmo2-13b,dx-owner-3-third,3shot,all,0.900,120,0.333,0.027,,
-olmo2-13b,dx-owner-3-third,3shot,free,0.925,40,0.333,0.042,,
-olmo2-13b,dx-self-3-deictic,0shot,all,0.433,180,0.287,0.037,,other_object=0.3;previous_owner=0.056;speaker_confusion=0.211
-olmo2-13b,dx-self-3-deictic,0shot,free,0.548,126,0.286,0.044,,other_object=0.27;previous_owner=0.016;speaker_confusion=0.167
-olmo2-13b,dx-self-3-deictic,3shot_collide,all,0.639,180,0.287,0.036,,other_object=0.178;previous_owner=0.022;speaker_confusion=0.161
-olmo2-13b,dx-self-3-deictic,3shot_collide,free,0.651,126,0.286,0.043,,other_object=0.206;previous_owner=0.016;speaker_confusion=0.127
-olmo2-13b,dx-self-3-deictic,3shot,all,0.706,180,0.287,0.034,,other_object=0.128;previous_owner=0.022;speaker_confusion=0.144
-olmo2-13b,dx-self-3-deictic,3shot,free,0.746,126,0.286,0.039,,other_object=0.119;previous_owner=0.016;speaker_confusion=0.119
-olmo2-13b,dx-self-3-third,0shot,all,0.661,180,0.287,0.035,,
-olmo2-13b,dx-self-3-third,0shot,free,0.675,126,0.286,0.042,,
-olmo2-13b,dx-self-3-third,3shot_collide,all,0.767,180,0.287,0.032,,
-olmo2-13b,dx-self-3-third,3shot_collide,free,0.786,126,0.286,0.037,,
-olmo2-13b,dx-self-3-third,3shot,all,0.828,180,0.287,0.028,,
-olmo2-13b,dx-self-3-third,3shot,free,0.841,126,0.286,0.033,,
-olmo2-13b,dx-self-2-deictic,0shot,all,0.411,180,0.287,0.037,,speaker_confusion=0.589
-olmo2-13b,dx-self-2-deictic,0shot,free,0.484,126,0.286,0.044,,speaker_confusion=0.516
-olmo2-13b,dx-self-2-deictic,3shot_collide,all,0.533,180,0.287,0.037,,speaker_confusion=0.467
-olmo2-13b,dx-self-2-deictic,3shot_collide,free,0.587,126,0.286,0.044,,speaker_confusion=0.413
-olmo2-13b,dx-self-2-deictic,3shot,all,0.594,180,0.287,0.037,,speaker_confusion=0.406
-olmo2-13b,dx-self-2-deictic,3shot,free,0.651,126,0.286,0.043,,speaker_confusion=0.349
-olmo2-13b,dx-self-2-third,0shot,all,0.567,180,0.287,0.037,,
-olmo2-13b,dx-self-2-third,0shot,free,0.595,126,0.286,0.044,,
-olmo2-13b,dx-self-2-third,3shot_collide,all,0.761,180,0.287,0.032,,
-olmo2-13b,dx-self-2-third,3shot_collide,free,0.794,126,0.286,0.036,,
-olmo2-13b,dx-self-2-third,3shot,all,0.800,180,0.287,0.030,,
-olmo2-13b,dx-self-2-third,3shot,free,0.809,126,0.286,0.035,,
-olmo2-13b,dx-addressee-3-deictic,0shot,all,0.433,180,0.287,0.037,,other_object=0.172;previous_owner=0.083;speaker_confusion=0.311
-olmo2-13b,dx-addressee-3-deictic,0shot,free,0.484,126,0.286,0.044,,other_object=0.127;previous_owner=0.103;speaker_confusion=0.286
-olmo2-13b,dx-addressee-3-deictic,3shot_collide,all,0.478,180,0.287,0.037,,other_object=0.139;previous_owner=0.061;speaker_confusion=0.322
-olmo2-13b,dx-addressee-3-deictic,3shot_collide,free,0.484,126,0.286,0.044,,other_object=0.119;previous_owner=0.079;speaker_confusion=0.317
-olmo2-13b,dx-addressee-3-deictic,3shot,all,0.533,180,0.287,0.037,,other_object=0.122;previous_owner=0.056;speaker_confusion=0.289
-olmo2-13b,dx-addressee-3-deictic,3shot,free,0.508,126,0.286,0.044,,other_object=0.127;previous_owner=0.071;speaker_confusion=0.294
-olmo2-13b,dx-addressee-3-third,0shot,all,0.689,180,0.287,0.035,,
-olmo2-13b,dx-addressee-3-third,0shot,free,0.635,126,0.286,0.043,,
-olmo2-13b,dx-addressee-3-third,3shot_collide,all,0.739,180,0.287,0.033,,
-olmo2-13b,dx-addressee-3-third,3shot_collide,free,0.730,126,0.286,0.040,,
-olmo2-13b,dx-addressee-3-third,3shot,all,0.789,180,0.287,0.030,,
-olmo2-13b,dx-addressee-3-third,3shot,free,0.762,126,0.286,0.038,,
-olmo2-13b,dx-addressee-2-deictic,0shot,all,0.294,180,0.287,0.034,,speaker_confusion=0.706
-olmo2-13b,dx-addressee-2-deictic,0shot,free,0.381,126,0.286,0.043,,speaker_confusion=0.619
-olmo2-13b,dx-addressee-2-deictic,3shot_collide,all,0.478,180,0.287,0.037,,speaker_confusion=0.522
-olmo2-13b,dx-addressee-2-deictic,3shot_collide,free,0.556,126,0.286,0.044,,speaker_confusion=0.444
-olmo2-13b,dx-addressee-2-deictic,3shot,all,0.483,180,0.287,0.037,,speaker_confusion=0.517
-olmo2-13b,dx-addressee-2-deictic,3shot,free,0.564,126,0.286,0.044,,speaker_confusion=0.437
-olmo2-13b,dx-addressee-2-third,0shot,all,0.572,180,0.287,0.037,,
-olmo2-13b,dx-addressee-2-third,0shot,free,0.579,126,0.286,0.044,,
-olmo2-13b,dx-addressee-2-third,3shot_collide,all,0.772,180,0.287,0.031,,
-olmo2-13b,dx-addressee-2-third,3shot_collide,free,0.825,126,0.286,0.034,,
-olmo2-13b,dx-addressee-2-third,3shot,all,0.800,180,0.287,0.030,,
-olmo2-13b,dx-addressee-2-third,3shot,free,0.825,126,0.286,0.034,,
-qwen3-30b-a3b-base,attr,0shot,all,0.841,1210,0.168,0.011,,
-qwen3-30b-a3b-base,attr,3shot_collide,all,0.998,1210,0.168,0.001,,
-qwen3-30b-a3b-base,attr,3shot,all,1.000,1210,0.168,0.000,,
-qwen3-30b-a3b-base,codevar,0shot,all,0.747,1200,0.267,0.013,,
-qwen3-30b-a3b-base,codevar,3shot_collide,all,0.834,1200,0.267,0.011,,
-qwen3-30b-a3b-base,codevar,3shot,all,0.829,1200,0.267,0.011,,
-qwen3-30b-a3b-base,dialogue,0shot,all,0.812,1200,0.312,0.011,,
-qwen3-30b-a3b-base,dialogue,3shot_collide,all,0.880,1200,0.312,0.009,,
-qwen3-30b-a3b-base,dialogue,3shot,all,0.886,1200,0.312,0.009,,
-qwen3-30b-a3b-base,dx-owner-3-deictic,0shot,all,0.617,120,0.333,0.044,,other_participant=0.317;speaker_confusion=0.025;tie=0.042
-qwen3-30b-a3b-base,dx-owner-3-deictic,0shot,free,0.600,40,0.333,0.077,,other_participant=0.325;tie=0.075
-qwen3-30b-a3b-base,dx-owner-3-deictic,3shot_collide,all,0.725,120,0.333,0.041,,other_participant=0.217;speaker_confusion=0.033;tie=0.025
-qwen3-30b-a3b-base,dx-owner-3-deictic,3shot_collide,free,0.575,40,0.333,0.078,,other_participant=0.375;speaker_confusion=0.025;tie=0.025
-qwen3-30b-a3b-base,dx-owner-3-deictic,3shot,all,0.800,120,0.333,0.036,,other_participant=0.15;speaker_confusion=0.042;tie=0.008
-qwen3-30b-a3b-base,dx-owner-3-deictic,3shot,free,0.675,40,0.333,0.074,,other_participant=0.225;speaker_confusion=0.075;tie=0.025
-qwen3-30b-a3b-base,dx-owner-3-third,0shot,all,0.700,120,0.333,0.042,,
-qwen3-30b-a3b-base,dx-owner-3-third,0shot,free,0.675,40,0.333,0.074,,
-qwen3-30b-a3b-base,dx-owner-3-third,3shot_collide,all,0.992,120,0.333,0.008,,
-qwen3-30b-a3b-base,dx-owner-3-third,3shot_collide,free,1.000,40,0.333,0.000,,
-qwen3-30b-a3b-base,dx-owner-3-third,3shot,all,1.000,120,0.333,0.000,,
-qwen3-30b-a3b-base,dx-owner-3-third,3shot,free,1.000,40,0.333,0.000,,
-qwen3-30b-a3b-base,dx-self-3-deictic,0shot,all,0.361,180,0.287,0.036,,other_object=0.25;previous_owner=0.061;speaker_confusion=0.294;tie=0.033
-qwen3-30b-a3b-base,dx-self-3-deictic,0shot,free,0.421,126,0.286,0.044,,other_object=0.262;previous_owner=0.032;speaker_confusion=0.262;tie=0.024
-qwen3-30b-a3b-base,dx-self-3-deictic,3shot_collide,all,0.506,180,0.287,0.037,,other_object=0.1;previous_owner=0.072;speaker_confusion=0.311;tie=0.011
-qwen3-30b-a3b-base,dx-self-3-deictic,3shot_collide,free,0.619,126,0.286,0.043,,other_object=0.079;previous_owner=0.04;speaker_confusion=0.246;tie=0.016
-qwen3-30b-a3b-base,dx-self-3-deictic,3shot,all,0.517,180,0.287,0.037,,other_object=0.133;previous_owner=0.05;speaker_confusion=0.294;tie=0.006
-qwen3-30b-a3b-base,dx-self-3-deictic,3shot,free,0.651,126,0.286,0.043,,other_object=0.119;previous_owner=0.032;speaker_confusion=0.19;tie=0.008
-qwen3-30b-a3b-base,dx-self-3-third,0shot,all,0.678,180,0.287,0.035,,
-qwen3-30b-a3b-base,dx-self-3-third,0shot,free,0.706,126,0.286,0.041,,
-qwen3-30b-a3b-base,dx-self-3-third,3shot_collide,all,0.806,180,0.287,0.029,,
-qwen3-30b-a3b-base,dx-self-3-third,3shot_collide,free,0.818,126,0.286,0.034,,
-qwen3-30b-a3b-base,dx-self-3-third,3shot,all,0.806,180,0.287,0.029,,
-qwen3-30b-a3b-base,dx-self-3-third,3shot,free,0.825,126,0.286,0.034,,
-qwen3-30b-a3b-base,dx-self-2-deictic,0shot,all,0.356,180,0.287,0.036,,speaker_confusion=0.611;tie=0.033
-qwen3-30b-a3b-base,dx-self-2-deictic,0shot,free,0.413,126,0.286,0.044,,speaker_confusion=0.548;tie=0.04
-qwen3-30b-a3b-base,dx-self-2-deictic,3shot_collide,all,0.489,180,0.287,0.037,,speaker_confusion=0.506;tie=0.006
-qwen3-30b-a3b-base,dx-self-2-deictic,3shot_collide,free,0.611,126,0.286,0.043,,speaker_confusion=0.381;tie=0.008
-qwen3-30b-a3b-base,dx-self-2-deictic,3shot,all,0.483,180,0.287,0.037,,speaker_confusion=0.511;tie=0.006
-qwen3-30b-a3b-base,dx-self-2-deictic,3shot,free,0.611,126,0.286,0.043,,speaker_confusion=0.381;tie=0.008
-qwen3-30b-a3b-base,dx-self-2-third,0shot,all,0.722,180,0.287,0.033,,
-qwen3-30b-a3b-base,dx-self-2-third,0shot,free,0.778,126,0.286,0.037,,
-qwen3-30b-a3b-base,dx-self-2-third,3shot_collide,all,0.761,180,0.287,0.032,,
-qwen3-30b-a3b-base,dx-self-2-third,3shot_collide,free,0.809,126,0.286,0.035,,
-qwen3-30b-a3b-base,dx-self-2-third,3shot,all,0.739,180,0.287,0.033,,
-qwen3-30b-a3b-base,dx-self-2-third,3shot,free,0.786,126,0.286,0.037,,
-qwen3-30b-a3b-base,dx-addressee-3-deictic,0shot,all,0.317,180,0.287,0.035,,other_object=0.178;previous_owner=0.089;speaker_confusion=0.406;tie=0.011
-qwen3-30b-a3b-base,dx-addressee-3-deictic,0shot,free,0.325,126,0.286,0.042,,other_object=0.151;previous_owner=0.119;speaker_confusion=0.397;tie=0.008
-qwen3-30b-a3b-base,dx-addressee-3-deictic,3shot_collide,all,0.422,180,0.287,0.037,,other_object=0.106;previous_owner=0.106;speaker_confusion=0.35;tie=0.017
-qwen3-30b-a3b-base,dx-addressee-3-deictic,3shot_collide,free,0.460,126,0.286,0.044,,other_object=0.071;previous_owner=0.127;speaker_confusion=0.325;tie=0.016
-qwen3-30b-a3b-base,dx-addressee-3-deictic,3shot,all,0.439,180,0.287,0.037,,other_object=0.094;previous_owner=0.094;speaker_confusion=0.372
-qwen3-30b-a3b-base,dx-addressee-3-deictic,3shot,free,0.468,126,0.286,0.044,,other_object=0.071;previous_owner=0.119;speaker_confusion=0.341
-qwen3-30b-a3b-base,dx-addressee-3-third,0shot,all,0.706,180,0.287,0.034,,
-qwen3-30b-a3b-base,dx-addressee-3-third,0shot,free,0.698,126,0.286,0.041,,
-qwen3-30b-a3b-base,dx-addressee-3-third,3shot_collide,all,0.811,180,0.287,0.029,,
-qwen3-30b-a3b-base,dx-addressee-3-third,3shot_collide,free,0.881,126,0.286,0.029,,
-qwen3-30b-a3b-base,dx-addressee-3-third,3shot,all,0.817,180,0.287,0.029,,
-qwen3-30b-a3b-base,dx-addressee-3-third,3shot,free,0.897,126,0.286,0.027,,
-qwen3-30b-a3b-base,dx-addressee-2-deictic,0shot,all,0.283,180,0.287,0.034,,speaker_confusion=0.7;tie=0.017
-qwen3-30b-a3b-base,dx-addressee-2-deictic,0shot,free,0.286,126,0.286,0.040,,speaker_confusion=0.69;tie=0.024
-qwen3-30b-a3b-base,dx-addressee-2-deictic,3shot_collide,all,0.389,180,0.287,0.036,,speaker_confusion=0.594;tie=0.017
-qwen3-30b-a3b-base,dx-addressee-2-deictic,3shot_collide,free,0.421,126,0.286,0.044,,speaker_confusion=0.556;tie=0.024
-qwen3-30b-a3b-base,dx-addressee-2-deictic,3shot,all,0.428,180,0.287,0.037,,speaker_confusion=0.561;tie=0.011
-qwen3-30b-a3b-base,dx-addressee-2-deictic,3shot,free,0.476,126,0.286,0.044,,speaker_confusion=0.508;tie=0.016
-qwen3-30b-a3b-base,dx-addressee-2-third,0shot,all,0.728,180,0.287,0.033,,
-qwen3-30b-a3b-base,dx-addressee-2-third,0shot,free,0.809,126,0.286,0.035,,
-qwen3-30b-a3b-base,dx-addressee-2-third,3shot_collide,all,0.756,180,0.287,0.032,,
-qwen3-30b-a3b-base,dx-addressee-2-third,3shot_collide,free,0.841,126,0.286,0.033,,
-qwen3-30b-a3b-base,dx-addressee-2-third,3shot,all,0.756,180,0.287,0.032,,
-qwen3-30b-a3b-base,dx-addressee-2-third,3shot,free,0.825,126,0.286,0.034,,
-qwen3-30b-a3b-base,sb-k1,0shot,all,0.891,64,0.125,0.039,,
-qwen3-30b-a3b-base,sb-k1,3shot_collide,all,1.000,64,0.125,0.000,,
-qwen3-30b-a3b-base,sb-k1,3shot,all,1.000,64,0.125,0.000,,
-qwen3-30b-a3b-base,sb-k23,0shot,all,0.594,128,0.027,0.043,,
-qwen3-30b-a3b-base,sb-k23,3shot_collide,all,0.984,128,0.027,0.011,,
-qwen3-30b-a3b-base,sb-k23,3shot,all,0.977,128,0.027,0.013,,
-qwen3-30b-a3b-base,sb-split,0shot,all,0.555,128,0.027,0.044,,
-qwen3-30b-a3b-base,sb-split,3shot_collide,all,0.891,128,0.027,0.028,,
-qwen3-30b-a3b-base,sb-split,3shot,all,0.820,128,0.027,0.034,,
-qwen3-30b-a3b-base,sb-dyn,0shot,all,0.492,256,0.027,0.031,,
-qwen3-30b-a3b-base,sb-dyn,3shot_collide,all,0.504,256,0.027,0.031,,
-qwen3-30b-a3b-base,sb-dyn,3shot,all,0.535,256,0.027,0.031,,
-qwen3-30b-a3b-base,an-narr,0shot,all,0.489,640,0.250,0.020,,
-qwen3-30b-a3b-base,an-narr,3shot_collide,all,0.822,640,0.250,0.015,,
-qwen3-30b-a3b-base,an-narr,3shot,all,0.841,640,0.250,0.015,,
-qwen3-30b-a3b-base,an-other-any,0shot,all,0.416,320,0.250,0.028,,
-qwen3-30b-a3b-base,an-other-any,3shot_collide,all,0.369,320,0.250,0.027,,
-qwen3-30b-a3b-base,an-other-any,3shot,all,0.450,320,0.250,0.028,,
-qwen3-30b-a3b-base,an-me-any,0shot,all,0.119,160,0.250,0.026,,
-qwen3-30b-a3b-base,an-me-any,3shot_collide,all,0.119,160,0.250,0.026,,
-qwen3-30b-a3b-base,an-me-any,3shot,all,0.075,160,0.250,0.021,,
-qwen3-30b-a3b-base,an-you-voc,0shot,all,0.938,80,0.250,0.027,,
-qwen3-30b-a3b-base,an-you-voc,3shot_collide,all,0.775,80,0.250,0.047,,
-qwen3-30b-a3b-base,an-you-voc,3shot,all,0.738,80,0.250,0.049,,
-qwen3-30b-a3b-base,an-you-novoc,0shot,all,0.637,80,0.250,0.054,,
-qwen3-30b-a3b-base,an-you-novoc,3shot_collide,all,0.438,80,0.250,0.056,,
-qwen3-30b-a3b-base,an-you-novoc,3shot,all,0.312,80,0.250,0.052,,
-qwen3-30b-a3b-base,adj-adj,0shot,all,0.854,260,0.333,0.022,,
-qwen3-30b-a3b-base,adj-adj,3shot_collide,all,0.858,260,0.333,0.022,,
-qwen3-30b-a3b-base,adj-adj,3shot,all,0.888,260,0.333,0.019,,
-qwen3-30b-a3b-base,adj-voc,0shot,all,0.950,260,0.333,0.013,,
-qwen3-30b-a3b-base,adj-voc,3shot_collide,all,0.981,260,0.333,0.009,,
-qwen3-30b-a3b-base,adj-voc,3shot,all,0.996,260,0.333,0.004,,
-qwen3-30b-a3b-base,adj-third,0shot,all,0.969,260,0.333,0.011,,
-qwen3-30b-a3b-base,adj-third,3shot_collide,all,0.992,260,0.333,0.005,,
-qwen3-30b-a3b-base,adj-third,3shot,all,0.992,260,0.333,0.005,,
-qwen3-30b-a3b-base,cm-mutate,0shot,all,0.915,200,0.200,0.020,,
-qwen3-30b-a3b-base,cm-mutate,3shot_collide,all,0.990,200,0.200,0.007,,
-qwen3-30b-a3b-base,cm-mutate,3shot,all,0.980,200,0.200,0.010,,
-qwen3-30b-a3b-base,cm-rebind,0shot,all,0.725,200,0.200,0.032,,
-qwen3-30b-a3b-base,cm-rebind,3shot_collide,all,0.905,200,0.200,0.021,,
-qwen3-30b-a3b-base,cm-rebind,3shot,all,0.830,200,0.200,0.027,,
-qwen3-30b-a3b-base,cm-copy,0shot,all,0.640,200,0.200,0.034,,
-qwen3-30b-a3b-base,cm-copy,3shot_collide,all,0.940,200,0.200,0.017,,
-qwen3-30b-a3b-base,cm-copy,3shot,all,0.990,200,0.200,0.007,,
-gemma4-31b-base,attr,0shot,all,0.704,1210,0.168,0.013,,
-gemma4-31b-base,attr,3shot_collide,all,1.000,1210,0.168,0.000,,
-gemma4-31b-base,attr,3shot,all,1.000,1210,0.168,0.000,,
-gemma4-31b-base,codevar,0shot,all,0.867,1200,0.267,0.010,,
-gemma4-31b-base,codevar,3shot_collide,all,0.943,1200,0.267,0.007,,
-gemma4-31b-base,codevar,3shot,all,0.916,1200,0.267,0.008,,
-gemma4-31b-base,dialogue,0shot,all,0.932,1200,0.312,0.007,,
-gemma4-31b-base,dialogue,3shot_collide,all,0.976,1200,0.312,0.004,,
-gemma4-31b-base,dialogue,3shot,all,0.963,1200,0.312,0.005,,
-gemma4-31b-base,dx-owner-3-deictic,0shot,all,0.717,120,0.333,0.041,,other_participant=0.275;tie=0.008
-gemma4-31b-base,dx-owner-3-deictic,0shot,free,0.625,40,0.333,0.076,,other_participant=0.35;tie=0.025
-gemma4-31b-base,dx-owner-3-deictic,3shot_collide,all,0.992,120,0.333,0.008,,other_participant=0.008
-gemma4-31b-base,dx-owner-3-deictic,3shot_collide,free,1.000,40,0.333,0.000,,
-gemma4-31b-base,dx-owner-3-deictic,3shot,all,0.992,120,0.333,0.008,,other_participant=0.008
-gemma4-31b-base,dx-owner-3-deictic,3shot,free,1.000,40,0.333,0.000,,
-gemma4-31b-base,dx-owner-3-third,0shot,all,0.883,120,0.333,0.029,,
-gemma4-31b-base,dx-owner-3-third,0shot,free,0.800,40,0.333,0.063,,
-gemma4-31b-base,dx-owner-3-third,3shot_collide,all,1.000,120,0.333,0.000,,
-gemma4-31b-base,dx-owner-3-third,3shot_collide,free,1.000,40,0.333,0.000,,
-gemma4-31b-base,dx-owner-3-third,3shot,all,0.992,120,0.333,0.008,,
-gemma4-31b-base,dx-owner-3-third,3shot,free,1.000,40,0.333,0.000,,
-gemma4-31b-base,dx-self-3-deictic,0shot,all,0.689,180,0.287,0.035,,other_object=0.106;previous_owner=0.028;speaker_confusion=0.144;tie=0.033
-gemma4-31b-base,dx-self-3-deictic,0shot,free,0.738,126,0.286,0.039,,other_object=0.135;previous_owner=0.024;speaker_confusion=0.095;tie=0.008
-gemma4-31b-base,dx-self-3-deictic,3shot_collide,all,0.950,180,0.287,0.016,,other_object=0.017;previous_owner=0.011;speaker_confusion=0.017;tie=0.006
-gemma4-31b-base,dx-self-3-deictic,3shot_collide,free,0.976,126,0.286,0.014,,other_object=0.016;speaker_confusion=0.008
-gemma4-31b-base,dx-self-3-deictic,3shot,all,0.933,180,0.287,0.019,,other_object=0.028;previous_owner=0.028;speaker_confusion=0.011
-gemma4-31b-base,dx-self-3-deictic,3shot,free,0.944,126,0.286,0.020,,other_object=0.04;previous_owner=0.016
-gemma4-31b-base,dx-self-3-third,0shot,all,0.922,180,0.287,0.020,,
-gemma4-31b-base,dx-self-3-third,0shot,free,0.936,126,0.286,0.022,,
-gemma4-31b-base,dx-self-3-third,3shot_collide,all,0.983,180,0.287,0.009,,
-gemma4-31b-base,dx-self-3-third,3shot_collide,free,0.984,126,0.286,0.011,,
-gemma4-31b-base,dx-self-3-third,3shot,all,0.978,180,0.287,0.011,,
-gemma4-31b-base,dx-self-3-third,3shot,free,0.984,126,0.286,0.011,,
-gemma4-31b-base,dx-self-2-deictic,0shot,all,0.522,180,0.287,0.037,,speaker_confusion=0.45;tie=0.028
-gemma4-31b-base,dx-self-2-deictic,0shot,free,0.603,126,0.286,0.044,,speaker_confusion=0.365;tie=0.032
-gemma4-31b-base,dx-self-2-deictic,3shot_collide,all,0.772,180,0.287,0.031,,speaker_confusion=0.222;tie=0.006
-gemma4-31b-base,dx-self-2-deictic,3shot_collide,free,0.825,126,0.286,0.034,,speaker_confusion=0.175
-gemma4-31b-base,dx-self-2-deictic,3shot,all,0.756,180,0.287,0.032,,speaker_confusion=0.228;tie=0.017
-gemma4-31b-base,dx-self-2-deictic,3shot,free,0.825,126,0.286,0.034,,speaker_confusion=0.151;tie=0.024
-gemma4-31b-base,dx-self-2-third,0shot,all,0.889,180,0.287,0.023,,
-gemma4-31b-base,dx-self-2-third,0shot,free,0.913,126,0.286,0.025,,
-gemma4-31b-base,dx-self-2-third,3shot_collide,all,0.900,180,0.287,0.022,,
-gemma4-31b-base,dx-self-2-third,3shot_collide,free,0.929,126,0.286,0.023,,
-gemma4-31b-base,dx-self-2-third,3shot,all,0.917,180,0.287,0.021,,
-gemma4-31b-base,dx-self-2-third,3shot,free,0.921,126,0.286,0.024,,
-gemma4-31b-base,dx-addressee-3-deictic,0shot,all,0.378,180,0.287,0.036,,other_object=0.089;previous_owner=0.056;speaker_confusion=0.456;tie=0.022
-gemma4-31b-base,dx-addressee-3-deictic,0shot,free,0.429,126,0.286,0.044,,other_object=0.079;previous_owner=0.063;speaker_confusion=0.413;tie=0.016
-gemma4-31b-base,dx-addressee-3-deictic,3shot_collide,all,0.806,180,0.287,0.029,,other_object=0.044;previous_owner=0.044;speaker_confusion=0.1;tie=0.006
-gemma4-31b-base,dx-addressee-3-deictic,3shot_collide,free,0.841,126,0.286,0.033,,other_object=0.024;previous_owner=0.056;speaker_confusion=0.071;tie=0.008
-gemma4-31b-base,dx-addressee-3-deictic,3shot,all,0.706,180,0.287,0.034,,other_object=0.05;previous_owner=0.039;speaker_confusion=0.183;tie=0.022
-gemma4-31b-base,dx-addressee-3-deictic,3shot,free,0.762,126,0.286,0.038,,other_object=0.024;previous_owner=0.04;speaker_confusion=0.143;tie=0.032
-gemma4-31b-base,dx-addressee-3-third,0shot,all,0.939,180,0.287,0.018,,
-gemma4-31b-base,dx-addressee-3-third,0shot,free,0.929,126,0.286,0.023,,
-gemma4-31b-base,dx-addressee-3-third,3shot_collide,all,0.950,180,0.287,0.016,,
-gemma4-31b-base,dx-addressee-3-third,3shot_collide,free,0.936,126,0.286,0.022,,
-gemma4-31b-base,dx-addressee-3-third,3shot,all,0.956,180,0.287,0.015,,
-gemma4-31b-base,dx-addressee-3-third,3shot,free,0.952,126,0.286,0.019,,
-gemma4-31b-base,dx-addressee-2-deictic,0shot,all,0.311,180,0.287,0.035,,speaker_confusion=0.667;tie=0.022
-gemma4-31b-base,dx-addressee-2-deictic,0shot,free,0.325,126,0.286,0.042,,speaker_confusion=0.643;tie=0.032
-gemma4-31b-base,dx-addressee-2-deictic,3shot_collide,all,0.511,180,0.287,0.037,,speaker_confusion=0.467;tie=0.022
-gemma4-31b-base,dx-addressee-2-deictic,3shot_collide,free,0.548,126,0.286,0.044,,speaker_confusion=0.437;tie=0.016
-gemma4-31b-base,dx-addressee-2-deictic,3shot,all,0.500,180,0.287,0.037,,speaker_confusion=0.483;tie=0.017
-gemma4-31b-base,dx-addressee-2-deictic,3shot,free,0.540,126,0.286,0.044,,speaker_confusion=0.444;tie=0.016
-gemma4-31b-base,dx-addressee-2-third,0shot,all,0.894,180,0.287,0.023,,
-gemma4-31b-base,dx-addressee-2-third,0shot,free,0.913,126,0.286,0.025,,
-gemma4-31b-base,dx-addressee-2-third,3shot_collide,all,0.928,180,0.287,0.019,,
-gemma4-31b-base,dx-addressee-2-third,3shot_collide,free,0.960,126,0.286,0.017,,
-gemma4-31b-base,dx-addressee-2-third,3shot,all,0.906,180,0.287,0.022,,
-gemma4-31b-base,dx-addressee-2-third,3shot,free,0.936,126,0.286,0.022,,
-gemma4-31b-base,sb-k1,0shot,all,0.906,64,0.125,0.036,,
-gemma4-31b-base,sb-k1,3shot_collide,all,1.000,64,0.125,0.000,,
-gemma4-31b-base,sb-k1,3shot,all,1.000,64,0.125,0.000,,
-gemma4-31b-base,sb-k23,0shot,all,0.438,128,0.027,0.044,,
-gemma4-31b-base,sb-k23,3shot_collide,all,1.000,128,0.027,0.000,,
-gemma4-31b-base,sb-k23,3shot,all,1.000,128,0.027,0.000,,
-gemma4-31b-base,sb-split,0shot,all,0.719,128,0.027,0.040,,
-gemma4-31b-base,sb-split,3shot_collide,all,0.977,128,0.027,0.013,,
-gemma4-31b-base,sb-split,3shot,all,0.891,128,0.027,0.028,,
-gemma4-31b-base,sb-dyn,0shot,all,0.664,256,0.027,0.029,,
-gemma4-31b-base,sb-dyn,3shot_collide,all,0.691,256,0.027,0.029,,
-gemma4-31b-base,sb-dyn,3shot,all,0.684,256,0.027,0.029,,
-gemma4-31b-base,an-narr,0shot,all,0.647,640,0.250,0.019,,
-gemma4-31b-base,an-narr,3shot_collide,all,0.992,640,0.250,0.004,,
-gemma4-31b-base,an-narr,3shot,all,0.994,640,0.250,0.003,,
-gemma4-31b-base,an-other-any,0shot,all,0.713,320,0.250,0.025,,
-gemma4-31b-base,an-other-any,3shot_collide,all,0.959,320,0.250,0.011,,
-gemma4-31b-base,an-other-any,3shot,all,0.956,320,0.250,0.011,,
-gemma4-31b-base,an-me-any,0shot,all,0.675,160,0.250,0.037,,
-gemma4-31b-base,an-me-any,3shot_collide,all,0.944,160,0.250,0.018,,
-gemma4-31b-base,an-me-any,3shot,all,0.975,160,0.250,0.012,,
-gemma4-31b-base,an-you-voc,0shot,all,0.575,80,0.250,0.055,,
-gemma4-31b-base,an-you-voc,3shot_collide,all,0.963,80,0.250,0.021,,
-gemma4-31b-base,an-you-voc,3shot,all,0.963,80,0.250,0.021,,
-gemma4-31b-base,an-you-novoc,0shot,all,0.512,80,0.250,0.056,,
-gemma4-31b-base,an-you-novoc,3shot_collide,all,0.875,80,0.250,0.037,,
-gemma4-31b-base,an-you-novoc,3shot,all,0.875,80,0.250,0.037,,
-gemma4-31b-base,adj-adj,0shot,all,0.996,260,0.333,0.004,,
-gemma4-31b-base,adj-adj,3shot_collide,all,1.000,260,0.333,0.000,,
-gemma4-31b-base,adj-adj,3shot,all,1.000,260,0.333,0.000,,
-gemma4-31b-base,adj-voc,0shot,all,1.000,260,0.333,0.000,,
-gemma4-31b-base,adj-voc,3shot_collide,all,1.000,260,0.333,0.000,,
-gemma4-31b-base,adj-voc,3shot,all,1.000,260,0.333,0.000,,
-gemma4-31b-base,adj-third,0shot,all,0.989,260,0.333,0.007,,
-gemma4-31b-base,adj-third,3shot_collide,all,1.000,260,0.333,0.000,,
-gemma4-31b-base,adj-third,3shot,all,1.000,260,0.333,0.000,,
-gemma4-31b-base,cm-mutate,0shot,all,0.990,200,0.200,0.007,,
-gemma4-31b-base,cm-mutate,3shot_collide,all,1.000,200,0.200,0.000,,
-gemma4-31b-base,cm-mutate,3shot,all,1.000,200,0.200,0.000,,
-gemma4-31b-base,cm-rebind,0shot,all,0.810,200,0.200,0.028,,
-gemma4-31b-base,cm-rebind,3shot_collide,all,0.995,200,0.200,0.005,,
-gemma4-31b-base,cm-rebind,3shot,all,1.000,200,0.200,0.000,,
-gemma4-31b-base,cm-copy,0shot,all,0.565,200,0.200,0.035,,
-gemma4-31b-base,cm-copy,3shot_collide,all,0.985,200,0.200,0.009,,
-gemma4-31b-base,cm-copy,3shot,all,0.980,200,0.200,0.010,,
-glm4-32b-base,attr,0shot,all,0.774,1210,0.168,0.012,,
-glm4-32b-base,attr,3shot_collide,all,1.000,1210,0.168,0.000,,
-glm4-32b-base,attr,3shot,all,0.999,1210,0.168,0.001,,
-glm4-32b-base,codevar,0shot,all,0.788,1200,0.267,0.012,,
-glm4-32b-base,codevar,3shot_collide,all,0.892,1200,0.267,0.009,,
-glm4-32b-base,codevar,3shot,all,0.904,1200,0.267,0.009,,
-glm4-32b-base,dialogue,0shot,all,0.906,1200,0.312,0.008,,
-glm4-32b-base,dialogue,3shot_collide,all,0.955,1200,0.312,0.006,,
-glm4-32b-base,dialogue,3shot,all,0.942,1200,0.312,0.007,,
-glm4-32b-base,dx-owner-3-deictic,0shot,all,0.717,120,0.333,0.041,,other_participant=0.217;speaker_confusion=0.05;tie=0.017
-glm4-32b-base,dx-owner-3-deictic,0shot,free,0.650,40,0.333,0.075,,other_participant=0.325;speaker_confusion=0.025
-glm4-32b-base,dx-owner-3-deictic,3shot_collide,all,0.967,120,0.333,0.016,,other_participant=0.017;speaker_confusion=0.017
-glm4-32b-base,dx-owner-3-deictic,3shot_collide,free,0.975,40,0.333,0.025,,other_participant=0.025
-glm4-32b-base,dx-owner-3-deictic,3shot,all,0.975,120,0.333,0.014,,other_participant=0.008;speaker_confusion=0.017
-glm4-32b-base,dx-owner-3-deictic,3shot,free,1.000,40,0.333,0.000,,
-glm4-32b-base,dx-owner-3-third,0shot,all,0.900,120,0.333,0.027,,
-glm4-32b-base,dx-owner-3-third,0shot,free,0.825,40,0.333,0.060,,
-glm4-32b-base,dx-owner-3-third,3shot_collide,all,0.992,120,0.333,0.008,,
-glm4-32b-base,dx-owner-3-third,3shot_collide,free,1.000,40,0.333,0.000,,
-glm4-32b-base,dx-owner-3-third,3shot,all,0.992,120,0.333,0.008,,
-glm4-32b-base,dx-owner-3-third,3shot,free,1.000,40,0.333,0.000,,
-glm4-32b-base,dx-self-3-deictic,0shot,all,0.472,180,0.287,0.037,,other_object=0.211;previous_owner=0.067;speaker_confusion=0.222;tie=0.028
-glm4-32b-base,dx-self-3-deictic,0shot,free,0.452,126,0.286,0.044,,other_object=0.262;previous_owner=0.032;speaker_confusion=0.222;tie=0.032
-glm4-32b-base,dx-self-3-deictic,3shot_collide,all,0.806,180,0.287,0.029,,other_object=0.056;previous_owner=0.05;speaker_confusion=0.083;tie=0.006
-glm4-32b-base,dx-self-3-deictic,3shot_collide,free,0.794,126,0.286,0.036,,other_object=0.079;previous_owner=0.024;speaker_confusion=0.103
-glm4-32b-base,dx-self-3-deictic,3shot,all,0.772,180,0.287,0.031,,other_object=0.056;previous_owner=0.056;speaker_confusion=0.094;tie=0.022
-glm4-32b-base,dx-self-3-deictic,3shot,free,0.754,126,0.286,0.038,,other_object=0.079;previous_owner=0.04;speaker_confusion=0.119;tie=0.008
-glm4-32b-base,dx-self-3-third,0shot,all,0.844,180,0.287,0.027,,
-glm4-32b-base,dx-self-3-third,0shot,free,0.857,126,0.286,0.031,,
-glm4-32b-base,dx-self-3-third,3shot_collide,all,0.939,180,0.287,0.018,,
-glm4-32b-base,dx-self-3-third,3shot_collide,free,0.944,126,0.286,0.020,,
-glm4-32b-base,dx-self-3-third,3shot,all,0.939,180,0.287,0.018,,
-glm4-32b-base,dx-self-3-third,3shot,free,0.944,126,0.286,0.020,,
-glm4-32b-base,dx-self-2-deictic,0shot,all,0.478,180,0.287,0.037,,speaker_confusion=0.522
-glm4-32b-base,dx-self-2-deictic,0shot,free,0.468,126,0.286,0.044,,speaker_confusion=0.532
-glm4-32b-base,dx-self-2-deictic,3shot_collide,all,0.628,180,0.287,0.036,,speaker_confusion=0.367;tie=0.006
-glm4-32b-base,dx-self-2-deictic,3shot_collide,free,0.706,126,0.286,0.041,,speaker_confusion=0.294
-glm4-32b-base,dx-self-2-deictic,3shot,all,0.594,180,0.287,0.037,,speaker_confusion=0.394;tie=0.011
-glm4-32b-base,dx-self-2-deictic,3shot,free,0.682,126,0.286,0.042,,speaker_confusion=0.31;tie=0.008
-glm4-32b-base,dx-self-2-third,0shot,all,0.817,180,0.287,0.029,,
-glm4-32b-base,dx-self-2-third,0shot,free,0.865,126,0.286,0.030,,
-glm4-32b-base,dx-self-2-third,3shot_collide,all,0.933,180,0.287,0.019,,
-glm4-32b-base,dx-self-2-third,3shot_collide,free,0.936,126,0.286,0.022,,
-glm4-32b-base,dx-self-2-third,3shot,all,0.956,180,0.287,0.015,,
-glm4-32b-base,dx-self-2-third,3shot,free,0.968,126,0.286,0.016,,
-glm4-32b-base,dx-addressee-3-deictic,0shot,all,0.344,180,0.287,0.035,,other_object=0.106;previous_owner=0.117;speaker_confusion=0.422;tie=0.011
-glm4-32b-base,dx-addressee-3-deictic,0shot,free,0.302,126,0.286,0.041,,other_object=0.103;previous_owner=0.151;speaker_confusion=0.444
-glm4-32b-base,dx-addressee-3-deictic,3shot_collide,all,0.533,180,0.287,0.037,,other_object=0.072;previous_owner=0.089;speaker_confusion=0.289;tie=0.017
-glm4-32b-base,dx-addressee-3-deictic,3shot_collide,free,0.500,126,0.286,0.044,,other_object=0.071;previous_owner=0.111;speaker_confusion=0.294;tie=0.024
-glm4-32b-base,dx-addressee-3-deictic,3shot,all,0.567,180,0.287,0.037,,other_object=0.078;previous_owner=0.067;speaker_confusion=0.283;tie=0.006
-glm4-32b-base,dx-addressee-3-deictic,3shot,free,0.524,126,0.286,0.044,,other_object=0.071;previous_owner=0.087;speaker_confusion=0.31;tie=0.008
-glm4-32b-base,dx-addressee-3-third,0shot,all,0.833,180,0.287,0.028,,
-glm4-32b-base,dx-addressee-3-third,0shot,free,0.841,126,0.286,0.033,,
-glm4-32b-base,dx-addressee-3-third,3shot_collide,all,0.978,180,0.287,0.011,,
-glm4-32b-base,dx-addressee-3-third,3shot_collide,free,0.992,126,0.286,0.008,,
-glm4-32b-base,dx-addressee-3-third,3shot,all,0.956,180,0.287,0.015,,
-glm4-32b-base,dx-addressee-3-third,3shot,free,0.968,126,0.286,0.016,,
-glm4-32b-base,dx-addressee-2-deictic,0shot,all,0.267,180,0.287,0.033,,speaker_confusion=0.711;tie=0.022
-glm4-32b-base,dx-addressee-2-deictic,0shot,free,0.151,126,0.286,0.032,,speaker_confusion=0.825;tie=0.024
-glm4-32b-base,dx-addressee-2-deictic,3shot_collide,all,0.306,180,0.287,0.034,,speaker_confusion=0.667;tie=0.028
-glm4-32b-base,dx-addressee-2-deictic,3shot_collide,free,0.254,126,0.286,0.039,,speaker_confusion=0.73;tie=0.016
-glm4-32b-base,dx-addressee-2-deictic,3shot,all,0.317,180,0.287,0.035,,speaker_confusion=0.672;tie=0.011
-glm4-32b-base,dx-addressee-2-deictic,3shot,free,0.270,126,0.286,0.040,,speaker_confusion=0.714;tie=0.016
-glm4-32b-base,dx-addressee-2-third,0shot,all,0.839,180,0.287,0.027,,
-glm4-32b-base,dx-addressee-2-third,0shot,free,0.849,126,0.286,0.032,,
-glm4-32b-base,dx-addressee-2-third,3shot_collide,all,0.933,180,0.287,0.019,,
-glm4-32b-base,dx-addressee-2-third,3shot_collide,free,0.960,126,0.286,0.017,,
-glm4-32b-base,dx-addressee-2-third,3shot,all,0.933,180,0.287,0.019,,
-glm4-32b-base,dx-addressee-2-third,3shot,free,0.952,126,0.286,0.019,,
-glm4-32b-base,sb-k1,0shot,all,0.859,64,0.125,0.043,,
-glm4-32b-base,sb-k1,3shot_collide,all,1.000,64,0.125,0.000,,
-glm4-32b-base,sb-k1,3shot,all,1.000,64,0.125,0.000,,
-glm4-32b-base,sb-k23,0shot,all,0.711,128,0.027,0.040,,
-glm4-32b-base,sb-k23,3shot_collide,all,0.992,128,0.027,0.008,,
-glm4-32b-base,sb-k23,3shot,all,1.000,128,0.027,0.000,,
-glm4-32b-base,sb-split,0shot,all,0.719,128,0.027,0.040,,
-glm4-32b-base,sb-split,3shot_collide,all,0.945,128,0.027,0.020,,
-glm4-32b-base,sb-split,3shot,all,0.828,128,0.027,0.033,,
-glm4-32b-base,sb-dyn,0shot,all,0.711,256,0.027,0.028,,
-glm4-32b-base,sb-dyn,3shot_collide,all,0.644,256,0.027,0.030,,
-glm4-32b-base,sb-dyn,3shot,all,0.633,256,0.027,0.030,,
-glm4-32b-base,an-narr,0shot,all,0.645,640,0.250,0.019,,
-glm4-32b-base,an-narr,3shot_collide,all,0.991,640,0.250,0.004,,
-glm4-32b-base,an-narr,3shot,all,0.991,640,0.250,0.004,,
-glm4-32b-base,an-other-any,0shot,all,0.522,320,0.250,0.028,,
-glm4-32b-base,an-other-any,3shot_collide,all,0.903,320,0.250,0.017,,
-glm4-32b-base,an-other-any,3shot,all,0.838,320,0.250,0.021,,
-glm4-32b-base,an-me-any,0shot,all,0.338,160,0.250,0.037,,
-glm4-32b-base,an-me-any,3shot_collide,all,0.475,160,0.250,0.040,,
-glm4-32b-base,an-me-any,3shot,all,0.412,160,0.250,0.039,,
-glm4-32b-base,an-you-voc,0shot,all,0.537,80,0.250,0.056,,
-glm4-32b-base,an-you-voc,3shot_collide,all,0.912,80,0.250,0.032,,
-glm4-32b-base,an-you-voc,3shot,all,0.912,80,0.250,0.032,,
-glm4-32b-base,an-you-novoc,0shot,all,0.450,80,0.250,0.056,,
-glm4-32b-base,an-you-novoc,3shot_collide,all,0.775,80,0.250,0.047,,
-glm4-32b-base,an-you-novoc,3shot,all,0.588,80,0.250,0.055,,
-glm4-32b-base,adj-adj,0shot,all,0.992,260,0.333,0.005,,
-glm4-32b-base,adj-adj,3shot_collide,all,1.000,260,0.333,0.000,,
-glm4-32b-base,adj-adj,3shot,all,1.000,260,0.333,0.000,,
-glm4-32b-base,adj-voc,0shot,all,0.996,260,0.333,0.004,,
-glm4-32b-base,adj-voc,3shot_collide,all,0.996,260,0.333,0.004,,
-glm4-32b-base,adj-voc,3shot,all,1.000,260,0.333,0.000,,
-glm4-32b-base,adj-third,0shot,all,0.992,260,0.333,0.005,,
-glm4-32b-base,adj-third,3shot_collide,all,0.992,260,0.333,0.005,,
-glm4-32b-base,adj-third,3shot,all,1.000,260,0.333,0.000,,
-glm4-32b-base,cm-mutate,0shot,all,0.955,200,0.200,0.015,,
-glm4-32b-base,cm-mutate,3shot_collide,all,0.935,200,0.200,0.017,,
-glm4-32b-base,cm-mutate,3shot,all,0.910,200,0.200,0.020,,
-glm4-32b-base,cm-rebind,0shot,all,0.575,200,0.200,0.035,,
-glm4-32b-base,cm-rebind,3shot_collide,all,1.000,200,0.200,0.000,,
-glm4-32b-base,cm-rebind,3shot,all,1.000,200,0.200,0.000,,
-glm4-32b-base,cm-copy,0shot,all,0.090,200,0.200,0.020,,
-glm4-32b-base,cm-copy,3shot_collide,all,1.000,200,0.200,0.000,,
-glm4-32b-base,cm-copy,3shot,all,1.000,200,0.200,0.000,,
-olmo3-32b,attr,0shot,all,0.782,1210,0.168,0.012,,
-olmo3-32b,attr,3shot_collide,all,0.997,1210,0.168,0.002,,
-olmo3-32b,attr,3shot,all,1.000,1210,0.168,0.000,,
-olmo3-32b,codevar,0shot,all,0.752,1200,0.267,0.013,,
-olmo3-32b,codevar,3shot_collide,all,0.873,1200,0.267,0.010,,
-olmo3-32b,codevar,3shot,all,0.873,1200,0.267,0.010,,
-olmo3-32b,dialogue,0shot,all,0.889,1200,0.312,0.009,,
-olmo3-32b,dialogue,3shot_collide,all,0.932,1200,0.312,0.007,,
-olmo3-32b,dialogue,3shot,all,0.923,1200,0.312,0.008,,
-olmo3-32b,dx-owner-3-deictic,0shot,all,0.717,120,0.333,0.041,,other_participant=0.258;speaker_confusion=0.025
-olmo3-32b,dx-owner-3-deictic,0shot,free,0.650,40,0.333,0.075,,other_participant=0.35
-olmo3-32b,dx-owner-3-deictic,3shot_collide,all,0.933,120,0.333,0.023,,other_participant=0.058;speaker_confusion=0.008
-olmo3-32b,dx-owner-3-deictic,3shot_collide,free,0.900,40,0.333,0.047,,other_participant=0.075;speaker_confusion=0.025
-olmo3-32b,dx-owner-3-deictic,3shot,all,0.958,120,0.333,0.018,,other_participant=0.017;speaker_confusion=0.025
-olmo3-32b,dx-owner-3-deictic,3shot,free,0.975,40,0.333,0.025,,speaker_confusion=0.025
-olmo3-32b,dx-owner-3-third,0shot,all,0.842,120,0.333,0.033,,
-olmo3-32b,dx-owner-3-third,0shot,free,0.825,40,0.333,0.060,,
-olmo3-32b,dx-owner-3-third,3shot_collide,all,0.933,120,0.333,0.023,,
-olmo3-32b,dx-owner-3-third,3shot_collide,free,0.975,40,0.333,0.025,,
-olmo3-32b,dx-owner-3-third,3shot,all,0.883,120,0.333,0.029,,
-olmo3-32b,dx-owner-3-third,3shot,free,0.950,40,0.333,0.035,,
-olmo3-32b,dx-self-3-deictic,0shot,all,0.500,180,0.287,0.037,,other_object=0.228;previous_owner=0.028;speaker_confusion=0.239;tie=0.006
-olmo3-32b,dx-self-3-deictic,0shot,free,0.571,126,0.286,0.044,,other_object=0.206;previous_owner=0.016;speaker_confusion=0.198;tie=0.008
-olmo3-32b,dx-self-3-deictic,3shot_collide,all,0.617,180,0.287,0.036,,other_object=0.111;previous_owner=0.033;speaker_confusion=0.233;tie=0.006
-olmo3-32b,dx-self-3-deictic,3shot_collide,free,0.682,126,0.286,0.042,,other_object=0.135;previous_owner=0.032;speaker_confusion=0.151
-olmo3-32b,dx-self-3-deictic,3shot,all,0.689,180,0.287,0.035,,other_object=0.072;previous_owner=0.044;speaker_confusion=0.194
-olmo3-32b,dx-self-3-deictic,3shot,free,0.786,126,0.286,0.037,,other_object=0.079;previous_owner=0.016;speaker_confusion=0.119
-olmo3-32b,dx-self-3-third,0shot,all,0.761,180,0.287,0.032,,
-olmo3-32b,dx-self-3-third,0shot,free,0.841,126,0.286,0.033,,
-olmo3-32b,dx-self-3-third,3shot_collide,all,0.806,180,0.287,0.029,,
-olmo3-32b,dx-self-3-third,3shot_collide,free,0.881,126,0.286,0.029,,
-olmo3-32b,dx-self-3-third,3shot,all,0.772,180,0.287,0.031,,
-olmo3-32b,dx-self-3-third,3shot,free,0.849,126,0.286,0.032,,
-olmo3-32b,dx-self-2-deictic,0shot,all,0.461,180,0.287,0.037,,speaker_confusion=0.522;tie=0.017
-olmo3-32b,dx-self-2-deictic,0shot,free,0.571,126,0.286,0.044,,speaker_confusion=0.421;tie=0.008
-olmo3-32b,dx-self-2-deictic,3shot_collide,all,0.511,180,0.287,0.037,,speaker_confusion=0.483;tie=0.006
-olmo3-32b,dx-self-2-deictic,3shot_collide,free,0.611,126,0.286,0.043,,speaker_confusion=0.381;tie=0.008
-olmo3-32b,dx-self-2-deictic,3shot,all,0.528,180,0.287,0.037,,speaker_confusion=0.472
-olmo3-32b,dx-self-2-deictic,3shot,free,0.635,126,0.286,0.043,,speaker_confusion=0.365
-olmo3-32b,dx-self-2-third,0shot,all,0.750,180,0.287,0.032,,
-olmo3-32b,dx-self-2-third,0shot,free,0.841,126,0.286,0.033,,
-olmo3-32b,dx-self-2-third,3shot_collide,all,0.733,180,0.287,0.033,,
-olmo3-32b,dx-self-2-third,3shot_collide,free,0.802,126,0.286,0.035,,
-olmo3-32b,dx-self-2-third,3shot,all,0.683,180,0.287,0.035,,
-olmo3-32b,dx-self-2-third,3shot,free,0.754,126,0.286,0.038,,
-olmo3-32b,dx-addressee-3-deictic,0shot,all,0.411,180,0.287,0.037,,other_object=0.178;previous_owner=0.022;speaker_confusion=0.372;tie=0.017
-olmo3-32b,dx-addressee-3-deictic,0shot,free,0.508,126,0.286,0.044,,other_object=0.135;previous_owner=0.032;speaker_confusion=0.31;tie=0.016
-olmo3-32b,dx-addressee-3-deictic,3shot_collide,all,0.439,180,0.287,0.037,,other_object=0.139;previous_owner=0.072;speaker_confusion=0.339;tie=0.011
-olmo3-32b,dx-addressee-3-deictic,3shot_collide,free,0.500,126,0.286,0.044,,other_object=0.095;previous_owner=0.079;speaker_confusion=0.31;tie=0.016
-olmo3-32b,dx-addressee-3-deictic,3shot,all,0.506,180,0.287,0.037,,other_object=0.094;previous_owner=0.078;speaker_confusion=0.317;tie=0.006
-olmo3-32b,dx-addressee-3-deictic,3shot,free,0.587,126,0.286,0.044,,other_object=0.056;previous_owner=0.087;speaker_confusion=0.262;tie=0.008
-olmo3-32b,dx-addressee-3-third,0shot,all,0.806,180,0.287,0.029,,
-olmo3-32b,dx-addressee-3-third,0shot,free,0.818,126,0.286,0.034,,
-olmo3-32b,dx-addressee-3-third,3shot_collide,all,0.783,180,0.287,0.031,,
-olmo3-32b,dx-addressee-3-third,3shot_collide,free,0.857,126,0.286,0.031,,
-olmo3-32b,dx-addressee-3-third,3shot,all,0.794,180,0.287,0.030,,
-olmo3-32b,dx-addressee-3-third,3shot,free,0.857,126,0.286,0.031,,
-olmo3-32b,dx-addressee-2-deictic,0shot,all,0.250,180,0.287,0.032,,speaker_confusion=0.739;tie=0.011
-olmo3-32b,dx-addressee-2-deictic,0shot,free,0.294,126,0.286,0.041,,speaker_confusion=0.69;tie=0.016
-olmo3-32b,dx-addressee-2-deictic,3shot_collide,all,0.372,180,0.287,0.036,,speaker_confusion=0.617;tie=0.011
-olmo3-32b,dx-addressee-2-deictic,3shot_collide,free,0.421,126,0.286,0.044,,speaker_confusion=0.563;tie=0.016
-olmo3-32b,dx-addressee-2-deictic,3shot,all,0.383,180,0.287,0.036,,speaker_confusion=0.617
-olmo3-32b,dx-addressee-2-deictic,3shot,free,0.421,126,0.286,0.044,,speaker_confusion=0.579
-olmo3-32b,dx-addressee-2-third,0shot,all,0.728,180,0.287,0.033,,
-olmo3-32b,dx-addressee-2-third,0shot,free,0.802,126,0.286,0.035,,
-olmo3-32b,dx-addressee-2-third,3shot_collide,all,0.728,180,0.287,0.033,,
-olmo3-32b,dx-addressee-2-third,3shot_collide,free,0.818,126,0.286,0.034,,
-olmo3-32b,dx-addressee-2-third,3shot,all,0.717,180,0.287,0.034,,
-olmo3-32b,dx-addressee-2-third,3shot,free,0.809,126,0.286,0.035,,
-olmo3-32b,sb-k1,0shot,all,1.000,64,0.125,0.000,,
-olmo3-32b,sb-k1,3shot_collide,all,1.000,64,0.125,0.000,,
-olmo3-32b,sb-k1,3shot,all,1.000,64,0.125,0.000,,
-olmo3-32b,sb-k23,0shot,all,0.758,128,0.027,0.038,,
-olmo3-32b,sb-k23,3shot_collide,all,0.984,128,0.027,0.011,,
-olmo3-32b,sb-k23,3shot,all,0.992,128,0.027,0.008,,
-olmo3-32b,sb-split,0shot,all,0.578,128,0.027,0.044,,
-olmo3-32b,sb-split,3shot_collide,all,0.898,128,0.027,0.027,,
-olmo3-32b,sb-split,3shot,all,0.914,128,0.027,0.025,,
-olmo3-32b,sb-dyn,0shot,all,0.625,256,0.027,0.030,,
-olmo3-32b,sb-dyn,3shot_collide,all,0.555,256,0.027,0.031,,
-olmo3-32b,sb-dyn,3shot,all,0.570,256,0.027,0.031,,
-olmo3-32b,an-narr,0shot,all,0.667,640,0.250,0.019,,
-olmo3-32b,an-narr,3shot_collide,all,0.964,640,0.250,0.007,,
-olmo3-32b,an-narr,3shot,all,0.980,640,0.250,0.006,,
-olmo3-32b,an-other-any,0shot,all,0.062,320,0.250,0.013,,
-olmo3-32b,an-other-any,3shot_collide,all,0.791,320,0.250,0.023,,
-olmo3-32b,an-other-any,3shot,all,0.744,320,0.250,0.024,,
-olmo3-32b,an-me-any,0shot,all,0.713,160,0.250,0.036,,
-olmo3-32b,an-me-any,3shot_collide,all,0.606,160,0.250,0.039,,
-olmo3-32b,an-me-any,3shot,all,0.644,160,0.250,0.038,,
-olmo3-32b,an-you-voc,0shot,all,0.487,80,0.250,0.056,,
-olmo3-32b,an-you-voc,3shot_collide,all,0.662,80,0.250,0.053,,
-olmo3-32b,an-you-voc,3shot,all,0.775,80,0.250,0.047,,
-olmo3-32b,an-you-novoc,0shot,all,0.075,80,0.250,0.029,,
-olmo3-32b,an-you-novoc,3shot_collide,all,0.425,80,0.250,0.055,,
-olmo3-32b,an-you-novoc,3shot,all,0.475,80,0.250,0.056,,
-olmo3-32b,adj-adj,0shot,all,0.977,260,0.333,0.009,,
-olmo3-32b,adj-adj,3shot_collide,all,1.000,260,0.333,0.000,,
-olmo3-32b,adj-adj,3shot,all,0.996,260,0.333,0.004,,
-olmo3-32b,adj-voc,0shot,all,0.996,260,0.333,0.004,,
-olmo3-32b,adj-voc,3shot_collide,all,1.000,260,0.333,0.000,,
-olmo3-32b,adj-voc,3shot,all,0.996,260,0.333,0.004,,
-olmo3-32b,adj-third,0shot,all,0.996,260,0.333,0.004,,
-olmo3-32b,adj-third,3shot_collide,all,0.992,260,0.333,0.005,,
-olmo3-32b,adj-third,3shot,all,0.981,260,0.333,0.009,,
-olmo3-32b,cm-mutate,0shot,all,0.975,200,0.200,0.011,,
-olmo3-32b,cm-mutate,3shot_collide,all,0.995,200,0.200,0.005,,
-olmo3-32b,cm-mutate,3shot,all,0.965,200,0.200,0.013,,
-olmo3-32b,cm-rebind,0shot,all,0.690,200,0.200,0.033,,
-olmo3-32b,cm-rebind,3shot_collide,all,1.000,200,0.200,0.000,,
-olmo3-32b,cm-rebind,3shot,all,1.000,200,0.200,0.000,,
-olmo3-32b,cm-copy,0shot,all,0.350,200,0.200,0.034,,
-olmo3-32b,cm-copy,3shot_collide,all,0.980,200,0.200,0.010,,
-olmo3-32b,cm-copy,3shot,all,0.995,200,0.200,0.005,,
-olmo3-32b-stage1,attr,0shot,all,0.696,1210,0.168,0.013,,
-olmo3-32b-stage1,attr,3shot_collide,all,0.998,1210,0.168,0.001,,
-olmo3-32b-stage1,attr,3shot,all,0.999,1210,0.168,0.001,,
-olmo3-32b-stage1,codevar,0shot,all,0.528,1200,0.267,0.014,,
-olmo3-32b-stage1,codevar,3shot_collide,all,0.748,1200,0.267,0.013,,
-olmo3-32b-stage1,codevar,3shot,all,0.728,1200,0.267,0.013,,
-olmo3-32b-stage1,dialogue,0shot,all,0.853,1200,0.312,0.010,,
-olmo3-32b-stage1,dialogue,3shot_collide,all,0.906,1200,0.312,0.008,,
-olmo3-32b-stage1,dialogue,3shot,all,0.907,1200,0.312,0.008,,
-olmo3-32b-stage1,dx-owner-3-deictic,0shot,all,0.575,120,0.333,0.045,,other_participant=0.383;speaker_confusion=0.025;tie=0.017
-olmo3-32b-stage1,dx-owner-3-deictic,0shot,free,0.400,40,0.333,0.077,,other_participant=0.525;speaker_confusion=0.025;tie=0.05
-olmo3-32b-stage1,dx-owner-3-deictic,3shot_collide,all,0.867,120,0.333,0.031,,other_participant=0.067;speaker_confusion=0.067
-olmo3-32b-stage1,dx-owner-3-deictic,3shot_collide,free,0.825,40,0.333,0.060,,other_participant=0.075;speaker_confusion=0.1
-olmo3-32b-stage1,dx-owner-3-deictic,3shot,all,0.825,120,0.333,0.035,,other_participant=0.083;speaker_confusion=0.092
-olmo3-32b-stage1,dx-owner-3-deictic,3shot,free,0.775,40,0.333,0.066,,other_participant=0.075;speaker_confusion=0.15
-olmo3-32b-stage1,dx-owner-3-third,0shot,all,0.675,120,0.333,0.043,,
-olmo3-32b-stage1,dx-owner-3-third,0shot,free,0.600,40,0.333,0.077,,
-olmo3-32b-stage1,dx-owner-3-third,3shot_collide,all,0.933,120,0.333,0.023,,
-olmo3-32b-stage1,dx-owner-3-third,3shot_collide,free,0.925,40,0.333,0.042,,
-olmo3-32b-stage1,dx-owner-3-third,3shot,all,0.900,120,0.333,0.027,,
-olmo3-32b-stage1,dx-owner-3-third,3shot,free,0.925,40,0.333,0.042,,
-olmo3-32b-stage1,dx-self-3-deictic,0shot,all,0.383,180,0.287,0.036,,other_object=0.244;previous_owner=0.061;speaker_confusion=0.294;tie=0.017
-olmo3-32b-stage1,dx-self-3-deictic,0shot,free,0.436,126,0.286,0.044,,other_object=0.238;previous_owner=0.04;speaker_confusion=0.262;tie=0.024
-olmo3-32b-stage1,dx-self-3-deictic,3shot_collide,all,0.522,180,0.287,0.037,,other_object=0.111;previous_owner=0.033;speaker_confusion=0.322;tie=0.011
-olmo3-32b-stage1,dx-self-3-deictic,3shot_collide,free,0.627,126,0.286,0.043,,other_object=0.095;previous_owner=0.016;speaker_confusion=0.254;tie=0.008
-olmo3-32b-stage1,dx-self-3-deictic,3shot,all,0.506,180,0.287,0.037,,other_object=0.111;previous_owner=0.061;speaker_confusion=0.322
-olmo3-32b-stage1,dx-self-3-deictic,3shot,free,0.603,126,0.286,0.044,,other_object=0.095;previous_owner=0.048;speaker_confusion=0.254
-olmo3-32b-stage1,dx-self-3-third,0shot,all,0.711,180,0.287,0.034,,
-olmo3-32b-stage1,dx-self-3-third,0shot,free,0.754,126,0.286,0.038,,
-olmo3-32b-stage1,dx-self-3-third,3shot_collide,all,0.800,180,0.287,0.030,,
-olmo3-32b-stage1,dx-self-3-third,3shot_collide,free,0.818,126,0.286,0.034,,
-olmo3-32b-stage1,dx-self-3-third,3shot,all,0.767,180,0.287,0.032,,
-olmo3-32b-stage1,dx-self-3-third,3shot,free,0.770,126,0.286,0.037,,
-olmo3-32b-stage1,dx-self-2-deictic,0shot,all,0.394,180,0.287,0.036,,speaker_confusion=0.606
-olmo3-32b-stage1,dx-self-2-deictic,0shot,free,0.452,126,0.286,0.044,,speaker_confusion=0.548
-olmo3-32b-stage1,dx-self-2-deictic,3shot_collide,all,0.489,180,0.287,0.037,,speaker_confusion=0.506;tie=0.006
-olmo3-32b-stage1,dx-self-2-deictic,3shot_collide,free,0.587,126,0.286,0.044,,speaker_confusion=0.405;tie=0.008
-olmo3-32b-stage1,dx-self-2-deictic,3shot,all,0.483,180,0.287,0.037,,speaker_confusion=0.511;tie=0.006
-olmo3-32b-stage1,dx-self-2-deictic,3shot,free,0.579,126,0.286,0.044,,speaker_confusion=0.421
-olmo3-32b-stage1,dx-self-2-third,0shot,all,0.717,180,0.287,0.034,,
-olmo3-32b-stage1,dx-self-2-third,0shot,free,0.778,126,0.286,0.037,,
-olmo3-32b-stage1,dx-self-2-third,3shot_collide,all,0.722,180,0.287,0.033,,
-olmo3-32b-stage1,dx-self-2-third,3shot_collide,free,0.730,126,0.286,0.040,,
-olmo3-32b-stage1,dx-self-2-third,3shot,all,0.683,180,0.287,0.035,,
-olmo3-32b-stage1,dx-self-2-third,3shot,free,0.730,126,0.286,0.040,,
-olmo3-32b-stage1,dx-addressee-3-deictic,0shot,all,0.306,180,0.287,0.034,,other_object=0.167;previous_owner=0.05;speaker_confusion=0.467;tie=0.011
-olmo3-32b-stage1,dx-addressee-3-deictic,0shot,free,0.349,126,0.286,0.043,,other_object=0.151;previous_owner=0.056;speaker_confusion=0.437;tie=0.008
-olmo3-32b-stage1,dx-addressee-3-deictic,3shot_collide,all,0.350,180,0.287,0.036,,other_object=0.167;previous_owner=0.094;speaker_confusion=0.389
-olmo3-32b-stage1,dx-addressee-3-deictic,3shot_collide,free,0.405,126,0.286,0.044,,other_object=0.111;previous_owner=0.111;speaker_confusion=0.373
-olmo3-32b-stage1,dx-addressee-3-deictic,3shot,all,0.389,180,0.287,0.036,,other_object=0.111;previous_owner=0.067;speaker_confusion=0.422;tie=0.011
-olmo3-32b-stage1,dx-addressee-3-deictic,3shot,free,0.452,126,0.286,0.044,,other_object=0.087;previous_owner=0.095;speaker_confusion=0.365
-olmo3-32b-stage1,dx-addressee-3-third,0shot,all,0.750,180,0.287,0.032,,
-olmo3-32b-stage1,dx-addressee-3-third,0shot,free,0.738,126,0.286,0.039,,
-olmo3-32b-stage1,dx-addressee-3-third,3shot_collide,all,0.728,180,0.287,0.033,,
-olmo3-32b-stage1,dx-addressee-3-third,3shot_collide,free,0.762,126,0.286,0.038,,
-olmo3-32b-stage1,dx-addressee-3-third,3shot,all,0.717,180,0.287,0.034,,
-olmo3-32b-stage1,dx-addressee-3-third,3shot,free,0.722,126,0.286,0.040,,
-olmo3-32b-stage1,dx-addressee-2-deictic,0shot,all,0.306,180,0.287,0.034,,speaker_confusion=0.689;tie=0.006
-olmo3-32b-stage1,dx-addressee-2-deictic,0shot,free,0.230,126,0.286,0.037,,speaker_confusion=0.762;tie=0.008
-olmo3-32b-stage1,dx-addressee-2-deictic,3shot_collide,all,0.394,180,0.287,0.036,,speaker_confusion=0.6;tie=0.006
-olmo3-32b-stage1,dx-addressee-2-deictic,3shot_collide,free,0.468,126,0.286,0.044,,speaker_confusion=0.524;tie=0.008
-olmo3-32b-stage1,dx-addressee-2-deictic,3shot,all,0.361,180,0.287,0.036,,speaker_confusion=0.633;tie=0.006
-olmo3-32b-stage1,dx-addressee-2-deictic,3shot,free,0.429,126,0.286,0.044,,speaker_confusion=0.571
-olmo3-32b-stage1,dx-addressee-2-third,0shot,all,0.711,180,0.287,0.034,,
-olmo3-32b-stage1,dx-addressee-2-third,0shot,free,0.762,126,0.286,0.038,,
-olmo3-32b-stage1,dx-addressee-2-third,3shot_collide,all,0.711,180,0.287,0.034,,
-olmo3-32b-stage1,dx-addressee-2-third,3shot_collide,free,0.802,126,0.286,0.035,,
-olmo3-32b-stage1,dx-addressee-2-third,3shot,all,0.706,180,0.287,0.034,,
-olmo3-32b-stage1,dx-addressee-2-third,3shot,free,0.770,126,0.286,0.037,,
-olmo3-32b-stage1,sb-k1,0shot,all,0.859,64,0.125,0.043,,
-olmo3-32b-stage1,sb-k1,3shot_collide,all,1.000,64,0.125,0.000,,
-olmo3-32b-stage1,sb-k1,3shot,all,1.000,64,0.125,0.000,,
-olmo3-32b-stage1,sb-k23,0shot,all,0.445,128,0.027,0.044,,
-olmo3-32b-stage1,sb-k23,3shot_collide,all,1.000,128,0.027,0.000,,
-olmo3-32b-stage1,sb-k23,3shot,all,0.992,128,0.027,0.008,,
-olmo3-32b-stage1,sb-split,0shot,all,0.398,128,0.027,0.043,,
-olmo3-32b-stage1,sb-split,3shot_collide,all,0.867,128,0.027,0.030,,
-olmo3-32b-stage1,sb-split,3shot,all,0.828,128,0.027,0.033,,
-olmo3-32b-stage1,sb-dyn,0shot,all,0.512,256,0.027,0.031,,
-olmo3-32b-stage1,sb-dyn,3shot_collide,all,0.523,256,0.027,0.031,,
-olmo3-32b-stage1,sb-dyn,3shot,all,0.457,256,0.027,0.031,,
-olmo3-32b-stage1,an-narr,0shot,all,0.434,640,0.250,0.020,,
-olmo3-32b-stage1,an-narr,3shot_collide,all,0.870,640,0.250,0.013,,
-olmo3-32b-stage1,an-narr,3shot,all,0.863,640,0.250,0.014,,
-olmo3-32b-stage1,an-other-any,0shot,all,0.284,320,0.250,0.025,,
-olmo3-32b-stage1,an-other-any,3shot_collide,all,0.547,320,0.250,0.028,,
-olmo3-32b-stage1,an-other-any,3shot,all,0.512,320,0.250,0.028,,
-olmo3-32b-stage1,an-me-any,0shot,all,0.500,160,0.250,0.040,,
-olmo3-32b-stage1,an-me-any,3shot_collide,all,0.312,160,0.250,0.037,,
-olmo3-32b-stage1,an-me-any,3shot,all,0.319,160,0.250,0.037,,
-olmo3-32b-stage1,an-you-voc,0shot,all,0.463,80,0.250,0.056,,
-olmo3-32b-stage1,an-you-voc,3shot_collide,all,0.450,80,0.250,0.056,,
-olmo3-32b-stage1,an-you-voc,3shot,all,0.613,80,0.250,0.054,,
-olmo3-32b-stage1,an-you-novoc,0shot,all,0.087,80,0.250,0.032,,
-olmo3-32b-stage1,an-you-novoc,3shot_collide,all,0.087,80,0.250,0.032,,
-olmo3-32b-stage1,an-you-novoc,3shot,all,0.325,80,0.250,0.052,,
-olmo3-32b-stage1,adj-adj,0shot,all,0.896,260,0.333,0.019,,
-olmo3-32b-stage1,adj-adj,3shot_collide,all,0.962,260,0.333,0.012,,
-olmo3-32b-stage1,adj-adj,3shot,all,0.977,260,0.333,0.009,,
-olmo3-32b-stage1,adj-voc,0shot,all,0.946,260,0.333,0.014,,
-olmo3-32b-stage1,adj-voc,3shot_collide,all,0.985,260,0.333,0.008,,
-olmo3-32b-stage1,adj-voc,3shot,all,1.000,260,0.333,0.000,,
-olmo3-32b-stage1,adj-third,0shot,all,0.977,260,0.333,0.009,,
-olmo3-32b-stage1,adj-third,3shot_collide,all,0.989,260,0.333,0.007,,
-olmo3-32b-stage1,adj-third,3shot,all,0.989,260,0.333,0.007,,
-olmo3-32b-stage1,cm-mutate,0shot,all,0.860,200,0.200,0.025,,
-olmo3-32b-stage1,cm-mutate,3shot_collide,all,0.920,200,0.200,0.019,,
-olmo3-32b-stage1,cm-mutate,3shot,all,0.855,200,0.200,0.025,,
-olmo3-32b-stage1,cm-rebind,0shot,all,0.145,200,0.200,0.025,,
-olmo3-32b-stage1,cm-rebind,3shot_collide,all,0.990,200,0.200,0.007,,
-olmo3-32b-stage1,cm-rebind,3shot,all,0.965,200,0.200,0.013,,
-olmo3-32b-stage1,cm-copy,0shot,all,0.030,200,0.200,0.012,,
-olmo3-32b-stage1,cm-copy,3shot_collide,all,0.995,200,0.200,0.005,,
-olmo3-32b-stage1,cm-copy,3shot,all,0.990,200,0.200,0.007,,
-llama31-70b,attr,0shot,all,0.532,1210,0.168,0.014,,
-llama31-70b,attr,3shot_collide,all,1.000,1210,0.168,0.000,,
-llama31-70b,attr,3shot,all,0.995,1210,0.168,0.002,,
-llama31-70b,codevar,0shot,all,0.792,1200,0.267,0.012,,
-llama31-70b,codevar,3shot_collide,all,0.922,1200,0.267,0.008,,
-llama31-70b,codevar,3shot,all,0.895,1200,0.267,0.009,,
-llama31-70b,dialogue,0shot,all,0.907,1200,0.312,0.008,,
-llama31-70b,dialogue,3shot_collide,all,0.972,1200,0.312,0.005,,
-llama31-70b,dialogue,3shot,all,0.966,1200,0.312,0.005,,
-llama31-70b,dx-owner-3-deictic,0shot,all,0.675,120,0.333,0.043,,other_participant=0.308;tie=0.017
-llama31-70b,dx-owner-3-deictic,0shot,free,0.550,40,0.333,0.079,,other_participant=0.425;tie=0.025
-llama31-70b,dx-owner-3-deictic,3shot_collide,all,0.992,120,0.333,0.008,,other_participant=0.008
-llama31-70b,dx-owner-3-deictic,3shot_collide,free,1.000,40,0.333,0.000,,
-llama31-70b,dx-owner-3-deictic,3shot,all,0.967,120,0.333,0.016,,other_participant=0.025;tie=0.008
-llama31-70b,dx-owner-3-deictic,3shot,free,0.975,40,0.333,0.025,,other_participant=0.025
-llama31-70b,dx-owner-3-third,0shot,all,0.683,120,0.333,0.043,,
-llama31-70b,dx-owner-3-third,0shot,free,0.500,40,0.333,0.079,,
-llama31-70b,dx-owner-3-third,3shot_collide,all,1.000,120,0.333,0.000,,
-llama31-70b,dx-owner-3-third,3shot_collide,free,1.000,40,0.333,0.000,,
-llama31-70b,dx-owner-3-third,3shot,all,1.000,120,0.333,0.000,,
-llama31-70b,dx-owner-3-third,3shot,free,1.000,40,0.333,0.000,,
-llama31-70b,dx-self-3-deictic,0shot,all,0.567,180,0.287,0.037,,other_object=0.15;previous_owner=0.028;speaker_confusion=0.239;tie=0.017
-llama31-70b,dx-self-3-deictic,0shot,free,0.579,126,0.286,0.044,,other_object=0.19;previous_owner=0.008;speaker_confusion=0.206;tie=0.016
-llama31-70b,dx-self-3-deictic,3shot_collide,all,0.822,180,0.287,0.029,,other_object=0.022;previous_owner=0.039;speaker_confusion=0.1;tie=0.017
-llama31-70b,dx-self-3-deictic,3shot_collide,free,0.889,126,0.286,0.028,,other_object=0.016;previous_owner=0.024;speaker_confusion=0.056;tie=0.016
-llama31-70b,dx-self-3-deictic,3shot,all,0.844,180,0.287,0.027,,other_object=0.033;previous_owner=0.056;speaker_confusion=0.056;tie=0.011
-llama31-70b,dx-self-3-deictic,3shot,free,0.936,126,0.286,0.022,,other_object=0.024;previous_owner=0.016;speaker_confusion=0.024
-llama31-70b,dx-self-3-third,0shot,all,0.806,180,0.287,0.029,,
-llama31-70b,dx-self-3-third,0shot,free,0.802,126,0.286,0.035,,
-llama31-70b,dx-self-3-third,3shot_collide,all,0.939,180,0.287,0.018,,
-llama31-70b,dx-self-3-third,3shot_collide,free,0.968,126,0.286,0.016,,
-llama31-70b,dx-self-3-third,3shot,all,0.939,180,0.287,0.018,,
-llama31-70b,dx-self-3-third,3shot,free,0.952,126,0.286,0.019,,
-llama31-70b,dx-self-2-deictic,0shot,all,0.372,180,0.287,0.036,,speaker_confusion=0.622;tie=0.006
-llama31-70b,dx-self-2-deictic,0shot,free,0.373,126,0.286,0.043,,speaker_confusion=0.619;tie=0.008
-llama31-70b,dx-self-2-deictic,3shot_collide,all,0.606,180,0.287,0.036,,speaker_confusion=0.372;tie=0.022
-llama31-70b,dx-self-2-deictic,3shot_collide,free,0.682,126,0.286,0.042,,speaker_confusion=0.302;tie=0.016
-llama31-70b,dx-self-2-deictic,3shot,all,0.650,180,0.287,0.036,,speaker_confusion=0.333;tie=0.017
-llama31-70b,dx-self-2-deictic,3shot,free,0.722,126,0.286,0.040,,speaker_confusion=0.27;tie=0.008
-llama31-70b,dx-self-2-third,0shot,all,0.844,180,0.287,0.027,,
-llama31-70b,dx-self-2-third,0shot,free,0.825,126,0.286,0.034,,
-llama31-70b,dx-self-2-third,3shot_collide,all,0.944,180,0.287,0.017,,
-llama31-70b,dx-self-2-third,3shot_collide,free,0.944,126,0.286,0.020,,
-llama31-70b,dx-self-2-third,3shot,all,0.933,180,0.287,0.019,,
-llama31-70b,dx-self-2-third,3shot,free,0.936,126,0.286,0.022,,
-llama31-70b,dx-addressee-3-deictic,0shot,all,0.522,180,0.287,0.037,,other_object=0.044;previous_owner=0.078;speaker_confusion=0.339;tie=0.017
-llama31-70b,dx-addressee-3-deictic,0shot,free,0.500,126,0.286,0.044,,other_object=0.04;previous_owner=0.095;speaker_confusion=0.357;tie=0.008
-llama31-70b,dx-addressee-3-deictic,3shot_collide,all,0.517,180,0.287,0.037,,other_object=0.161;previous_owner=0.039;speaker_confusion=0.272;tie=0.011
-llama31-70b,dx-addressee-3-deictic,3shot_collide,free,0.619,126,0.286,0.043,,other_object=0.127;previous_owner=0.032;speaker_confusion=0.222
-llama31-70b,dx-addressee-3-deictic,3shot,all,0.506,180,0.287,0.037,,other_object=0.15;previous_owner=0.033;speaker_confusion=0.3;tie=0.011
-llama31-70b,dx-addressee-3-deictic,3shot,free,0.635,126,0.286,0.043,,other_object=0.111;previous_owner=0.04;speaker_confusion=0.198;tie=0.016
-llama31-70b,dx-addressee-3-third,0shot,all,0.800,180,0.287,0.030,,
-llama31-70b,dx-addressee-3-third,0shot,free,0.730,126,0.286,0.040,,
-llama31-70b,dx-addressee-3-third,3shot_collide,all,0.928,180,0.287,0.019,,
-llama31-70b,dx-addressee-3-third,3shot_collide,free,0.929,126,0.286,0.023,,
-llama31-70b,dx-addressee-3-third,3shot,all,0.933,180,0.287,0.019,,
-llama31-70b,dx-addressee-3-third,3shot,free,0.952,126,0.286,0.019,,
-llama31-70b,dx-addressee-2-deictic,0shot,all,0.328,180,0.287,0.035,,speaker_confusion=0.644;tie=0.028
-llama31-70b,dx-addressee-2-deictic,0shot,free,0.246,126,0.286,0.038,,speaker_confusion=0.722;tie=0.032
-llama31-70b,dx-addressee-2-deictic,3shot_collide,all,0.350,180,0.287,0.036,,speaker_confusion=0.617;tie=0.033
-llama31-70b,dx-addressee-2-deictic,3shot_collide,free,0.381,126,0.286,0.043,,speaker_confusion=0.595;tie=0.024
-llama31-70b,dx-addressee-2-deictic,3shot,all,0.356,180,0.287,0.036,,speaker_confusion=0.611;tie=0.033
-llama31-70b,dx-addressee-2-deictic,3shot,free,0.389,126,0.286,0.043,,speaker_confusion=0.579;tie=0.032
-llama31-70b,dx-addressee-2-third,0shot,all,0.822,180,0.287,0.029,,
-llama31-70b,dx-addressee-2-third,0shot,free,0.833,126,0.286,0.033,,
-llama31-70b,dx-addressee-2-third,3shot_collide,all,0.917,180,0.287,0.021,,
-llama31-70b,dx-addressee-2-third,3shot_collide,free,0.952,126,0.286,0.019,,
-llama31-70b,dx-addressee-2-third,3shot,all,0.917,180,0.287,0.021,,
-llama31-70b,dx-addressee-2-third,3shot,free,0.936,126,0.286,0.022,,
-llama31-70b,sb-k1,0shot,all,0.312,64,0.125,0.058,,
-llama31-70b,sb-k1,3shot_collide,all,1.000,64,0.125,0.000,,
-llama31-70b,sb-k1,3shot,all,1.000,64,0.125,0.000,,
-llama31-70b,sb-k23,0shot,all,0.180,128,0.027,0.034,,
-llama31-70b,sb-k23,3shot_collide,all,1.000,128,0.027,0.000,,
-llama31-70b,sb-k23,3shot,all,0.992,128,0.027,0.008,,
-llama31-70b,sb-split,0shot,all,0.641,128,0.027,0.042,,
-llama31-70b,sb-split,3shot_collide,all,0.922,128,0.027,0.024,,
-llama31-70b,sb-split,3shot,all,0.922,128,0.027,0.024,,
-llama31-70b,sb-dyn,0shot,all,0.594,256,0.027,0.031,,
-llama31-70b,sb-dyn,3shot_collide,all,0.637,256,0.027,0.030,,
-llama31-70b,sb-dyn,3shot,all,0.562,256,0.027,0.031,,
-llama31-70b,an-narr,0shot,all,0.588,640,0.250,0.019,,
-llama31-70b,an-narr,3shot_collide,all,0.995,640,0.250,0.003,,
-llama31-70b,an-narr,3shot,all,0.994,640,0.250,0.003,,
-llama31-70b,an-other-any,0shot,all,0.447,320,0.250,0.028,,
-llama31-70b,an-other-any,3shot_collide,all,0.925,320,0.250,0.015,,
-llama31-70b,an-other-any,3shot,all,0.828,320,0.250,0.021,,
-llama31-70b,an-me-any,0shot,all,0.650,160,0.250,0.038,,
-llama31-70b,an-me-any,3shot_collide,all,0.912,160,0.250,0.022,,
-llama31-70b,an-me-any,3shot,all,0.894,160,0.250,0.024,,
-llama31-70b,an-you-voc,0shot,all,0.375,80,0.250,0.054,,
-llama31-70b,an-you-voc,3shot_collide,all,0.938,80,0.250,0.027,,
-llama31-70b,an-you-voc,3shot,all,0.950,80,0.250,0.024,,
-llama31-70b,an-you-novoc,0shot,all,0.425,80,0.250,0.055,,
-llama31-70b,an-you-novoc,3shot_collide,all,0.613,80,0.250,0.054,,
-llama31-70b,an-you-novoc,3shot,all,0.475,80,0.250,0.056,,
-llama31-70b,adj-adj,0shot,all,0.992,260,0.333,0.005,,
-llama31-70b,adj-adj,3shot_collide,all,1.000,260,0.333,0.000,,
-llama31-70b,adj-adj,3shot,all,1.000,260,0.333,0.000,,
-llama31-70b,adj-voc,0shot,all,0.989,260,0.333,0.007,,
-llama31-70b,adj-voc,3shot_collide,all,0.996,260,0.333,0.004,,
-llama31-70b,adj-voc,3shot,all,1.000,260,0.333,0.000,,
-llama31-70b,adj-third,0shot,all,0.992,260,0.333,0.005,,
-llama31-70b,adj-third,3shot_collide,all,1.000,260,0.333,0.000,,
-llama31-70b,adj-third,3shot,all,1.000,260,0.333,0.000,,
-llama31-70b,cm-mutate,0shot,all,0.970,200,0.200,0.012,,
-llama31-70b,cm-mutate,3shot_collide,all,0.975,200,0.200,0.011,,
-llama31-70b,cm-mutate,3shot,all,0.955,200,0.200,0.015,,
-llama31-70b,cm-rebind,0shot,all,0.970,200,0.200,0.012,,
-llama31-70b,cm-rebind,3shot_collide,all,1.000,200,0.200,0.000,,
-llama31-70b,cm-rebind,3shot,all,1.000,200,0.200,0.000,,
-llama31-70b,cm-copy,0shot,all,0.550,200,0.200,0.035,,
-llama31-70b,cm-copy,3shot_collide,all,1.000,200,0.200,0.000,,
-llama31-70b,cm-copy,3shot,all,1.000,200,0.200,0.000,,
-qwen25-72b,attr,0shot,all,0.952,1210,0.168,0.006,,
-qwen25-72b,attr,3shot_collide,all,1.000,1210,0.168,0.000,,
-qwen25-72b,attr,3shot,all,1.000,1210,0.168,0.000,,
-qwen25-72b,codevar,0shot,all,0.743,1200,0.267,0.013,,
-qwen25-72b,codevar,3shot_collide,all,0.910,1200,0.267,0.008,,
-qwen25-72b,codevar,3shot,all,0.884,1200,0.267,0.009,,
-qwen25-72b,dialogue,0shot,all,0.936,1200,0.312,0.007,,
-qwen25-72b,dialogue,3shot_collide,all,0.978,1200,0.312,0.004,,
-qwen25-72b,dialogue,3shot,all,0.975,1200,0.312,0.004,,
-qwen25-72b,dx-owner-3-deictic,0shot,all,0.675,120,0.333,0.043,,other_participant=0.308;speaker_confusion=0.017
-qwen25-72b,dx-owner-3-deictic,0shot,free,0.600,40,0.333,0.077,,other_participant=0.4
-qwen25-72b,dx-owner-3-deictic,3shot_collide,all,0.983,120,0.333,0.012,,other_participant=0.017
-qwen25-72b,dx-owner-3-deictic,3shot_collide,free,0.975,40,0.333,0.025,,other_participant=0.025
-qwen25-72b,dx-owner-3-deictic,3shot,all,0.983,120,0.333,0.012,,other_participant=0.017
-qwen25-72b,dx-owner-3-deictic,3shot,free,0.975,40,0.333,0.025,,other_participant=0.025
-qwen25-72b,dx-owner-3-third,0shot,all,0.783,120,0.333,0.038,,
-qwen25-72b,dx-owner-3-third,0shot,free,0.725,40,0.333,0.071,,
-qwen25-72b,dx-owner-3-third,3shot_collide,all,1.000,120,0.333,0.000,,
-qwen25-72b,dx-owner-3-third,3shot_collide,free,1.000,40,0.333,0.000,,
-qwen25-72b,dx-owner-3-third,3shot,all,1.000,120,0.333,0.000,,
-qwen25-72b,dx-owner-3-third,3shot,free,1.000,40,0.333,0.000,,
-qwen25-72b,dx-self-3-deictic,0shot,all,0.594,180,0.287,0.037,,other_object=0.15;previous_owner=0.044;speaker_confusion=0.2;tie=0.011
-qwen25-72b,dx-self-3-deictic,0shot,free,0.603,126,0.286,0.044,,other_object=0.183;previous_owner=0.024;speaker_confusion=0.175;tie=0.016
-qwen25-72b,dx-self-3-deictic,3shot_collide,all,0.867,180,0.287,0.025,,other_object=0.011;previous_owner=0.028;speaker_confusion=0.094
-qwen25-72b,dx-self-3-deictic,3shot_collide,free,0.897,126,0.286,0.027,,previous_owner=0.024;speaker_confusion=0.079
-qwen25-72b,dx-self-3-deictic,3shot,all,0.817,180,0.287,0.029,,other_object=0.033;previous_owner=0.044;speaker_confusion=0.1;tie=0.006
-qwen25-72b,dx-self-3-deictic,3shot,free,0.865,126,0.286,0.030,,other_object=0.032;previous_owner=0.032;speaker_confusion=0.071
-qwen25-72b,dx-self-3-third,0shot,all,0.894,180,0.287,0.023,,
-qwen25-72b,dx-self-3-third,0shot,free,0.921,126,0.286,0.024,,
-qwen25-72b,dx-self-3-third,3shot_collide,all,0.961,180,0.287,0.014,,
-qwen25-72b,dx-self-3-third,3shot_collide,free,0.984,126,0.286,0.011,,
-qwen25-72b,dx-self-3-third,3shot,all,0.972,180,0.287,0.012,,
-qwen25-72b,dx-self-3-third,3shot,free,0.992,126,0.286,0.008,,
-qwen25-72b,dx-self-2-deictic,0shot,all,0.372,180,0.287,0.036,,speaker_confusion=0.6;tie=0.028
-qwen25-72b,dx-self-2-deictic,0shot,free,0.373,126,0.286,0.043,,speaker_confusion=0.611;tie=0.016
-qwen25-72b,dx-self-2-deictic,3shot_collide,all,0.611,180,0.287,0.036,,speaker_confusion=0.372;tie=0.017
-qwen25-72b,dx-self-2-deictic,3shot_collide,free,0.667,126,0.286,0.042,,speaker_confusion=0.317;tie=0.016
-qwen25-72b,dx-self-2-deictic,3shot,all,0.628,180,0.287,0.036,,speaker_confusion=0.367;tie=0.006
-qwen25-72b,dx-self-2-deictic,3shot,free,0.691,126,0.286,0.041,,speaker_confusion=0.302;tie=0.008
-qwen25-72b,dx-self-2-third,0shot,all,0.844,180,0.287,0.027,,
-qwen25-72b,dx-self-2-third,0shot,free,0.873,126,0.286,0.030,,
-qwen25-72b,dx-self-2-third,3shot_collide,all,0.956,180,0.287,0.015,,
-qwen25-72b,dx-self-2-third,3shot_collide,free,0.936,126,0.286,0.022,,
-qwen25-72b,dx-self-2-third,3shot,all,0.950,180,0.287,0.016,,
-qwen25-72b,dx-self-2-third,3shot,free,0.952,126,0.286,0.019,,
-qwen25-72b,dx-addressee-3-deictic,0shot,all,0.494,180,0.287,0.037,,other_object=0.078;previous_owner=0.083;speaker_confusion=0.328;tie=0.017
-qwen25-72b,dx-addressee-3-deictic,0shot,free,0.516,126,0.286,0.044,,other_object=0.079;previous_owner=0.103;speaker_confusion=0.302
-qwen25-72b,dx-addressee-3-deictic,3shot_collide,all,0.744,180,0.287,0.033,,other_object=0.033;previous_owner=0.028;speaker_confusion=0.178;tie=0.017
-qwen25-72b,dx-addressee-3-deictic,3shot_collide,free,0.730,126,0.286,0.040,,other_object=0.024;previous_owner=0.024;speaker_confusion=0.222
-qwen25-72b,dx-addressee-3-deictic,3shot,all,0.683,180,0.287,0.035,,other_object=0.039;previous_owner=0.05;speaker_confusion=0.222;tie=0.006
-qwen25-72b,dx-addressee-3-deictic,3shot,free,0.675,126,0.286,0.042,,other_object=0.032;previous_owner=0.063;speaker_confusion=0.23
-qwen25-72b,dx-addressee-3-third,0shot,all,0.900,180,0.287,0.022,,
-qwen25-72b,dx-addressee-3-third,0shot,free,0.921,126,0.286,0.024,,
-qwen25-72b,dx-addressee-3-third,3shot_collide,all,0.989,180,0.287,0.008,,
-qwen25-72b,dx-addressee-3-third,3shot_collide,free,0.984,126,0.286,0.011,,
-qwen25-72b,dx-addressee-3-third,3shot,all,0.967,180,0.287,0.013,,
-qwen25-72b,dx-addressee-3-third,3shot,free,0.968,126,0.286,0.016,,
-qwen25-72b,dx-addressee-2-deictic,0shot,all,0.322,180,0.287,0.035,,speaker_confusion=0.661;tie=0.017
-qwen25-72b,dx-addressee-2-deictic,0shot,free,0.270,126,0.286,0.040,,speaker_confusion=0.714;tie=0.016
-qwen25-72b,dx-addressee-2-deictic,3shot_collide,all,0.422,180,0.287,0.037,,speaker_confusion=0.567;tie=0.011
-qwen25-72b,dx-addressee-2-deictic,3shot_collide,free,0.429,126,0.286,0.044,,speaker_confusion=0.563;tie=0.008
-qwen25-72b,dx-addressee-2-deictic,3shot,all,0.383,180,0.287,0.036,,speaker_confusion=0.611;tie=0.006
-qwen25-72b,dx-addressee-2-deictic,3shot,free,0.381,126,0.286,0.043,,speaker_confusion=0.611;tie=0.008
-qwen25-72b,dx-addressee-2-third,0shot,all,0.839,180,0.287,0.027,,
-qwen25-72b,dx-addressee-2-third,0shot,free,0.881,126,0.286,0.029,,
-qwen25-72b,dx-addressee-2-third,3shot_collide,all,0.933,180,0.287,0.019,,
-qwen25-72b,dx-addressee-2-third,3shot_collide,free,0.936,126,0.286,0.022,,
-qwen25-72b,dx-addressee-2-third,3shot,all,0.928,180,0.287,0.019,,
-qwen25-72b,dx-addressee-2-third,3shot,free,0.936,126,0.286,0.022,,
-qwen25-72b,sb-k1,0shot,all,1.000,64,0.125,0.000,,
-qwen25-72b,sb-k1,3shot_collide,all,1.000,64,0.125,0.000,,
-qwen25-72b,sb-k1,3shot,all,1.000,64,0.125,0.000,,
-qwen25-72b,sb-k23,0shot,all,0.773,128,0.027,0.037,,
-qwen25-72b,sb-k23,3shot_collide,all,1.000,128,0.027,0.000,,
-qwen25-72b,sb-k23,3shot,all,1.000,128,0.027,0.000,,
-qwen25-72b,sb-split,0shot,all,0.875,128,0.027,0.029,,
-qwen25-72b,sb-split,3shot_collide,all,0.977,128,0.027,0.013,,
-qwen25-72b,sb-split,3shot,all,0.992,128,0.027,0.008,,
-qwen25-72b,sb-dyn,0shot,all,0.695,256,0.027,0.029,,
-qwen25-72b,sb-dyn,3shot_collide,all,0.777,256,0.027,0.026,,
-qwen25-72b,sb-dyn,3shot,all,0.750,256,0.027,0.027,,
-qwen25-72b,an-narr,0shot,all,0.630,640,0.250,0.019,,
-qwen25-72b,an-narr,3shot_collide,all,0.994,640,0.250,0.003,,
-qwen25-72b,an-narr,3shot,all,0.989,640,0.250,0.004,,
-qwen25-72b,an-other-any,0shot,all,0.297,320,0.250,0.025,,
-qwen25-72b,an-other-any,3shot_collide,all,0.944,320,0.250,0.013,,
-qwen25-72b,an-other-any,3shot,all,0.894,320,0.250,0.017,,
-qwen25-72b,an-me-any,0shot,all,0.719,160,0.250,0.035,,
-qwen25-72b,an-me-any,3shot_collide,all,0.969,160,0.250,0.014,,
-qwen25-72b,an-me-any,3shot,all,0.919,160,0.250,0.022,,
-qwen25-72b,an-you-voc,0shot,all,0.738,80,0.250,0.049,,
-qwen25-72b,an-you-voc,3shot_collide,all,0.925,80,0.250,0.029,,
-qwen25-72b,an-you-voc,3shot,all,0.988,80,0.250,0.012,,
-qwen25-72b,an-you-novoc,0shot,all,0.537,80,0.250,0.056,,
-qwen25-72b,an-you-novoc,3shot_collide,all,0.800,80,0.250,0.045,,
-qwen25-72b,an-you-novoc,3shot,all,0.812,80,0.250,0.044,,
-qwen25-72b,adj-adj,0shot,all,0.992,260,0.333,0.005,,
-qwen25-72b,adj-adj,3shot_collide,all,1.000,260,0.333,0.000,,
-qwen25-72b,adj-adj,3shot,all,1.000,260,0.333,0.000,,
-qwen25-72b,adj-voc,0shot,all,0.996,260,0.333,0.004,,
-qwen25-72b,adj-voc,3shot_collide,all,1.000,260,0.333,0.000,,
-qwen25-72b,adj-voc,3shot,all,1.000,260,0.333,0.000,,
-qwen25-72b,adj-third,0shot,all,0.996,260,0.333,0.004,,
-qwen25-72b,adj-third,3shot_collide,all,1.000,260,0.333,0.000,,
-qwen25-72b,adj-third,3shot,all,1.000,260,0.333,0.000,,
-qwen25-72b,cm-mutate,0shot,all,0.990,200,0.200,0.007,,
-qwen25-72b,cm-mutate,3shot_collide,all,0.995,200,0.200,0.005,,
-qwen25-72b,cm-mutate,3shot,all,0.995,200,0.200,0.005,,
-qwen25-72b,cm-rebind,0shot,all,0.825,200,0.200,0.027,,
-qwen25-72b,cm-rebind,3shot_collide,all,0.975,200,0.200,0.011,,
-qwen25-72b,cm-rebind,3shot,all,1.000,200,0.200,0.000,,
-qwen25-72b,cm-copy,0shot,all,0.690,200,0.200,0.033,,
-qwen25-72b,cm-copy,3shot_collide,all,0.995,200,0.200,0.005,,
-qwen25-72b,cm-copy,3shot,all,0.995,200,0.200,0.005,,
-dsv4-flash-base,attr,0shot,all,0.749,1210,0.168,0.013,,
-dsv4-flash-base,attr,3shot_collide,all,0.996,1210,0.168,0.002,,
-dsv4-flash-base,attr,3shot,all,0.999,1210,0.168,0.001,,
-dsv4-flash-base,codevar,0shot,all,0.899,1200,0.267,0.009,,
-dsv4-flash-base,codevar,3shot_collide,all,0.943,1200,0.267,0.007,,
-dsv4-flash-base,codevar,3shot,all,0.920,1200,0.267,0.008,,
-dsv4-flash-base,dialogue,0shot,all,0.916,1200,0.312,0.008,,
-dsv4-flash-base,dialogue,3shot_collide,all,0.985,1200,0.312,0.004,,
-dsv4-flash-base,dialogue,3shot,all,0.983,1200,0.312,0.004,,
-dsv4-flash-base,dx-owner-3-deictic,0shot,all,0.750,120,0.333,0.040,,other_participant=0.208;speaker_confusion=0.017;tie=0.025
-dsv4-flash-base,dx-owner-3-deictic,0shot,free,0.725,40,0.333,0.071,,other_participant=0.25;tie=0.025
-dsv4-flash-base,dx-owner-3-deictic,3shot_collide,all,0.975,120,0.333,0.014,,other_participant=0.008;speaker_confusion=0.017
-dsv4-flash-base,dx-owner-3-deictic,3shot_collide,free,0.975,40,0.333,0.025,,speaker_confusion=0.025
-dsv4-flash-base,dx-owner-3-deictic,3shot,all,0.967,120,0.333,0.016,,other_participant=0.033
-dsv4-flash-base,dx-owner-3-deictic,3shot,free,0.975,40,0.333,0.025,,other_participant=0.025
-dsv4-flash-base,dx-owner-3-third,0shot,all,0.850,120,0.333,0.033,,
-dsv4-flash-base,dx-owner-3-third,0shot,free,0.775,40,0.333,0.066,,
-dsv4-flash-base,dx-owner-3-third,3shot_collide,all,1.000,120,0.333,0.000,,
-dsv4-flash-base,dx-owner-3-third,3shot_collide,free,1.000,40,0.333,0.000,,
-dsv4-flash-base,dx-owner-3-third,3shot,all,1.000,120,0.333,0.000,,
-dsv4-flash-base,dx-owner-3-third,3shot,free,1.000,40,0.333,0.000,,
-dsv4-flash-base,dx-self-3-deictic,0shot,all,0.650,180,0.287,0.036,,other_object=0.133;previous_owner=0.017;speaker_confusion=0.161;tie=0.039
-dsv4-flash-base,dx-self-3-deictic,0shot,free,0.603,126,0.286,0.044,,other_object=0.175;previous_owner=0.008;speaker_confusion=0.167;tie=0.048
-dsv4-flash-base,dx-self-3-deictic,3shot_collide,all,0.922,180,0.287,0.020,,other_object=0.006;previous_owner=0.011;speaker_confusion=0.061
-dsv4-flash-base,dx-self-3-deictic,3shot_collide,free,0.929,126,0.286,0.023,,other_object=0.008;previous_owner=0.008;speaker_confusion=0.056
-dsv4-flash-base,dx-self-3-deictic,3shot,all,0.900,180,0.287,0.022,,other_object=0.017;previous_owner=0.017;speaker_confusion=0.056;tie=0.011
-dsv4-flash-base,dx-self-3-deictic,3shot,free,0.913,126,0.286,0.025,,other_object=0.024;previous_owner=0.016;speaker_confusion=0.04;tie=0.008
-dsv4-flash-base,dx-self-3-third,0shot,all,0.883,180,0.287,0.024,,
-dsv4-flash-base,dx-self-3-third,0shot,free,0.857,126,0.286,0.031,,
-dsv4-flash-base,dx-self-3-third,3shot_collide,all,0.989,180,0.287,0.008,,
-dsv4-flash-base,dx-self-3-third,3shot_collide,free,0.992,126,0.286,0.008,,
-dsv4-flash-base,dx-self-3-third,3shot,all,0.994,180,0.287,0.005,,
-dsv4-flash-base,dx-self-3-third,3shot,free,1.000,126,0.286,0.000,,
-dsv4-flash-base,dx-self-2-deictic,0shot,all,0.544,180,0.287,0.037,,speaker_confusion=0.422;tie=0.033
-dsv4-flash-base,dx-self-2-deictic,0shot,free,0.516,126,0.286,0.044,,speaker_confusion=0.437;tie=0.048
-dsv4-flash-base,dx-self-2-deictic,3shot_collide,all,0.711,180,0.287,0.034,,speaker_confusion=0.272;tie=0.017
-dsv4-flash-base,dx-self-2-deictic,3shot_collide,free,0.730,126,0.286,0.040,,speaker_confusion=0.254;tie=0.016
-dsv4-flash-base,dx-self-2-deictic,3shot,all,0.700,180,0.287,0.034,,speaker_confusion=0.283;tie=0.017
-dsv4-flash-base,dx-self-2-deictic,3shot,free,0.730,126,0.286,0.040,,speaker_confusion=0.246;tie=0.024
-dsv4-flash-base,dx-self-2-third,0shot,all,0.889,180,0.287,0.023,,
-dsv4-flash-base,dx-self-2-third,0shot,free,0.889,126,0.286,0.028,,
-dsv4-flash-base,dx-self-2-third,3shot_collide,all,0.961,180,0.287,0.014,,
-dsv4-flash-base,dx-self-2-third,3shot_collide,free,0.984,126,0.286,0.011,,
-dsv4-flash-base,dx-self-2-third,3shot,all,0.972,180,0.287,0.012,,
-dsv4-flash-base,dx-self-2-third,3shot,free,0.984,126,0.286,0.011,,
-dsv4-flash-base,dx-addressee-3-deictic,0shot,all,0.517,180,0.287,0.037,,other_object=0.128;previous_owner=0.028;speaker_confusion=0.306;tie=0.022
-dsv4-flash-base,dx-addressee-3-deictic,0shot,free,0.508,126,0.286,0.044,,other_object=0.135;previous_owner=0.04;speaker_confusion=0.302;tie=0.016
-dsv4-flash-base,dx-addressee-3-deictic,3shot_collide,all,0.700,180,0.287,0.034,,other_object=0.056;previous_owner=0.044;speaker_confusion=0.172;tie=0.028
-dsv4-flash-base,dx-addressee-3-deictic,3shot_collide,free,0.738,126,0.286,0.039,,other_object=0.032;previous_owner=0.048;speaker_confusion=0.159;tie=0.024
-dsv4-flash-base,dx-addressee-3-deictic,3shot,all,0.650,180,0.287,0.036,,other_object=0.05;previous_owner=0.05;speaker_confusion=0.228;tie=0.022
-dsv4-flash-base,dx-addressee-3-deictic,3shot,free,0.659,126,0.286,0.042,,other_object=0.032;previous_owner=0.071;speaker_confusion=0.214;tie=0.024
-dsv4-flash-base,dx-addressee-3-third,0shot,all,0.922,180,0.287,0.020,,
-dsv4-flash-base,dx-addressee-3-third,0shot,free,0.897,126,0.286,0.027,,
-dsv4-flash-base,dx-addressee-3-third,3shot_collide,all,0.978,180,0.287,0.011,,
-dsv4-flash-base,dx-addressee-3-third,3shot_collide,free,0.984,126,0.286,0.011,,
-dsv4-flash-base,dx-addressee-3-third,3shot,all,1.000,180,0.287,0.000,,
-dsv4-flash-base,dx-addressee-3-third,3shot,free,1.000,126,0.286,0.000,,
-dsv4-flash-base,dx-addressee-2-deictic,0shot,all,0.444,180,0.287,0.037,,speaker_confusion=0.539;tie=0.017
-dsv4-flash-base,dx-addressee-2-deictic,0shot,free,0.286,126,0.286,0.040,,speaker_confusion=0.698;tie=0.016
-dsv4-flash-base,dx-addressee-2-deictic,3shot_collide,all,0.417,180,0.287,0.037,,speaker_confusion=0.556;tie=0.028
-dsv4-flash-base,dx-addressee-2-deictic,3shot_collide,free,0.397,126,0.286,0.044,,speaker_confusion=0.563;tie=0.04
-dsv4-flash-base,dx-addressee-2-deictic,3shot,all,0.422,180,0.287,0.037,,speaker_confusion=0.556;tie=0.022
-dsv4-flash-base,dx-addressee-2-deictic,3shot,free,0.405,126,0.286,0.044,,speaker_confusion=0.571;tie=0.024
-dsv4-flash-base,dx-addressee-2-third,0shot,all,0.900,180,0.287,0.022,,
-dsv4-flash-base,dx-addressee-2-third,0shot,free,0.905,126,0.286,0.026,,
-dsv4-flash-base,dx-addressee-2-third,3shot_collide,all,0.933,180,0.287,0.019,,
-dsv4-flash-base,dx-addressee-2-third,3shot_collide,free,0.944,126,0.286,0.020,,
-dsv4-flash-base,dx-addressee-2-third,3shot,all,0.933,180,0.287,0.019,,
-dsv4-flash-base,dx-addressee-2-third,3shot,free,0.968,126,0.286,0.016,,
-dsv4-flash-base,sb-k1,0shot,all,0.875,64,0.125,0.041,,
-dsv4-flash-base,sb-k1,3shot_collide,all,1.000,64,0.125,0.000,,
-dsv4-flash-base,sb-k1,3shot,all,1.000,64,0.125,0.000,,
-dsv4-flash-base,sb-k23,0shot,all,0.578,128,0.027,0.044,,
-dsv4-flash-base,sb-k23,3shot_collide,all,1.000,128,0.027,0.000,,
-dsv4-flash-base,sb-k23,3shot,all,1.000,128,0.027,0.000,,
-dsv4-flash-base,sb-split,0shot,all,0.820,128,0.027,0.034,,
-dsv4-flash-base,sb-split,3shot_collide,all,0.984,128,0.027,0.011,,
-dsv4-flash-base,sb-split,3shot,all,0.961,128,0.027,0.017,,
-dsv4-flash-base,sb-dyn,0shot,all,0.809,256,0.027,0.025,,
-dsv4-flash-base,sb-dyn,3shot_collide,all,0.894,256,0.027,0.019,,
-dsv4-flash-base,sb-dyn,3shot,all,0.867,256,0.027,0.021,,
-dsv4-flash-base,an-narr,0shot,all,0.694,640,0.250,0.018,,
-dsv4-flash-base,an-narr,3shot_collide,all,0.989,640,0.250,0.004,,
-dsv4-flash-base,an-narr,3shot,all,0.986,640,0.250,0.005,,
-dsv4-flash-base,an-other-any,0shot,all,0.553,320,0.250,0.028,,
-dsv4-flash-base,an-other-any,3shot_collide,all,0.925,320,0.250,0.015,,
-dsv4-flash-base,an-other-any,3shot,all,0.884,320,0.250,0.018,,
-dsv4-flash-base,an-me-any,0shot,all,0.675,160,0.250,0.037,,
-dsv4-flash-base,an-me-any,3shot_collide,all,0.800,160,0.250,0.032,,
-dsv4-flash-base,an-me-any,3shot,all,0.600,160,0.250,0.039,,
-dsv4-flash-base,an-you-voc,0shot,all,0.263,80,0.250,0.049,,
-dsv4-flash-base,an-you-voc,3shot_collide,all,0.900,80,0.250,0.034,,
-dsv4-flash-base,an-you-voc,3shot,all,0.800,80,0.250,0.045,,
-dsv4-flash-base,an-you-novoc,0shot,all,0.200,80,0.250,0.045,,
-dsv4-flash-base,an-you-novoc,3shot_collide,all,0.650,80,0.250,0.053,,
-dsv4-flash-base,an-you-novoc,3shot,all,0.588,80,0.250,0.055,,
-dsv4-flash-base,adj-adj,0shot,all,0.981,260,0.333,0.009,,
-dsv4-flash-base,adj-adj,3shot_collide,all,1.000,260,0.333,0.000,,
-dsv4-flash-base,adj-adj,3shot,all,1.000,260,0.333,0.000,,
-dsv4-flash-base,adj-voc,0shot,all,0.992,260,0.333,0.005,,
-dsv4-flash-base,adj-voc,3shot_collide,all,1.000,260,0.333,0.000,,
-dsv4-flash-base,adj-voc,3shot,all,1.000,260,0.333,0.000,,
-dsv4-flash-base,adj-third,0shot,all,1.000,260,0.333,0.000,,
-dsv4-flash-base,adj-third,3shot_collide,all,1.000,260,0.333,0.000,,
-dsv4-flash-base,adj-third,3shot,all,1.000,260,0.333,0.000,,
-dsv4-flash-base,cm-mutate,0shot,all,0.865,200,0.200,0.024,,
-dsv4-flash-base,cm-mutate,3shot_collide,all,0.970,200,0.200,0.012,,
-dsv4-flash-base,cm-mutate,3shot,all,0.950,200,0.200,0.015,,
-dsv4-flash-base,cm-rebind,0shot,all,0.915,200,0.200,0.020,,
-dsv4-flash-base,cm-rebind,3shot_collide,all,1.000,200,0.200,0.000,,
-dsv4-flash-base,cm-rebind,3shot,all,1.000,200,0.200,0.000,,
-dsv4-flash-base,cm-copy,0shot,all,0.890,200,0.200,0.022,,
-dsv4-flash-base,cm-copy,3shot_collide,all,0.995,200,0.200,0.005,,
-dsv4-flash-base,cm-copy,3shot,all,1.000,200,0.200,0.000,,
-mimo-v25-base,attr,0shot,all,0.717,1210,0.168,0.013,,
-mimo-v25-base,attr,3shot_collide,all,1.000,1210,0.168,0.000,,
-mimo-v25-base,attr,3shot,all,0.999,1210,0.168,0.001,,
-mimo-v25-base,codevar,0shot,all,0.792,1200,0.267,0.012,,
-mimo-v25-base,codevar,3shot_collide,all,0.908,1200,0.267,0.008,,
-mimo-v25-base,codevar,3shot,all,0.921,1200,0.267,0.008,,
-mimo-v25-base,dialogue,0shot,all,0.940,1200,0.312,0.007,,
-mimo-v25-base,dialogue,3shot_collide,all,0.963,1200,0.312,0.005,,
-mimo-v25-base,dialogue,3shot,all,0.963,1200,0.312,0.005,,
-mimo-v25-base,dx-owner-3-deictic,0shot,all,0.625,120,0.333,0.044,,other_participant=0.342;speaker_confusion=0.008;tie=0.025
-mimo-v25-base,dx-owner-3-deictic,0shot,free,0.475,40,0.333,0.079,,other_participant=0.5;tie=0.025
-mimo-v25-base,dx-owner-3-deictic,3shot_collide,all,0.992,120,0.333,0.008,,other_participant=0.008
-mimo-v25-base,dx-owner-3-deictic,3shot_collide,free,1.000,40,0.333,0.000,,
-mimo-v25-base,dx-owner-3-deictic,3shot,all,0.992,120,0.333,0.008,,other_participant=0.008
-mimo-v25-base,dx-owner-3-deictic,3shot,free,1.000,40,0.333,0.000,,
-mimo-v25-base,dx-owner-3-third,0shot,all,0.775,120,0.333,0.038,,
-mimo-v25-base,dx-owner-3-third,0shot,free,0.575,40,0.333,0.078,,
-mimo-v25-base,dx-owner-3-third,3shot_collide,all,0.992,120,0.333,0.008,,
-mimo-v25-base,dx-owner-3-third,3shot_collide,free,1.000,40,0.333,0.000,,
-mimo-v25-base,dx-owner-3-third,3shot,all,1.000,120,0.333,0.000,,
-mimo-v25-base,dx-owner-3-third,3shot,free,1.000,40,0.333,0.000,,
-mimo-v25-base,dx-self-3-deictic,0shot,all,0.428,180,0.287,0.037,,other_object=0.189;previous_owner=0.072;speaker_confusion=0.283;tie=0.028
-mimo-v25-base,dx-self-3-deictic,0shot,free,0.436,126,0.286,0.044,,other_object=0.214;previous_owner=0.04;speaker_confusion=0.286;tie=0.024
-mimo-v25-base,dx-self-3-deictic,3shot_collide,all,0.772,180,0.287,0.031,,other_object=0.056;previous_owner=0.05;speaker_confusion=0.106;tie=0.017
-mimo-v25-base,dx-self-3-deictic,3shot_collide,free,0.849,126,0.286,0.032,,other_object=0.04;previous_owner=0.032;speaker_confusion=0.071;tie=0.008
-mimo-v25-base,dx-self-3-deictic,3shot,all,0.811,180,0.287,0.029,,other_object=0.044;previous_owner=0.033;speaker_confusion=0.106;tie=0.006
-mimo-v25-base,dx-self-3-deictic,3shot,free,0.889,126,0.286,0.028,,other_object=0.032;previous_owner=0.008;speaker_confusion=0.071
-mimo-v25-base,dx-self-3-third,0shot,all,0.778,180,0.287,0.031,,
-mimo-v25-base,dx-self-3-third,0shot,free,0.794,126,0.286,0.036,,
-mimo-v25-base,dx-self-3-third,3shot_collide,all,0.933,180,0.287,0.019,,
-mimo-v25-base,dx-self-3-third,3shot_collide,free,0.929,126,0.286,0.023,,
-mimo-v25-base,dx-self-3-third,3shot,all,0.939,180,0.287,0.018,,
-mimo-v25-base,dx-self-3-third,3shot,free,0.929,126,0.286,0.023,,
-mimo-v25-base,dx-self-2-deictic,0shot,all,0.428,180,0.287,0.037,,speaker_confusion=0.556;tie=0.017
-mimo-v25-base,dx-self-2-deictic,0shot,free,0.484,126,0.286,0.044,,speaker_confusion=0.5;tie=0.016
-mimo-v25-base,dx-self-2-deictic,3shot_collide,all,0.639,180,0.287,0.036,,speaker_confusion=0.361
-mimo-v25-base,dx-self-2-deictic,3shot_collide,free,0.730,126,0.286,0.040,,speaker_confusion=0.27
-mimo-v25-base,dx-self-2-deictic,3shot,all,0.656,180,0.287,0.035,,speaker_confusion=0.333;tie=0.011
-mimo-v25-base,dx-self-2-deictic,3shot,free,0.722,126,0.286,0.040,,speaker_confusion=0.27;tie=0.008
-mimo-v25-base,dx-self-2-third,0shot,all,0.911,180,0.287,0.021,,
-mimo-v25-base,dx-self-2-third,0shot,free,0.960,126,0.286,0.017,,
-mimo-v25-base,dx-self-2-third,3shot_collide,all,0.917,180,0.287,0.021,,
-mimo-v25-base,dx-self-2-third,3shot_collide,free,0.936,126,0.286,0.022,,
-mimo-v25-base,dx-self-2-third,3shot,all,0.917,180,0.287,0.021,,
-mimo-v25-base,dx-self-2-third,3shot,free,0.936,126,0.286,0.022,,
-mimo-v25-base,dx-addressee-3-deictic,0shot,all,0.394,180,0.287,0.036,,other_object=0.167;previous_owner=0.056;speaker_confusion=0.35;tie=0.033
-mimo-v25-base,dx-addressee-3-deictic,0shot,free,0.397,126,0.286,0.044,,other_object=0.159;previous_owner=0.071;speaker_confusion=0.341;tie=0.032
-mimo-v25-base,dx-addressee-3-deictic,3shot_collide,all,0.556,180,0.287,0.037,,other_object=0.078;previous_owner=0.089;speaker_confusion=0.272;tie=0.006
-mimo-v25-base,dx-addressee-3-deictic,3shot_collide,free,0.595,126,0.286,0.044,,other_object=0.032;previous_owner=0.111;speaker_confusion=0.254;tie=0.008
-mimo-v25-base,dx-addressee-3-deictic,3shot,all,0.561,180,0.287,0.037,,other_object=0.061;previous_owner=0.094;speaker_confusion=0.261;tie=0.022
-mimo-v25-base,dx-addressee-3-deictic,3shot,free,0.595,126,0.286,0.044,,other_object=0.032;previous_owner=0.111;speaker_confusion=0.238;tie=0.024
-mimo-v25-base,dx-addressee-3-third,0shot,all,0.822,180,0.287,0.029,,
-mimo-v25-base,dx-addressee-3-third,0shot,free,0.833,126,0.286,0.033,,
-mimo-v25-base,dx-addressee-3-third,3shot_collide,all,0.950,180,0.287,0.016,,
-mimo-v25-base,dx-addressee-3-third,3shot_collide,free,0.968,126,0.286,0.016,,
-mimo-v25-base,dx-addressee-3-third,3shot,all,0.944,180,0.287,0.017,,
-mimo-v25-base,dx-addressee-3-third,3shot,free,0.960,126,0.286,0.017,,
-mimo-v25-base,dx-addressee-2-deictic,0shot,all,0.256,180,0.287,0.033,,speaker_confusion=0.683;tie=0.061
-mimo-v25-base,dx-addressee-2-deictic,0shot,free,0.254,126,0.286,0.039,,speaker_confusion=0.667;tie=0.079
-mimo-v25-base,dx-addressee-2-deictic,3shot_collide,all,0.361,180,0.287,0.036,,speaker_confusion=0.622;tie=0.017
-mimo-v25-base,dx-addressee-2-deictic,3shot_collide,free,0.365,126,0.286,0.043,,speaker_confusion=0.611;tie=0.024
-mimo-v25-base,dx-addressee-2-deictic,3shot,all,0.400,180,0.287,0.036,,speaker_confusion=0.572;tie=0.028
-mimo-v25-base,dx-addressee-2-deictic,3shot,free,0.421,126,0.286,0.044,,speaker_confusion=0.563;tie=0.016
-mimo-v25-base,dx-addressee-2-third,0shot,all,0.894,180,0.287,0.023,,
-mimo-v25-base,dx-addressee-2-third,0shot,free,0.913,126,0.286,0.025,,
-mimo-v25-base,dx-addressee-2-third,3shot_collide,all,0.872,180,0.287,0.025,,
-mimo-v25-base,dx-addressee-2-third,3shot_collide,free,0.936,126,0.286,0.022,,
-mimo-v25-base,dx-addressee-2-third,3shot,all,0.889,180,0.287,0.023,,
-mimo-v25-base,dx-addressee-2-third,3shot,free,0.936,126,0.286,0.022,,
-mimo-v25-base,sb-k1,0shot,all,0.781,64,0.125,0.052,,
-mimo-v25-base,sb-k1,3shot_collide,all,1.000,64,0.125,0.000,,
-mimo-v25-base,sb-k1,3shot,all,1.000,64,0.125,0.000,,
-mimo-v25-base,sb-k23,0shot,all,0.414,128,0.027,0.043,,
-mimo-v25-base,sb-k23,3shot_collide,all,0.984,128,0.027,0.011,,
-mimo-v25-base,sb-k23,3shot,all,0.969,128,0.027,0.015,,
-mimo-v25-base,sb-split,0shot,all,0.438,128,0.027,0.044,,
-mimo-v25-base,sb-split,3shot_collide,all,0.945,128,0.027,0.020,,
-mimo-v25-base,sb-split,3shot,all,0.805,128,0.027,0.035,,
-mimo-v25-base,sb-dyn,0shot,all,0.398,256,0.027,0.031,,
-mimo-v25-base,sb-dyn,3shot_collide,all,0.598,256,0.027,0.031,,
-mimo-v25-base,sb-dyn,3shot,all,0.606,256,0.027,0.030,,
-mimo-v25-base,an-narr,0shot,all,0.539,640,0.250,0.020,,
-mimo-v25-base,an-narr,3shot_collide,all,0.997,640,0.250,0.002,,
-mimo-v25-base,an-narr,3shot,all,0.995,640,0.250,0.003,,
-mimo-v25-base,an-other-any,0shot,all,0.300,320,0.250,0.026,,
-mimo-v25-base,an-other-any,3shot_collide,all,0.884,320,0.250,0.018,,
-mimo-v25-base,an-other-any,3shot,all,0.834,320,0.250,0.021,,
-mimo-v25-base,an-me-any,0shot,all,0.688,160,0.250,0.037,,
-mimo-v25-base,an-me-any,3shot_collide,all,0.731,160,0.250,0.035,,
-mimo-v25-base,an-me-any,3shot,all,0.769,160,0.250,0.033,,
-mimo-v25-base,an-you-voc,0shot,all,0.525,80,0.250,0.056,,
-mimo-v25-base,an-you-voc,3shot_collide,all,0.900,80,0.250,0.034,,
-mimo-v25-base,an-you-voc,3shot,all,0.975,80,0.250,0.018,,
-mimo-v25-base,an-you-novoc,0shot,all,0.350,80,0.250,0.053,,
-mimo-v25-base,an-you-novoc,3shot_collide,all,0.738,80,0.250,0.049,,
-mimo-v25-base,an-you-novoc,3shot,all,0.800,80,0.250,0.045,,
-mimo-v25-base,adj-adj,0shot,all,0.923,260,0.333,0.017,,
-mimo-v25-base,adj-adj,3shot_collide,all,1.000,260,0.333,0.000,,
-mimo-v25-base,adj-adj,3shot,all,1.000,260,0.333,0.000,,
-mimo-v25-base,adj-voc,0shot,all,0.965,260,0.333,0.011,,
-mimo-v25-base,adj-voc,3shot_collide,all,1.000,260,0.333,0.000,,
-mimo-v25-base,adj-voc,3shot,all,1.000,260,0.333,0.000,,
-mimo-v25-base,adj-third,0shot,all,1.000,260,0.333,0.000,,
-mimo-v25-base,adj-third,3shot_collide,all,1.000,260,0.333,0.000,,
-mimo-v25-base,adj-third,3shot,all,1.000,260,0.333,0.000,,
-mimo-v25-base,cm-mutate,0shot,all,0.885,200,0.200,0.023,,
-mimo-v25-base,cm-mutate,3shot_collide,all,0.990,200,0.200,0.007,,
-mimo-v25-base,cm-mutate,3shot,all,0.980,200,0.200,0.010,,
-mimo-v25-base,cm-rebind,0shot,all,0.790,200,0.200,0.029,,
-mimo-v25-base,cm-rebind,3shot_collide,all,0.980,200,0.200,0.010,,
-mimo-v25-base,cm-rebind,3shot,all,0.995,200,0.200,0.005,,
-mimo-v25-base,cm-copy,0shot,all,0.700,200,0.200,0.032,,
-mimo-v25-base,cm-copy,3shot_collide,all,1.000,200,0.200,0.000,,
-mimo-v25-base,cm-copy,3shot,all,0.990,200,0.200,0.007,,
-trinity-base,attr,0shot,all,0.737,1210,0.168,0.013,,
-trinity-base,attr,3shot_collide,all,0.997,1210,0.168,0.002,,
-trinity-base,attr,3shot,all,0.998,1210,0.168,0.001,,
-trinity-base,codevar,0shot,all,0.833,1200,0.267,0.011,,
-trinity-base,codevar,3shot_collide,all,0.901,1200,0.267,0.009,,
-trinity-base,codevar,3shot,all,0.919,1200,0.267,0.008,,
-trinity-base,dialogue,0shot,all,0.905,1200,0.312,0.009,,
-trinity-base,dialogue,3shot_collide,all,0.961,1200,0.312,0.006,,
-trinity-base,dialogue,3shot,all,0.949,1200,0.312,0.006,,
-trinity-base,dx-owner-3-deictic,0shot,all,0.642,120,0.333,0.044,,other_participant=0.325;speaker_confusion=0.017;tie=0.017
-trinity-base,dx-owner-3-deictic,0shot,free,0.400,40,0.333,0.077,,other_participant=0.525;speaker_confusion=0.025;tie=0.05
-trinity-base,dx-owner-3-deictic,3shot_collide,all,0.950,120,0.333,0.020,,other_participant=0.025;speaker_confusion=0.025
-trinity-base,dx-owner-3-deictic,3shot_collide,free,0.950,40,0.333,0.035,,other_participant=0.05
-trinity-base,dx-owner-3-deictic,3shot,all,0.983,120,0.333,0.012,,other_participant=0.008;speaker_confusion=0.008
-trinity-base,dx-owner-3-deictic,3shot,free,1.000,40,0.333,0.000,,
-trinity-base,dx-owner-3-third,0shot,all,0.917,120,0.333,0.025,,
-trinity-base,dx-owner-3-third,0shot,free,0.825,40,0.333,0.060,,
-trinity-base,dx-owner-3-third,3shot_collide,all,1.000,120,0.333,0.000,,
-trinity-base,dx-owner-3-third,3shot_collide,free,1.000,40,0.333,0.000,,
-trinity-base,dx-owner-3-third,3shot,all,1.000,120,0.333,0.000,,
-trinity-base,dx-owner-3-third,3shot,free,1.000,40,0.333,0.000,,
-trinity-base,dx-self-3-deictic,0shot,all,0.344,180,0.287,0.035,,other_object=0.25;previous_owner=0.072;speaker_confusion=0.283;tie=0.05
-trinity-base,dx-self-3-deictic,0shot,free,0.349,126,0.286,0.043,,other_object=0.262;previous_owner=0.032;speaker_confusion=0.286;tie=0.071
-trinity-base,dx-self-3-deictic,3shot_collide,all,0.683,180,0.287,0.035,,other_object=0.044;previous_owner=0.044;speaker_confusion=0.228
-trinity-base,dx-self-3-deictic,3shot_collide,free,0.698,126,0.286,0.041,,other_object=0.048;previous_owner=0.024;speaker_confusion=0.23
-trinity-base,dx-self-3-deictic,3shot,all,0.728,180,0.287,0.033,,other_object=0.033;previous_owner=0.05;speaker_confusion=0.172;tie=0.017
-trinity-base,dx-self-3-deictic,3shot,free,0.770,126,0.286,0.037,,other_object=0.04;previous_owner=0.024;speaker_confusion=0.167
-trinity-base,dx-self-3-third,0shot,all,0.817,180,0.287,0.029,,
-trinity-base,dx-self-3-third,0shot,free,0.873,126,0.286,0.030,,
-trinity-base,dx-self-3-third,3shot_collide,all,0.922,180,0.287,0.020,,
-trinity-base,dx-self-3-third,3shot_collide,free,0.952,126,0.286,0.019,,
-trinity-base,dx-self-3-third,3shot,all,0.872,180,0.287,0.025,,
-trinity-base,dx-self-3-third,3shot,free,0.921,126,0.286,0.024,,
-trinity-base,dx-self-2-deictic,0shot,all,0.372,180,0.287,0.036,,speaker_confusion=0.594;tie=0.033
-trinity-base,dx-self-2-deictic,0shot,free,0.444,126,0.286,0.044,,speaker_confusion=0.548;tie=0.008
-trinity-base,dx-self-2-deictic,3shot_collide,all,0.544,180,0.287,0.037,,speaker_confusion=0.439;tie=0.017
-trinity-base,dx-self-2-deictic,3shot_collide,free,0.603,126,0.286,0.044,,speaker_confusion=0.373;tie=0.024
-trinity-base,dx-self-2-deictic,3shot,all,0.544,180,0.287,0.037,,speaker_confusion=0.439;tie=0.017
-trinity-base,dx-self-2-deictic,3shot,free,0.603,126,0.286,0.044,,speaker_confusion=0.381;tie=0.016
-trinity-base,dx-self-2-third,0shot,all,0.806,180,0.287,0.029,,
-trinity-base,dx-self-2-third,0shot,free,0.833,126,0.286,0.033,,
-trinity-base,dx-self-2-third,3shot_collide,all,0.850,180,0.287,0.027,,
-trinity-base,dx-self-2-third,3shot_collide,free,0.873,126,0.286,0.030,,
-trinity-base,dx-self-2-third,3shot,all,0.833,180,0.287,0.028,,
-trinity-base,dx-self-2-third,3shot,free,0.865,126,0.286,0.030,,
-trinity-base,dx-addressee-3-deictic,0shot,all,0.339,180,0.287,0.035,,other_object=0.172;previous_owner=0.089;speaker_confusion=0.35;tie=0.05
-trinity-base,dx-addressee-3-deictic,0shot,free,0.381,126,0.286,0.043,,other_object=0.143;previous_owner=0.103;speaker_confusion=0.31;tie=0.063
-trinity-base,dx-addressee-3-deictic,3shot_collide,all,0.517,180,0.287,0.037,,other_object=0.078;previous_owner=0.089;speaker_confusion=0.311;tie=0.006
-trinity-base,dx-addressee-3-deictic,3shot_collide,free,0.540,126,0.286,0.044,,other_object=0.032;previous_owner=0.111;speaker_confusion=0.31;tie=0.008
-trinity-base,dx-addressee-3-deictic,3shot,all,0.589,180,0.287,0.037,,other_object=0.067;previous_owner=0.072;speaker_confusion=0.244;tie=0.028
-trinity-base,dx-addressee-3-deictic,3shot,free,0.635,126,0.286,0.043,,other_object=0.008;previous_owner=0.095;speaker_confusion=0.222;tie=0.04
-trinity-base,dx-addressee-3-third,0shot,all,0.883,180,0.287,0.024,,
-trinity-base,dx-addressee-3-third,0shot,free,0.913,126,0.286,0.025,,
-trinity-base,dx-addressee-3-third,3shot_collide,all,0.917,180,0.287,0.021,,
-trinity-base,dx-addressee-3-third,3shot_collide,free,0.905,126,0.286,0.026,,
-trinity-base,dx-addressee-3-third,3shot,all,0.928,180,0.287,0.019,,
-trinity-base,dx-addressee-3-third,3shot,free,0.952,126,0.286,0.019,,
-trinity-base,dx-addressee-2-deictic,0shot,all,0.178,180,0.287,0.029,,speaker_confusion=0.778;tie=0.044
-trinity-base,dx-addressee-2-deictic,0shot,free,0.175,126,0.286,0.034,,speaker_confusion=0.786;tie=0.04
-trinity-base,dx-addressee-2-deictic,3shot_collide,all,0.456,180,0.287,0.037,,speaker_confusion=0.511;tie=0.033
-trinity-base,dx-addressee-2-deictic,3shot_collide,free,0.524,126,0.286,0.044,,speaker_confusion=0.444;tie=0.032
-trinity-base,dx-addressee-2-deictic,3shot,all,0.494,180,0.287,0.037,,speaker_confusion=0.483;tie=0.022
-trinity-base,dx-addressee-2-deictic,3shot,free,0.556,126,0.286,0.044,,speaker_confusion=0.413;tie=0.032
-trinity-base,dx-addressee-2-third,0shot,all,0.789,180,0.287,0.030,,
-trinity-base,dx-addressee-2-third,0shot,free,0.897,126,0.286,0.027,,
-trinity-base,dx-addressee-2-third,3shot_collide,all,0.811,180,0.287,0.029,,
-trinity-base,dx-addressee-2-third,3shot_collide,free,0.881,126,0.286,0.029,,
-trinity-base,dx-addressee-2-third,3shot,all,0.822,180,0.287,0.029,,
-trinity-base,dx-addressee-2-third,3shot,free,0.905,126,0.286,0.026,,
-trinity-base,sb-k1,0shot,all,0.922,64,0.125,0.034,,
-trinity-base,sb-k1,3shot_collide,all,1.000,64,0.125,0.000,,
-trinity-base,sb-k1,3shot,all,1.000,64,0.125,0.000,,
-trinity-base,sb-k23,0shot,all,0.766,128,0.027,0.037,,
-trinity-base,sb-k23,3shot_collide,all,0.992,128,0.027,0.008,,
-trinity-base,sb-k23,3shot,all,0.992,128,0.027,0.008,,
-trinity-base,sb-split,0shot,all,0.773,128,0.027,0.037,,
-trinity-base,sb-split,3shot_collide,all,0.906,128,0.027,0.026,,
-trinity-base,sb-split,3shot,all,0.812,128,0.027,0.035,,
-trinity-base,sb-dyn,0shot,all,0.539,256,0.027,0.031,,
-trinity-base,sb-dyn,3shot_collide,all,0.586,256,0.027,0.031,,
-trinity-base,sb-dyn,3shot,all,0.574,256,0.027,0.031,,
-trinity-base,an-narr,0shot,all,0.597,640,0.250,0.019,,
-trinity-base,an-narr,3shot_collide,all,0.984,640,0.250,0.005,,
-trinity-base,an-narr,3shot,all,0.978,640,0.250,0.006,,
-trinity-base,an-other-any,0shot,all,0.428,320,0.250,0.028,,
-trinity-base,an-other-any,3shot_collide,all,0.825,320,0.250,0.021,,
-trinity-base,an-other-any,3shot,all,0.847,320,0.250,0.020,,
-trinity-base,an-me-any,0shot,all,0.381,160,0.250,0.038,,
-trinity-base,an-me-any,3shot_collide,all,0.887,160,0.250,0.025,,
-trinity-base,an-me-any,3shot,all,0.938,160,0.250,0.019,,
-trinity-base,an-you-voc,0shot,all,0.525,80,0.250,0.056,,
-trinity-base,an-you-voc,3shot_collide,all,0.963,80,0.250,0.021,,
-trinity-base,an-you-voc,3shot,all,1.000,80,0.250,0.000,,
-trinity-base,an-you-novoc,0shot,all,0.237,80,0.250,0.048,,
-trinity-base,an-you-novoc,3shot_collide,all,0.912,80,0.250,0.032,,
-trinity-base,an-you-novoc,3shot,all,0.863,80,0.250,0.038,,
-trinity-base,adj-adj,0shot,all,0.989,260,0.333,0.007,,
-trinity-base,adj-adj,3shot_collide,all,0.992,260,0.333,0.005,,
-trinity-base,adj-adj,3shot,all,0.996,260,0.333,0.004,,
-trinity-base,adj-voc,0shot,all,0.992,260,0.333,0.005,,
-trinity-base,adj-voc,3shot_collide,all,0.996,260,0.333,0.004,,
-trinity-base,adj-voc,3shot,all,1.000,260,0.333,0.000,,
-trinity-base,adj-third,0shot,all,1.000,260,0.333,0.000,,
-trinity-base,adj-third,3shot_collide,all,1.000,260,0.333,0.000,,
-trinity-base,adj-third,3shot,all,1.000,260,0.333,0.000,,
-trinity-base,cm-mutate,0shot,all,0.980,200,0.200,0.010,,
-trinity-base,cm-mutate,3shot_collide,all,0.995,200,0.200,0.005,,
-trinity-base,cm-mutate,3shot,all,1.000,200,0.200,0.000,,
-trinity-base,cm-rebind,0shot,all,0.930,200,0.200,0.018,,
-trinity-base,cm-rebind,3shot_collide,all,1.000,200,0.200,0.000,,
-trinity-base,cm-rebind,3shot,all,1.000,200,0.200,0.000,,
-trinity-base,cm-copy,0shot,all,0.975,200,0.200,0.011,,
-trinity-base,cm-copy,3shot_collide,all,0.995,200,0.200,0.005,,
-trinity-base,cm-copy,3shot,all,1.000,200,0.200,0.000,,
-trinity-truebase,attr,0shot,all,0.790,1210,0.168,0.012,,
-trinity-truebase,attr,3shot_collide,all,0.988,1210,0.168,0.003,,
-trinity-truebase,attr,3shot,all,1.000,1210,0.168,0.000,,
-trinity-truebase,codevar,0shot,all,0.873,1200,0.267,0.010,,
-trinity-truebase,codevar,3shot_collide,all,0.882,1200,0.267,0.009,,
-trinity-truebase,codevar,3shot,all,0.892,1200,0.267,0.009,,
-trinity-truebase,dialogue,0shot,all,0.883,1200,0.312,0.009,,
-trinity-truebase,dialogue,3shot_collide,all,0.898,1200,0.312,0.009,,
-trinity-truebase,dialogue,3shot,all,0.915,1200,0.312,0.008,,
-trinity-truebase,dx-owner-3-deictic,0shot,all,0.650,120,0.333,0.043,,other_participant=0.317;speaker_confusion=0.017;tie=0.017
-trinity-truebase,dx-owner-3-deictic,0shot,free,0.650,40,0.333,0.075,,other_participant=0.35
-trinity-truebase,dx-owner-3-deictic,3shot_collide,all,0.858,120,0.333,0.032,,other_participant=0.092;speaker_confusion=0.033;tie=0.017
-trinity-truebase,dx-owner-3-deictic,3shot_collide,free,0.825,40,0.333,0.060,,other_participant=0.15;speaker_confusion=0.025
-trinity-truebase,dx-owner-3-deictic,3shot,all,0.900,120,0.333,0.027,,other_participant=0.058;speaker_confusion=0.042
-trinity-truebase,dx-owner-3-deictic,3shot,free,0.875,40,0.333,0.052,,other_participant=0.1;speaker_confusion=0.025
-trinity-truebase,dx-owner-3-third,0shot,all,0.825,120,0.333,0.035,,
-trinity-truebase,dx-owner-3-third,0shot,free,0.750,40,0.333,0.069,,
-trinity-truebase,dx-owner-3-third,3shot_collide,all,0.925,120,0.333,0.024,,
-trinity-truebase,dx-owner-3-third,3shot_collide,free,0.875,40,0.333,0.052,,
-trinity-truebase,dx-owner-3-third,3shot,all,0.950,120,0.333,0.020,,
-trinity-truebase,dx-owner-3-third,3shot,free,0.925,40,0.333,0.042,,
-trinity-truebase,dx-self-3-deictic,0shot,all,0.389,180,0.287,0.036,,other_object=0.206;previous_owner=0.072;speaker_confusion=0.311;tie=0.022
-trinity-truebase,dx-self-3-deictic,0shot,free,0.444,126,0.286,0.044,,other_object=0.222;previous_owner=0.04;speaker_confusion=0.27;tie=0.024
-trinity-truebase,dx-self-3-deictic,3shot_collide,all,0.539,180,0.287,0.037,,other_object=0.139;previous_owner=0.022;speaker_confusion=0.272;tie=0.028
-trinity-truebase,dx-self-3-deictic,3shot_collide,free,0.619,126,0.286,0.043,,other_object=0.127;previous_owner=0.024;speaker_confusion=0.206;tie=0.024
-trinity-truebase,dx-self-3-deictic,3shot,all,0.567,180,0.287,0.037,,other_object=0.15;previous_owner=0.078;speaker_confusion=0.2;tie=0.006
-trinity-truebase,dx-self-3-deictic,3shot,free,0.675,126,0.286,0.042,,other_object=0.111;previous_owner=0.048;speaker_confusion=0.159;tie=0.008
-trinity-truebase,dx-self-3-third,0shot,all,0.772,180,0.287,0.031,,
-trinity-truebase,dx-self-3-third,0shot,free,0.762,126,0.286,0.038,,
-trinity-truebase,dx-self-3-third,3shot_collide,all,0.811,180,0.287,0.029,,
-trinity-truebase,dx-self-3-third,3shot_collide,free,0.873,126,0.286,0.030,,
-trinity-truebase,dx-self-3-third,3shot,all,0.828,180,0.287,0.028,,
-trinity-truebase,dx-self-3-third,3shot,free,0.873,126,0.286,0.030,,
-trinity-truebase,dx-self-2-deictic,0shot,all,0.383,180,0.287,0.036,,speaker_confusion=0.583;tie=0.033
-trinity-truebase,dx-self-2-deictic,0shot,free,0.429,126,0.286,0.044,,speaker_confusion=0.54;tie=0.032
-trinity-truebase,dx-self-2-deictic,3shot_collide,all,0.461,180,0.287,0.037,,speaker_confusion=0.528;tie=0.011
-trinity-truebase,dx-self-2-deictic,3shot_collide,free,0.556,126,0.286,0.044,,speaker_confusion=0.429;tie=0.016
-trinity-truebase,dx-self-2-deictic,3shot,all,0.472,180,0.287,0.037,,speaker_confusion=0.511;tie=0.017
-trinity-truebase,dx-self-2-deictic,3shot,free,0.579,126,0.286,0.044,,speaker_confusion=0.413;tie=0.008
-trinity-truebase,dx-self-2-third,0shot,all,0.767,180,0.287,0.032,,
-trinity-truebase,dx-self-2-third,0shot,free,0.722,126,0.286,0.040,,
-trinity-truebase,dx-self-2-third,3shot_collide,all,0.672,180,0.287,0.035,,
-trinity-truebase,dx-self-2-third,3shot_collide,free,0.762,126,0.286,0.038,,
-trinity-truebase,dx-self-2-third,3shot,all,0.706,180,0.287,0.034,,
-trinity-truebase,dx-self-2-third,3shot,free,0.809,126,0.286,0.035,,
-trinity-truebase,dx-addressee-3-deictic,0shot,all,0.367,180,0.287,0.036,,other_object=0.122;previous_owner=0.083;speaker_confusion=0.411;tie=0.017
-trinity-truebase,dx-addressee-3-deictic,0shot,free,0.421,126,0.286,0.044,,other_object=0.111;previous_owner=0.087;speaker_confusion=0.357;tie=0.024
-trinity-truebase,dx-addressee-3-deictic,3shot_collide,all,0.372,180,0.287,0.036,,other_object=0.172;previous_owner=0.078;speaker_confusion=0.333;tie=0.044
-trinity-truebase,dx-addressee-3-deictic,3shot_collide,free,0.397,126,0.286,0.044,,other_object=0.127;previous_owner=0.095;speaker_confusion=0.325;tie=0.056
-trinity-truebase,dx-addressee-3-deictic,3shot,all,0.428,180,0.287,0.037,,other_object=0.133;previous_owner=0.083;speaker_confusion=0.35;tie=0.006
-trinity-truebase,dx-addressee-3-deictic,3shot,free,0.500,126,0.286,0.044,,other_object=0.095;previous_owner=0.087;speaker_confusion=0.31;tie=0.008
-trinity-truebase,dx-addressee-3-third,0shot,all,0.811,180,0.287,0.029,,
-trinity-truebase,dx-addressee-3-third,0shot,free,0.778,126,0.286,0.037,,
-trinity-truebase,dx-addressee-3-third,3shot_collide,all,0.767,180,0.287,0.032,,
-trinity-truebase,dx-addressee-3-third,3shot_collide,free,0.833,126,0.286,0.033,,
-trinity-truebase,dx-addressee-3-third,3shot,all,0.811,180,0.287,0.029,,
-trinity-truebase,dx-addressee-3-third,3shot,free,0.865,126,0.286,0.030,,
-trinity-truebase,dx-addressee-2-deictic,0shot,all,0.256,180,0.287,0.033,,speaker_confusion=0.711;tie=0.033
-trinity-truebase,dx-addressee-2-deictic,0shot,free,0.214,126,0.286,0.037,,speaker_confusion=0.754;tie=0.032
-trinity-truebase,dx-addressee-2-deictic,3shot_collide,all,0.411,180,0.287,0.037,,speaker_confusion=0.567;tie=0.022
-trinity-truebase,dx-addressee-2-deictic,3shot_collide,free,0.468,126,0.286,0.044,,speaker_confusion=0.5;tie=0.032
-trinity-truebase,dx-addressee-2-deictic,3shot,all,0.378,180,0.287,0.036,,speaker_confusion=0.594;tie=0.028
-trinity-truebase,dx-addressee-2-deictic,3shot,free,0.444,126,0.286,0.044,,speaker_confusion=0.516;tie=0.04
-trinity-truebase,dx-addressee-2-third,0shot,all,0.767,180,0.287,0.032,,
-trinity-truebase,dx-addressee-2-third,0shot,free,0.722,126,0.286,0.040,,
-trinity-truebase,dx-addressee-2-third,3shot_collide,all,0.711,180,0.287,0.034,,
-trinity-truebase,dx-addressee-2-third,3shot_collide,free,0.825,126,0.286,0.034,,
-trinity-truebase,dx-addressee-2-third,3shot,all,0.739,180,0.287,0.033,,
-trinity-truebase,dx-addressee-2-third,3shot,free,0.841,126,0.286,0.033,,
-trinity-truebase,sb-k1,0shot,all,0.938,64,0.125,0.030,,
-trinity-truebase,sb-k1,3shot_collide,all,1.000,64,0.125,0.000,,
-trinity-truebase,sb-k1,3shot,all,1.000,64,0.125,0.000,,
-trinity-truebase,sb-k23,0shot,all,0.648,128,0.027,0.042,,
-trinity-truebase,sb-k23,3shot_collide,all,0.984,128,0.027,0.011,,
-trinity-truebase,sb-k23,3shot,all,0.977,128,0.027,0.013,,
-trinity-truebase,sb-split,0shot,all,0.594,128,0.027,0.043,,
-trinity-truebase,sb-split,3shot_collide,all,0.773,128,0.027,0.037,,
-trinity-truebase,sb-split,3shot,all,0.727,128,0.027,0.039,,
-trinity-truebase,sb-dyn,0shot,all,0.484,256,0.027,0.031,,
-trinity-truebase,sb-dyn,3shot_collide,all,0.410,256,0.027,0.031,,
-trinity-truebase,sb-dyn,3shot,all,0.422,256,0.027,0.031,,
-trinity-truebase,an-narr,0shot,all,0.614,640,0.250,0.019,,
-trinity-truebase,an-narr,3shot_collide,all,0.936,640,0.250,0.010,,
-trinity-truebase,an-narr,3shot,all,0.936,640,0.250,0.010,,
-trinity-truebase,an-other-any,0shot,all,0.144,320,0.250,0.020,,
-trinity-truebase,an-other-any,3shot_collide,all,0.653,320,0.250,0.027,,
-trinity-truebase,an-other-any,3shot,all,0.619,320,0.250,0.027,,
-trinity-truebase,an-me-any,0shot,all,0.600,160,0.250,0.039,,
-trinity-truebase,an-me-any,3shot_collide,all,0.562,160,0.250,0.039,,
-trinity-truebase,an-me-any,3shot,all,0.600,160,0.250,0.039,,
-trinity-truebase,an-you-voc,0shot,all,0.200,80,0.250,0.045,,
-trinity-truebase,an-you-voc,3shot_collide,all,0.525,80,0.250,0.056,,
-trinity-truebase,an-you-voc,3shot,all,0.537,80,0.250,0.056,,
-trinity-truebase,an-you-novoc,0shot,all,0.487,80,0.250,0.056,,
-trinity-truebase,an-you-novoc,3shot_collide,all,0.287,80,0.250,0.051,,
-trinity-truebase,an-you-novoc,3shot,all,0.388,80,0.250,0.054,,
-trinity-truebase,adj-adj,0shot,all,0.931,260,0.333,0.016,,
-trinity-truebase,adj-adj,3shot_collide,all,0.992,260,0.333,0.005,,
-trinity-truebase,adj-adj,3shot,all,0.981,260,0.333,0.009,,
-trinity-truebase,adj-voc,0shot,all,0.954,260,0.333,0.013,,
-trinity-truebase,adj-voc,3shot_collide,all,0.992,260,0.333,0.005,,
-trinity-truebase,adj-voc,3shot,all,0.996,260,0.333,0.004,,
-trinity-truebase,adj-third,0shot,all,0.977,260,0.333,0.009,,
-trinity-truebase,adj-third,3shot_collide,all,0.996,260,0.333,0.004,,
-trinity-truebase,adj-third,3shot,all,1.000,260,0.333,0.000,,
-trinity-truebase,cm-mutate,0shot,all,0.985,200,0.200,0.009,,
-trinity-truebase,cm-mutate,3shot_collide,all,0.990,200,0.200,0.007,,
-trinity-truebase,cm-mutate,3shot,all,0.995,200,0.200,0.005,,
-trinity-truebase,cm-rebind,0shot,all,0.775,200,0.200,0.029,,
-trinity-truebase,cm-rebind,3shot_collide,all,0.990,200,0.200,0.007,,
-trinity-truebase,cm-rebind,3shot,all,0.980,200,0.200,0.010,,
-trinity-truebase,cm-copy,0shot,all,0.365,200,0.200,0.034,,
-trinity-truebase,cm-copy,3shot_collide,all,0.995,200,0.200,0.005,,
-trinity-truebase,cm-copy,3shot,all,1.000,200,0.200,0.000,,
-llama31-405b,attr,0shot,all,0.791,1210,0.168,0.012,,
-llama31-405b,attr,3shot_collide,all,1.000,1210,0.168,0.000,,
-llama31-405b,attr,3shot,all,1.000,1210,0.168,0.000,,
-llama31-405b,codevar,0shot,all,0.844,1200,0.267,0.011,,
-llama31-405b,codevar,3shot_collide,all,0.946,1200,0.267,0.006,,
-llama31-405b,codevar,3shot,all,0.938,1200,0.267,0.007,,
-llama31-405b,dialogue,0shot,all,0.946,1200,0.312,0.006,,
-llama31-405b,dialogue,3shot_collide,all,0.995,1200,0.312,0.002,,
-llama31-405b,dialogue,3shot,all,0.992,1200,0.312,0.003,,
-llama31-405b,dx-owner-3-deictic,0shot,all,0.767,120,0.333,0.039,,other_participant=0.217;tie=0.017
-llama31-405b,dx-owner-3-deictic,0shot,free,0.725,40,0.333,0.071,,other_participant=0.25;tie=0.025
-llama31-405b,dx-owner-3-deictic,3shot_collide,all,1.000,120,0.333,0.000,,
-llama31-405b,dx-owner-3-deictic,3shot_collide,free,1.000,40,0.333,0.000,,
-llama31-405b,dx-owner-3-deictic,3shot,all,1.000,120,0.333,0.000,,
-llama31-405b,dx-owner-3-deictic,3shot,free,1.000,40,0.333,0.000,,
-llama31-405b,dx-owner-3-third,0shot,all,0.900,120,0.333,0.027,,
-llama31-405b,dx-owner-3-third,0shot,free,0.850,40,0.333,0.057,,
-llama31-405b,dx-owner-3-third,3shot_collide,all,1.000,120,0.333,0.000,,
-llama31-405b,dx-owner-3-third,3shot_collide,free,1.000,40,0.333,0.000,,
-llama31-405b,dx-owner-3-third,3shot,all,1.000,120,0.333,0.000,,
-llama31-405b,dx-owner-3-third,3shot,free,1.000,40,0.333,0.000,,
-llama31-405b,dx-self-3-deictic,0shot,all,0.583,180,0.287,0.037,,other_object=0.044;previous_owner=0.072;speaker_confusion=0.261;tie=0.039
-llama31-405b,dx-self-3-deictic,0shot,free,0.548,126,0.286,0.044,,other_object=0.063;previous_owner=0.04;speaker_confusion=0.317;tie=0.032
-llama31-405b,dx-self-3-deictic,3shot_collide,all,0.983,180,0.287,0.009,,previous_owner=0.011;speaker_confusion=0.006
-llama31-405b,dx-self-3-deictic,3shot_collide,free,1.000,126,0.286,0.000,,
-llama31-405b,dx-self-3-deictic,3shot,all,0.961,180,0.287,0.014,,other_object=0.006;previous_owner=0.028;speaker_confusion=0.006
-llama31-405b,dx-self-3-deictic,3shot,free,0.992,126,0.286,0.008,,other_object=0.008
-llama31-405b,dx-self-3-third,0shot,all,0.956,180,0.287,0.015,,
-llama31-405b,dx-self-3-third,0shot,free,0.992,126,0.286,0.008,,
-llama31-405b,dx-self-3-third,3shot_collide,all,0.989,180,0.287,0.008,,
-llama31-405b,dx-self-3-third,3shot_collide,free,1.000,126,0.286,0.000,,
-llama31-405b,dx-self-3-third,3shot,all,0.994,180,0.287,0.005,,
-llama31-405b,dx-self-3-third,3shot,free,1.000,126,0.286,0.000,,
-llama31-405b,dx-self-2-deictic,0shot,all,0.422,180,0.287,0.037,,speaker_confusion=0.567;tie=0.011
-llama31-405b,dx-self-2-deictic,0shot,free,0.405,126,0.286,0.044,,speaker_confusion=0.587;tie=0.008
-llama31-405b,dx-self-2-deictic,3shot_collide,all,0.739,180,0.287,0.033,,speaker_confusion=0.244;tie=0.017
-llama31-405b,dx-self-2-deictic,3shot_collide,free,0.770,126,0.286,0.037,,speaker_confusion=0.214;tie=0.016
-llama31-405b,dx-self-2-deictic,3shot,all,0.706,180,0.287,0.034,,speaker_confusion=0.278;tie=0.017
-llama31-405b,dx-self-2-deictic,3shot,free,0.762,126,0.286,0.038,,speaker_confusion=0.23;tie=0.008
-llama31-405b,dx-self-2-third,0shot,all,0.956,180,0.287,0.015,,
-llama31-405b,dx-self-2-third,0shot,free,0.992,126,0.286,0.008,,
-llama31-405b,dx-self-2-third,3shot_collide,all,0.994,180,0.287,0.005,,
-llama31-405b,dx-self-2-third,3shot_collide,free,0.992,126,0.286,0.008,,
-llama31-405b,dx-self-2-third,3shot,all,0.989,180,0.287,0.008,,
-llama31-405b,dx-self-2-third,3shot,free,0.984,126,0.286,0.011,,
-llama31-405b,dx-addressee-3-deictic,0shot,all,0.444,180,0.287,0.037,,other_object=0.056;previous_owner=0.111;speaker_confusion=0.356;tie=0.033
-llama31-405b,dx-addressee-3-deictic,0shot,free,0.381,126,0.286,0.043,,other_object=0.071;previous_owner=0.143;speaker_confusion=0.365;tie=0.04
-llama31-405b,dx-addressee-3-deictic,3shot_collide,all,0.789,180,0.287,0.030,,other_object=0.039;previous_owner=0.039;speaker_confusion=0.133
-llama31-405b,dx-addressee-3-deictic,3shot_collide,free,0.809,126,0.286,0.035,,other_object=0.032;previous_owner=0.04;speaker_confusion=0.119
-llama31-405b,dx-addressee-3-deictic,3shot,all,0.767,180,0.287,0.032,,other_object=0.044;previous_owner=0.039;speaker_confusion=0.139;tie=0.011
-llama31-405b,dx-addressee-3-deictic,3shot,free,0.802,126,0.286,0.035,,other_object=0.032;previous_owner=0.048;speaker_confusion=0.111;tie=0.008
-llama31-405b,dx-addressee-3-third,0shot,all,0.972,180,0.287,0.012,,
-llama31-405b,dx-addressee-3-third,0shot,free,0.976,126,0.286,0.014,,
-llama31-405b,dx-addressee-3-third,3shot_collide,all,0.994,180,0.287,0.005,,
-llama31-405b,dx-addressee-3-third,3shot_collide,free,1.000,126,0.286,0.000,,
-llama31-405b,dx-addressee-3-third,3shot,all,0.994,180,0.287,0.005,,
-llama31-405b,dx-addressee-3-third,3shot,free,1.000,126,0.286,0.000,,
-llama31-405b,dx-addressee-2-deictic,0shot,all,0.322,180,0.287,0.035,,speaker_confusion=0.667;tie=0.011
-llama31-405b,dx-addressee-2-deictic,0shot,free,0.214,126,0.286,0.037,,speaker_confusion=0.77;tie=0.016
-llama31-405b,dx-addressee-2-deictic,3shot_collide,all,0.489,180,0.287,0.037,,speaker_confusion=0.489;tie=0.022
-llama31-405b,dx-addressee-2-deictic,3shot_collide,free,0.484,126,0.286,0.044,,speaker_confusion=0.492;tie=0.024
-llama31-405b,dx-addressee-2-deictic,3shot,all,0.483,180,0.287,0.037,,speaker_confusion=0.506;tie=0.011
-llama31-405b,dx-addressee-2-deictic,3shot,free,0.500,126,0.286,0.044,,speaker_confusion=0.492;tie=0.008
-llama31-405b,dx-addressee-2-third,0shot,all,0.961,180,0.287,0.014,,
-llama31-405b,dx-addressee-2-third,0shot,free,0.992,126,0.286,0.008,,
-llama31-405b,dx-addressee-2-third,3shot_collide,all,0.994,180,0.287,0.005,,
-llama31-405b,dx-addressee-2-third,3shot_collide,free,1.000,126,0.286,0.000,,
-llama31-405b,dx-addressee-2-third,3shot,all,0.994,180,0.287,0.005,,
-llama31-405b,dx-addressee-2-third,3shot,free,1.000,126,0.286,0.000,,
-llama31-405b,sb-k1,0shot,all,0.875,64,0.125,0.041,,
-llama31-405b,sb-k1,3shot_collide,all,1.000,64,0.125,0.000,,
-llama31-405b,sb-k1,3shot,all,1.000,64,0.125,0.000,,
-llama31-405b,sb-k23,0shot,all,0.758,128,0.027,0.038,,
-llama31-405b,sb-k23,3shot_collide,all,1.000,128,0.027,0.000,,
-llama31-405b,sb-k23,3shot,all,1.000,128,0.027,0.000,,
-llama31-405b,sb-split,0shot,all,0.812,128,0.027,0.035,,
-llama31-405b,sb-split,3shot_collide,all,0.992,128,0.027,0.008,,
-llama31-405b,sb-split,3shot,all,0.977,128,0.027,0.013,,
-llama31-405b,sb-dyn,0shot,all,0.840,256,0.027,0.023,,
-llama31-405b,sb-dyn,3shot_collide,all,0.926,256,0.027,0.016,,
-llama31-405b,sb-dyn,3shot,all,0.902,256,0.027,0.019,,
-llama31-405b,an-narr,0shot,all,0.736,640,0.250,0.017,,
-llama31-405b,an-narr,3shot_collide,all,1.000,640,0.250,0.000,,
-llama31-405b,an-narr,3shot,all,1.000,640,0.250,0.000,,
-llama31-405b,an-other-any,0shot,all,0.575,320,0.250,0.028,,
-llama31-405b,an-other-any,3shot_collide,all,0.991,320,0.250,0.005,,
-llama31-405b,an-other-any,3shot,all,0.984,320,0.250,0.007,,
-llama31-405b,an-me-any,0shot,all,0.650,160,0.250,0.038,,
-llama31-405b,an-me-any,3shot_collide,all,0.988,160,0.250,0.009,,
-llama31-405b,an-me-any,3shot,all,0.988,160,0.250,0.009,,
-llama31-405b,an-you-voc,0shot,all,0.138,80,0.250,0.038,,
-llama31-405b,an-you-voc,3shot_collide,all,0.988,80,0.250,0.012,,
-llama31-405b,an-you-voc,3shot,all,0.988,80,0.250,0.012,,
-llama31-405b,an-you-novoc,0shot,all,0.200,80,0.250,0.045,,
-llama31-405b,an-you-novoc,3shot_collide,all,0.863,80,0.250,0.038,,
-llama31-405b,an-you-novoc,3shot,all,0.925,80,0.250,0.029,,
-llama31-405b,adj-adj,0shot,all,1.000,260,0.333,0.000,,
-llama31-405b,adj-adj,3shot_collide,all,1.000,260,0.333,0.000,,
-llama31-405b,adj-adj,3shot,all,1.000,260,0.333,0.000,,
-llama31-405b,adj-voc,0shot,all,1.000,260,0.333,0.000,,
-llama31-405b,adj-voc,3shot_collide,all,1.000,260,0.333,0.000,,
-llama31-405b,adj-voc,3shot,all,1.000,260,0.333,0.000,,
-llama31-405b,adj-third,0shot,all,1.000,260,0.333,0.000,,
-llama31-405b,adj-third,3shot_collide,all,1.000,260,0.333,0.000,,
-llama31-405b,adj-third,3shot,all,1.000,260,0.333,0.000,,
-llama31-405b,cm-mutate,0shot,all,0.990,200,0.200,0.007,,
-llama31-405b,cm-mutate,3shot_collide,all,1.000,200,0.200,0.000,,
-llama31-405b,cm-mutate,3shot,all,1.000,200,0.200,0.000,,
-llama31-405b,cm-rebind,0shot,all,0.805,200,0.200,0.028,,
-llama31-405b,cm-rebind,3shot_collide,all,0.985,200,0.200,0.009,,
-llama31-405b,cm-rebind,3shot,all,0.995,200,0.200,0.005,,
-llama31-405b,cm-copy,0shot,all,0.830,200,0.200,0.027,,
-llama31-405b,cm-copy,3shot_collide,all,1.000,200,0.200,0.000,,
-llama31-405b,cm-copy,3shot,all,1.000,200,0.200,0.000,,
-dsv3-base,attr,0shot,all,0.678,1210,0.168,0.013,,
-dsv3-base,attr,3shot_collide,all,1.000,1210,0.168,0.000,,
-dsv3-base,attr,3shot,all,1.000,1210,0.168,0.000,,
-dsv3-base,codevar,0shot,all,0.876,1200,0.267,0.009,,
-dsv3-base,codevar,3shot_collide,all,0.924,1200,0.267,0.008,,
-dsv3-base,codevar,3shot,all,0.939,1200,0.267,0.007,,
-dsv3-base,dialogue,0shot,all,0.958,1200,0.312,0.006,,
-dsv3-base,dialogue,3shot_collide,all,0.991,1200,0.312,0.003,,
-dsv3-base,dialogue,3shot,all,0.986,1200,0.312,0.003,,
-dsv3-base,dx-owner-3-deictic,0shot,all,0.733,120,0.333,0.040,,other_participant=0.225;tie=0.042
-dsv3-base,dx-owner-3-deictic,0shot,free,0.650,40,0.333,0.075,,other_participant=0.325;tie=0.025
-dsv3-base,dx-owner-3-deictic,3shot_collide,all,0.983,120,0.333,0.012,,other_participant=0.017
-dsv3-base,dx-owner-3-deictic,3shot_collide,free,1.000,40,0.333,0.000,,
-dsv3-base,dx-owner-3-deictic,3shot,all,0.992,120,0.333,0.008,,other_participant=0.008
-dsv3-base,dx-owner-3-deictic,3shot,free,1.000,40,0.333,0.000,,
-dsv3-base,dx-owner-3-third,0shot,all,0.800,120,0.333,0.036,,
-dsv3-base,dx-owner-3-third,0shot,free,0.750,40,0.333,0.069,,
-dsv3-base,dx-owner-3-third,3shot_collide,all,1.000,120,0.333,0.000,,
-dsv3-base,dx-owner-3-third,3shot_collide,free,1.000,40,0.333,0.000,,
-dsv3-base,dx-owner-3-third,3shot,all,0.992,120,0.333,0.008,,
-dsv3-base,dx-owner-3-third,3shot,free,1.000,40,0.333,0.000,,
-dsv3-base,dx-self-3-deictic,0shot,all,0.483,180,0.287,0.037,,other_object=0.072;previous_owner=0.072;speaker_confusion=0.344;tie=0.028
-dsv3-base,dx-self-3-deictic,0shot,free,0.405,126,0.286,0.044,,other_object=0.079;previous_owner=0.063;speaker_confusion=0.421;tie=0.032
-dsv3-base,dx-self-3-deictic,3shot_collide,all,0.806,180,0.287,0.029,,other_object=0.017;previous_owner=0.05;speaker_confusion=0.106;tie=0.022
-dsv3-base,dx-self-3-deictic,3shot_collide,free,0.809,126,0.286,0.035,,other_object=0.024;previous_owner=0.032;speaker_confusion=0.111;tie=0.024
-dsv3-base,dx-self-3-deictic,3shot,all,0.739,180,0.287,0.033,,other_object=0.033;previous_owner=0.067;speaker_confusion=0.139;tie=0.022
-dsv3-base,dx-self-3-deictic,3shot,free,0.746,126,0.286,0.039,,other_object=0.048;previous_owner=0.056;speaker_confusion=0.135;tie=0.016
-dsv3-base,dx-self-3-third,0shot,all,0.922,180,0.287,0.020,,
-dsv3-base,dx-self-3-third,0shot,free,0.960,126,0.286,0.017,,
-dsv3-base,dx-self-3-third,3shot_collide,all,0.989,180,0.287,0.008,,
-dsv3-base,dx-self-3-third,3shot_collide,free,0.992,126,0.286,0.008,,
-dsv3-base,dx-self-3-third,3shot,all,0.994,180,0.287,0.005,,
-dsv3-base,dx-self-3-third,3shot,free,1.000,126,0.286,0.000,,
-dsv3-base,dx-self-2-deictic,0shot,all,0.322,180,0.287,0.035,,speaker_confusion=0.639;tie=0.039
-dsv3-base,dx-self-2-deictic,0shot,free,0.270,126,0.286,0.040,,speaker_confusion=0.69;tie=0.04
-dsv3-base,dx-self-2-deictic,3shot_collide,all,0.656,180,0.287,0.035,,speaker_confusion=0.339;tie=0.006
-dsv3-base,dx-self-2-deictic,3shot_collide,free,0.691,126,0.286,0.041,,speaker_confusion=0.31
-dsv3-base,dx-self-2-deictic,3shot,all,0.606,180,0.287,0.036,,speaker_confusion=0.367;tie=0.028
-dsv3-base,dx-self-2-deictic,3shot,free,0.659,126,0.286,0.042,,speaker_confusion=0.317;tie=0.024
-dsv3-base,dx-self-2-third,0shot,all,0.956,180,0.287,0.015,,
-dsv3-base,dx-self-2-third,0shot,free,0.968,126,0.286,0.016,,
-dsv3-base,dx-self-2-third,3shot_collide,all,0.983,180,0.287,0.009,,
-dsv3-base,dx-self-2-third,3shot_collide,free,0.992,126,0.286,0.008,,
-dsv3-base,dx-self-2-third,3shot,all,0.972,180,0.287,0.012,,
-dsv3-base,dx-self-2-third,3shot,free,0.976,126,0.286,0.014,,
-dsv3-base,dx-addressee-3-deictic,0shot,all,0.539,180,0.287,0.037,,other_object=0.083;previous_owner=0.072;speaker_confusion=0.272;tie=0.033
-dsv3-base,dx-addressee-3-deictic,0shot,free,0.476,126,0.286,0.044,,other_object=0.095;previous_owner=0.095;speaker_confusion=0.31;tie=0.024
-dsv3-base,dx-addressee-3-deictic,3shot_collide,all,0.633,180,0.287,0.036,,other_object=0.05;previous_owner=0.094;speaker_confusion=0.206;tie=0.017
-dsv3-base,dx-addressee-3-deictic,3shot_collide,free,0.619,126,0.286,0.043,,other_object=0.024;previous_owner=0.119;speaker_confusion=0.214;tie=0.024
-dsv3-base,dx-addressee-3-deictic,3shot,all,0.600,180,0.287,0.036,,other_object=0.061;previous_owner=0.083;speaker_confusion=0.25;tie=0.006
-dsv3-base,dx-addressee-3-deictic,3shot,free,0.595,126,0.286,0.044,,other_object=0.04;previous_owner=0.103;speaker_confusion=0.262
-dsv3-base,dx-addressee-3-third,0shot,all,0.933,180,0.287,0.019,,
-dsv3-base,dx-addressee-3-third,0shot,free,0.936,126,0.286,0.022,,
-dsv3-base,dx-addressee-3-third,3shot_collide,all,0.994,180,0.287,0.005,,
-dsv3-base,dx-addressee-3-third,3shot_collide,free,0.992,126,0.286,0.008,,
-dsv3-base,dx-addressee-3-third,3shot,all,0.994,180,0.287,0.005,,
-dsv3-base,dx-addressee-3-third,3shot,free,0.992,126,0.286,0.008,,
-dsv3-base,dx-addressee-2-deictic,0shot,all,0.311,180,0.287,0.035,,speaker_confusion=0.644;tie=0.044
-dsv3-base,dx-addressee-2-deictic,0shot,free,0.214,126,0.286,0.037,,speaker_confusion=0.754;tie=0.032
-dsv3-base,dx-addressee-2-deictic,3shot_collide,all,0.356,180,0.287,0.036,,speaker_confusion=0.628;tie=0.017
-dsv3-base,dx-addressee-2-deictic,3shot_collide,free,0.357,126,0.286,0.043,,speaker_confusion=0.627;tie=0.016
-dsv3-base,dx-addressee-2-deictic,3shot,all,0.378,180,0.287,0.036,,speaker_confusion=0.6;tie=0.022
-dsv3-base,dx-addressee-2-deictic,3shot,free,0.365,126,0.286,0.043,,speaker_confusion=0.611;tie=0.024
-dsv3-base,dx-addressee-2-third,0shot,all,0.906,180,0.287,0.022,,
-dsv3-base,dx-addressee-2-third,0shot,free,0.952,126,0.286,0.019,,
-dsv3-base,dx-addressee-2-third,3shot_collide,all,0.989,180,0.287,0.008,,
-dsv3-base,dx-addressee-2-third,3shot_collide,free,0.984,126,0.286,0.011,,
-dsv3-base,dx-addressee-2-third,3shot,all,0.983,180,0.287,0.009,,
-dsv3-base,dx-addressee-2-third,3shot,free,0.992,126,0.286,0.008,,
-dsv3-base,sb-k1,0shot,all,0.875,64,0.125,0.041,,
-dsv3-base,sb-k1,3shot_collide,all,1.000,64,0.125,0.000,,
-dsv3-base,sb-k1,3shot,all,1.000,64,0.125,0.000,,
-dsv3-base,sb-k23,0shot,all,0.703,128,0.027,0.040,,
-dsv3-base,sb-k23,3shot_collide,all,1.000,128,0.027,0.000,,
-dsv3-base,sb-k23,3shot,all,1.000,128,0.027,0.000,,
-dsv3-base,sb-split,0shot,all,0.680,128,0.027,0.041,,
-dsv3-base,sb-split,3shot_collide,all,0.977,128,0.027,0.013,,
-dsv3-base,sb-split,3shot,all,0.984,128,0.027,0.011,,
-dsv3-base,sb-dyn,0shot,all,0.867,256,0.027,0.021,,
-dsv3-base,sb-dyn,3shot_collide,all,0.836,256,0.027,0.023,,
-dsv3-base,sb-dyn,3shot,all,0.836,256,0.027,0.023,,
-dsv3-base,an-narr,0shot,all,0.698,640,0.250,0.018,,
-dsv3-base,an-narr,3shot_collide,all,0.989,640,0.250,0.004,,
-dsv3-base,an-narr,3shot,all,0.992,640,0.250,0.004,,
-dsv3-base,an-other-any,0shot,all,0.594,320,0.250,0.028,,
-dsv3-base,an-other-any,3shot_collide,all,0.928,320,0.250,0.014,,
-dsv3-base,an-other-any,3shot,all,0.928,320,0.250,0.014,,
-dsv3-base,an-me-any,0shot,all,0.581,160,0.250,0.039,,
-dsv3-base,an-me-any,3shot_collide,all,0.850,160,0.250,0.028,,
-dsv3-base,an-me-any,3shot,all,0.863,160,0.250,0.027,,
-dsv3-base,an-you-voc,0shot,all,0.600,80,0.250,0.055,,
-dsv3-base,an-you-voc,3shot_collide,all,0.912,80,0.250,0.032,,
-dsv3-base,an-you-voc,3shot,all,0.938,80,0.250,0.027,,
-dsv3-base,an-you-novoc,0shot,all,0.388,80,0.250,0.054,,
-dsv3-base,an-you-novoc,3shot_collide,all,0.688,80,0.250,0.052,,
-dsv3-base,an-you-novoc,3shot,all,0.787,80,0.250,0.046,,
-dsv3-base,adj-adj,0shot,all,0.962,260,0.333,0.012,,
-dsv3-base,adj-adj,3shot_collide,all,1.000,260,0.333,0.000,,
-dsv3-base,adj-adj,3shot,all,1.000,260,0.333,0.000,,
-dsv3-base,adj-voc,0shot,all,0.969,260,0.333,0.011,,
-dsv3-base,adj-voc,3shot_collide,all,1.000,260,0.333,0.000,,
-dsv3-base,adj-voc,3shot,all,1.000,260,0.333,0.000,,
-dsv3-base,adj-third,0shot,all,0.992,260,0.333,0.005,,
-dsv3-base,adj-third,3shot_collide,all,1.000,260,0.333,0.000,,
-dsv3-base,adj-third,3shot,all,1.000,260,0.333,0.000,,
-dsv3-base,cm-mutate,0shot,all,0.955,200,0.200,0.015,,
-dsv3-base,cm-mutate,3shot_collide,all,0.995,200,0.200,0.005,,
-dsv3-base,cm-mutate,3shot,all,1.000,200,0.200,0.000,,
-dsv3-base,cm-rebind,0shot,all,0.940,200,0.200,0.017,,
-dsv3-base,cm-rebind,3shot_collide,all,1.000,200,0.200,0.000,,
-dsv3-base,cm-rebind,3shot,all,1.000,200,0.200,0.000,,
-dsv3-base,cm-copy,0shot,all,0.905,200,0.200,0.021,,
-dsv3-base,cm-copy,3shot_collide,all,1.000,200,0.200,0.000,,
-dsv3-base,cm-copy,3shot,all,1.000,200,0.200,0.000,,
-dsv4-pro-base,attr,0shot,all,0.676,1210,0.168,0.013,,
-dsv4-pro-base,attr,3shot_collide,all,1.000,1210,0.168,0.000,,
-dsv4-pro-base,attr,3shot,all,0.998,1210,0.168,0.001,,
-dsv4-pro-base,codevar,0shot,all,0.872,1200,0.267,0.010,,
-dsv4-pro-base,codevar,3shot_collide,all,0.926,1200,0.267,0.008,,
-dsv4-pro-base,codevar,3shot,all,0.912,1200,0.267,0.008,,
-dsv4-pro-base,dialogue,0shot,all,0.956,1200,0.312,0.006,,
-dsv4-pro-base,dialogue,3shot_collide,all,0.992,1200,0.312,0.003,,
-dsv4-pro-base,dialogue,3shot,all,0.990,1200,0.312,0.003,,
-dsv4-pro-base,dx-owner-3-deictic,0shot,all,0.642,120,0.333,0.044,,other_participant=0.35;tie=0.008
-dsv4-pro-base,dx-owner-3-deictic,0shot,free,0.500,40,0.333,0.079,,other_participant=0.475;tie=0.025
-dsv4-pro-base,dx-owner-3-deictic,3shot_collide,all,1.000,120,0.333,0.000,,
-dsv4-pro-base,dx-owner-3-deictic,3shot_collide,free,1.000,40,0.333,0.000,,
-dsv4-pro-base,dx-owner-3-deictic,3shot,all,1.000,120,0.333,0.000,,
-dsv4-pro-base,dx-owner-3-deictic,3shot,free,1.000,40,0.333,0.000,,
-dsv4-pro-base,dx-owner-3-third,0shot,all,0.758,120,0.333,0.039,,
-dsv4-pro-base,dx-owner-3-third,0shot,free,0.650,40,0.333,0.075,,
-dsv4-pro-base,dx-owner-3-third,3shot_collide,all,1.000,120,0.333,0.000,,
-dsv4-pro-base,dx-owner-3-third,3shot_collide,free,1.000,40,0.333,0.000,,
-dsv4-pro-base,dx-owner-3-third,3shot,all,0.992,120,0.333,0.008,,
-dsv4-pro-base,dx-owner-3-third,3shot,free,1.000,40,0.333,0.000,,
-dsv4-pro-base,dx-self-3-deictic,0shot,all,0.372,180,0.287,0.036,,other_object=0.256;previous_owner=0.028;speaker_confusion=0.272;tie=0.072
-dsv4-pro-base,dx-self-3-deictic,0shot,free,0.397,126,0.286,0.044,,other_object=0.278;previous_owner=0.016;speaker_confusion=0.222;tie=0.087
-dsv4-pro-base,dx-self-3-deictic,3shot_collide,all,0.933,180,0.287,0.019,,previous_owner=0.017;speaker_confusion=0.05
-dsv4-pro-base,dx-self-3-deictic,3shot_collide,free,0.921,126,0.286,0.024,,previous_owner=0.016;speaker_confusion=0.063
-dsv4-pro-base,dx-self-3-deictic,3shot,all,0.894,180,0.287,0.023,,other_object=0.011;previous_owner=0.022;speaker_confusion=0.067;tie=0.006
-dsv4-pro-base,dx-self-3-deictic,3shot,free,0.897,126,0.286,0.027,,other_object=0.016;previous_owner=0.016;speaker_confusion=0.071
-dsv4-pro-base,dx-self-3-third,0shot,all,0.883,180,0.287,0.024,,
-dsv4-pro-base,dx-self-3-third,0shot,free,0.889,126,0.286,0.028,,
-dsv4-pro-base,dx-self-3-third,3shot_collide,all,1.000,180,0.287,0.000,,
-dsv4-pro-base,dx-self-3-third,3shot_collide,free,1.000,126,0.286,0.000,,
-dsv4-pro-base,dx-self-3-third,3shot,all,0.983,180,0.287,0.009,,
-dsv4-pro-base,dx-self-3-third,3shot,free,0.992,126,0.286,0.008,,
-dsv4-pro-base,dx-self-2-deictic,0shot,all,0.444,180,0.287,0.037,,speaker_confusion=0.522;tie=0.033
-dsv4-pro-base,dx-self-2-deictic,0shot,free,0.476,126,0.286,0.044,,speaker_confusion=0.508;tie=0.016
-dsv4-pro-base,dx-self-2-deictic,3shot_collide,all,0.789,180,0.287,0.030,,speaker_confusion=0.194;tie=0.017
-dsv4-pro-base,dx-self-2-deictic,3shot_collide,free,0.818,126,0.286,0.034,,speaker_confusion=0.159;tie=0.024
-dsv4-pro-base,dx-self-2-deictic,3shot,all,0.767,180,0.287,0.032,,speaker_confusion=0.233
-dsv4-pro-base,dx-self-2-deictic,3shot,free,0.778,126,0.286,0.037,,speaker_confusion=0.222
-dsv4-pro-base,dx-self-2-third,0shot,all,0.956,180,0.287,0.015,,
-dsv4-pro-base,dx-self-2-third,0shot,free,0.944,126,0.286,0.020,,
-dsv4-pro-base,dx-self-2-third,3shot_collide,all,0.967,180,0.287,0.013,,
-dsv4-pro-base,dx-self-2-third,3shot_collide,free,0.984,126,0.286,0.011,,
-dsv4-pro-base,dx-self-2-third,3shot,all,0.978,180,0.287,0.011,,
-dsv4-pro-base,dx-self-2-third,3shot,free,1.000,126,0.286,0.000,,
-dsv4-pro-base,dx-addressee-3-deictic,0shot,all,0.233,180,0.287,0.032,,other_object=0.267;previous_owner=0.022;speaker_confusion=0.444;tie=0.033
-dsv4-pro-base,dx-addressee-3-deictic,0shot,free,0.294,126,0.286,0.041,,other_object=0.27;previous_owner=0.008;speaker_confusion=0.397;tie=0.032
-dsv4-pro-base,dx-addressee-3-deictic,3shot_collide,all,0.511,180,0.287,0.037,,other_object=0.072;previous_owner=0.078;speaker_confusion=0.339
-dsv4-pro-base,dx-addressee-3-deictic,3shot_collide,free,0.484,126,0.286,0.044,,other_object=0.079;previous_owner=0.103;speaker_confusion=0.333
-dsv4-pro-base,dx-addressee-3-deictic,3shot,all,0.511,180,0.287,0.037,,other_object=0.056;previous_owner=0.056;speaker_confusion=0.372;tie=0.006
-dsv4-pro-base,dx-addressee-3-deictic,3shot,free,0.492,126,0.286,0.044,,other_object=0.048;previous_owner=0.079;speaker_confusion=0.373;tie=0.008
-dsv4-pro-base,dx-addressee-3-third,0shot,all,0.911,180,0.287,0.021,,
-dsv4-pro-base,dx-addressee-3-third,0shot,free,0.905,126,0.286,0.026,,
-dsv4-pro-base,dx-addressee-3-third,3shot_collide,all,1.000,180,0.287,0.000,,
-dsv4-pro-base,dx-addressee-3-third,3shot_collide,free,1.000,126,0.286,0.000,,
-dsv4-pro-base,dx-addressee-3-third,3shot,all,1.000,180,0.287,0.000,,
-dsv4-pro-base,dx-addressee-3-third,3shot,free,1.000,126,0.286,0.000,,
-dsv4-pro-base,dx-addressee-2-deictic,0shot,all,0.289,180,0.287,0.034,,speaker_confusion=0.644;tie=0.067
-dsv4-pro-base,dx-addressee-2-deictic,0shot,free,0.309,126,0.286,0.041,,speaker_confusion=0.603;tie=0.087
-dsv4-pro-base,dx-addressee-2-deictic,3shot_collide,all,0.361,180,0.287,0.036,,speaker_confusion=0.611;tie=0.028
-dsv4-pro-base,dx-addressee-2-deictic,3shot_collide,free,0.357,126,0.286,0.043,,speaker_confusion=0.619;tie=0.024
-dsv4-pro-base,dx-addressee-2-deictic,3shot,all,0.411,180,0.287,0.037,,speaker_confusion=0.561;tie=0.028
-dsv4-pro-base,dx-addressee-2-deictic,3shot,free,0.397,126,0.286,0.044,,speaker_confusion=0.571;tie=0.032
-dsv4-pro-base,dx-addressee-2-third,0shot,all,0.967,180,0.287,0.013,,
-dsv4-pro-base,dx-addressee-2-third,0shot,free,0.960,126,0.286,0.017,,
-dsv4-pro-base,dx-addressee-2-third,3shot_collide,all,0.967,180,0.287,0.013,,
-dsv4-pro-base,dx-addressee-2-third,3shot_collide,free,0.992,126,0.286,0.008,,
-dsv4-pro-base,dx-addressee-2-third,3shot,all,0.967,180,0.287,0.013,,
-dsv4-pro-base,dx-addressee-2-third,3shot,free,0.984,126,0.286,0.011,,
-dsv4-pro-base,sb-k1,0shot,all,0.938,64,0.125,0.030,,
-dsv4-pro-base,sb-k1,3shot_collide,all,1.000,64,0.125,0.000,,
-dsv4-pro-base,sb-k1,3shot,all,1.000,64,0.125,0.000,,
-dsv4-pro-base,sb-k23,0shot,all,0.711,128,0.027,0.040,,
-dsv4-pro-base,sb-k23,3shot_collide,all,1.000,128,0.027,0.000,,
-dsv4-pro-base,sb-k23,3shot,all,1.000,128,0.027,0.000,,
-dsv4-pro-base,sb-split,0shot,all,0.898,128,0.027,0.027,,
-dsv4-pro-base,sb-split,3shot_collide,all,0.914,128,0.027,0.025,,
-dsv4-pro-base,sb-split,3shot,all,0.914,128,0.027,0.025,,
-dsv4-pro-base,sb-dyn,0shot,all,0.883,256,0.027,0.020,,
-dsv4-pro-base,sb-dyn,3shot_collide,all,0.883,256,0.027,0.020,,
-dsv4-pro-base,sb-dyn,3shot,all,0.863,256,0.027,0.021,,
-dsv4-pro-base,an-narr,0shot,all,0.494,640,0.250,0.020,,
-dsv4-pro-base,an-narr,3shot_collide,all,1.000,640,0.250,0.000,,
-dsv4-pro-base,an-narr,3shot,all,1.000,640,0.250,0.000,,
-dsv4-pro-base,an-other-any,0shot,all,0.175,320,0.250,0.021,,
-dsv4-pro-base,an-other-any,3shot_collide,all,0.969,320,0.250,0.010,,
-dsv4-pro-base,an-other-any,3shot,all,0.959,320,0.250,0.011,,
-dsv4-pro-base,an-me-any,0shot,all,0.400,160,0.250,0.039,,
-dsv4-pro-base,an-me-any,3shot_collide,all,0.981,160,0.250,0.011,,
-dsv4-pro-base,an-me-any,3shot,all,0.988,160,0.250,0.009,,
-dsv4-pro-base,an-you-voc,0shot,all,0.375,80,0.250,0.054,,
-dsv4-pro-base,an-you-voc,3shot_collide,all,0.938,80,0.250,0.027,,
-dsv4-pro-base,an-you-voc,3shot,all,0.887,80,0.250,0.035,,
-dsv4-pro-base,an-you-novoc,0shot,all,0.838,80,0.250,0.041,,
-dsv4-pro-base,an-you-novoc,3shot_collide,all,0.613,80,0.250,0.054,,
-dsv4-pro-base,an-you-novoc,3shot,all,0.525,80,0.250,0.056,,
-dsv4-pro-base,adj-adj,0shot,all,0.977,260,0.333,0.009,,
-dsv4-pro-base,adj-adj,3shot_collide,all,1.000,260,0.333,0.000,,
-dsv4-pro-base,adj-adj,3shot,all,1.000,260,0.333,0.000,,
-dsv4-pro-base,adj-voc,0shot,all,0.996,260,0.333,0.004,,
-dsv4-pro-base,adj-voc,3shot_collide,all,1.000,260,0.333,0.000,,
-dsv4-pro-base,adj-voc,3shot,all,1.000,260,0.333,0.000,,
-dsv4-pro-base,adj-third,0shot,all,1.000,260,0.333,0.000,,
-dsv4-pro-base,adj-third,3shot_collide,all,1.000,260,0.333,0.000,,
-dsv4-pro-base,adj-third,3shot,all,1.000,260,0.333,0.000,,
-dsv4-pro-base,cm-mutate,0shot,all,0.995,200,0.200,0.005,,
-dsv4-pro-base,cm-mutate,3shot_collide,all,1.000,200,0.200,0.000,,
-dsv4-pro-base,cm-mutate,3shot,all,1.000,200,0.200,0.000,,
-dsv4-pro-base,cm-rebind,0shot,all,0.885,200,0.200,0.023,,
-dsv4-pro-base,cm-rebind,3shot_collide,all,1.000,200,0.200,0.000,,
-dsv4-pro-base,cm-rebind,3shot,all,1.000,200,0.200,0.000,,
-dsv4-pro-base,cm-copy,0shot,all,0.980,200,0.200,0.010,,
-dsv4-pro-base,cm-copy,3shot_collide,all,1.000,200,0.200,0.000,,
-dsv4-pro-base,cm-copy,3shot,all,1.000,200,0.200,0.000,,
-kimi-k2-base,attr,0shot,all,0.973,1210,0.168,0.005,,
-kimi-k2-base,attr,3shot_collide,all,1.000,1210,0.168,0.000,,
-kimi-k2-base,attr,3shot,all,1.000,1210,0.168,0.000,,
-kimi-k2-base,codevar,0shot,all,0.891,1200,0.267,0.009,,
-kimi-k2-base,codevar,3shot_collide,all,0.954,1200,0.267,0.006,,
-kimi-k2-base,codevar,3shot,all,0.927,1200,0.267,0.007,,
-kimi-k2-base,dialogue,0shot,all,0.975,1200,0.312,0.004,,
-kimi-k2-base,dialogue,3shot_collide,all,0.990,1200,0.312,0.003,,
-kimi-k2-base,dialogue,3shot,all,0.989,1200,0.312,0.003,,
-kimi-k2-base,dx-owner-3-deictic,0shot,all,0.758,120,0.333,0.039,,other_participant=0.2;speaker_confusion=0.033;tie=0.008
-kimi-k2-base,dx-owner-3-deictic,0shot,free,0.675,40,0.333,0.074,,other_participant=0.325
-kimi-k2-base,dx-owner-3-deictic,3shot_collide,all,0.992,120,0.333,0.008,,other_participant=0.008
-kimi-k2-base,dx-owner-3-deictic,3shot_collide,free,1.000,40,0.333,0.000,,
-kimi-k2-base,dx-owner-3-deictic,3shot,all,1.000,120,0.333,0.000,,
-kimi-k2-base,dx-owner-3-deictic,3shot,free,1.000,40,0.333,0.000,,
-kimi-k2-base,dx-owner-3-third,0shot,all,1.000,120,0.333,0.000,,
-kimi-k2-base,dx-owner-3-third,0shot,free,1.000,40,0.333,0.000,,
-kimi-k2-base,dx-owner-3-third,3shot_collide,all,1.000,120,0.333,0.000,,
-kimi-k2-base,dx-owner-3-third,3shot_collide,free,1.000,40,0.333,0.000,,
-kimi-k2-base,dx-owner-3-third,3shot,all,1.000,120,0.333,0.000,,
-kimi-k2-base,dx-owner-3-third,3shot,free,1.000,40,0.333,0.000,,
-kimi-k2-base,dx-self-3-deictic,0shot,all,0.406,180,0.287,0.037,,other_object=0.1;previous_owner=0.078;speaker_confusion=0.378;tie=0.039
-kimi-k2-base,dx-self-3-deictic,0shot,free,0.389,126,0.286,0.043,,other_object=0.103;previous_owner=0.04;speaker_confusion=0.429;tie=0.04
-kimi-k2-base,dx-self-3-deictic,3shot_collide,all,0.900,180,0.287,0.022,,other_object=0.028;previous_owner=0.017;speaker_confusion=0.05;tie=0.006
-kimi-k2-base,dx-self-3-deictic,3shot_collide,free,0.905,126,0.286,0.026,,other_object=0.04;previous_owner=0.016;speaker_confusion=0.04
-kimi-k2-base,dx-self-3-deictic,3shot,all,0.922,180,0.287,0.020,,other_object=0.011;previous_owner=0.022;speaker_confusion=0.039;tie=0.006
-kimi-k2-base,dx-self-3-deictic,3shot,free,0.905,126,0.286,0.026,,other_object=0.016;previous_owner=0.032;speaker_confusion=0.04;tie=0.008
-kimi-k2-base,dx-self-3-third,0shot,all,0.906,180,0.287,0.022,,
-kimi-k2-base,dx-self-3-third,0shot,free,0.952,126,0.286,0.019,,
-kimi-k2-base,dx-self-3-third,3shot_collide,all,0.983,180,0.287,0.009,,
-kimi-k2-base,dx-self-3-third,3shot_collide,free,0.992,126,0.286,0.008,,
-kimi-k2-base,dx-self-3-third,3shot,all,0.978,180,0.287,0.011,,
-kimi-k2-base,dx-self-3-third,3shot,free,1.000,126,0.286,0.000,,
-kimi-k2-base,dx-self-2-deictic,0shot,all,0.317,180,0.287,0.035,,speaker_confusion=0.672;tie=0.011
-kimi-k2-base,dx-self-2-deictic,0shot,free,0.325,126,0.286,0.042,,speaker_confusion=0.667;tie=0.008
-kimi-k2-base,dx-self-2-deictic,3shot_collide,all,0.656,180,0.287,0.035,,speaker_confusion=0.344
-kimi-k2-base,dx-self-2-deictic,3shot_collide,free,0.675,126,0.286,0.042,,speaker_confusion=0.325
-kimi-k2-base,dx-self-2-deictic,3shot,all,0.678,180,0.287,0.035,,speaker_confusion=0.3;tie=0.022
-kimi-k2-base,dx-self-2-deictic,3shot,free,0.682,126,0.286,0.042,,speaker_confusion=0.294;tie=0.024
-kimi-k2-base,dx-self-2-third,0shot,all,0.900,180,0.287,0.022,,
-kimi-k2-base,dx-self-2-third,0shot,free,0.936,126,0.286,0.022,,
-kimi-k2-base,dx-self-2-third,3shot_collide,all,0.967,180,0.287,0.013,,
-kimi-k2-base,dx-self-2-third,3shot_collide,free,0.968,126,0.286,0.016,,
-kimi-k2-base,dx-self-2-third,3shot,all,0.972,180,0.287,0.012,,
-kimi-k2-base,dx-self-2-third,3shot,free,0.968,126,0.286,0.016,,
-kimi-k2-base,dx-addressee-3-deictic,0shot,all,0.428,180,0.287,0.037,,other_object=0.072;previous_owner=0.161;speaker_confusion=0.328;tie=0.011
-kimi-k2-base,dx-addressee-3-deictic,0shot,free,0.389,126,0.286,0.043,,other_object=0.04;previous_owner=0.19;speaker_confusion=0.373;tie=0.008
-kimi-k2-base,dx-addressee-3-deictic,3shot_collide,all,0.700,180,0.287,0.034,,other_object=0.011;previous_owner=0.05;speaker_confusion=0.233;tie=0.006
-kimi-k2-base,dx-addressee-3-deictic,3shot_collide,free,0.682,126,0.286,0.042,,other_object=0.008;previous_owner=0.056;speaker_confusion=0.246;tie=0.008
-kimi-k2-base,dx-addressee-3-deictic,3shot,all,0.733,180,0.287,0.033,,other_object=0.011;previous_owner=0.044;speaker_confusion=0.189;tie=0.022
-kimi-k2-base,dx-addressee-3-deictic,3shot,free,0.738,126,0.286,0.039,,other_object=0.008;previous_owner=0.056;speaker_confusion=0.19;tie=0.008
-kimi-k2-base,dx-addressee-3-third,0shot,all,0.944,180,0.287,0.017,,
-kimi-k2-base,dx-addressee-3-third,0shot,free,0.968,126,0.286,0.016,,
-kimi-k2-base,dx-addressee-3-third,3shot_collide,all,0.983,180,0.287,0.009,,
-kimi-k2-base,dx-addressee-3-third,3shot_collide,free,0.992,126,0.286,0.008,,
-kimi-k2-base,dx-addressee-3-third,3shot,all,1.000,180,0.287,0.000,,
-kimi-k2-base,dx-addressee-3-third,3shot,free,1.000,126,0.286,0.000,,
-kimi-k2-base,dx-addressee-2-deictic,0shot,all,0.306,180,0.287,0.034,,speaker_confusion=0.656;tie=0.039
-kimi-k2-base,dx-addressee-2-deictic,0shot,free,0.254,126,0.286,0.039,,speaker_confusion=0.698;tie=0.048
-kimi-k2-base,dx-addressee-2-deictic,3shot_collide,all,0.383,180,0.287,0.036,,speaker_confusion=0.572;tie=0.044
-kimi-k2-base,dx-addressee-2-deictic,3shot_collide,free,0.397,126,0.286,0.044,,speaker_confusion=0.548;tie=0.056
-kimi-k2-base,dx-addressee-2-deictic,3shot,all,0.422,180,0.287,0.037,,speaker_confusion=0.556;tie=0.022
-kimi-k2-base,dx-addressee-2-deictic,3shot,free,0.436,126,0.286,0.044,,speaker_confusion=0.532;tie=0.032
-kimi-k2-base,dx-addressee-2-third,0shot,all,0.883,180,0.287,0.024,,
-kimi-k2-base,dx-addressee-2-third,0shot,free,0.929,126,0.286,0.023,,
-kimi-k2-base,dx-addressee-2-third,3shot_collide,all,0.961,180,0.287,0.014,,
-kimi-k2-base,dx-addressee-2-third,3shot_collide,free,0.976,126,0.286,0.014,,
-kimi-k2-base,dx-addressee-2-third,3shot,all,0.978,180,0.287,0.011,,
-kimi-k2-base,dx-addressee-2-third,3shot,free,0.984,126,0.286,0.011,,
-kimi-k2-base,sb-k1,0shot,all,1.000,64,0.125,0.000,,
-kimi-k2-base,sb-k1,3shot_collide,all,1.000,64,0.125,0.000,,
-kimi-k2-base,sb-k1,3shot,all,1.000,64,0.125,0.000,,
-kimi-k2-base,sb-k23,0shot,all,0.930,128,0.027,0.023,,
-kimi-k2-base,sb-k23,3shot_collide,all,1.000,128,0.027,0.000,,
-kimi-k2-base,sb-k23,3shot,all,1.000,128,0.027,0.000,,
-kimi-k2-base,sb-split,0shot,all,0.828,128,0.027,0.033,,
-kimi-k2-base,sb-split,3shot_collide,all,1.000,128,0.027,0.000,,
-kimi-k2-base,sb-split,3shot,all,0.992,128,0.027,0.008,,
-kimi-k2-base,sb-dyn,0shot,all,0.742,256,0.027,0.027,,
-kimi-k2-base,sb-dyn,3shot_collide,all,0.879,256,0.027,0.020,,
-kimi-k2-base,sb-dyn,3shot,all,0.840,256,0.027,0.023,,
-kimi-k2-base,an-narr,0shot,all,0.727,640,0.250,0.018,,
-kimi-k2-base,an-narr,3shot_collide,all,0.998,640,0.250,0.002,,
-kimi-k2-base,an-narr,3shot,all,0.998,640,0.250,0.002,,
-kimi-k2-base,an-other-any,0shot,all,0.247,320,0.250,0.024,,
-kimi-k2-base,an-other-any,3shot_collide,all,0.984,320,0.250,0.007,,
-kimi-k2-base,an-other-any,3shot,all,0.969,320,0.250,0.010,,
-kimi-k2-base,an-me-any,0shot,all,0.525,160,0.250,0.040,,
-kimi-k2-base,an-me-any,3shot_collide,all,0.906,160,0.250,0.023,,
-kimi-k2-base,an-me-any,3shot,all,0.938,160,0.250,0.019,,
-kimi-k2-base,an-you-voc,0shot,all,0.838,80,0.250,0.041,,
-kimi-k2-base,an-you-voc,3shot_collide,all,0.988,80,0.250,0.012,,
-kimi-k2-base,an-you-voc,3shot,all,0.975,80,0.250,0.018,,
-kimi-k2-base,an-you-novoc,0shot,all,0.925,80,0.250,0.029,,
-kimi-k2-base,an-you-novoc,3shot_collide,all,0.938,80,0.250,0.027,,
-kimi-k2-base,an-you-novoc,3shot,all,0.912,80,0.250,0.032,,
-kimi-k2-base,adj-adj,0shot,all,0.942,260,0.333,0.015,,
-kimi-k2-base,adj-adj,3shot_collide,all,1.000,260,0.333,0.000,,
-kimi-k2-base,adj-adj,3shot,all,1.000,260,0.333,0.000,,
-kimi-k2-base,adj-voc,0shot,all,0.977,260,0.333,0.009,,
-kimi-k2-base,adj-voc,3shot_collide,all,1.000,260,0.333,0.000,,
-kimi-k2-base,adj-voc,3shot,all,1.000,260,0.333,0.000,,
-kimi-k2-base,adj-third,0shot,all,1.000,260,0.333,0.000,,
-kimi-k2-base,adj-third,3shot_collide,all,1.000,260,0.333,0.000,,
-kimi-k2-base,adj-third,3shot,all,1.000,260,0.333,0.000,,
-kimi-k2-base,cm-mutate,0shot,all,0.975,200,0.200,0.011,,
-kimi-k2-base,cm-mutate,3shot_collide,all,1.000,200,0.200,0.000,,
-kimi-k2-base,cm-mutate,3shot,all,1.000,200,0.200,0.000,,
-kimi-k2-base,cm-rebind,0shot,all,0.970,200,0.200,0.012,,
-kimi-k2-base,cm-rebind,3shot_collide,all,1.000,200,0.200,0.000,,
-kimi-k2-base,cm-rebind,3shot,all,1.000,200,0.200,0.000,,
-kimi-k2-base,cm-copy,0shot,all,0.900,200,0.200,0.021,,
-kimi-k2-base,cm-copy,3shot_collide,all,1.000,200,0.200,0.000,,
-kimi-k2-base,cm-copy,3shot,all,1.000,200,0.200,0.000,,
-mimo-v25-pro-base,attr,0shot,all,0.692,1210,0.168,0.013,,
-mimo-v25-pro-base,attr,3shot_collide,all,1.000,1210,0.168,0.000,,
-mimo-v25-pro-base,attr,3shot,all,1.000,1210,0.168,0.000,,
-mimo-v25-pro-base,codevar,0shot,all,0.766,1200,0.267,0.012,,
-mimo-v25-pro-base,codevar,3shot_collide,all,0.908,1200,0.267,0.008,,
-mimo-v25-pro-base,codevar,3shot,all,0.893,1200,0.267,0.009,,
-mimo-v25-pro-base,dialogue,0shot,all,0.916,1200,0.312,0.008,,
-mimo-v25-pro-base,dialogue,3shot_collide,all,0.985,1200,0.312,0.004,,
-mimo-v25-pro-base,dialogue,3shot,all,0.978,1200,0.312,0.004,,
-mimo-v25-pro-base,dx-owner-3-deictic,0shot,all,0.542,120,0.333,0.045,,other_participant=0.325;speaker_confusion=0.033;tie=0.1
-mimo-v25-pro-base,dx-owner-3-deictic,0shot,free,0.450,40,0.333,0.079,,other_participant=0.425;speaker_confusion=0.05;tie=0.075
-mimo-v25-pro-base,dx-owner-3-deictic,3shot_collide,all,0.967,120,0.333,0.016,,other_participant=0.025;speaker_confusion=0.008
-mimo-v25-pro-base,dx-owner-3-deictic,3shot_collide,free,0.975,40,0.333,0.025,,other_participant=0.025
-mimo-v25-pro-base,dx-owner-3-deictic,3shot,all,0.992,120,0.333,0.008,,other_participant=0.008
-mimo-v25-pro-base,dx-owner-3-deictic,3shot,free,1.000,40,0.333,0.000,,
-mimo-v25-pro-base,dx-owner-3-third,0shot,all,0.833,120,0.333,0.034,,
-mimo-v25-pro-base,dx-owner-3-third,0shot,free,0.675,40,0.333,0.074,,
-mimo-v25-pro-base,dx-owner-3-third,3shot_collide,all,0.992,120,0.333,0.008,,
-mimo-v25-pro-base,dx-owner-3-third,3shot_collide,free,1.000,40,0.333,0.000,,
-mimo-v25-pro-base,dx-owner-3-third,3shot,all,1.000,120,0.333,0.000,,
-mimo-v25-pro-base,dx-owner-3-third,3shot,free,1.000,40,0.333,0.000,,
-mimo-v25-pro-base,dx-self-3-deictic,0shot,all,0.217,180,0.287,0.031,,other_object=0.261;previous_owner=0.067;speaker_confusion=0.306;tie=0.15
-mimo-v25-pro-base,dx-self-3-deictic,0shot,free,0.246,126,0.286,0.038,,other_object=0.31;previous_owner=0.063;speaker_confusion=0.23;tie=0.151
-mimo-v25-pro-base,dx-self-3-deictic,3shot_collide,all,0.828,180,0.287,0.028,,other_object=0.017;previous_owner=0.028;speaker_confusion=0.1;tie=0.028
-mimo-v25-pro-base,dx-self-3-deictic,3shot_collide,free,0.889,126,0.286,0.028,,other_object=0.024;previous_owner=0.008;speaker_confusion=0.063;tie=0.016
-mimo-v25-pro-base,dx-self-3-deictic,3shot,all,0.850,180,0.287,0.027,,other_object=0.033;previous_owner=0.028;speaker_confusion=0.061;tie=0.028
-mimo-v25-pro-base,dx-self-3-deictic,3shot,free,0.857,126,0.286,0.031,,other_object=0.04;previous_owner=0.024;speaker_confusion=0.056;tie=0.024
-mimo-v25-pro-base,dx-self-3-third,0shot,all,0.844,180,0.287,0.027,,
-mimo-v25-pro-base,dx-self-3-third,0shot,free,0.881,126,0.286,0.029,,
-mimo-v25-pro-base,dx-self-3-third,3shot_collide,all,0.972,180,0.287,0.012,,
-mimo-v25-pro-base,dx-self-3-third,3shot_collide,free,1.000,126,0.286,0.000,,
-mimo-v25-pro-base,dx-self-3-third,3shot,all,0.978,180,0.287,0.011,,
-mimo-v25-pro-base,dx-self-3-third,3shot,free,0.992,126,0.286,0.008,,
-mimo-v25-pro-base,dx-self-2-deictic,0shot,all,0.172,180,0.287,0.028,,speaker_confusion=0.611;tie=0.217
-mimo-v25-pro-base,dx-self-2-deictic,0shot,free,0.206,126,0.286,0.036,,speaker_confusion=0.563;tie=0.23
-mimo-v25-pro-base,dx-self-2-deictic,3shot_collide,all,0.567,180,0.287,0.037,,speaker_confusion=0.322;tie=0.111
-mimo-v25-pro-base,dx-self-2-deictic,3shot_collide,free,0.635,126,0.286,0.043,,speaker_confusion=0.262;tie=0.103
-mimo-v25-pro-base,dx-self-2-deictic,3shot,all,0.606,180,0.287,0.036,,speaker_confusion=0.294;tie=0.1
-mimo-v25-pro-base,dx-self-2-deictic,3shot,free,0.643,126,0.286,0.043,,speaker_confusion=0.262;tie=0.095
-mimo-v25-pro-base,dx-self-2-third,0shot,all,0.844,180,0.287,0.027,,
-mimo-v25-pro-base,dx-self-2-third,0shot,free,0.881,126,0.286,0.029,,
-mimo-v25-pro-base,dx-self-2-third,3shot_collide,all,0.956,180,0.287,0.015,,
-mimo-v25-pro-base,dx-self-2-third,3shot_collide,free,0.976,126,0.286,0.014,,
-mimo-v25-pro-base,dx-self-2-third,3shot,all,0.956,180,0.287,0.015,,
-mimo-v25-pro-base,dx-self-2-third,3shot,free,0.968,126,0.286,0.016,,
-mimo-v25-pro-base,dx-addressee-3-deictic,0shot,all,0.233,180,0.287,0.032,,other_object=0.233;previous_owner=0.056;speaker_confusion=0.406;tie=0.072
-mimo-v25-pro-base,dx-addressee-3-deictic,0shot,free,0.262,126,0.286,0.039,,other_object=0.214;previous_owner=0.071;speaker_confusion=0.373;tie=0.079
-mimo-v25-pro-base,dx-addressee-3-deictic,3shot_collide,all,0.778,180,0.287,0.031,,other_object=0.033;previous_owner=0.022;speaker_confusion=0.133;tie=0.033
-mimo-v25-pro-base,dx-addressee-3-deictic,3shot_collide,free,0.825,126,0.286,0.034,,other_object=0.008;previous_owner=0.016;speaker_confusion=0.127;tie=0.024
-mimo-v25-pro-base,dx-addressee-3-deictic,3shot,all,0.733,180,0.287,0.033,,other_object=0.033;previous_owner=0.044;speaker_confusion=0.15;tie=0.039
-mimo-v25-pro-base,dx-addressee-3-deictic,3shot,free,0.722,126,0.286,0.040,,other_object=0.04;previous_owner=0.048;speaker_confusion=0.151;tie=0.04
-mimo-v25-pro-base,dx-addressee-3-third,0shot,all,0.850,180,0.287,0.027,,
-mimo-v25-pro-base,dx-addressee-3-third,0shot,free,0.881,126,0.286,0.029,,
-mimo-v25-pro-base,dx-addressee-3-third,3shot_collide,all,0.994,180,0.287,0.005,,
-mimo-v25-pro-base,dx-addressee-3-third,3shot_collide,free,1.000,126,0.286,0.000,,
-mimo-v25-pro-base,dx-addressee-3-third,3shot,all,0.994,180,0.287,0.005,,
-mimo-v25-pro-base,dx-addressee-3-third,3shot,free,1.000,126,0.286,0.000,,
-mimo-v25-pro-base,dx-addressee-2-deictic,0shot,all,0.167,180,0.287,0.028,,speaker_confusion=0.628;tie=0.206
-mimo-v25-pro-base,dx-addressee-2-deictic,0shot,free,0.175,126,0.286,0.034,,speaker_confusion=0.643;tie=0.183
-mimo-v25-pro-base,dx-addressee-2-deictic,3shot_collide,all,0.328,180,0.287,0.035,,speaker_confusion=0.561;tie=0.111
-mimo-v25-pro-base,dx-addressee-2-deictic,3shot_collide,free,0.349,126,0.286,0.043,,speaker_confusion=0.532;tie=0.119
-mimo-v25-pro-base,dx-addressee-2-deictic,3shot,all,0.328,180,0.287,0.035,,speaker_confusion=0.533;tie=0.139
-mimo-v25-pro-base,dx-addressee-2-deictic,3shot,free,0.357,126,0.286,0.043,,speaker_confusion=0.492;tie=0.151
-mimo-v25-pro-base,dx-addressee-2-third,0shot,all,0.889,180,0.287,0.023,,
-mimo-v25-pro-base,dx-addressee-2-third,0shot,free,0.905,126,0.286,0.026,,
-mimo-v25-pro-base,dx-addressee-2-third,3shot_collide,all,0.928,180,0.287,0.019,,
-mimo-v25-pro-base,dx-addressee-2-third,3shot_collide,free,0.944,126,0.286,0.020,,
-mimo-v25-pro-base,dx-addressee-2-third,3shot,all,0.939,180,0.287,0.018,,
-mimo-v25-pro-base,dx-addressee-2-third,3shot,free,0.968,126,0.286,0.016,,
-mimo-v25-pro-base,sb-k1,0shot,all,0.969,64,0.125,0.022,,
-mimo-v25-pro-base,sb-k1,3shot_collide,all,1.000,64,0.125,0.000,,
-mimo-v25-pro-base,sb-k1,3shot,all,1.000,64,0.125,0.000,,
-mimo-v25-pro-base,sb-k23,0shot,all,0.539,128,0.027,0.044,,
-mimo-v25-pro-base,sb-k23,3shot_collide,all,0.984,128,0.027,0.011,,
-mimo-v25-pro-base,sb-k23,3shot,all,0.992,128,0.027,0.008,,
-mimo-v25-pro-base,sb-split,0shot,all,0.508,128,0.027,0.044,,
-mimo-v25-pro-base,sb-split,3shot_collide,all,0.930,128,0.027,0.023,,
-mimo-v25-pro-base,sb-split,3shot,all,0.875,128,0.027,0.029,,
-mimo-v25-pro-base,sb-dyn,0shot,all,0.551,256,0.027,0.031,,
-mimo-v25-pro-base,sb-dyn,3shot_collide,all,0.812,256,0.027,0.024,,
-mimo-v25-pro-base,sb-dyn,3shot,all,0.797,256,0.027,0.025,,
-mimo-v25-pro-base,an-narr,0shot,all,0.439,640,0.250,0.020,,
-mimo-v25-pro-base,an-narr,3shot_collide,all,0.992,640,0.250,0.004,,
-mimo-v25-pro-base,an-narr,3shot,all,0.994,640,0.250,0.003,,
-mimo-v25-pro-base,an-other-any,0shot,all,0.175,320,0.250,0.021,,
-mimo-v25-pro-base,an-other-any,3shot_collide,all,0.994,320,0.250,0.004,,
-mimo-v25-pro-base,an-other-any,3shot,all,0.950,320,0.250,0.012,,
-mimo-v25-pro-base,an-me-any,0shot,all,0.662,160,0.250,0.037,,
-mimo-v25-pro-base,an-me-any,3shot_collide,all,0.956,160,0.250,0.016,,
-mimo-v25-pro-base,an-me-any,3shot,all,0.925,160,0.250,0.021,,
-mimo-v25-pro-base,an-you-voc,0shot,all,0.300,80,0.250,0.051,,
-mimo-v25-pro-base,an-you-voc,3shot_collide,all,0.988,80,0.250,0.012,,
-mimo-v25-pro-base,an-you-voc,3shot,all,1.000,80,0.250,0.000,,
-mimo-v25-pro-base,an-you-novoc,0shot,all,0.450,80,0.250,0.056,,
-mimo-v25-pro-base,an-you-novoc,3shot_collide,all,0.850,80,0.250,0.040,,
-mimo-v25-pro-base,an-you-novoc,3shot,all,0.838,80,0.250,0.041,,
-mimo-v25-pro-base,adj-adj,0shot,all,0.877,260,0.333,0.020,,
-mimo-v25-pro-base,adj-adj,3shot_collide,all,1.000,260,0.333,0.000,,
-mimo-v25-pro-base,adj-adj,3shot,all,1.000,260,0.333,0.000,,
-mimo-v25-pro-base,adj-voc,0shot,all,0.969,260,0.333,0.011,,
-mimo-v25-pro-base,adj-voc,3shot_collide,all,0.996,260,0.333,0.004,,
-mimo-v25-pro-base,adj-voc,3shot,all,1.000,260,0.333,0.000,,
-mimo-v25-pro-base,adj-third,0shot,all,0.989,260,0.333,0.007,,
-mimo-v25-pro-base,adj-third,3shot_collide,all,1.000,260,0.333,0.000,,
-mimo-v25-pro-base,adj-third,3shot,all,1.000,260,0.333,0.000,,
-mimo-v25-pro-base,cm-mutate,0shot,all,0.980,200,0.200,0.010,,
-mimo-v25-pro-base,cm-mutate,3shot_collide,all,1.000,200,0.200,0.000,,
-mimo-v25-pro-base,cm-mutate,3shot,all,0.995,200,0.200,0.005,,
-mimo-v25-pro-base,cm-rebind,0shot,all,0.895,200,0.200,0.022,,
-mimo-v25-pro-base,cm-rebind,3shot_collide,all,0.995,200,0.200,0.005,,
-mimo-v25-pro-base,cm-rebind,3shot,all,1.000,200,0.200,0.000,,
-mimo-v25-pro-base,cm-copy,0shot,all,0.885,200,0.200,0.023,,
-mimo-v25-pro-base,cm-copy,3shot_collide,all,1.000,200,0.200,0.000,,
-mimo-v25-pro-base,cm-copy,3shot,all,0.995,200,0.200,0.005,,
-olmo2-7b-pt2928B,dx-owner-3-deictic,0shot,all,0.517,120,0.333,0.046,,other_participant=0.417;speaker_confusion=0.067
-olmo2-7b-pt2928B,dx-owner-3-deictic,0shot,free,0.275,40,0.333,0.071,,other_participant=0.6;speaker_confusion=0.125
-olmo2-7b-pt2928B,dx-owner-3-deictic,3shot_collide,all,0.583,120,0.333,0.045,,other_participant=0.183;speaker_confusion=0.225;tie=0.008
-olmo2-7b-pt2928B,dx-owner-3-deictic,3shot_collide,free,0.700,40,0.333,0.072,,other_participant=0.125;speaker_confusion=0.175
-olmo2-7b-pt2928B,dx-owner-3-deictic,3shot,all,0.550,120,0.333,0.045,,other_participant=0.275;speaker_confusion=0.175
-olmo2-7b-pt2928B,dx-owner-3-deictic,3shot,free,0.700,40,0.333,0.072,,other_participant=0.175;speaker_confusion=0.125
-olmo2-7b-pt2928B,dx-owner-3-third,0shot,all,0.508,120,0.333,0.046,,
-olmo2-7b-pt2928B,dx-owner-3-third,0shot,free,0.300,40,0.333,0.072,,
-olmo2-7b-pt2928B,dx-owner-3-third,3shot_collide,all,0.558,120,0.333,0.045,,
-olmo2-7b-pt2928B,dx-owner-3-third,3shot_collide,free,0.700,40,0.333,0.072,,
-olmo2-7b-pt2928B,dx-owner-3-third,3shot,all,0.600,120,0.333,0.045,,
-olmo2-7b-pt2928B,dx-owner-3-third,3shot,free,0.875,40,0.333,0.052,,
-olmo2-7b-pt2928B,dx-self-3-deictic,0shot,all,0.350,180,0.287,0.036,,other_object=0.3;previous_owner=0.05;speaker_confusion=0.3
-olmo2-7b-pt2928B,dx-self-3-deictic,0shot,free,0.373,126,0.286,0.043,,other_object=0.325;previous_owner=0.024;speaker_confusion=0.278
-olmo2-7b-pt2928B,dx-self-3-deictic,3shot_collide,all,0.394,180,0.287,0.036,,other_object=0.3;previous_owner=0.028;speaker_confusion=0.278
-olmo2-7b-pt2928B,dx-self-3-deictic,3shot_collide,free,0.413,126,0.286,0.044,,other_object=0.333;previous_owner=0.024;speaker_confusion=0.23
-olmo2-7b-pt2928B,dx-self-3-deictic,3shot,all,0.367,180,0.287,0.036,,other_object=0.272;previous_owner=0.022;speaker_confusion=0.339
-olmo2-7b-pt2928B,dx-self-3-deictic,3shot,free,0.373,126,0.286,0.043,,other_object=0.294;previous_owner=0.024;speaker_confusion=0.31
-olmo2-7b-pt2928B,dx-self-3-third,0shot,all,0.528,180,0.287,0.037,,
-olmo2-7b-pt2928B,dx-self-3-third,0shot,free,0.452,126,0.286,0.044,,
-olmo2-7b-pt2928B,dx-self-3-third,3shot_collide,all,0.506,180,0.287,0.037,,
-olmo2-7b-pt2928B,dx-self-3-third,3shot_collide,free,0.500,126,0.286,0.044,,
-olmo2-7b-pt2928B,dx-self-3-third,3shot,all,0.567,180,0.287,0.037,,
-olmo2-7b-pt2928B,dx-self-3-third,3shot,free,0.564,126,0.286,0.044,,
-olmo2-7b-pt2928B,dx-self-2-deictic,0shot,all,0.306,180,0.287,0.034,,speaker_confusion=0.694
-olmo2-7b-pt2928B,dx-self-2-deictic,0shot,free,0.309,126,0.286,0.041,,speaker_confusion=0.69
-olmo2-7b-pt2928B,dx-self-2-deictic,3shot_collide,all,0.389,180,0.287,0.036,,speaker_confusion=0.611
-olmo2-7b-pt2928B,dx-self-2-deictic,3shot_collide,free,0.452,126,0.286,0.044,,speaker_confusion=0.548
-olmo2-7b-pt2928B,dx-self-2-deictic,3shot,all,0.422,180,0.287,0.037,,speaker_confusion=0.578
-olmo2-7b-pt2928B,dx-self-2-deictic,3shot,free,0.452,126,0.286,0.044,,speaker_confusion=0.548
-olmo2-7b-pt2928B,dx-self-2-third,0shot,all,0.517,180,0.287,0.037,,
-olmo2-7b-pt2928B,dx-self-2-third,0shot,free,0.516,126,0.286,0.044,,
-olmo2-7b-pt2928B,dx-self-2-third,3shot_collide,all,0.550,180,0.287,0.037,,
-olmo2-7b-pt2928B,dx-self-2-third,3shot_collide,free,0.587,126,0.286,0.044,,
-olmo2-7b-pt2928B,dx-self-2-third,3shot,all,0.611,180,0.287,0.036,,
-olmo2-7b-pt2928B,dx-self-2-third,3shot,free,0.675,126,0.286,0.042,,
-olmo2-7b-pt2928B,dx-addressee-3-deictic,0shot,all,0.267,180,0.287,0.033,,other_object=0.294;previous_owner=0.056;speaker_confusion=0.383
-olmo2-7b-pt2928B,dx-addressee-3-deictic,0shot,free,0.309,126,0.286,0.041,,other_object=0.222;previous_owner=0.071;speaker_confusion=0.397
-olmo2-7b-pt2928B,dx-addressee-3-deictic,3shot_collide,all,0.300,180,0.287,0.034,,other_object=0.222;previous_owner=0.072;speaker_confusion=0.4;tie=0.006
-olmo2-7b-pt2928B,dx-addressee-3-deictic,3shot_collide,free,0.302,126,0.286,0.041,,other_object=0.206;previous_owner=0.087;speaker_confusion=0.397;tie=0.008
-olmo2-7b-pt2928B,dx-addressee-3-deictic,3shot,all,0.328,180,0.287,0.035,,other_object=0.222;previous_owner=0.078;speaker_confusion=0.372
-olmo2-7b-pt2928B,dx-addressee-3-deictic,3shot,free,0.294,126,0.286,0.041,,other_object=0.214;previous_owner=0.111;speaker_confusion=0.381
-olmo2-7b-pt2928B,dx-addressee-3-third,0shot,all,0.539,180,0.287,0.037,,
-olmo2-7b-pt2928B,dx-addressee-3-third,0shot,free,0.436,126,0.286,0.044,,
-olmo2-7b-pt2928B,dx-addressee-3-third,3shot_collide,all,0.578,180,0.287,0.037,,
-olmo2-7b-pt2928B,dx-addressee-3-third,3shot_collide,free,0.595,126,0.286,0.044,,
-olmo2-7b-pt2928B,dx-addressee-3-third,3shot,all,0.600,180,0.287,0.036,,
-olmo2-7b-pt2928B,dx-addressee-3-third,3shot,free,0.571,126,0.286,0.044,,
-olmo2-7b-pt2928B,dx-addressee-2-deictic,0shot,all,0.283,180,0.287,0.034,,speaker_confusion=0.717
-olmo2-7b-pt2928B,dx-addressee-2-deictic,0shot,free,0.270,126,0.286,0.040,,speaker_confusion=0.73
-olmo2-7b-pt2928B,dx-addressee-2-deictic,3shot_collide,all,0.289,180,0.287,0.034,,speaker_confusion=0.711
-olmo2-7b-pt2928B,dx-addressee-2-deictic,3shot_collide,free,0.309,126,0.286,0.041,,speaker_confusion=0.69
-olmo2-7b-pt2928B,dx-addressee-2-deictic,3shot,all,0.289,180,0.287,0.034,,speaker_confusion=0.711
-olmo2-7b-pt2928B,dx-addressee-2-deictic,3shot,free,0.318,126,0.286,0.042,,speaker_confusion=0.683
-olmo2-7b-pt2928B,dx-addressee-2-third,0shot,all,0.494,180,0.287,0.037,,
-olmo2-7b-pt2928B,dx-addressee-2-third,0shot,free,0.468,126,0.286,0.044,,
-olmo2-7b-pt2928B,dx-addressee-2-third,3shot_collide,all,0.567,180,0.287,0.037,,
-olmo2-7b-pt2928B,dx-addressee-2-third,3shot_collide,free,0.627,126,0.286,0.043,,
-olmo2-7b-pt2928B,dx-addressee-2-third,3shot,all,0.594,180,0.287,0.037,,
-olmo2-7b-pt2928B,dx-addressee-2-third,3shot,free,0.643,126,0.286,0.043,,
-olmo2-7b-pt3896B,dx-owner-3-deictic,0shot,all,0.550,120,0.333,0.045,,other_participant=0.392;speaker_confusion=0.058
-olmo2-7b-pt3896B,dx-owner-3-deictic,0shot,free,0.450,40,0.333,0.079,,other_participant=0.475;speaker_confusion=0.075
-olmo2-7b-pt3896B,dx-owner-3-deictic,3shot_collide,all,0.633,120,0.333,0.044,,other_participant=0.15;speaker_confusion=0.217
-olmo2-7b-pt3896B,dx-owner-3-deictic,3shot_collide,free,0.725,40,0.333,0.071,,other_participant=0.125;speaker_confusion=0.15
-olmo2-7b-pt3896B,dx-owner-3-deictic,3shot,all,0.600,120,0.333,0.045,,other_participant=0.183;speaker_confusion=0.217
-olmo2-7b-pt3896B,dx-owner-3-deictic,3shot,free,0.700,40,0.333,0.072,,other_participant=0.175;speaker_confusion=0.125
-olmo2-7b-pt3896B,dx-owner-3-third,0shot,all,0.583,120,0.333,0.045,,
-olmo2-7b-pt3896B,dx-owner-3-third,0shot,free,0.550,40,0.333,0.079,,
-olmo2-7b-pt3896B,dx-owner-3-third,3shot_collide,all,0.533,120,0.333,0.045,,
-olmo2-7b-pt3896B,dx-owner-3-third,3shot_collide,free,0.650,40,0.333,0.075,,
-olmo2-7b-pt3896B,dx-owner-3-third,3shot,all,0.633,120,0.333,0.044,,
-olmo2-7b-pt3896B,dx-owner-3-third,3shot,free,0.700,40,0.333,0.072,,
-olmo2-7b-pt3896B,dx-self-3-deictic,0shot,all,0.283,180,0.287,0.034,,other_object=0.322;previous_owner=0.067;speaker_confusion=0.328
-olmo2-7b-pt3896B,dx-self-3-deictic,0shot,free,0.309,126,0.286,0.041,,other_object=0.341;previous_owner=0.016;speaker_confusion=0.333
-olmo2-7b-pt3896B,dx-self-3-deictic,3shot_collide,all,0.372,180,0.287,0.036,,other_object=0.25;previous_owner=0.061;speaker_confusion=0.317
-olmo2-7b-pt3896B,dx-self-3-deictic,3shot_collide,free,0.405,126,0.286,0.044,,other_object=0.286;previous_owner=0.048;speaker_confusion=0.262
-olmo2-7b-pt3896B,dx-self-3-deictic,3shot,all,0.356,180,0.287,0.036,,other_object=0.283;previous_owner=0.067;speaker_confusion=0.294
-olmo2-7b-pt3896B,dx-self-3-deictic,3shot,free,0.349,126,0.286,0.043,,other_object=0.333;previous_owner=0.04;speaker_confusion=0.278
-olmo2-7b-pt3896B,dx-self-3-third,0shot,all,0.444,180,0.287,0.037,,
-olmo2-7b-pt3896B,dx-self-3-third,0shot,free,0.397,126,0.286,0.044,,
-olmo2-7b-pt3896B,dx-self-3-third,3shot_collide,all,0.439,180,0.287,0.037,,
-olmo2-7b-pt3896B,dx-self-3-third,3shot_collide,free,0.429,126,0.286,0.044,,
-olmo2-7b-pt3896B,dx-self-3-third,3shot,all,0.511,180,0.287,0.037,,
-olmo2-7b-pt3896B,dx-self-3-third,3shot,free,0.532,126,0.286,0.044,,
-olmo2-7b-pt3896B,dx-self-2-deictic,0shot,all,0.394,180,0.287,0.036,,speaker_confusion=0.606
-olmo2-7b-pt3896B,dx-self-2-deictic,0shot,free,0.397,126,0.286,0.044,,speaker_confusion=0.603
-olmo2-7b-pt3896B,dx-self-2-deictic,3shot_collide,all,0.383,180,0.287,0.036,,speaker_confusion=0.617
-olmo2-7b-pt3896B,dx-self-2-deictic,3shot_collide,free,0.452,126,0.286,0.044,,speaker_confusion=0.548
-olmo2-7b-pt3896B,dx-self-2-deictic,3shot,all,0.394,180,0.287,0.036,,speaker_confusion=0.606
-olmo2-7b-pt3896B,dx-self-2-deictic,3shot,free,0.436,126,0.286,0.044,,speaker_confusion=0.563
-olmo2-7b-pt3896B,dx-self-2-third,0shot,all,0.511,180,0.287,0.037,,
-olmo2-7b-pt3896B,dx-self-2-third,0shot,free,0.532,126,0.286,0.044,,
-olmo2-7b-pt3896B,dx-self-2-third,3shot_collide,all,0.517,180,0.287,0.037,,
-olmo2-7b-pt3896B,dx-self-2-third,3shot_collide,free,0.548,126,0.286,0.044,,
-olmo2-7b-pt3896B,dx-self-2-third,3shot,all,0.550,180,0.287,0.037,,
-olmo2-7b-pt3896B,dx-self-2-third,3shot,free,0.595,126,0.286,0.044,,
-olmo2-7b-pt3896B,dx-addressee-3-deictic,0shot,all,0.322,180,0.287,0.035,,other_object=0.206;previous_owner=0.061;speaker_confusion=0.411
-olmo2-7b-pt3896B,dx-addressee-3-deictic,0shot,free,0.318,126,0.286,0.042,,other_object=0.19;previous_owner=0.087;speaker_confusion=0.405
-olmo2-7b-pt3896B,dx-addressee-3-deictic,3shot_collide,all,0.306,180,0.287,0.034,,other_object=0.183;previous_owner=0.139;speaker_confusion=0.372
-olmo2-7b-pt3896B,dx-addressee-3-deictic,3shot_collide,free,0.309,126,0.286,0.041,,other_object=0.143;previous_owner=0.175;speaker_confusion=0.373
-olmo2-7b-pt3896B,dx-addressee-3-deictic,3shot,all,0.317,180,0.287,0.035,,other_object=0.183;previous_owner=0.144;speaker_confusion=0.356
-olmo2-7b-pt3896B,dx-addressee-3-deictic,3shot,free,0.302,126,0.286,0.041,,other_object=0.135;previous_owner=0.183;speaker_confusion=0.381
-olmo2-7b-pt3896B,dx-addressee-3-third,0shot,all,0.528,180,0.287,0.037,,
-olmo2-7b-pt3896B,dx-addressee-3-third,0shot,free,0.484,126,0.286,0.044,,
-olmo2-7b-pt3896B,dx-addressee-3-third,3shot_collide,all,0.483,180,0.287,0.037,,
-olmo2-7b-pt3896B,dx-addressee-3-third,3shot_collide,free,0.476,126,0.286,0.044,,
-olmo2-7b-pt3896B,dx-addressee-3-third,3shot,all,0.550,180,0.287,0.037,,
-olmo2-7b-pt3896B,dx-addressee-3-third,3shot,free,0.508,126,0.286,0.044,,
-olmo2-7b-pt3896B,dx-addressee-2-deictic,0shot,all,0.228,180,0.287,0.031,,speaker_confusion=0.772
-olmo2-7b-pt3896B,dx-addressee-2-deictic,0shot,free,0.167,126,0.286,0.033,,speaker_confusion=0.833
-olmo2-7b-pt3896B,dx-addressee-2-deictic,3shot_collide,all,0.344,180,0.287,0.035,,speaker_confusion=0.656
-olmo2-7b-pt3896B,dx-addressee-2-deictic,3shot_collide,free,0.381,126,0.286,0.043,,speaker_confusion=0.619
-olmo2-7b-pt3896B,dx-addressee-2-deictic,3shot,all,0.317,180,0.287,0.035,,speaker_confusion=0.683
-olmo2-7b-pt3896B,dx-addressee-2-deictic,3shot,free,0.341,126,0.286,0.042,,speaker_confusion=0.659
-olmo2-7b-pt3896B,dx-addressee-2-third,0shot,all,0.483,180,0.287,0.037,,
-olmo2-7b-pt3896B,dx-addressee-2-third,0shot,free,0.500,126,0.286,0.044,,
-olmo2-7b-pt3896B,dx-addressee-2-third,3shot_collide,all,0.500,180,0.287,0.037,,
-olmo2-7b-pt3896B,dx-addressee-2-third,3shot_collide,free,0.524,126,0.286,0.044,,
-olmo2-7b-pt3896B,dx-addressee-2-third,3shot,all,0.556,180,0.287,0.037,,
-olmo2-7b-pt3896B,dx-addressee-2-third,3shot,free,0.579,126,0.286,0.044,,
-olmo2-7b-mid5B,dx-owner-3-deictic,0shot,all,0.533,120,0.333,0.045,,other_participant=0.358;speaker_confusion=0.108
-olmo2-7b-mid5B,dx-owner-3-deictic,0shot,free,0.325,40,0.333,0.074,,other_participant=0.575;speaker_confusion=0.1
-olmo2-7b-mid5B,dx-owner-3-deictic,3shot_collide,all,0.775,120,0.333,0.038,,other_participant=0.158;speaker_confusion=0.067
-olmo2-7b-mid5B,dx-owner-3-deictic,3shot_collide,free,0.700,40,0.333,0.072,,other_participant=0.225;speaker_confusion=0.075
-olmo2-7b-mid5B,dx-owner-3-deictic,3shot,all,0.708,120,0.333,0.042,,other_participant=0.217;speaker_confusion=0.075
-olmo2-7b-mid5B,dx-owner-3-deictic,3shot,free,0.725,40,0.333,0.071,,other_participant=0.25;speaker_confusion=0.025
-olmo2-7b-mid5B,dx-owner-3-third,0shot,all,0.625,120,0.333,0.044,,
-olmo2-7b-mid5B,dx-owner-3-third,0shot,free,0.450,40,0.333,0.079,,
-olmo2-7b-mid5B,dx-owner-3-third,3shot_collide,all,0.683,120,0.333,0.043,,
-olmo2-7b-mid5B,dx-owner-3-third,3shot_collide,free,0.550,40,0.333,0.079,,
-olmo2-7b-mid5B,dx-owner-3-third,3shot,all,0.742,120,0.333,0.040,,
-olmo2-7b-mid5B,dx-owner-3-third,3shot,free,0.700,40,0.333,0.072,,
-olmo2-7b-mid5B,dx-self-3-deictic,0shot,all,0.389,180,0.287,0.036,,other_object=0.289;previous_owner=0.039;speaker_confusion=0.283
-olmo2-7b-mid5B,dx-self-3-deictic,0shot,free,0.397,126,0.286,0.044,,other_object=0.286;previous_owner=0.016;speaker_confusion=0.302
-olmo2-7b-mid5B,dx-self-3-deictic,3shot_collide,all,0.383,180,0.287,0.036,,other_object=0.25;previous_owner=0.072;speaker_confusion=0.294
-olmo2-7b-mid5B,dx-self-3-deictic,3shot_collide,free,0.421,126,0.286,0.044,,other_object=0.278;previous_owner=0.056;speaker_confusion=0.246
-olmo2-7b-mid5B,dx-self-3-deictic,3shot,all,0.394,180,0.287,0.036,,other_object=0.283;previous_owner=0.039;speaker_confusion=0.283
-olmo2-7b-mid5B,dx-self-3-deictic,3shot,free,0.381,126,0.286,0.043,,other_object=0.333;previous_owner=0.032;speaker_confusion=0.254
-olmo2-7b-mid5B,dx-self-3-third,0shot,all,0.467,180,0.287,0.037,,
-olmo2-7b-mid5B,dx-self-3-third,0shot,free,0.389,126,0.286,0.043,,
-olmo2-7b-mid5B,dx-self-3-third,3shot_collide,all,0.450,180,0.287,0.037,,
-olmo2-7b-mid5B,dx-self-3-third,3shot_collide,free,0.413,126,0.286,0.044,,
-olmo2-7b-mid5B,dx-self-3-third,3shot,all,0.561,180,0.287,0.037,,
-olmo2-7b-mid5B,dx-self-3-third,3shot,free,0.516,126,0.286,0.044,,
-olmo2-7b-mid5B,dx-self-2-deictic,0shot,all,0.333,180,0.287,0.035,,speaker_confusion=0.667
-olmo2-7b-mid5B,dx-self-2-deictic,0shot,free,0.309,126,0.286,0.041,,speaker_confusion=0.69
-olmo2-7b-mid5B,dx-self-2-deictic,3shot_collide,all,0.411,180,0.287,0.037,,speaker_confusion=0.583;tie=0.006
-olmo2-7b-mid5B,dx-self-2-deictic,3shot_collide,free,0.476,126,0.286,0.044,,speaker_confusion=0.524
-olmo2-7b-mid5B,dx-self-2-deictic,3shot,all,0.439,180,0.287,0.037,,speaker_confusion=0.561
-olmo2-7b-mid5B,dx-self-2-deictic,3shot,free,0.476,126,0.286,0.044,,speaker_confusion=0.524
-olmo2-7b-mid5B,dx-self-2-third,0shot,all,0.417,180,0.287,0.037,,
-olmo2-7b-mid5B,dx-self-2-third,0shot,free,0.389,126,0.286,0.043,,
-olmo2-7b-mid5B,dx-self-2-third,3shot_collide,all,0.511,180,0.287,0.037,,
-olmo2-7b-mid5B,dx-self-2-third,3shot_collide,free,0.500,126,0.286,0.044,,
-olmo2-7b-mid5B,dx-self-2-third,3shot,all,0.517,180,0.287,0.037,,
-olmo2-7b-mid5B,dx-self-2-third,3shot,free,0.524,126,0.286,0.044,,
-olmo2-7b-mid5B,dx-addressee-3-deictic,0shot,all,0.333,180,0.287,0.035,,other_object=0.222;previous_owner=0.033;speaker_confusion=0.411
-olmo2-7b-mid5B,dx-addressee-3-deictic,0shot,free,0.357,126,0.286,0.043,,other_object=0.198;previous_owner=0.048;speaker_confusion=0.397
-olmo2-7b-mid5B,dx-addressee-3-deictic,3shot_collide,all,0.311,180,0.287,0.035,,other_object=0.183;previous_owner=0.1;speaker_confusion=0.406
-olmo2-7b-mid5B,dx-addressee-3-deictic,3shot_collide,free,0.309,126,0.286,0.041,,other_object=0.151;previous_owner=0.135;speaker_confusion=0.405
-olmo2-7b-mid5B,dx-addressee-3-deictic,3shot,all,0.333,180,0.287,0.035,,other_object=0.172;previous_owner=0.094;speaker_confusion=0.4
-olmo2-7b-mid5B,dx-addressee-3-deictic,3shot,free,0.270,126,0.286,0.040,,other_object=0.175;previous_owner=0.127;speaker_confusion=0.429
-olmo2-7b-mid5B,dx-addressee-3-third,0shot,all,0.461,180,0.287,0.037,,
-olmo2-7b-mid5B,dx-addressee-3-third,0shot,free,0.349,126,0.286,0.043,,
-olmo2-7b-mid5B,dx-addressee-3-third,3shot_collide,all,0.406,180,0.287,0.037,,
-olmo2-7b-mid5B,dx-addressee-3-third,3shot_collide,free,0.381,126,0.286,0.043,,
-olmo2-7b-mid5B,dx-addressee-3-third,3shot,all,0.500,180,0.287,0.037,,
-olmo2-7b-mid5B,dx-addressee-3-third,3shot,free,0.452,126,0.286,0.044,,
-olmo2-7b-mid5B,dx-addressee-2-deictic,0shot,all,0.311,180,0.287,0.035,,speaker_confusion=0.689
-olmo2-7b-mid5B,dx-addressee-2-deictic,0shot,free,0.278,126,0.286,0.040,,speaker_confusion=0.722
-olmo2-7b-mid5B,dx-addressee-2-deictic,3shot_collide,all,0.356,180,0.287,0.036,,speaker_confusion=0.644
-olmo2-7b-mid5B,dx-addressee-2-deictic,3shot_collide,free,0.373,126,0.286,0.043,,speaker_confusion=0.627
-olmo2-7b-mid5B,dx-addressee-2-deictic,3shot,all,0.306,180,0.287,0.034,,speaker_confusion=0.694
-olmo2-7b-mid5B,dx-addressee-2-deictic,3shot,free,0.302,126,0.286,0.041,,speaker_confusion=0.698
-olmo2-7b-mid5B,dx-addressee-2-third,0shot,all,0.444,180,0.287,0.037,,
-olmo2-7b-mid5B,dx-addressee-2-third,0shot,free,0.460,126,0.286,0.044,,
-olmo2-7b-mid5B,dx-addressee-2-third,3shot_collide,all,0.528,180,0.287,0.037,,
-olmo2-7b-mid5B,dx-addressee-2-third,3shot_collide,free,0.516,126,0.286,0.044,,
-olmo2-7b-mid5B,dx-addressee-2-third,3shot,all,0.567,180,0.287,0.037,,
-olmo2-7b-mid5B,dx-addressee-2-third,3shot,free,0.548,126,0.286,0.044,,
-olmo2-7b-mid17B,dx-owner-3-deictic,0shot,all,0.533,120,0.333,0.045,,other_participant=0.317;speaker_confusion=0.15
-olmo2-7b-mid17B,dx-owner-3-deictic,0shot,free,0.325,40,0.333,0.074,,other_participant=0.55;speaker_confusion=0.125
-olmo2-7b-mid17B,dx-owner-3-deictic,3shot_collide,all,0.675,120,0.333,0.043,,other_participant=0.275;speaker_confusion=0.05
-olmo2-7b-mid17B,dx-owner-3-deictic,3shot_collide,free,0.575,40,0.333,0.078,,other_participant=0.375;speaker_confusion=0.05
-olmo2-7b-mid17B,dx-owner-3-deictic,3shot,all,0.658,120,0.333,0.043,,other_participant=0.267;speaker_confusion=0.075
-olmo2-7b-mid17B,dx-owner-3-deictic,3shot,free,0.575,40,0.333,0.078,,other_participant=0.4;speaker_confusion=0.025
-olmo2-7b-mid17B,dx-owner-3-third,0shot,all,0.675,120,0.333,0.043,,
-olmo2-7b-mid17B,dx-owner-3-third,0shot,free,0.525,40,0.333,0.079,,
-olmo2-7b-mid17B,dx-owner-3-third,3shot_collide,all,0.683,120,0.333,0.043,,
-olmo2-7b-mid17B,dx-owner-3-third,3shot_collide,free,0.575,40,0.333,0.078,,
-olmo2-7b-mid17B,dx-owner-3-third,3shot,all,0.733,120,0.333,0.040,,
-olmo2-7b-mid17B,dx-owner-3-third,3shot,free,0.650,40,0.333,0.075,,
-olmo2-7b-mid17B,dx-self-3-deictic,0shot,all,0.361,180,0.287,0.036,,other_object=0.289;previous_owner=0.044;speaker_confusion=0.3;tie=0.006
-olmo2-7b-mid17B,dx-self-3-deictic,0shot,free,0.349,126,0.286,0.043,,other_object=0.31;previous_owner=0.016;speaker_confusion=0.317;tie=0.008
-olmo2-7b-mid17B,dx-self-3-deictic,3shot_collide,all,0.417,180,0.287,0.037,,other_object=0.267;previous_owner=0.044;speaker_confusion=0.272
-olmo2-7b-mid17B,dx-self-3-deictic,3shot_collide,free,0.452,126,0.286,0.044,,other_object=0.278;previous_owner=0.024;speaker_confusion=0.246
-olmo2-7b-mid17B,dx-self-3-deictic,3shot,all,0.422,180,0.287,0.037,,other_object=0.267;previous_owner=0.039;speaker_confusion=0.272
-olmo2-7b-mid17B,dx-self-3-deictic,3shot,free,0.444,126,0.286,0.044,,other_object=0.286;previous_owner=0.024;speaker_confusion=0.246
-olmo2-7b-mid17B,dx-self-3-third,0shot,all,0.450,180,0.287,0.037,,
-olmo2-7b-mid17B,dx-self-3-third,0shot,free,0.349,126,0.286,0.043,,
-olmo2-7b-mid17B,dx-self-3-third,3shot_collide,all,0.483,180,0.287,0.037,,
-olmo2-7b-mid17B,dx-self-3-third,3shot_collide,free,0.421,126,0.286,0.044,,
-olmo2-7b-mid17B,dx-self-3-third,3shot,all,0.561,180,0.287,0.037,,
-olmo2-7b-mid17B,dx-self-3-third,3shot,free,0.492,126,0.286,0.044,,
-olmo2-7b-mid17B,dx-self-2-deictic,0shot,all,0.328,180,0.287,0.035,,speaker_confusion=0.672
-olmo2-7b-mid17B,dx-self-2-deictic,0shot,free,0.294,126,0.286,0.041,,speaker_confusion=0.706
-olmo2-7b-mid17B,dx-self-2-deictic,3shot_collide,all,0.428,180,0.287,0.037,,speaker_confusion=0.572
-olmo2-7b-mid17B,dx-self-2-deictic,3shot_collide,free,0.508,126,0.286,0.044,,speaker_confusion=0.492
-olmo2-7b-mid17B,dx-self-2-deictic,3shot,all,0.378,180,0.287,0.036,,speaker_confusion=0.622
-olmo2-7b-mid17B,dx-self-2-deictic,3shot,free,0.421,126,0.286,0.044,,speaker_confusion=0.579
-olmo2-7b-mid17B,dx-self-2-third,0shot,all,0.439,180,0.287,0.037,,
-olmo2-7b-mid17B,dx-self-2-third,0shot,free,0.389,126,0.286,0.043,,
-olmo2-7b-mid17B,dx-self-2-third,3shot_collide,all,0.561,180,0.287,0.037,,
-olmo2-7b-mid17B,dx-self-2-third,3shot_collide,free,0.540,126,0.286,0.044,,
-olmo2-7b-mid17B,dx-self-2-third,3shot,all,0.556,180,0.287,0.037,,
-olmo2-7b-mid17B,dx-self-2-third,3shot,free,0.564,126,0.286,0.044,,
-olmo2-7b-mid17B,dx-addressee-3-deictic,0shot,all,0.300,180,0.287,0.034,,other_object=0.239;previous_owner=0.083;speaker_confusion=0.378
-olmo2-7b-mid17B,dx-addressee-3-deictic,0shot,free,0.309,126,0.286,0.041,,other_object=0.214;previous_owner=0.111;speaker_confusion=0.365
-olmo2-7b-mid17B,dx-addressee-3-deictic,3shot_collide,all,0.350,180,0.287,0.036,,other_object=0.2;previous_owner=0.1;speaker_confusion=0.35
-olmo2-7b-mid17B,dx-addressee-3-deictic,3shot_collide,free,0.365,126,0.286,0.043,,other_object=0.151;previous_owner=0.127;speaker_confusion=0.357
-olmo2-7b-mid17B,dx-addressee-3-deictic,3shot,all,0.306,180,0.287,0.034,,other_object=0.211;previous_owner=0.083;speaker_confusion=0.394;tie=0.006
-olmo2-7b-mid17B,dx-addressee-3-deictic,3shot,free,0.302,126,0.286,0.041,,other_object=0.183;previous_owner=0.095;speaker_confusion=0.413;tie=0.008
-olmo2-7b-mid17B,dx-addressee-3-third,0shot,all,0.494,180,0.287,0.037,,
-olmo2-7b-mid17B,dx-addressee-3-third,0shot,free,0.405,126,0.286,0.044,,
-olmo2-7b-mid17B,dx-addressee-3-third,3shot_collide,all,0.533,180,0.287,0.037,,
-olmo2-7b-mid17B,dx-addressee-3-third,3shot_collide,free,0.484,126,0.286,0.044,,
-olmo2-7b-mid17B,dx-addressee-3-third,3shot,all,0.606,180,0.287,0.036,,
-olmo2-7b-mid17B,dx-addressee-3-third,3shot,free,0.571,126,0.286,0.044,,
-olmo2-7b-mid17B,dx-addressee-2-deictic,0shot,all,0.244,180,0.287,0.032,,speaker_confusion=0.756
-olmo2-7b-mid17B,dx-addressee-2-deictic,0shot,free,0.191,126,0.286,0.035,,speaker_confusion=0.81
-olmo2-7b-mid17B,dx-addressee-2-deictic,3shot_collide,all,0.356,180,0.287,0.036,,speaker_confusion=0.639;tie=0.006
-olmo2-7b-mid17B,dx-addressee-2-deictic,3shot_collide,free,0.365,126,0.286,0.043,,speaker_confusion=0.627;tie=0.008
-olmo2-7b-mid17B,dx-addressee-2-deictic,3shot,all,0.328,180,0.287,0.035,,speaker_confusion=0.667;tie=0.006
-olmo2-7b-mid17B,dx-addressee-2-deictic,3shot,free,0.341,126,0.286,0.042,,speaker_confusion=0.651;tie=0.008
-olmo2-7b-mid17B,dx-addressee-2-third,0shot,all,0.439,180,0.287,0.037,,
-olmo2-7b-mid17B,dx-addressee-2-third,0shot,free,0.421,126,0.286,0.044,,
-olmo2-7b-mid17B,dx-addressee-2-third,3shot_collide,all,0.589,180,0.287,0.037,,
-olmo2-7b-mid17B,dx-addressee-2-third,3shot_collide,free,0.571,126,0.286,0.044,,
-olmo2-7b-mid17B,dx-addressee-2-third,3shot,all,0.633,180,0.287,0.036,,
-olmo2-7b-mid17B,dx-addressee-2-third,3shot,free,0.603,126,0.286,0.044,,
-olmo2-7b-mid50B,dx-owner-3-deictic,0shot,all,0.567,120,0.333,0.045,,other_participant=0.308;speaker_confusion=0.125
-olmo2-7b-mid50B,dx-owner-3-deictic,0shot,free,0.350,40,0.333,0.075,,other_participant=0.55;speaker_confusion=0.1
-olmo2-7b-mid50B,dx-owner-3-deictic,3shot_collide,all,0.692,120,0.333,0.042,,other_participant=0.275;speaker_confusion=0.033
-olmo2-7b-mid50B,dx-owner-3-deictic,3shot_collide,free,0.650,40,0.333,0.075,,other_participant=0.325;speaker_confusion=0.025
-olmo2-7b-mid50B,dx-owner-3-deictic,3shot,all,0.675,120,0.333,0.043,,other_participant=0.292;speaker_confusion=0.033
-olmo2-7b-mid50B,dx-owner-3-deictic,3shot,free,0.550,40,0.333,0.079,,other_participant=0.45
-olmo2-7b-mid50B,dx-owner-3-third,0shot,all,0.717,120,0.333,0.041,,
-olmo2-7b-mid50B,dx-owner-3-third,0shot,free,0.600,40,0.333,0.077,,
-olmo2-7b-mid50B,dx-owner-3-third,3shot_collide,all,0.608,120,0.333,0.045,,
-olmo2-7b-mid50B,dx-owner-3-third,3shot_collide,free,0.525,40,0.333,0.079,,
-olmo2-7b-mid50B,dx-owner-3-third,3shot,all,0.750,120,0.333,0.040,,
-olmo2-7b-mid50B,dx-owner-3-third,3shot,free,0.725,40,0.333,0.071,,
-olmo2-7b-mid50B,dx-self-3-deictic,0shot,all,0.411,180,0.287,0.037,,other_object=0.3;previous_owner=0.056;speaker_confusion=0.233
-olmo2-7b-mid50B,dx-self-3-deictic,0shot,free,0.397,126,0.286,0.044,,other_object=0.333;previous_owner=0.024;speaker_confusion=0.246
-olmo2-7b-mid50B,dx-self-3-deictic,3shot_collide,all,0.411,180,0.287,0.037,,other_object=0.294;previous_owner=0.05;speaker_confusion=0.244
-olmo2-7b-mid50B,dx-self-3-deictic,3shot_collide,free,0.429,126,0.286,0.044,,other_object=0.325;previous_owner=0.04;speaker_confusion=0.206
-olmo2-7b-mid50B,dx-self-3-deictic,3shot,all,0.406,180,0.287,0.037,,other_object=0.289;previous_owner=0.033;speaker_confusion=0.272
-olmo2-7b-mid50B,dx-self-3-deictic,3shot,free,0.421,126,0.286,0.044,,other_object=0.317;previous_owner=0.024;speaker_confusion=0.238
-olmo2-7b-mid50B,dx-self-3-third,0shot,all,0.461,180,0.287,0.037,,
-olmo2-7b-mid50B,dx-self-3-third,0shot,free,0.365,126,0.286,0.043,,
-olmo2-7b-mid50B,dx-self-3-third,3shot_collide,all,0.461,180,0.287,0.037,,
-olmo2-7b-mid50B,dx-self-3-third,3shot_collide,free,0.421,126,0.286,0.044,,
-olmo2-7b-mid50B,dx-self-3-third,3shot,all,0.528,180,0.287,0.037,,
-olmo2-7b-mid50B,dx-self-3-third,3shot,free,0.492,126,0.286,0.044,,
-olmo2-7b-mid50B,dx-self-2-deictic,0shot,all,0.328,180,0.287,0.035,,speaker_confusion=0.672
-olmo2-7b-mid50B,dx-self-2-deictic,0shot,free,0.294,126,0.286,0.041,,speaker_confusion=0.706
-olmo2-7b-mid50B,dx-self-2-deictic,3shot_collide,all,0.444,180,0.287,0.037,,speaker_confusion=0.556
-olmo2-7b-mid50B,dx-self-2-deictic,3shot_collide,free,0.532,126,0.286,0.044,,speaker_confusion=0.468
-olmo2-7b-mid50B,dx-self-2-deictic,3shot,all,0.389,180,0.287,0.036,,speaker_confusion=0.606;tie=0.006
-olmo2-7b-mid50B,dx-self-2-deictic,3shot,free,0.452,126,0.286,0.044,,speaker_confusion=0.54;tie=0.008
-olmo2-7b-mid50B,dx-self-2-third,0shot,all,0.467,180,0.287,0.037,,
-olmo2-7b-mid50B,dx-self-2-third,0shot,free,0.468,126,0.286,0.044,,
-olmo2-7b-mid50B,dx-self-2-third,3shot_collide,all,0.517,180,0.287,0.037,,
-olmo2-7b-mid50B,dx-self-2-third,3shot_collide,free,0.516,126,0.286,0.044,,
-olmo2-7b-mid50B,dx-self-2-third,3shot,all,0.517,180,0.287,0.037,,
-olmo2-7b-mid50B,dx-self-2-third,3shot,free,0.516,126,0.286,0.044,,
-olmo2-7b-mid50B,dx-addressee-3-deictic,0shot,all,0.317,180,0.287,0.035,,other_object=0.222;previous_owner=0.1;speaker_confusion=0.361
-olmo2-7b-mid50B,dx-addressee-3-deictic,0shot,free,0.333,126,0.286,0.042,,other_object=0.175;previous_owner=0.119;speaker_confusion=0.373
-olmo2-7b-mid50B,dx-addressee-3-deictic,3shot_collide,all,0.300,180,0.287,0.034,,other_object=0.217;previous_owner=0.1;speaker_confusion=0.383
-olmo2-7b-mid50B,dx-addressee-3-deictic,3shot_collide,free,0.333,126,0.286,0.042,,other_object=0.159;previous_owner=0.119;speaker_confusion=0.389
-olmo2-7b-mid50B,dx-addressee-3-deictic,3shot,all,0.311,180,0.287,0.035,,other_object=0.217;previous_owner=0.111;speaker_confusion=0.361
-olmo2-7b-mid50B,dx-addressee-3-deictic,3shot,free,0.286,126,0.286,0.040,,other_object=0.175;previous_owner=0.127;speaker_confusion=0.413
-olmo2-7b-mid50B,dx-addressee-3-third,0shot,all,0.467,180,0.287,0.037,,
-olmo2-7b-mid50B,dx-addressee-3-third,0shot,free,0.373,126,0.286,0.043,,
-olmo2-7b-mid50B,dx-addressee-3-third,3shot_collide,all,0.478,180,0.287,0.037,,
-olmo2-7b-mid50B,dx-addressee-3-third,3shot_collide,free,0.389,126,0.286,0.043,,
-olmo2-7b-mid50B,dx-addressee-3-third,3shot,all,0.511,180,0.287,0.037,,
-olmo2-7b-mid50B,dx-addressee-3-third,3shot,free,0.436,126,0.286,0.044,,
-olmo2-7b-mid50B,dx-addressee-2-deictic,0shot,all,0.239,180,0.287,0.032,,speaker_confusion=0.761
-olmo2-7b-mid50B,dx-addressee-2-deictic,0shot,free,0.191,126,0.286,0.035,,speaker_confusion=0.81
-olmo2-7b-mid50B,dx-addressee-2-deictic,3shot_collide,all,0.350,180,0.287,0.036,,speaker_confusion=0.65
-olmo2-7b-mid50B,dx-addressee-2-deictic,3shot_collide,free,0.365,126,0.286,0.043,,speaker_confusion=0.635
-olmo2-7b-mid50B,dx-addressee-2-deictic,3shot,all,0.356,180,0.287,0.036,,speaker_confusion=0.644
-olmo2-7b-mid50B,dx-addressee-2-deictic,3shot,free,0.373,126,0.286,0.043,,speaker_confusion=0.627
-olmo2-7b-mid50B,dx-addressee-2-third,0shot,all,0.428,180,0.287,0.037,,
-olmo2-7b-mid50B,dx-addressee-2-third,0shot,free,0.436,126,0.286,0.044,,
-olmo2-7b-mid50B,dx-addressee-2-third,3shot_collide,all,0.556,180,0.287,0.037,,
-olmo2-7b-mid50B,dx-addressee-2-third,3shot_collide,free,0.564,126,0.286,0.044,,
-olmo2-7b-mid50B,dx-addressee-2-third,3shot,all,0.622,180,0.287,0.036,,
-olmo2-7b-mid50B,dx-addressee-2-third,3shot,free,0.603,126,0.286,0.044,,
-olmo2-7b-sft,dx-owner-3-deictic,0shot,all,0.567,120,0.333,0.045,,other_participant=0.308;speaker_confusion=0.125
-olmo2-7b-sft,dx-owner-3-deictic,0shot,free,0.425,40,0.333,0.078,,other_participant=0.525;speaker_confusion=0.05
-olmo2-7b-sft,dx-owner-3-deictic,3shot_collide,all,0.600,120,0.333,0.045,,other_participant=0.333;speaker_confusion=0.067
-olmo2-7b-sft,dx-owner-3-deictic,3shot_collide,free,0.575,40,0.333,0.078,,other_participant=0.4;speaker_confusion=0.025
-olmo2-7b-sft,dx-owner-3-deictic,3shot,all,0.658,120,0.333,0.043,,other_participant=0.267;speaker_confusion=0.067;tie=0.008
-olmo2-7b-sft,dx-owner-3-deictic,3shot,free,0.750,40,0.333,0.069,,other_participant=0.225;speaker_confusion=0.025
-olmo2-7b-sft,dx-owner-3-third,0shot,all,0.742,120,0.333,0.040,,
-olmo2-7b-sft,dx-owner-3-third,0shot,free,0.650,40,0.333,0.075,,
-olmo2-7b-sft,dx-owner-3-third,3shot_collide,all,0.492,120,0.333,0.046,,
-olmo2-7b-sft,dx-owner-3-third,3shot_collide,free,0.400,40,0.333,0.077,,
-olmo2-7b-sft,dx-owner-3-third,3shot,all,0.583,120,0.333,0.045,,
-olmo2-7b-sft,dx-owner-3-third,3shot,free,0.700,40,0.333,0.072,,
-olmo2-7b-sft,dx-self-3-deictic,0shot,all,0.428,180,0.287,0.037,,other_object=0.217;previous_owner=0.067;speaker_confusion=0.289
-olmo2-7b-sft,dx-self-3-deictic,0shot,free,0.429,126,0.286,0.044,,other_object=0.222;previous_owner=0.024;speaker_confusion=0.325
-olmo2-7b-sft,dx-self-3-deictic,3shot_collide,all,0.417,180,0.287,0.037,,other_object=0.306;previous_owner=0.028;speaker_confusion=0.25
-olmo2-7b-sft,dx-self-3-deictic,3shot_collide,free,0.516,126,0.286,0.044,,other_object=0.325;previous_owner=0.016;speaker_confusion=0.143
-olmo2-7b-sft,dx-self-3-deictic,3shot,all,0.406,180,0.287,0.037,,other_object=0.372;previous_owner=0.017;speaker_confusion=0.206
-olmo2-7b-sft,dx-self-3-deictic,3shot,free,0.429,126,0.286,0.044,,other_object=0.429;speaker_confusion=0.143
-olmo2-7b-sft,dx-self-3-third,0shot,all,0.456,180,0.287,0.037,,
-olmo2-7b-sft,dx-self-3-third,0shot,free,0.429,126,0.286,0.044,,
-olmo2-7b-sft,dx-self-3-third,3shot_collide,all,0.494,180,0.287,0.037,,
-olmo2-7b-sft,dx-self-3-third,3shot_collide,free,0.476,126,0.286,0.044,,
-olmo2-7b-sft,dx-self-3-third,3shot,all,0.572,180,0.287,0.037,,
-olmo2-7b-sft,dx-self-3-third,3shot,free,0.532,126,0.286,0.044,,
-olmo2-7b-sft,dx-self-2-deictic,0shot,all,0.406,180,0.287,0.037,,speaker_confusion=0.589;tie=0.006
-olmo2-7b-sft,dx-self-2-deictic,0shot,free,0.405,126,0.286,0.044,,speaker_confusion=0.595
-olmo2-7b-sft,dx-self-2-deictic,3shot_collide,all,0.467,180,0.287,0.037,,speaker_confusion=0.528;tie=0.006
-olmo2-7b-sft,dx-self-2-deictic,3shot_collide,free,0.564,126,0.286,0.044,,speaker_confusion=0.437
-olmo2-7b-sft,dx-self-2-deictic,3shot,all,0.422,180,0.287,0.037,,speaker_confusion=0.572;tie=0.006
-olmo2-7b-sft,dx-self-2-deictic,3shot,free,0.484,126,0.286,0.044,,speaker_confusion=0.516
-olmo2-7b-sft,dx-self-2-third,0shot,all,0.511,180,0.287,0.037,,
-olmo2-7b-sft,dx-self-2-third,0shot,free,0.492,126,0.286,0.044,,
-olmo2-7b-sft,dx-self-2-third,3shot_collide,all,0.489,180,0.287,0.037,,
-olmo2-7b-sft,dx-self-2-third,3shot_collide,free,0.476,126,0.286,0.044,,
-olmo2-7b-sft,dx-self-2-third,3shot,all,0.589,180,0.287,0.037,,
-olmo2-7b-sft,dx-self-2-third,3shot,free,0.579,126,0.286,0.044,,
-olmo2-7b-sft,dx-addressee-3-deictic,0shot,all,0.356,180,0.287,0.036,,other_object=0.194;previous_owner=0.078;speaker_confusion=0.372
-olmo2-7b-sft,dx-addressee-3-deictic,0shot,free,0.373,126,0.286,0.043,,other_object=0.175;previous_owner=0.103;speaker_confusion=0.349
-olmo2-7b-sft,dx-addressee-3-deictic,3shot_collide,all,0.272,180,0.287,0.033,,other_object=0.272;previous_owner=0.061;speaker_confusion=0.389;tie=0.006
-olmo2-7b-sft,dx-addressee-3-deictic,3shot_collide,free,0.302,126,0.286,0.041,,other_object=0.214;previous_owner=0.071;speaker_confusion=0.413
-olmo2-7b-sft,dx-addressee-3-deictic,3shot,all,0.289,180,0.287,0.034,,other_object=0.239;previous_owner=0.083;speaker_confusion=0.389
-olmo2-7b-sft,dx-addressee-3-deictic,3shot,free,0.294,126,0.286,0.041,,other_object=0.198;previous_owner=0.095;speaker_confusion=0.413
-olmo2-7b-sft,dx-addressee-3-third,0shot,all,0.472,180,0.287,0.037,,
-olmo2-7b-sft,dx-addressee-3-third,0shot,free,0.318,126,0.286,0.042,,
-olmo2-7b-sft,dx-addressee-3-third,3shot_collide,all,0.483,180,0.287,0.037,,
-olmo2-7b-sft,dx-addressee-3-third,3shot_collide,free,0.421,126,0.286,0.044,,
-olmo2-7b-sft,dx-addressee-3-third,3shot,all,0.583,180,0.287,0.037,,
-olmo2-7b-sft,dx-addressee-3-third,3shot,free,0.500,126,0.286,0.044,,
-olmo2-7b-sft,dx-addressee-2-deictic,0shot,all,0.211,180,0.287,0.030,,speaker_confusion=0.789
-olmo2-7b-sft,dx-addressee-2-deictic,0shot,free,0.222,126,0.286,0.037,,speaker_confusion=0.778
-olmo2-7b-sft,dx-addressee-2-deictic,3shot_collide,all,0.328,180,0.287,0.035,,speaker_confusion=0.672
-olmo2-7b-sft,dx-addressee-2-deictic,3shot_collide,free,0.381,126,0.286,0.043,,speaker_confusion=0.619
-olmo2-7b-sft,dx-addressee-2-deictic,3shot,all,0.322,180,0.287,0.035,,speaker_confusion=0.678
-olmo2-7b-sft,dx-addressee-2-deictic,3shot,free,0.381,126,0.286,0.043,,speaker_confusion=0.619
-olmo2-7b-sft,dx-addressee-2-third,0shot,all,0.428,180,0.287,0.037,,
-olmo2-7b-sft,dx-addressee-2-third,0shot,free,0.397,126,0.286,0.044,,
-olmo2-7b-sft,dx-addressee-2-third,3shot_collide,all,0.522,180,0.287,0.037,,
-olmo2-7b-sft,dx-addressee-2-third,3shot_collide,free,0.548,126,0.286,0.044,,
-olmo2-7b-sft,dx-addressee-2-third,3shot,all,0.594,180,0.287,0.037,,
-olmo2-7b-sft,dx-addressee-2-third,3shot,free,0.571,126,0.286,0.044,,
-olmo2-7b-sft,sb-k1,0shot,all,0.734,64,0.125,0.055,,
-olmo2-7b-sft,sb-k1,3shot_collide,all,0.953,64,0.125,0.026,,
-olmo2-7b-sft,sb-k1,3shot,all,0.984,64,0.125,0.015,,
-olmo2-7b-sft,sb-k23,0shot,all,0.469,128,0.027,0.044,,
-olmo2-7b-sft,sb-k23,3shot_collide,all,0.727,128,0.027,0.039,,
-olmo2-7b-sft,sb-k23,3shot,all,0.820,128,0.027,0.034,,
-olmo2-7b-sft,sb-split,0shot,all,0.211,128,0.027,0.036,,
-olmo2-7b-sft,sb-split,3shot_collide,all,0.484,128,0.027,0.044,,
-olmo2-7b-sft,sb-split,3shot,all,0.508,128,0.027,0.044,,
-olmo2-7b-sft,sb-dyn,0shot,all,0.184,256,0.027,0.024,,
-olmo2-7b-sft,sb-dyn,3shot_collide,all,0.098,256,0.027,0.019,,
-olmo2-7b-sft,sb-dyn,3shot,all,0.144,256,0.027,0.022,,
-olmo2-7b-sft,an-narr,0shot,all,0.525,640,0.250,0.020,,
-olmo2-7b-sft,an-narr,3shot_collide,all,0.605,640,0.250,0.019,,
-olmo2-7b-sft,an-narr,3shot,all,0.669,640,0.250,0.019,,
-olmo2-7b-sft,an-other-any,0shot,all,0.022,320,0.250,0.008,,
-olmo2-7b-sft,an-other-any,3shot_collide,all,0.534,320,0.250,0.028,,
-olmo2-7b-sft,an-other-any,3shot,all,0.472,320,0.250,0.028,,
-olmo2-7b-sft,an-me-any,0shot,all,0.469,160,0.250,0.040,,
-olmo2-7b-sft,an-me-any,3shot_collide,all,0.194,160,0.250,0.031,,
-olmo2-7b-sft,an-me-any,3shot,all,0.069,160,0.250,0.020,,
-olmo2-7b-sft,an-you-voc,0shot,all,0.863,80,0.250,0.038,,
-olmo2-7b-sft,an-you-voc,3shot_collide,all,0.425,80,0.250,0.055,,
-olmo2-7b-sft,an-you-voc,3shot,all,0.438,80,0.250,0.056,,
-olmo2-7b-sft,an-you-novoc,0shot,all,0.375,80,0.250,0.054,,
-olmo2-7b-sft,an-you-novoc,3shot_collide,all,0.125,80,0.250,0.037,,
-olmo2-7b-sft,an-you-novoc,3shot,all,0.075,80,0.250,0.029,,
-olmo2-7b-sft,adj-adj,0shot,all,0.865,260,0.333,0.021,,
-olmo2-7b-sft,adj-adj,3shot_collide,all,0.873,260,0.333,0.021,,
-olmo2-7b-sft,adj-adj,3shot,all,0.885,260,0.333,0.020,,
-olmo2-7b-sft,adj-voc,0shot,all,0.885,260,0.333,0.020,,
-olmo2-7b-sft,adj-voc,3shot_collide,all,0.892,260,0.333,0.019,,
-olmo2-7b-sft,adj-voc,3shot,all,0.923,260,0.333,0.017,,
-olmo2-7b-sft,adj-third,0shot,all,0.835,260,0.333,0.023,,
-olmo2-7b-sft,adj-third,3shot_collide,all,0.792,260,0.333,0.025,,
-olmo2-7b-sft,adj-third,3shot,all,0.862,260,0.333,0.021,,
-olmo2-7b-sft,cm-mutate,0shot,all,0.865,200,0.200,0.024,,
-olmo2-7b-sft,cm-mutate,3shot_collide,all,0.735,200,0.200,0.031,,
-olmo2-7b-sft,cm-mutate,3shot,all,0.740,200,0.200,0.031,,
-olmo2-7b-sft,cm-rebind,0shot,all,0.100,200,0.200,0.021,,
-olmo2-7b-sft,cm-rebind,3shot_collide,all,0.400,200,0.200,0.035,,
-olmo2-7b-sft,cm-rebind,3shot,all,0.340,200,0.200,0.034,,
-olmo2-7b-sft,cm-copy,0shot,all,0.040,200,0.200,0.014,,
-olmo2-7b-sft,cm-copy,3shot_collide,all,0.375,200,0.200,0.034,,
-olmo2-7b-sft,cm-copy,3shot,all,0.385,200,0.200,0.034,,
-olmo2-7b-dpo,dx-owner-3-deictic,0shot,all,0.633,120,0.333,0.044,,other_participant=0.25;speaker_confusion=0.117
-olmo2-7b-dpo,dx-owner-3-deictic,0shot,free,0.625,40,0.333,0.076,,other_participant=0.375
-olmo2-7b-dpo,dx-owner-3-deictic,3shot_collide,all,0.658,120,0.333,0.043,,other_participant=0.292;speaker_confusion=0.042;tie=0.008
-olmo2-7b-dpo,dx-owner-3-deictic,3shot_collide,free,0.725,40,0.333,0.071,,other_participant=0.25;speaker_confusion=0.025
-olmo2-7b-dpo,dx-owner-3-deictic,3shot,all,0.667,120,0.333,0.043,,other_participant=0.283;speaker_confusion=0.05
-olmo2-7b-dpo,dx-owner-3-deictic,3shot,free,0.850,40,0.333,0.057,,other_participant=0.15
-olmo2-7b-dpo,dx-owner-3-third,0shot,all,0.742,120,0.333,0.040,,
-olmo2-7b-dpo,dx-owner-3-third,0shot,free,0.650,40,0.333,0.075,,
-olmo2-7b-dpo,dx-owner-3-third,3shot_collide,all,0.525,120,0.333,0.046,,
-olmo2-7b-dpo,dx-owner-3-third,3shot_collide,free,0.475,40,0.333,0.079,,
-olmo2-7b-dpo,dx-owner-3-third,3shot,all,0.625,120,0.333,0.044,,
-olmo2-7b-dpo,dx-owner-3-third,3shot,free,0.750,40,0.333,0.069,,
-olmo2-7b-dpo,dx-self-3-deictic,0shot,all,0.444,180,0.287,0.037,,other_object=0.206;previous_owner=0.083;speaker_confusion=0.261;tie=0.006
-olmo2-7b-dpo,dx-self-3-deictic,0shot,free,0.492,126,0.286,0.044,,other_object=0.206;previous_owner=0.032;speaker_confusion=0.262;tie=0.008
-olmo2-7b-dpo,dx-self-3-deictic,3shot_collide,all,0.428,180,0.287,0.037,,other_object=0.289;previous_owner=0.033;speaker_confusion=0.25
-olmo2-7b-dpo,dx-self-3-deictic,3shot_collide,free,0.548,126,0.286,0.044,,other_object=0.286;previous_owner=0.032;speaker_confusion=0.135
-olmo2-7b-dpo,dx-self-3-deictic,3shot,all,0.439,180,0.287,0.037,,other_object=0.317;previous_owner=0.011;speaker_confusion=0.233
-olmo2-7b-dpo,dx-self-3-deictic,3shot,free,0.516,126,0.286,0.044,,other_object=0.333;speaker_confusion=0.151
-olmo2-7b-dpo,dx-self-3-third,0shot,all,0.500,180,0.287,0.037,,
-olmo2-7b-dpo,dx-self-3-third,0shot,free,0.476,126,0.286,0.044,,
-olmo2-7b-dpo,dx-self-3-third,3shot_collide,all,0.544,180,0.287,0.037,,
-olmo2-7b-dpo,dx-self-3-third,3shot_collide,free,0.532,126,0.286,0.044,,
-olmo2-7b-dpo,dx-self-3-third,3shot,all,0.611,180,0.287,0.036,,
-olmo2-7b-dpo,dx-self-3-third,3shot,free,0.571,126,0.286,0.044,,
-olmo2-7b-dpo,dx-self-2-deictic,0shot,all,0.428,180,0.287,0.037,,speaker_confusion=0.572
-olmo2-7b-dpo,dx-self-2-deictic,0shot,free,0.460,126,0.286,0.044,,speaker_confusion=0.54
-olmo2-7b-dpo,dx-self-2-deictic,3shot_collide,all,0.478,180,0.287,0.037,,speaker_confusion=0.522
-olmo2-7b-dpo,dx-self-2-deictic,3shot_collide,free,0.627,126,0.286,0.043,,speaker_confusion=0.373
-olmo2-7b-dpo,dx-self-2-deictic,3shot,all,0.467,180,0.287,0.037,,speaker_confusion=0.528;tie=0.006
-olmo2-7b-dpo,dx-self-2-deictic,3shot,free,0.564,126,0.286,0.044,,speaker_confusion=0.437
-olmo2-7b-dpo,dx-self-2-third,0shot,all,0.556,180,0.287,0.037,,
-olmo2-7b-dpo,dx-self-2-third,0shot,free,0.540,126,0.286,0.044,,
-olmo2-7b-dpo,dx-self-2-third,3shot_collide,all,0.522,180,0.287,0.037,,
-olmo2-7b-dpo,dx-self-2-third,3shot_collide,free,0.524,126,0.286,0.044,,
-olmo2-7b-dpo,dx-self-2-third,3shot,all,0.600,180,0.287,0.036,,
-olmo2-7b-dpo,dx-self-2-third,3shot,free,0.595,126,0.286,0.044,,
-olmo2-7b-dpo,dx-addressee-3-deictic,0shot,all,0.350,180,0.287,0.036,,other_object=0.194;previous_owner=0.033;speaker_confusion=0.417;tie=0.006
-olmo2-7b-dpo,dx-addressee-3-deictic,0shot,free,0.373,126,0.286,0.043,,other_object=0.183;previous_owner=0.032;speaker_confusion=0.405;tie=0.008
-olmo2-7b-dpo,dx-addressee-3-deictic,3shot_collide,all,0.356,180,0.287,0.036,,other_object=0.261;previous_owner=0.039;speaker_confusion=0.344
-olmo2-7b-dpo,dx-addressee-3-deictic,3shot_collide,free,0.429,126,0.286,0.044,,other_object=0.214;previous_owner=0.048;speaker_confusion=0.31
-olmo2-7b-dpo,dx-addressee-3-deictic,3shot,all,0.328,180,0.287,0.035,,other_object=0.283;previous_owner=0.044;speaker_confusion=0.339;tie=0.006
-olmo2-7b-dpo,dx-addressee-3-deictic,3shot,free,0.341,126,0.286,0.042,,other_object=0.262;previous_owner=0.048;speaker_confusion=0.341;tie=0.008
-olmo2-7b-dpo,dx-addressee-3-third,0shot,all,0.506,180,0.287,0.037,,
-olmo2-7b-dpo,dx-addressee-3-third,0shot,free,0.413,126,0.286,0.044,,
-olmo2-7b-dpo,dx-addressee-3-third,3shot_collide,all,0.556,180,0.287,0.037,,
-olmo2-7b-dpo,dx-addressee-3-third,3shot_collide,free,0.500,126,0.286,0.044,,
-olmo2-7b-dpo,dx-addressee-3-third,3shot,all,0.678,180,0.287,0.035,,
-olmo2-7b-dpo,dx-addressee-3-third,3shot,free,0.619,126,0.286,0.043,,
-olmo2-7b-dpo,dx-addressee-2-deictic,0shot,all,0.250,180,0.287,0.032,,speaker_confusion=0.739;tie=0.011
-olmo2-7b-dpo,dx-addressee-2-deictic,0shot,free,0.278,126,0.286,0.040,,speaker_confusion=0.714;tie=0.008
-olmo2-7b-dpo,dx-addressee-2-deictic,3shot_collide,all,0.367,180,0.287,0.036,,speaker_confusion=0.633
-olmo2-7b-dpo,dx-addressee-2-deictic,3shot_collide,free,0.460,126,0.286,0.044,,speaker_confusion=0.54
-olmo2-7b-dpo,dx-addressee-2-deictic,3shot,all,0.300,180,0.287,0.034,,speaker_confusion=0.7
-olmo2-7b-dpo,dx-addressee-2-deictic,3shot,free,0.365,126,0.286,0.043,,speaker_confusion=0.635
-olmo2-7b-dpo,dx-addressee-2-third,0shot,all,0.439,180,0.287,0.037,,
-olmo2-7b-dpo,dx-addressee-2-third,0shot,free,0.429,126,0.286,0.044,,
-olmo2-7b-dpo,dx-addressee-2-third,3shot_collide,all,0.528,180,0.287,0.037,,
-olmo2-7b-dpo,dx-addressee-2-third,3shot_collide,free,0.564,126,0.286,0.044,,
-olmo2-7b-dpo,dx-addressee-2-third,3shot,all,0.622,180,0.287,0.036,,
-olmo2-7b-dpo,dx-addressee-2-third,3shot,free,0.603,126,0.286,0.044,,
-olmo2-7b-dpo,sb-k1,0shot,all,0.766,64,0.125,0.053,,
-olmo2-7b-dpo,sb-k1,3shot_collide,all,0.953,64,0.125,0.026,,
-olmo2-7b-dpo,sb-k1,3shot,all,0.969,64,0.125,0.022,,
-olmo2-7b-dpo,sb-k23,0shot,all,0.570,128,0.027,0.044,,
-olmo2-7b-dpo,sb-k23,3shot_collide,all,0.750,128,0.027,0.038,,
-olmo2-7b-dpo,sb-k23,3shot,all,0.797,128,0.027,0.036,,
-olmo2-7b-dpo,sb-split,0shot,all,0.266,128,0.027,0.039,,
-olmo2-7b-dpo,sb-split,3shot_collide,all,0.547,128,0.027,0.044,,
-olmo2-7b-dpo,sb-split,3shot,all,0.602,128,0.027,0.043,,
-olmo2-7b-dpo,sb-dyn,0shot,all,0.223,256,0.027,0.026,,
-olmo2-7b-dpo,sb-dyn,3shot_collide,all,0.113,256,0.027,0.020,,
-olmo2-7b-dpo,sb-dyn,3shot,all,0.148,256,0.027,0.022,,
-olmo2-7b-dpo,an-narr,0shot,all,0.531,640,0.250,0.020,,
-olmo2-7b-dpo,an-narr,3shot_collide,all,0.706,640,0.250,0.018,,
-olmo2-7b-dpo,an-narr,3shot,all,0.683,640,0.250,0.018,,
-olmo2-7b-dpo,an-other-any,0shot,all,0.047,320,0.250,0.012,,
-olmo2-7b-dpo,an-other-any,3shot_collide,all,0.559,320,0.250,0.028,,
-olmo2-7b-dpo,an-other-any,3shot,all,0.503,320,0.250,0.028,,
-olmo2-7b-dpo,an-me-any,0shot,all,0.375,160,0.250,0.038,,
-olmo2-7b-dpo,an-me-any,3shot_collide,all,0.381,160,0.250,0.038,,
-olmo2-7b-dpo,an-me-any,3shot,all,0.188,160,0.250,0.031,,
-olmo2-7b-dpo,an-you-voc,0shot,all,0.912,80,0.250,0.032,,
-olmo2-7b-dpo,an-you-voc,3shot_collide,all,0.525,80,0.250,0.056,,
-olmo2-7b-dpo,an-you-voc,3shot,all,0.637,80,0.250,0.054,,
-olmo2-7b-dpo,an-you-novoc,0shot,all,0.613,80,0.250,0.054,,
-olmo2-7b-dpo,an-you-novoc,3shot_collide,all,0.138,80,0.250,0.038,,
-olmo2-7b-dpo,an-you-novoc,3shot,all,0.113,80,0.250,0.035,,
-olmo2-7b-dpo,adj-adj,0shot,all,0.885,260,0.333,0.020,,
-olmo2-7b-dpo,adj-adj,3shot_collide,all,0.950,260,0.333,0.013,,
-olmo2-7b-dpo,adj-adj,3shot,all,0.908,260,0.333,0.018,,
-olmo2-7b-dpo,adj-voc,0shot,all,0.919,260,0.333,0.017,,
-olmo2-7b-dpo,adj-voc,3shot_collide,all,0.958,260,0.333,0.013,,
-olmo2-7b-dpo,adj-voc,3shot,all,0.939,260,0.333,0.015,,
-olmo2-7b-dpo,adj-third,0shot,all,0.911,260,0.333,0.018,,
-olmo2-7b-dpo,adj-third,3shot_collide,all,0.892,260,0.333,0.019,,
-olmo2-7b-dpo,adj-third,3shot,all,0.885,260,0.333,0.020,,
-olmo2-7b-dpo,cm-mutate,0shot,all,0.940,200,0.200,0.017,,
-olmo2-7b-dpo,cm-mutate,3shot_collide,all,0.890,200,0.200,0.022,,
-olmo2-7b-dpo,cm-mutate,3shot,all,0.840,200,0.200,0.026,,
-olmo2-7b-dpo,cm-rebind,0shot,all,0.060,200,0.200,0.017,,
-olmo2-7b-dpo,cm-rebind,3shot_collide,all,0.375,200,0.200,0.034,,
-olmo2-7b-dpo,cm-rebind,3shot,all,0.295,200,0.200,0.032,,
-olmo2-7b-dpo,cm-copy,0shot,all,0.005,200,0.200,0.005,,
-olmo2-7b-dpo,cm-copy,3shot_collide,all,0.265,200,0.200,0.031,,
-olmo2-7b-dpo,cm-copy,3shot,all,0.215,200,0.200,0.029,,
-olmo2-7b-instruct,attr,0shot,all,0.647,1210,0.168,0.014,,
-olmo2-7b-instruct,attr,3shot_collide,all,0.887,1210,0.168,0.009,,
-olmo2-7b-instruct,attr,3shot,all,0.904,1210,0.168,0.009,,
-olmo2-7b-instruct,codevar,0shot,all,0.418,1200,0.267,0.014,,
-olmo2-7b-instruct,codevar,3shot_collide,all,0.480,1200,0.267,0.014,,
-olmo2-7b-instruct,codevar,3shot,all,0.508,1200,0.267,0.014,,
-olmo2-7b-instruct,dialogue,0shot,all,0.792,1200,0.312,0.012,,
-olmo2-7b-instruct,dialogue,3shot_collide,all,0.793,1200,0.312,0.012,,
-olmo2-7b-instruct,dialogue,3shot,all,0.806,1200,0.312,0.011,,
-olmo2-7b-instruct,dx-owner-3-deictic,0shot,all,0.625,120,0.333,0.044,,other_participant=0.25;speaker_confusion=0.117;tie=0.008
-olmo2-7b-instruct,dx-owner-3-deictic,0shot,free,0.600,40,0.333,0.077,,other_participant=0.375;tie=0.025
-olmo2-7b-instruct,dx-owner-3-deictic,3shot_collide,all,0.642,120,0.333,0.044,,other_participant=0.3;speaker_confusion=0.042;tie=0.017
-olmo2-7b-instruct,dx-owner-3-deictic,3shot_collide,free,0.700,40,0.333,0.072,,other_participant=0.225;speaker_confusion=0.025;tie=0.05
-olmo2-7b-instruct,dx-owner-3-deictic,3shot,all,0.675,120,0.333,0.043,,other_participant=0.275;speaker_confusion=0.05
-olmo2-7b-instruct,dx-owner-3-deictic,3shot,free,0.850,40,0.333,0.057,,other_participant=0.15
-olmo2-7b-instruct,dx-owner-3-third,0shot,all,0.750,120,0.333,0.040,,
-olmo2-7b-instruct,dx-owner-3-third,0shot,free,0.675,40,0.333,0.074,,
-olmo2-7b-instruct,dx-owner-3-third,3shot_collide,all,0.525,120,0.333,0.046,,
-olmo2-7b-instruct,dx-owner-3-third,3shot_collide,free,0.450,40,0.333,0.079,,
-olmo2-7b-instruct,dx-owner-3-third,3shot,all,0.633,120,0.333,0.044,,
-olmo2-7b-instruct,dx-owner-3-third,3shot,free,0.750,40,0.333,0.069,,
-olmo2-7b-instruct,dx-self-3-deictic,0shot,all,0.456,180,0.287,0.037,,other_object=0.206;previous_owner=0.078;speaker_confusion=0.256;tie=0.006
-olmo2-7b-instruct,dx-self-3-deictic,0shot,free,0.500,126,0.286,0.044,,other_object=0.206;previous_owner=0.032;speaker_confusion=0.254;tie=0.008
-olmo2-7b-instruct,dx-self-3-deictic,3shot_collide,all,0.433,180,0.287,0.037,,other_object=0.278;previous_owner=0.033;speaker_confusion=0.256
-olmo2-7b-instruct,dx-self-3-deictic,3shot_collide,free,0.564,126,0.286,0.044,,other_object=0.27;previous_owner=0.032;speaker_confusion=0.135
-olmo2-7b-instruct,dx-self-3-deictic,3shot,all,0.439,180,0.287,0.037,,other_object=0.317;previous_owner=0.011;speaker_confusion=0.228;tie=0.006
-olmo2-7b-instruct,dx-self-3-deictic,3shot,free,0.516,126,0.286,0.044,,other_object=0.333;speaker_confusion=0.143;tie=0.008
-olmo2-7b-instruct,dx-self-3-third,0shot,all,0.522,180,0.287,0.037,,
-olmo2-7b-instruct,dx-self-3-third,0shot,free,0.492,126,0.286,0.044,,
-olmo2-7b-instruct,dx-self-3-third,3shot_collide,all,0.567,180,0.287,0.037,,
-olmo2-7b-instruct,dx-self-3-third,3shot_collide,free,0.556,126,0.286,0.044,,
-olmo2-7b-instruct,dx-self-3-third,3shot,all,0.611,180,0.287,0.036,,
-olmo2-7b-instruct,dx-self-3-third,3shot,free,0.556,126,0.286,0.044,,
-olmo2-7b-instruct,dx-self-2-deictic,0shot,all,0.433,180,0.287,0.037,,speaker_confusion=0.567
-olmo2-7b-instruct,dx-self-2-deictic,0shot,free,0.460,126,0.286,0.044,,speaker_confusion=0.54
-olmo2-7b-instruct,dx-self-2-deictic,3shot_collide,all,0.478,180,0.287,0.037,,speaker_confusion=0.522
-olmo2-7b-instruct,dx-self-2-deictic,3shot_collide,free,0.627,126,0.286,0.043,,speaker_confusion=0.373
-olmo2-7b-instruct,dx-self-2-deictic,3shot,all,0.483,180,0.287,0.037,,speaker_confusion=0.517
-olmo2-7b-instruct,dx-self-2-deictic,3shot,free,0.571,126,0.286,0.044,,speaker_confusion=0.429
-olmo2-7b-instruct,dx-self-2-third,0shot,all,0.578,180,0.287,0.037,,
-olmo2-7b-instruct,dx-self-2-third,0shot,free,0.564,126,0.286,0.044,,
-olmo2-7b-instruct,dx-self-2-third,3shot_collide,all,0.561,180,0.287,0.037,,
-olmo2-7b-instruct,dx-self-2-third,3shot_collide,free,0.540,126,0.286,0.044,,
-olmo2-7b-instruct,dx-self-2-third,3shot,all,0.633,180,0.287,0.036,,
-olmo2-7b-instruct,dx-self-2-third,3shot,free,0.627,126,0.286,0.043,,
-olmo2-7b-instruct,dx-addressee-3-deictic,0shot,all,0.344,180,0.287,0.035,,other_object=0.183;previous_owner=0.039;speaker_confusion=0.428;tie=0.006
-olmo2-7b-instruct,dx-addressee-3-deictic,0shot,free,0.365,126,0.286,0.043,,other_object=0.167;previous_owner=0.04;speaker_confusion=0.429
-olmo2-7b-instruct,dx-addressee-3-deictic,3shot_collide,all,0.356,180,0.287,0.036,,other_object=0.261;previous_owner=0.028;speaker_confusion=0.35;tie=0.006
-olmo2-7b-instruct,dx-addressee-3-deictic,3shot_collide,free,0.429,126,0.286,0.044,,other_object=0.206;previous_owner=0.032;speaker_confusion=0.325;tie=0.008
-olmo2-7b-instruct,dx-addressee-3-deictic,3shot,all,0.333,180,0.287,0.035,,other_object=0.289;previous_owner=0.039;speaker_confusion=0.339
-olmo2-7b-instruct,dx-addressee-3-deictic,3shot,free,0.349,126,0.286,0.043,,other_object=0.262;previous_owner=0.04;speaker_confusion=0.349
-olmo2-7b-instruct,dx-addressee-3-third,0shot,all,0.528,180,0.287,0.037,,
-olmo2-7b-instruct,dx-addressee-3-third,0shot,free,0.421,126,0.286,0.044,,
-olmo2-7b-instruct,dx-addressee-3-third,3shot_collide,all,0.561,180,0.287,0.037,,
-olmo2-7b-instruct,dx-addressee-3-third,3shot_collide,free,0.508,126,0.286,0.044,,
-olmo2-7b-instruct,dx-addressee-3-third,3shot,all,0.667,180,0.287,0.035,,
-olmo2-7b-instruct,dx-addressee-3-third,3shot,free,0.611,126,0.286,0.043,,
-olmo2-7b-instruct,dx-addressee-2-deictic,0shot,all,0.256,180,0.287,0.033,,speaker_confusion=0.744
-olmo2-7b-instruct,dx-addressee-2-deictic,0shot,free,0.286,126,0.286,0.040,,speaker_confusion=0.714
-olmo2-7b-instruct,dx-addressee-2-deictic,3shot_collide,all,0.350,180,0.287,0.036,,speaker_confusion=0.639;tie=0.011
-olmo2-7b-instruct,dx-addressee-2-deictic,3shot_collide,free,0.436,126,0.286,0.044,,speaker_confusion=0.548;tie=0.016
-olmo2-7b-instruct,dx-addressee-2-deictic,3shot,all,0.283,180,0.287,0.034,,speaker_confusion=0.717
-olmo2-7b-instruct,dx-addressee-2-deictic,3shot,free,0.349,126,0.286,0.043,,speaker_confusion=0.651
-olmo2-7b-instruct,dx-addressee-2-third,0shot,all,0.444,180,0.287,0.037,,
-olmo2-7b-instruct,dx-addressee-2-third,0shot,free,0.421,126,0.286,0.044,,
-olmo2-7b-instruct,dx-addressee-2-third,3shot_collide,all,0.539,180,0.287,0.037,,
-olmo2-7b-instruct,dx-addressee-2-third,3shot_collide,free,0.571,126,0.286,0.044,,
-olmo2-7b-instruct,dx-addressee-2-third,3shot,all,0.633,180,0.287,0.036,,
-olmo2-7b-instruct,dx-addressee-2-third,3shot,free,0.611,126,0.286,0.043,,
-olmo2-7b-instruct,sb-k1,0shot,all,0.781,64,0.125,0.052,,
-olmo2-7b-instruct,sb-k1,3shot_collide,all,0.953,64,0.125,0.026,,
-olmo2-7b-instruct,sb-k1,3shot,all,0.953,64,0.125,0.026,,
-olmo2-7b-instruct,sb-k23,0shot,all,0.586,128,0.027,0.043,,
-olmo2-7b-instruct,sb-k23,3shot_collide,all,0.750,128,0.027,0.038,,
-olmo2-7b-instruct,sb-k23,3shot,all,0.820,128,0.027,0.034,,
-olmo2-7b-instruct,sb-split,0shot,all,0.305,128,0.027,0.041,,
-olmo2-7b-instruct,sb-split,3shot_collide,all,0.562,128,0.027,0.044,,
-olmo2-7b-instruct,sb-split,3shot,all,0.633,128,0.027,0.043,,
-olmo2-7b-instruct,sb-dyn,0shot,all,0.231,256,0.027,0.026,,
-olmo2-7b-instruct,sb-dyn,3shot_collide,all,0.121,256,0.027,0.020,,
-olmo2-7b-instruct,sb-dyn,3shot,all,0.156,256,0.027,0.023,,
-olmo2-7b-instruct,an-narr,0shot,all,0.547,640,0.250,0.020,,
-olmo2-7b-instruct,an-narr,3shot_collide,all,0.706,640,0.250,0.018,,
-olmo2-7b-instruct,an-narr,3shot,all,0.691,640,0.250,0.018,,
-olmo2-7b-instruct,an-other-any,0shot,all,0.056,320,0.250,0.013,,
-olmo2-7b-instruct,an-other-any,3shot_collide,all,0.544,320,0.250,0.028,,
-olmo2-7b-instruct,an-other-any,3shot,all,0.506,320,0.250,0.028,,
-olmo2-7b-instruct,an-me-any,0shot,all,0.394,160,0.250,0.039,,
-olmo2-7b-instruct,an-me-any,3shot_collide,all,0.381,160,0.250,0.038,,
-olmo2-7b-instruct,an-me-any,3shot,all,0.200,160,0.250,0.032,,
-olmo2-7b-instruct,an-you-voc,0shot,all,0.925,80,0.250,0.029,,
-olmo2-7b-instruct,an-you-voc,3shot_collide,all,0.537,80,0.250,0.056,,
-olmo2-7b-instruct,an-you-voc,3shot,all,0.650,80,0.250,0.053,,
-olmo2-7b-instruct,an-you-novoc,0shot,all,0.600,80,0.250,0.055,,
-olmo2-7b-instruct,an-you-novoc,3shot_collide,all,0.175,80,0.250,0.043,,
-olmo2-7b-instruct,an-you-novoc,3shot,all,0.113,80,0.250,0.035,,
-olmo2-7b-instruct,adj-adj,0shot,all,0.888,260,0.333,0.019,,
-olmo2-7b-instruct,adj-adj,3shot_collide,all,0.958,260,0.333,0.013,,
-olmo2-7b-instruct,adj-adj,3shot,all,0.911,260,0.333,0.018,,
-olmo2-7b-instruct,adj-voc,0shot,all,0.927,260,0.333,0.016,,
-olmo2-7b-instruct,adj-voc,3shot_collide,all,0.962,260,0.333,0.012,,
-olmo2-7b-instruct,adj-voc,3shot,all,0.942,260,0.333,0.015,,
-olmo2-7b-instruct,adj-third,0shot,all,0.923,260,0.333,0.017,,
-olmo2-7b-instruct,adj-third,3shot_collide,all,0.892,260,0.333,0.019,,
-olmo2-7b-instruct,adj-third,3shot,all,0.881,260,0.333,0.020,,
-olmo2-7b-instruct,cm-mutate,0shot,all,0.935,200,0.200,0.017,,
-olmo2-7b-instruct,cm-mutate,3shot_collide,all,0.895,200,0.200,0.022,,
-olmo2-7b-instruct,cm-mutate,3shot,all,0.870,200,0.200,0.024,,
-olmo2-7b-instruct,cm-rebind,0shot,all,0.060,200,0.200,0.017,,
-olmo2-7b-instruct,cm-rebind,3shot_collide,all,0.380,200,0.200,0.034,,
-olmo2-7b-instruct,cm-rebind,3shot,all,0.300,200,0.200,0.032,,
-olmo2-7b-instruct,cm-copy,0shot,all,0.005,200,0.200,0.005,,
-olmo2-7b-instruct,cm-copy,3shot_collide,all,0.245,200,0.200,0.030,,
-olmo2-7b-instruct,cm-copy,3shot,all,0.210,200,0.200,0.029,,
-llama31-8b-instruct,dx-owner-3-deictic,0shot,all,0.692,120,0.333,0.042,,other_participant=0.292;tie=0.017
-llama31-8b-instruct,dx-owner-3-deictic,0shot,free,0.525,40,0.333,0.079,,other_participant=0.425;tie=0.05
-llama31-8b-instruct,dx-owner-3-deictic,3shot_collide,all,0.908,120,0.333,0.026,,other_participant=0.083;speaker_confusion=0.008
-llama31-8b-instruct,dx-owner-3-deictic,3shot_collide,free,0.900,40,0.333,0.047,,other_participant=0.1
-llama31-8b-instruct,dx-owner-3-deictic,3shot,all,0.875,120,0.333,0.030,,other_participant=0.1;speaker_confusion=0.017;tie=0.008
-llama31-8b-instruct,dx-owner-3-deictic,3shot,free,0.900,40,0.333,0.047,,other_participant=0.075;tie=0.025
-llama31-8b-instruct,dx-owner-3-third,0shot,all,0.758,120,0.333,0.039,,
-llama31-8b-instruct,dx-owner-3-third,0shot,free,0.725,40,0.333,0.071,,
-llama31-8b-instruct,dx-owner-3-third,3shot_collide,all,0.867,120,0.333,0.031,,
-llama31-8b-instruct,dx-owner-3-third,3shot_collide,free,0.850,40,0.333,0.057,,
-llama31-8b-instruct,dx-owner-3-third,3shot,all,0.917,120,0.333,0.025,,
-llama31-8b-instruct,dx-owner-3-third,3shot,free,0.975,40,0.333,0.025,,
-llama31-8b-instruct,dx-self-3-deictic,0shot,all,0.472,180,0.287,0.037,,other_object=0.167;previous_owner=0.067;speaker_confusion=0.289;tie=0.006
-llama31-8b-instruct,dx-self-3-deictic,0shot,free,0.564,126,0.286,0.044,,other_object=0.135;previous_owner=0.032;speaker_confusion=0.262;tie=0.008
-llama31-8b-instruct,dx-self-3-deictic,3shot_collide,all,0.661,180,0.287,0.035,,other_object=0.122;previous_owner=0.044;speaker_confusion=0.161;tie=0.011
-llama31-8b-instruct,dx-self-3-deictic,3shot_collide,free,0.698,126,0.286,0.041,,other_object=0.151;previous_owner=0.04;speaker_confusion=0.095;tie=0.016
-llama31-8b-instruct,dx-self-3-deictic,3shot,all,0.678,180,0.287,0.035,,other_object=0.089;previous_owner=0.056;speaker_confusion=0.178
-llama31-8b-instruct,dx-self-3-deictic,3shot,free,0.754,126,0.286,0.038,,other_object=0.103;previous_owner=0.024;speaker_confusion=0.119
-llama31-8b-instruct,dx-self-3-third,0shot,all,0.783,180,0.287,0.031,,
-llama31-8b-instruct,dx-self-3-third,0shot,free,0.833,126,0.286,0.033,,
-llama31-8b-instruct,dx-self-3-third,3shot_collide,all,0.733,180,0.287,0.033,,
-llama31-8b-instruct,dx-self-3-third,3shot_collide,free,0.818,126,0.286,0.034,,
-llama31-8b-instruct,dx-self-3-third,3shot,all,0.761,180,0.287,0.032,,
-llama31-8b-instruct,dx-self-3-third,3shot,free,0.809,126,0.286,0.035,,
-llama31-8b-instruct,dx-self-2-deictic,0shot,all,0.361,180,0.287,0.036,,speaker_confusion=0.622;tie=0.017
-llama31-8b-instruct,dx-self-2-deictic,0shot,free,0.452,126,0.286,0.044,,speaker_confusion=0.532;tie=0.016
-llama31-8b-instruct,dx-self-2-deictic,3shot_collide,all,0.522,180,0.287,0.037,,speaker_confusion=0.461;tie=0.017
-llama31-8b-instruct,dx-self-2-deictic,3shot_collide,free,0.611,126,0.286,0.043,,speaker_confusion=0.373;tie=0.016
-llama31-8b-instruct,dx-self-2-deictic,3shot,all,0.517,180,0.287,0.037,,speaker_confusion=0.467;tie=0.017
-llama31-8b-instruct,dx-self-2-deictic,3shot,free,0.635,126,0.286,0.043,,speaker_confusion=0.349;tie=0.016
-llama31-8b-instruct,dx-self-2-third,0shot,all,0.744,180,0.287,0.033,,
-llama31-8b-instruct,dx-self-2-third,0shot,free,0.841,126,0.286,0.033,,
-llama31-8b-instruct,dx-self-2-third,3shot_collide,all,0.783,180,0.287,0.031,,
-llama31-8b-instruct,dx-self-2-third,3shot_collide,free,0.809,126,0.286,0.035,,
-llama31-8b-instruct,dx-self-2-third,3shot,all,0.711,180,0.287,0.034,,
-llama31-8b-instruct,dx-self-2-third,3shot,free,0.794,126,0.286,0.036,,
-llama31-8b-instruct,dx-addressee-3-deictic,0shot,all,0.428,180,0.287,0.037,,other_object=0.117;previous_owner=0.133;speaker_confusion=0.311;tie=0.011
-llama31-8b-instruct,dx-addressee-3-deictic,0shot,free,0.436,126,0.286,0.044,,other_object=0.071;previous_owner=0.151;speaker_confusion=0.325;tie=0.016
-llama31-8b-instruct,dx-addressee-3-deictic,3shot_collide,all,0.517,180,0.287,0.037,,other_object=0.15;previous_owner=0.039;speaker_confusion=0.283;tie=0.011
-llama31-8b-instruct,dx-addressee-3-deictic,3shot_collide,free,0.556,126,0.286,0.044,,other_object=0.111;previous_owner=0.032;speaker_confusion=0.286;tie=0.016
-llama31-8b-instruct,dx-addressee-3-deictic,3shot,all,0.511,180,0.287,0.037,,other_object=0.128;previous_owner=0.033;speaker_confusion=0.322;tie=0.006
-llama31-8b-instruct,dx-addressee-3-deictic,3shot,free,0.564,126,0.286,0.044,,other_object=0.087;previous_owner=0.024;speaker_confusion=0.325
-llama31-8b-instruct,dx-addressee-3-third,0shot,all,0.778,180,0.287,0.031,,
-llama31-8b-instruct,dx-addressee-3-third,0shot,free,0.778,126,0.286,0.037,,
-llama31-8b-instruct,dx-addressee-3-third,3shot_collide,all,0.733,180,0.287,0.033,,
-llama31-8b-instruct,dx-addressee-3-third,3shot_collide,free,0.802,126,0.286,0.035,,
-llama31-8b-instruct,dx-addressee-3-third,3shot,all,0.733,180,0.287,0.033,,
-llama31-8b-instruct,dx-addressee-3-third,3shot,free,0.786,126,0.286,0.037,,
-llama31-8b-instruct,dx-addressee-2-deictic,0shot,all,0.206,180,0.287,0.030,,speaker_confusion=0.761;tie=0.033
-llama31-8b-instruct,dx-addressee-2-deictic,0shot,free,0.182,126,0.286,0.034,,speaker_confusion=0.77;tie=0.048
-llama31-8b-instruct,dx-addressee-2-deictic,3shot_collide,all,0.378,180,0.287,0.036,,speaker_confusion=0.617;tie=0.006
-llama31-8b-instruct,dx-addressee-2-deictic,3shot_collide,free,0.397,126,0.286,0.044,,speaker_confusion=0.595;tie=0.008
-llama31-8b-instruct,dx-addressee-2-deictic,3shot,all,0.350,180,0.287,0.036,,speaker_confusion=0.644;tie=0.006
-llama31-8b-instruct,dx-addressee-2-deictic,3shot,free,0.365,126,0.286,0.043,,speaker_confusion=0.635
-llama31-8b-instruct,dx-addressee-2-third,0shot,all,0.744,180,0.287,0.033,,
-llama31-8b-instruct,dx-addressee-2-third,0shot,free,0.809,126,0.286,0.035,,
-llama31-8b-instruct,dx-addressee-2-third,3shot_collide,all,0.733,180,0.287,0.033,,
-llama31-8b-instruct,dx-addressee-2-third,3shot_collide,free,0.802,126,0.286,0.035,,
-llama31-8b-instruct,dx-addressee-2-third,3shot,all,0.728,180,0.287,0.033,,
-llama31-8b-instruct,dx-addressee-2-third,3shot,free,0.825,126,0.286,0.034,,
-llama31-8b-instruct,sb-k1,0shot,all,0.969,64,0.125,0.022,,
-llama31-8b-instruct,sb-k1,3shot_collide,all,1.000,64,0.125,0.000,,
-llama31-8b-instruct,sb-k1,3shot,all,1.000,64,0.125,0.000,,
-llama31-8b-instruct,sb-k23,0shot,all,0.719,128,0.027,0.040,,
-llama31-8b-instruct,sb-k23,3shot_collide,all,0.977,128,0.027,0.013,,
-llama31-8b-instruct,sb-k23,3shot,all,0.953,128,0.027,0.019,,
-llama31-8b-instruct,sb-split,0shot,all,0.852,128,0.027,0.031,,
-llama31-8b-instruct,sb-split,3shot_collide,all,0.977,128,0.027,0.013,,
-llama31-8b-instruct,sb-split,3shot,all,0.922,128,0.027,0.024,,
-llama31-8b-instruct,sb-dyn,0shot,all,0.629,256,0.027,0.030,,
-llama31-8b-instruct,sb-dyn,3shot_collide,all,0.609,256,0.027,0.030,,
-llama31-8b-instruct,sb-dyn,3shot,all,0.609,256,0.027,0.030,,
-llama31-8b-instruct,an-narr,0shot,all,0.645,640,0.250,0.019,,
-llama31-8b-instruct,an-narr,3shot_collide,all,0.930,640,0.250,0.010,,
-llama31-8b-instruct,an-narr,3shot,all,0.914,640,0.250,0.011,,
-llama31-8b-instruct,an-other-any,0shot,all,0.800,320,0.250,0.022,,
-llama31-8b-instruct,an-other-any,3shot_collide,all,0.659,320,0.250,0.026,,
-llama31-8b-instruct,an-other-any,3shot,all,0.591,320,0.250,0.028,,
-llama31-8b-instruct,an-me-any,0shot,all,0.094,160,0.250,0.023,,
-llama31-8b-instruct,an-me-any,3shot_collide,all,0.700,160,0.250,0.036,,
-llama31-8b-instruct,an-me-any,3shot,all,0.600,160,0.250,0.039,,
-llama31-8b-instruct,an-you-voc,0shot,all,0.450,80,0.250,0.056,,
-llama31-8b-instruct,an-you-voc,3shot_collide,all,0.775,80,0.250,0.047,,
-llama31-8b-instruct,an-you-voc,3shot,all,0.838,80,0.250,0.041,,
-llama31-8b-instruct,an-you-novoc,0shot,all,0.762,80,0.250,0.048,,
-llama31-8b-instruct,an-you-novoc,3shot_collide,all,0.537,80,0.250,0.056,,
-llama31-8b-instruct,an-you-novoc,3shot,all,0.775,80,0.250,0.047,,
-llama31-8b-instruct,adj-adj,0shot,all,0.969,260,0.333,0.011,,
-llama31-8b-instruct,adj-adj,3shot_collide,all,0.996,260,0.333,0.004,,
-llama31-8b-instruct,adj-adj,3shot,all,0.996,260,0.333,0.004,,
-llama31-8b-instruct,adj-voc,0shot,all,0.989,260,0.333,0.007,,
-llama31-8b-instruct,adj-voc,3shot_collide,all,1.000,260,0.333,0.000,,
-llama31-8b-instruct,adj-voc,3shot,all,1.000,260,0.333,0.000,,
-llama31-8b-instruct,adj-third,0shot,all,0.969,260,0.333,0.011,,
-llama31-8b-instruct,adj-third,3shot_collide,all,0.989,260,0.333,0.007,,
-llama31-8b-instruct,adj-third,3shot,all,0.969,260,0.333,0.011,,
-llama31-8b-instruct,cm-mutate,0shot,all,0.770,200,0.200,0.030,,
-llama31-8b-instruct,cm-mutate,3shot_collide,all,0.980,200,0.200,0.010,,
-llama31-8b-instruct,cm-mutate,3shot,all,0.985,200,0.200,0.009,,
-llama31-8b-instruct,cm-rebind,0shot,all,0.435,200,0.200,0.035,,
-llama31-8b-instruct,cm-rebind,3shot_collide,all,0.925,200,0.200,0.019,,
-llama31-8b-instruct,cm-rebind,3shot,all,0.920,200,0.200,0.019,,
-llama31-8b-instruct,cm-copy,0shot,all,0.535,200,0.200,0.035,,
-llama31-8b-instruct,cm-copy,3shot_collide,all,0.860,200,0.200,0.025,,
-llama31-8b-instruct,cm-copy,3shot,all,0.930,200,0.200,0.018,,
-falcon-h1-0.5b,dx-owner-3-deictic,0shot,all,0.375,8,0.333,0.171,,other_participant=0.125;speaker_confusion=0.5
-falcon-h1-0.5b,dx-owner-3-deictic,3shot,all,0.500,8,0.333,0.177,,other_participant=0.25;speaker_confusion=0.25
-falcon-h1-0.5b,dx-owner-3-third,0shot,all,0.625,8,0.333,0.171,,
-falcon-h1-0.5b,dx-owner-3-third,3shot,all,0.625,8,0.333,0.171,,
-falcon-h1-0.5b,dx-self-3-deictic,0shot,all,0.226,31,0.304,0.075,,other_object=0.129;previous_owner=0.129;speaker_confusion=0.516
-falcon-h1-0.5b,dx-self-3-deictic,0shot,free,0.294,17,0.314,0.111,,other_object=0.118;previous_owner=0.059;speaker_confusion=0.529
-falcon-h1-0.5b,dx-self-3-deictic,3shot,all,0.194,31,0.304,0.071,,other_object=0.226;previous_owner=0.032;speaker_confusion=0.548
-falcon-h1-0.5b,dx-self-3-deictic,3shot,free,0.353,17,0.314,0.116,,other_object=0.176;speaker_confusion=0.471
-falcon-h1-0.5b,dx-self-3-third,0shot,all,0.290,31,0.304,0.082,,
-falcon-h1-0.5b,dx-self-3-third,0shot,free,0.235,17,0.314,0.103,,
-falcon-h1-0.5b,dx-self-3-third,3shot,all,0.355,31,0.304,0.086,,
-falcon-h1-0.5b,dx-self-3-third,3shot,free,0.294,17,0.314,0.111,,
-falcon-h1-0.5b,dx-self-2-deictic,0shot,all,0.286,42,0.304,0.070,,speaker_confusion=0.714
-falcon-h1-0.5b,dx-self-2-deictic,0shot,free,0.269,26,0.301,0.087,,speaker_confusion=0.731
-falcon-h1-0.5b,dx-self-2-deictic,3shot,all,0.357,42,0.304,0.074,,speaker_confusion=0.643
-falcon-h1-0.5b,dx-self-2-deictic,3shot,free,0.500,26,0.301,0.098,,speaker_confusion=0.5
-falcon-h1-0.5b,dx-self-2-third,0shot,all,0.309,42,0.304,0.071,,
-falcon-h1-0.5b,dx-self-2-third,0shot,free,0.192,26,0.301,0.077,,
-falcon-h1-0.5b,dx-self-2-third,3shot,all,0.452,42,0.304,0.077,,
-falcon-h1-0.5b,dx-self-2-third,3shot,free,0.462,26,0.301,0.098,,
-falcon-h1-0.5b,dx-addressee-3-deictic,0shot,all,0.421,38,0.298,0.080,,other_object=0.105;previous_owner=0.132;speaker_confusion=0.342
-falcon-h1-0.5b,dx-addressee-3-deictic,0shot,free,0.538,26,0.295,0.098,,other_object=0.038;previous_owner=0.192;speaker_confusion=0.231
-falcon-h1-0.5b,dx-addressee-3-deictic,3shot,all,0.316,38,0.298,0.075,,other_object=0.316;previous_owner=0.053;speaker_confusion=0.316
-falcon-h1-0.5b,dx-addressee-3-deictic,3shot,free,0.462,26,0.295,0.098,,other_object=0.154;previous_owner=0.077;speaker_confusion=0.308
-falcon-h1-0.5b,dx-addressee-3-third,0shot,all,0.342,38,0.298,0.077,,
-falcon-h1-0.5b,dx-addressee-3-third,0shot,free,0.346,26,0.295,0.093,,
-falcon-h1-0.5b,dx-addressee-3-third,3shot,all,0.316,38,0.298,0.075,,
-falcon-h1-0.5b,dx-addressee-3-third,3shot,free,0.346,26,0.295,0.093,,
-falcon-h1-0.5b,dx-addressee-2-deictic,0shot,all,0.225,49,0.296,0.060,,speaker_confusion=0.776
-falcon-h1-0.5b,dx-addressee-2-deictic,0shot,free,0.258,31,0.290,0.079,,speaker_confusion=0.742
-falcon-h1-0.5b,dx-addressee-2-deictic,3shot,all,0.367,49,0.296,0.069,,speaker_confusion=0.633
-falcon-h1-0.5b,dx-addressee-2-deictic,3shot,free,0.484,31,0.290,0.090,,speaker_confusion=0.516
-falcon-h1-0.5b,dx-addressee-2-third,0shot,all,0.510,49,0.296,0.071,,
-falcon-h1-0.5b,dx-addressee-2-third,0shot,free,0.452,31,0.290,0.089,,
-falcon-h1-0.5b,dx-addressee-2-third,3shot,all,0.388,49,0.296,0.070,,
-falcon-h1-0.5b,dx-addressee-2-third,3shot,free,0.452,31,0.290,0.089,,
-falcon-h1-1.5b,attr,0shot,all,0.836,415,0.193,0.018,,
-falcon-h1-1.5b,attr,3shot_collide,all,0.908,415,0.193,0.014,,
-falcon-h1-1.5b,attr,3shot,all,0.990,415,0.193,0.005,,
-falcon-h1-1.5b,codevar,0shot,all,0.442,625,0.276,0.020,,
-falcon-h1-1.5b,codevar,3shot_collide,all,0.613,625,0.276,0.019,,
-falcon-h1-1.5b,codevar,3shot,all,0.610,625,0.276,0.019,,
-falcon-h1-1.5b,dialogue,0shot,all,0.498,466,0.328,0.023,,
-falcon-h1-1.5b,dialogue,3shot_collide,all,0.614,466,0.328,0.023,,
-falcon-h1-1.5b,dialogue,3shot,all,0.646,466,0.328,0.022,,
-falcon-h1-1.5b,dx-owner-3-deictic,0shot,all,0.731,26,0.333,0.087,,other_participant=0.231;speaker_confusion=0.038
-falcon-h1-1.5b,dx-owner-3-deictic,3shot,all,0.538,26,0.333,0.098,,other_participant=0.269;speaker_confusion=0.192
-falcon-h1-1.5b,dx-owner-3-third,0shot,all,0.654,26,0.333,0.093,,
-falcon-h1-1.5b,dx-owner-3-third,3shot,all,0.577,26,0.333,0.097,,
-falcon-h1-1.5b,dx-self-3-deictic,0shot,all,0.330,100,0.295,0.047,,other_object=0.24;previous_owner=0.06;speaker_confusion=0.37
-falcon-h1-1.5b,dx-self-3-deictic,0shot,free,0.468,62,0.294,0.063,,other_object=0.194;speaker_confusion=0.339
-falcon-h1-1.5b,dx-self-3-deictic,3shot,all,0.380,100,0.295,0.049,,other_object=0.21;previous_owner=0.07;speaker_confusion=0.34
-falcon-h1-1.5b,dx-self-3-deictic,3shot,free,0.500,62,0.294,0.064,,other_object=0.194;previous_owner=0.032;speaker_confusion=0.274
-falcon-h1-1.5b,dx-self-3-third,0shot,all,0.320,100,0.295,0.047,,
-falcon-h1-1.5b,dx-self-3-third,0shot,free,0.419,62,0.294,0.063,,
-falcon-h1-1.5b,dx-self-3-third,3shot,all,0.450,100,0.295,0.050,,
-falcon-h1-1.5b,dx-self-3-third,3shot,free,0.613,62,0.294,0.062,,
-falcon-h1-1.5b,dx-self-2-deictic,0shot,all,0.480,102,0.292,0.050,,speaker_confusion=0.52
-falcon-h1-1.5b,dx-self-2-deictic,0shot,free,0.500,72,0.288,0.059,,speaker_confusion=0.5
-falcon-h1-1.5b,dx-self-2-deictic,3shot,all,0.412,102,0.292,0.049,,speaker_confusion=0.588
-falcon-h1-1.5b,dx-self-2-deictic,3shot,free,0.556,72,0.288,0.059,,speaker_confusion=0.444
-falcon-h1-1.5b,dx-self-2-third,0shot,all,0.490,102,0.292,0.050,,
-falcon-h1-1.5b,dx-self-2-third,0shot,free,0.556,72,0.288,0.059,,
-falcon-h1-1.5b,dx-self-2-third,3shot,all,0.471,102,0.292,0.049,,
-falcon-h1-1.5b,dx-self-2-third,3shot,free,0.611,72,0.288,0.058,,
-falcon-h1-1.5b,dx-addressee-3-deictic,0shot,all,0.371,116,0.294,0.045,,other_object=0.207;previous_owner=0.095;speaker_confusion=0.328
-falcon-h1-1.5b,dx-addressee-3-deictic,0shot,free,0.425,80,0.291,0.055,,other_object=0.175;previous_owner=0.138;speaker_confusion=0.263
-falcon-h1-1.5b,dx-addressee-3-deictic,3shot,all,0.284,116,0.294,0.042,,other_object=0.164;previous_owner=0.112;speaker_confusion=0.44
-falcon-h1-1.5b,dx-addressee-3-deictic,3shot,free,0.325,80,0.291,0.052,,other_object=0.15;previous_owner=0.138;speaker_confusion=0.388
-falcon-h1-1.5b,dx-addressee-3-third,0shot,all,0.405,116,0.294,0.046,,
-falcon-h1-1.5b,dx-addressee-3-third,0shot,free,0.450,80,0.291,0.056,,
-falcon-h1-1.5b,dx-addressee-3-third,3shot,all,0.500,116,0.294,0.046,,
-falcon-h1-1.5b,dx-addressee-3-third,3shot,free,0.600,80,0.291,0.055,,
-falcon-h1-1.5b,dx-addressee-2-deictic,0shot,all,0.229,109,0.292,0.040,,speaker_confusion=0.771
-falcon-h1-1.5b,dx-addressee-2-deictic,0shot,free,0.250,76,0.291,0.050,,speaker_confusion=0.75
-falcon-h1-1.5b,dx-addressee-2-deictic,3shot,all,0.330,109,0.292,0.045,,speaker_confusion=0.67
-falcon-h1-1.5b,dx-addressee-2-deictic,3shot,free,0.368,76,0.291,0.055,,speaker_confusion=0.632
-falcon-h1-1.5b,dx-addressee-2-third,0shot,all,0.422,109,0.292,0.047,,
-falcon-h1-1.5b,dx-addressee-2-third,0shot,free,0.526,76,0.291,0.057,,
-falcon-h1-1.5b,dx-addressee-2-third,3shot,all,0.532,109,0.292,0.048,,
-falcon-h1-1.5b,dx-addressee-2-third,3shot,free,0.671,76,0.291,0.054,,
-falcon-h1-1.5b,sb-k1,0shot,all,0.882,17,0.125,0.078,,
-falcon-h1-1.5b,sb-k1,3shot_collide,all,1.000,17,0.125,0.000,,
-falcon-h1-1.5b,sb-k1,3shot,all,1.000,17,0.125,0.000,,
-falcon-h1-1.5b,sb-k23,0shot,all,0.676,34,0.027,0.080,,
-falcon-h1-1.5b,sb-k23,3shot_collide,all,0.853,34,0.027,0.061,,
-falcon-h1-1.5b,sb-k23,3shot,all,0.882,34,0.027,0.055,,
-falcon-h1-1.5b,sb-split,0shot,all,0.344,32,0.026,0.084,,
-falcon-h1-1.5b,sb-split,3shot_collide,all,0.281,32,0.026,0.080,,
-falcon-h1-1.5b,sb-split,3shot,all,0.500,32,0.026,0.088,,
-falcon-h1-1.5b,sb-dyn,0shot,all,0.128,86,0.026,0.036,,
-falcon-h1-1.5b,sb-dyn,3shot_collide,all,0.116,86,0.026,0.035,,
-falcon-h1-1.5b,sb-dyn,3shot,all,0.209,86,0.026,0.044,,
-falcon-h1-1.5b,an-narr,0shot,all,0.395,114,0.250,0.046,,
-falcon-h1-1.5b,an-narr,3shot_collide,all,0.447,114,0.250,0.047,,
-falcon-h1-1.5b,an-narr,3shot,all,0.456,114,0.250,0.047,,
-falcon-h1-1.5b,an-other-any,0shot,all,0.305,128,0.250,0.041,,
-falcon-h1-1.5b,an-other-any,3shot_collide,all,0.211,128,0.250,0.036,,
-falcon-h1-1.5b,an-other-any,3shot,all,0.305,128,0.250,0.041,,
-falcon-h1-1.5b,an-me-any,0shot,all,0.746,67,0.250,0.053,,
-falcon-h1-1.5b,an-me-any,3shot_collide,all,0.090,67,0.250,0.035,,
-falcon-h1-1.5b,an-me-any,3shot,all,0.000,67,0.250,0.000,,
-falcon-h1-1.5b,an-you-voc,0shot,all,0.088,34,0.250,0.049,,
-falcon-h1-1.5b,an-you-voc,3shot_collide,all,0.118,34,0.250,0.055,,
-falcon-h1-1.5b,an-you-voc,3shot,all,0.059,34,0.250,0.040,,
-falcon-h1-1.5b,an-you-novoc,0shot,all,0.024,42,0.250,0.024,,
-falcon-h1-1.5b,an-you-novoc,3shot_collide,all,0.119,42,0.250,0.050,,
-falcon-h1-1.5b,an-you-novoc,3shot,all,0.071,42,0.250,0.040,,
-falcon-h1-1.5b,adj-adj,0shot,all,0.661,62,0.333,0.060,,
-falcon-h1-1.5b,adj-adj,3shot_collide,all,0.548,62,0.333,0.063,,
-falcon-h1-1.5b,adj-adj,3shot,all,0.548,62,0.333,0.063,,
-falcon-h1-1.5b,adj-voc,0shot,all,0.726,62,0.333,0.057,,
-falcon-h1-1.5b,adj-voc,3shot_collide,all,0.726,62,0.333,0.057,,
-falcon-h1-1.5b,adj-voc,3shot,all,0.661,62,0.333,0.060,,
-falcon-h1-1.5b,adj-third,0shot,all,0.694,62,0.333,0.059,,
-falcon-h1-1.5b,adj-third,3shot_collide,all,0.710,62,0.333,0.058,,
-falcon-h1-1.5b,adj-third,3shot,all,0.742,62,0.333,0.056,,
-falcon-h1-1.5b,cm-mutate,0shot,all,0.947,94,0.200,0.023,,
-falcon-h1-1.5b,cm-mutate,3shot_collide,all,0.766,94,0.200,0.044,,
-falcon-h1-1.5b,cm-mutate,3shot,all,0.830,94,0.200,0.039,,
-falcon-h1-1.5b,cm-rebind,0shot,all,0.110,82,0.200,0.035,,
-falcon-h1-1.5b,cm-rebind,3shot_collide,all,0.817,82,0.200,0.043,,
-falcon-h1-1.5b,cm-rebind,3shot,all,0.732,82,0.200,0.049,,
-falcon-h1-1.5b,cm-copy,0shot,all,0.011,87,0.200,0.011,,
-falcon-h1-1.5b,cm-copy,3shot_collide,all,0.943,87,0.200,0.025,,
-falcon-h1-1.5b,cm-copy,3shot,all,0.919,87,0.200,0.029,,
-falcon-h1-1.5b-deep,attr,0shot,all,0.793,415,0.193,0.020,,
-falcon-h1-1.5b-deep,attr,3shot_collide,all,0.935,415,0.193,0.012,,
-falcon-h1-1.5b-deep,attr,3shot,all,0.988,415,0.193,0.005,,
-falcon-h1-1.5b-deep,codevar,0shot,all,0.509,625,0.276,0.020,,
-falcon-h1-1.5b-deep,codevar,3shot_collide,all,0.685,625,0.276,0.019,,
-falcon-h1-1.5b-deep,codevar,3shot,all,0.677,625,0.276,0.019,,
-falcon-h1-1.5b-deep,dialogue,0shot,all,0.708,466,0.328,0.021,,
-falcon-h1-1.5b-deep,dialogue,3shot_collide,all,0.766,466,0.328,0.020,,
-falcon-h1-1.5b-deep,dialogue,3shot,all,0.751,466,0.328,0.020,,
-falcon-h1-1.5b-deep,dx-owner-3-deictic,0shot,all,0.731,26,0.333,0.087,,other_participant=0.231;speaker_confusion=0.038
-falcon-h1-1.5b-deep,dx-owner-3-deictic,3shot,all,0.769,26,0.333,0.083,,other_participant=0.192;tie=0.038
-falcon-h1-1.5b-deep,dx-owner-3-third,0shot,all,0.692,26,0.333,0.090,,
-falcon-h1-1.5b-deep,dx-owner-3-third,3shot,all,0.923,26,0.333,0.052,,
-falcon-h1-1.5b-deep,dx-self-3-deictic,0shot,all,0.360,100,0.295,0.048,,other_object=0.21;previous_owner=0.05;speaker_confusion=0.38
-falcon-h1-1.5b-deep,dx-self-3-deictic,0shot,free,0.355,62,0.294,0.061,,other_object=0.113;previous_owner=0.048;speaker_confusion=0.484
-falcon-h1-1.5b-deep,dx-self-3-deictic,3shot,all,0.390,100,0.295,0.049,,other_object=0.14;previous_owner=0.06;speaker_confusion=0.41
-falcon-h1-1.5b-deep,dx-self-3-deictic,3shot,free,0.468,62,0.294,0.063,,other_object=0.145;previous_owner=0.032;speaker_confusion=0.355
-falcon-h1-1.5b-deep,dx-self-3-third,0shot,all,0.560,100,0.295,0.050,,
-falcon-h1-1.5b-deep,dx-self-3-third,0shot,free,0.581,62,0.294,0.063,,
-falcon-h1-1.5b-deep,dx-self-3-third,3shot,all,0.670,100,0.295,0.047,,
-falcon-h1-1.5b-deep,dx-self-3-third,3shot,free,0.661,62,0.294,0.060,,
-falcon-h1-1.5b-deep,dx-self-2-deictic,0shot,all,0.451,102,0.292,0.049,,speaker_confusion=0.549
-falcon-h1-1.5b-deep,dx-self-2-deictic,0shot,free,0.417,72,0.288,0.058,,speaker_confusion=0.583
-falcon-h1-1.5b-deep,dx-self-2-deictic,3shot,all,0.539,102,0.292,0.049,,speaker_confusion=0.461
-falcon-h1-1.5b-deep,dx-self-2-deictic,3shot,free,0.556,72,0.288,0.059,,speaker_confusion=0.444
-falcon-h1-1.5b-deep,dx-self-2-third,0shot,all,0.755,102,0.292,0.043,,
-falcon-h1-1.5b-deep,dx-self-2-third,0shot,free,0.833,72,0.288,0.044,,
-falcon-h1-1.5b-deep,dx-self-2-third,3shot,all,0.667,102,0.292,0.047,,
-falcon-h1-1.5b-deep,dx-self-2-third,3shot,free,0.750,72,0.288,0.051,,
-falcon-h1-1.5b-deep,dx-addressee-3-deictic,0shot,all,0.353,116,0.294,0.044,,other_object=0.078;previous_owner=0.164;speaker_confusion=0.405
-falcon-h1-1.5b-deep,dx-addressee-3-deictic,0shot,free,0.325,80,0.291,0.052,,other_object=0.062;previous_owner=0.225;speaker_confusion=0.388
-falcon-h1-1.5b-deep,dx-addressee-3-deictic,3shot,all,0.328,116,0.294,0.044,,other_object=0.155;previous_owner=0.121;speaker_confusion=0.397
-falcon-h1-1.5b-deep,dx-addressee-3-deictic,3shot,free,0.350,80,0.291,0.053,,other_object=0.1;previous_owner=0.163;speaker_confusion=0.388
-falcon-h1-1.5b-deep,dx-addressee-3-third,0shot,all,0.664,116,0.294,0.044,,
-falcon-h1-1.5b-deep,dx-addressee-3-third,0shot,free,0.637,80,0.291,0.054,,
-falcon-h1-1.5b-deep,dx-addressee-3-third,3shot,all,0.612,116,0.294,0.045,,
-falcon-h1-1.5b-deep,dx-addressee-3-third,3shot,free,0.613,80,0.291,0.054,,
-falcon-h1-1.5b-deep,dx-addressee-2-deictic,0shot,all,0.174,109,0.292,0.036,,speaker_confusion=0.826
-falcon-h1-1.5b-deep,dx-addressee-2-deictic,0shot,free,0.118,76,0.291,0.037,,speaker_confusion=0.882
-falcon-h1-1.5b-deep,dx-addressee-2-deictic,3shot,all,0.349,109,0.292,0.046,,speaker_confusion=0.651
-falcon-h1-1.5b-deep,dx-addressee-2-deictic,3shot,free,0.395,76,0.291,0.056,,speaker_confusion=0.605
-falcon-h1-1.5b-deep,dx-addressee-2-third,0shot,all,0.651,109,0.292,0.046,,
-falcon-h1-1.5b-deep,dx-addressee-2-third,0shot,free,0.776,76,0.291,0.048,,
-falcon-h1-1.5b-deep,dx-addressee-2-third,3shot,all,0.651,109,0.292,0.046,,
-falcon-h1-1.5b-deep,dx-addressee-2-third,3shot,free,0.803,76,0.291,0.046,,
-falcon-h1-1.5b-deep,sb-k1,0shot,all,0.941,17,0.125,0.057,,
-falcon-h1-1.5b-deep,sb-k1,3shot_collide,all,1.000,17,0.125,0.000,,
-falcon-h1-1.5b-deep,sb-k1,3shot,all,1.000,17,0.125,0.000,,
-falcon-h1-1.5b-deep,sb-k23,0shot,all,0.676,34,0.027,0.080,,
-falcon-h1-1.5b-deep,sb-k23,3shot_collide,all,0.853,34,0.027,0.061,,
-falcon-h1-1.5b-deep,sb-k23,3shot,all,0.853,34,0.027,0.061,,
-falcon-h1-1.5b-deep,sb-split,0shot,all,0.656,32,0.026,0.084,,
-falcon-h1-1.5b-deep,sb-split,3shot_collide,all,0.625,32,0.026,0.086,,
-falcon-h1-1.5b-deep,sb-split,3shot,all,0.625,32,0.026,0.086,,
-falcon-h1-1.5b-deep,sb-dyn,0shot,all,0.337,86,0.026,0.051,,
-falcon-h1-1.5b-deep,sb-dyn,3shot_collide,all,0.209,86,0.026,0.044,,
-falcon-h1-1.5b-deep,sb-dyn,3shot,all,0.198,86,0.026,0.043,,
-falcon-h1-1.5b-deep,an-narr,0shot,all,0.447,114,0.250,0.047,,
-falcon-h1-1.5b-deep,an-narr,3shot_collide,all,0.658,114,0.250,0.044,,
-falcon-h1-1.5b-deep,an-narr,3shot,all,0.684,114,0.250,0.043,,
-falcon-h1-1.5b-deep,an-other-any,0shot,all,0.430,128,0.250,0.044,,
-falcon-h1-1.5b-deep,an-other-any,3shot_collide,all,0.336,128,0.250,0.042,,
-falcon-h1-1.5b-deep,an-other-any,3shot,all,0.328,128,0.250,0.042,,
-falcon-h1-1.5b-deep,an-me-any,0shot,all,0.164,67,0.250,0.045,,
-falcon-h1-1.5b-deep,an-me-any,3shot_collide,all,0.000,67,0.250,0.000,,
-falcon-h1-1.5b-deep,an-me-any,3shot,all,0.015,67,0.250,0.015,,
-falcon-h1-1.5b-deep,an-you-voc,0shot,all,0.471,34,0.250,0.086,,
-falcon-h1-1.5b-deep,an-you-voc,3shot_collide,all,0.588,34,0.250,0.084,,
-falcon-h1-1.5b-deep,an-you-voc,3shot,all,0.559,34,0.250,0.085,,
-falcon-h1-1.5b-deep,an-you-novoc,0shot,all,0.548,42,0.250,0.077,,
-falcon-h1-1.5b-deep,an-you-novoc,3shot_collide,all,0.738,42,0.250,0.068,,
-falcon-h1-1.5b-deep,an-you-novoc,3shot,all,0.595,42,0.250,0.076,,
-falcon-h1-1.5b-deep,adj-adj,0shot,all,0.758,62,0.333,0.054,,
-falcon-h1-1.5b-deep,adj-adj,3shot_collide,all,0.645,62,0.333,0.061,,
-falcon-h1-1.5b-deep,adj-adj,3shot,all,0.710,62,0.333,0.058,,
-falcon-h1-1.5b-deep,adj-voc,0shot,all,0.774,62,0.333,0.053,,
-falcon-h1-1.5b-deep,adj-voc,3shot_collide,all,0.952,62,0.333,0.027,,
-falcon-h1-1.5b-deep,adj-voc,3shot,all,0.952,62,0.333,0.027,,
-falcon-h1-1.5b-deep,adj-third,0shot,all,0.806,62,0.333,0.050,,
-falcon-h1-1.5b-deep,adj-third,3shot_collide,all,0.968,62,0.333,0.022,,
-falcon-h1-1.5b-deep,adj-third,3shot,all,0.935,62,0.333,0.031,,
-falcon-h1-1.5b-deep,cm-mutate,0shot,all,0.840,94,0.200,0.038,,
-falcon-h1-1.5b-deep,cm-mutate,3shot_collide,all,0.936,94,0.200,0.025,,
-falcon-h1-1.5b-deep,cm-mutate,3shot,all,0.925,94,0.200,0.027,,
-falcon-h1-1.5b-deep,cm-rebind,0shot,all,0.390,82,0.200,0.054,,
-falcon-h1-1.5b-deep,cm-rebind,3shot_collide,all,0.890,82,0.200,0.035,,
-falcon-h1-1.5b-deep,cm-rebind,3shot,all,0.915,82,0.200,0.031,,
-falcon-h1-1.5b-deep,cm-copy,0shot,all,0.023,87,0.200,0.016,,
-falcon-h1-1.5b-deep,cm-copy,3shot_collide,all,0.966,87,0.200,0.020,,
-falcon-h1-1.5b-deep,cm-copy,3shot,all,0.966,87,0.200,0.020,,
-falcon-h1-3b,attr,0shot,all,0.945,415,0.193,0.011,,
-falcon-h1-3b,attr,3shot_collide,all,0.998,415,0.193,0.002,,
-falcon-h1-3b,attr,3shot,all,0.998,415,0.193,0.002,,
-falcon-h1-3b,codevar,0shot,all,0.549,625,0.276,0.020,,
-falcon-h1-3b,codevar,3shot_collide,all,0.752,625,0.276,0.017,,
-falcon-h1-3b,codevar,3shot,all,0.712,625,0.276,0.018,,
-falcon-h1-3b,dialogue,0shot,all,0.734,466,0.328,0.021,,
-falcon-h1-3b,dialogue,3shot_collide,all,0.807,466,0.328,0.018,,
-falcon-h1-3b,dialogue,3shot,all,0.813,466,0.328,0.018,,
-falcon-h1-3b,dx-owner-3-deictic,0shot,all,0.692,26,0.333,0.090,,other_participant=0.231;speaker_confusion=0.077
-falcon-h1-3b,dx-owner-3-deictic,3shot,all,0.846,26,0.333,0.071,,other_participant=0.154
-falcon-h1-3b,dx-owner-3-third,0shot,all,0.654,26,0.333,0.093,,
-falcon-h1-3b,dx-owner-3-third,3shot,all,0.923,26,0.333,0.052,,
-falcon-h1-3b,dx-self-3-deictic,0shot,all,0.330,100,0.295,0.047,,other_object=0.18;previous_owner=0.05;speaker_confusion=0.44
-falcon-h1-3b,dx-self-3-deictic,0shot,free,0.258,62,0.294,0.056,,other_object=0.145;previous_owner=0.032;speaker_confusion=0.565
-falcon-h1-3b,dx-self-3-deictic,3shot,all,0.490,100,0.295,0.050,,other_object=0.15;previous_owner=0.03;speaker_confusion=0.33
-falcon-h1-3b,dx-self-3-deictic,3shot,free,0.661,62,0.294,0.060,,other_object=0.113;previous_owner=0.016;speaker_confusion=0.21
-falcon-h1-3b,dx-self-3-third,0shot,all,0.510,100,0.295,0.050,,
-falcon-h1-3b,dx-self-3-third,0shot,free,0.597,62,0.294,0.062,,
-falcon-h1-3b,dx-self-3-third,3shot,all,0.470,100,0.295,0.050,,
-falcon-h1-3b,dx-self-3-third,3shot,free,0.629,62,0.294,0.061,,
-falcon-h1-3b,dx-self-2-deictic,0shot,all,0.353,102,0.292,0.047,,speaker_confusion=0.647
-falcon-h1-3b,dx-self-2-deictic,0shot,free,0.347,72,0.288,0.056,,speaker_confusion=0.653
-falcon-h1-3b,dx-self-2-deictic,3shot,all,0.529,102,0.292,0.049,,speaker_confusion=0.471
-falcon-h1-3b,dx-self-2-deictic,3shot,free,0.681,72,0.288,0.055,,speaker_confusion=0.319
-falcon-h1-3b,dx-self-2-third,0shot,all,0.647,102,0.292,0.047,,
-falcon-h1-3b,dx-self-2-third,0shot,free,0.806,72,0.288,0.047,,
-falcon-h1-3b,dx-self-2-third,3shot,all,0.686,102,0.292,0.046,,
-falcon-h1-3b,dx-self-2-third,3shot,free,0.778,72,0.288,0.049,,
-falcon-h1-3b,dx-addressee-3-deictic,0shot,all,0.362,116,0.294,0.045,,other_object=0.138;previous_owner=0.095;speaker_confusion=0.405
-falcon-h1-3b,dx-addressee-3-deictic,0shot,free,0.338,80,0.291,0.053,,other_object=0.113;previous_owner=0.138;speaker_confusion=0.412
-falcon-h1-3b,dx-addressee-3-deictic,3shot,all,0.353,116,0.294,0.044,,other_object=0.172;previous_owner=0.06;speaker_confusion=0.414
-falcon-h1-3b,dx-addressee-3-deictic,3shot,free,0.438,80,0.291,0.056,,other_object=0.113;previous_owner=0.075;speaker_confusion=0.375
-falcon-h1-3b,dx-addressee-3-third,0shot,all,0.578,116,0.294,0.046,,
-falcon-h1-3b,dx-addressee-3-third,0shot,free,0.650,80,0.291,0.053,,
-falcon-h1-3b,dx-addressee-3-third,3shot,all,0.612,116,0.294,0.045,,
-falcon-h1-3b,dx-addressee-3-third,3shot,free,0.688,80,0.291,0.052,,
-falcon-h1-3b,dx-addressee-2-deictic,0shot,all,0.303,109,0.292,0.044,,speaker_confusion=0.697
-falcon-h1-3b,dx-addressee-2-deictic,0shot,free,0.250,76,0.291,0.050,,speaker_confusion=0.75
-falcon-h1-3b,dx-addressee-2-deictic,3shot,all,0.367,109,0.292,0.046,,speaker_confusion=0.624;tie=0.009
-falcon-h1-3b,dx-addressee-2-deictic,3shot,free,0.447,76,0.291,0.057,,speaker_confusion=0.539;tie=0.013
-falcon-h1-3b,dx-addressee-2-third,0shot,all,0.615,109,0.292,0.047,,
-falcon-h1-3b,dx-addressee-2-third,0shot,free,0.750,76,0.291,0.050,,
-falcon-h1-3b,dx-addressee-2-third,3shot,all,0.642,109,0.292,0.046,,
-falcon-h1-3b,dx-addressee-2-third,3shot,free,0.789,76,0.291,0.047,,
-falcon-h1-7b,attr,0shot,all,0.875,972,0.172,0.011,,
-falcon-h1-7b,attr,3shot_collide,all,0.994,972,0.172,0.003,,
-falcon-h1-7b,attr,3shot,all,0.999,972,0.172,0.001,,
-falcon-h1-7b,codevar,0shot,all,0.540,1040,0.270,0.015,,
-falcon-h1-7b,codevar,3shot_collide,all,0.834,1040,0.270,0.011,,
-falcon-h1-7b,codevar,3shot,all,0.808,1040,0.270,0.012,,
-falcon-h1-7b,dialogue,0shot,all,0.904,1055,0.314,0.009,,
-falcon-h1-7b,dialogue,3shot_collide,all,0.905,1055,0.314,0.009,,
-falcon-h1-7b,dialogue,3shot,all,0.896,1055,0.314,0.009,,
-falcon-h1-7b,dx-owner-3-deictic,0shot,all,0.667,99,0.333,0.047,,other_participant=0.303;speaker_confusion=0.03
-falcon-h1-7b,dx-owner-3-deictic,0shot,free,0.636,33,0.333,0.084,,other_participant=0.364
-falcon-h1-7b,dx-owner-3-deictic,3shot,all,0.899,99,0.333,0.030,,other_participant=0.081;speaker_confusion=0.02
-falcon-h1-7b,dx-owner-3-deictic,3shot,free,0.909,33,0.333,0.050,,other_participant=0.091
-falcon-h1-7b,dx-owner-3-third,0shot,all,0.889,99,0.333,0.032,,
-falcon-h1-7b,dx-owner-3-third,0shot,free,0.909,33,0.333,0.050,,
-falcon-h1-7b,dx-owner-3-third,3shot,all,0.950,99,0.333,0.022,,
-falcon-h1-7b,dx-owner-3-third,3shot,free,1.000,33,0.333,0.000,,
-falcon-h1-7b,dx-self-3-deictic,0shot,all,0.350,163,0.289,0.037,,other_object=0.184;previous_owner=0.061;speaker_confusion=0.399;tie=0.006
-falcon-h1-7b,dx-self-3-deictic,0shot,free,0.414,111,0.287,0.047,,other_object=0.144;previous_owner=0.027;speaker_confusion=0.405;tie=0.009
-falcon-h1-7b,dx-self-3-deictic,3shot,all,0.595,163,0.289,0.038,,other_object=0.086;previous_owner=0.055;speaker_confusion=0.264
-falcon-h1-7b,dx-self-3-deictic,3shot,free,0.649,111,0.287,0.045,,other_object=0.081;previous_owner=0.045;speaker_confusion=0.225
-falcon-h1-7b,dx-self-3-third,0shot,all,0.797,163,0.289,0.032,,
-falcon-h1-7b,dx-self-3-third,0shot,free,0.856,111,0.287,0.033,,
-falcon-h1-7b,dx-self-3-third,3shot,all,0.755,163,0.289,0.034,,
-falcon-h1-7b,dx-self-3-third,3shot,free,0.865,111,0.287,0.032,,
-falcon-h1-7b,dx-self-2-deictic,0shot,all,0.352,159,0.288,0.038,,speaker_confusion=0.642;tie=0.006
-falcon-h1-7b,dx-self-2-deictic,0shot,free,0.404,109,0.287,0.047,,speaker_confusion=0.587;tie=0.009
-falcon-h1-7b,dx-self-2-deictic,3shot,all,0.528,159,0.288,0.040,,speaker_confusion=0.472
-falcon-h1-7b,dx-self-2-deictic,3shot,free,0.633,109,0.287,0.046,,speaker_confusion=0.367
-falcon-h1-7b,dx-self-2-third,0shot,all,0.679,159,0.288,0.037,,
-falcon-h1-7b,dx-self-2-third,0shot,free,0.780,109,0.287,0.040,,
-falcon-h1-7b,dx-self-2-third,3shot,all,0.679,159,0.288,0.037,,
-falcon-h1-7b,dx-self-2-third,3shot,free,0.771,109,0.287,0.040,,
-falcon-h1-7b,dx-addressee-3-deictic,0shot,all,0.366,164,0.289,0.038,,other_object=0.195;previous_owner=0.061;speaker_confusion=0.372;tie=0.006
-falcon-h1-7b,dx-addressee-3-deictic,0shot,free,0.383,115,0.288,0.045,,other_object=0.174;previous_owner=0.078;speaker_confusion=0.357;tie=0.009
-falcon-h1-7b,dx-addressee-3-deictic,3shot,all,0.457,164,0.289,0.039,,other_object=0.091;previous_owner=0.116;speaker_confusion=0.335
-falcon-h1-7b,dx-addressee-3-deictic,3shot,free,0.513,115,0.288,0.047,,other_object=0.043;previous_owner=0.148;speaker_confusion=0.296
-falcon-h1-7b,dx-addressee-3-third,0shot,all,0.811,164,0.289,0.031,,
-falcon-h1-7b,dx-addressee-3-third,0shot,free,0.844,115,0.288,0.034,,
-falcon-h1-7b,dx-addressee-3-third,3shot,all,0.738,164,0.289,0.034,,
-falcon-h1-7b,dx-addressee-3-third,3shot,free,0.826,115,0.288,0.035,,
-falcon-h1-7b,dx-addressee-2-deictic,0shot,all,0.289,166,0.287,0.035,,speaker_confusion=0.711
-falcon-h1-7b,dx-addressee-2-deictic,0shot,free,0.291,117,0.286,0.042,,speaker_confusion=0.709
-falcon-h1-7b,dx-addressee-2-deictic,3shot,all,0.428,166,0.287,0.038,,speaker_confusion=0.572
-falcon-h1-7b,dx-addressee-2-deictic,3shot,free,0.479,117,0.286,0.046,,speaker_confusion=0.521
-falcon-h1-7b,dx-addressee-2-third,0shot,all,0.705,166,0.287,0.035,,
-falcon-h1-7b,dx-addressee-2-third,0shot,free,0.821,117,0.286,0.035,,
-falcon-h1-7b,dx-addressee-2-third,3shot,all,0.717,166,0.287,0.035,,
-falcon-h1-7b,dx-addressee-2-third,3shot,free,0.803,117,0.286,0.037,,
-falcon-h1-7b,sb-k1,0shot,all,0.978,45,0.125,0.022,,
-falcon-h1-7b,sb-k1,3shot_collide,all,1.000,45,0.125,0.000,,
-falcon-h1-7b,sb-k1,3shot,all,1.000,45,0.125,0.000,,
-falcon-h1-7b,sb-k23,0shot,all,0.698,96,0.027,0.047,,
-falcon-h1-7b,sb-k23,3shot_collide,all,0.938,96,0.027,0.025,,
-falcon-h1-7b,sb-k23,3shot,all,0.938,96,0.027,0.025,,
-falcon-h1-7b,sb-split,0shot,all,0.726,102,0.026,0.044,,
-falcon-h1-7b,sb-split,3shot_collide,all,0.529,102,0.026,0.049,,
-falcon-h1-7b,sb-split,3shot,all,0.539,102,0.026,0.049,,
-falcon-h1-7b,sb-dyn,0shot,all,0.608,194,0.027,0.035,,
-falcon-h1-7b,sb-dyn,3shot_collide,all,0.340,194,0.027,0.034,,
-falcon-h1-7b,sb-dyn,3shot,all,0.387,194,0.027,0.035,,
-falcon-h1-7b,an-narr,0shot,all,0.594,549,0.250,0.021,,
-falcon-h1-7b,an-narr,3shot_collide,all,0.878,549,0.250,0.014,,
-falcon-h1-7b,an-narr,3shot,all,0.920,549,0.250,0.012,,
-falcon-h1-7b,an-other-any,0shot,all,0.492,297,0.250,0.029,,
-falcon-h1-7b,an-other-any,3shot_collide,all,0.667,297,0.250,0.027,,
-falcon-h1-7b,an-other-any,3shot,all,0.714,297,0.250,0.026,,
-falcon-h1-7b,an-me-any,0shot,all,0.265,151,0.250,0.036,,
-falcon-h1-7b,an-me-any,3shot_collide,all,0.199,151,0.250,0.033,,
-falcon-h1-7b,an-me-any,3shot,all,0.212,151,0.250,0.033,,
-falcon-h1-7b,an-you-voc,0shot,all,0.635,74,0.250,0.056,,
-falcon-h1-7b,an-you-voc,3shot_collide,all,0.824,74,0.250,0.044,,
-falcon-h1-7b,an-you-voc,3shot,all,0.878,74,0.250,0.038,,
-falcon-h1-7b,an-you-novoc,0shot,all,0.416,77,0.250,0.056,,
-falcon-h1-7b,an-you-novoc,3shot_collide,all,0.506,77,0.250,0.057,,
-falcon-h1-7b,an-you-novoc,3shot,all,0.532,77,0.250,0.057,,
-falcon-h1-7b,adj-adj,0shot,all,0.947,226,0.333,0.015,,
-falcon-h1-7b,adj-adj,3shot_collide,all,0.969,226,0.333,0.011,,
-falcon-h1-7b,adj-adj,3shot,all,0.978,226,0.333,0.010,,
-falcon-h1-7b,adj-voc,0shot,all,0.969,226,0.333,0.011,,
-falcon-h1-7b,adj-voc,3shot_collide,all,0.987,226,0.333,0.008,,
-falcon-h1-7b,adj-voc,3shot,all,0.982,226,0.333,0.009,,
-falcon-h1-7b,adj-third,0shot,all,0.996,226,0.333,0.004,,
-falcon-h1-7b,adj-third,3shot_collide,all,0.996,226,0.333,0.004,,
-falcon-h1-7b,adj-third,3shot,all,1.000,226,0.333,0.000,,
-falcon-h1-7b,cm-mutate,0shot,all,0.982,169,0.200,0.010,,
-falcon-h1-7b,cm-mutate,3shot_collide,all,0.994,169,0.200,0.006,,
-falcon-h1-7b,cm-mutate,3shot,all,0.988,169,0.200,0.008,,
-falcon-h1-7b,cm-rebind,0shot,all,0.095,169,0.200,0.022,,
-falcon-h1-7b,cm-rebind,3shot_collide,all,0.988,169,0.200,0.008,,
-falcon-h1-7b,cm-rebind,3shot,all,0.976,169,0.200,0.012,,
-falcon-h1-7b,cm-copy,0shot,all,0.059,170,0.200,0.018,,
-falcon-h1-7b,cm-copy,3shot_collide,all,1.000,170,0.200,0.000,,
-falcon-h1-7b,cm-copy,3shot,all,0.994,170,0.200,0.006,,
-falcon-mamba-7b,attr,0shot,all,0.398,1210,0.168,0.014,,
-falcon-mamba-7b,attr,3shot_collide,all,0.774,1210,0.168,0.012,,
-falcon-mamba-7b,attr,3shot,all,0.962,1210,0.168,0.005,,
-falcon-mamba-7b,codevar,0shot,all,0.242,1200,0.267,0.012,,
-falcon-mamba-7b,codevar,3shot_collide,all,0.327,1200,0.267,0.013,,
-falcon-mamba-7b,codevar,3shot,all,0.314,1200,0.267,0.013,,
-falcon-mamba-7b,dialogue,0shot,all,0.622,1200,0.312,0.014,,
-falcon-mamba-7b,dialogue,3shot_collide,all,0.613,1200,0.312,0.014,,
-falcon-mamba-7b,dialogue,3shot,all,0.580,1200,0.312,0.014,,
-falcon-mamba-7b,dx-owner-3-deictic,0shot,all,0.250,120,0.333,0.040,,other_participant=0.467;speaker_confusion=0.092;tie=0.192
-falcon-mamba-7b,dx-owner-3-deictic,0shot,free,0.050,40,0.333,0.035,,other_participant=0.65;speaker_confusion=0.075;tie=0.225
-falcon-mamba-7b,dx-owner-3-deictic,3shot,all,0.267,120,0.333,0.040,,other_participant=0.383;speaker_confusion=0.2;tie=0.15
-falcon-mamba-7b,dx-owner-3-deictic,3shot,free,0.250,40,0.333,0.069,,other_participant=0.475;speaker_confusion=0.15;tie=0.125
-falcon-mamba-7b,dx-owner-3-third,0shot,all,0.458,120,0.333,0.045,,
-falcon-mamba-7b,dx-owner-3-third,0shot,free,0.375,40,0.333,0.076,,
-falcon-mamba-7b,dx-owner-3-third,3shot,all,0.308,120,0.333,0.042,,
-falcon-mamba-7b,dx-owner-3-third,3shot,free,0.425,40,0.333,0.078,,
-falcon-mamba-7b,dx-self-3-deictic,0shot,all,0.172,180,0.287,0.028,,other_object=0.278;previous_owner=0.061;speaker_confusion=0.317;tie=0.172
-falcon-mamba-7b,dx-self-3-deictic,0shot,free,0.191,126,0.286,0.035,,other_object=0.302;previous_owner=0.048;speaker_confusion=0.294;tie=0.167
-falcon-mamba-7b,dx-self-3-deictic,3shot,all,0.200,180,0.287,0.030,,other_object=0.317;previous_owner=0.039;speaker_confusion=0.261;tie=0.183
-falcon-mamba-7b,dx-self-3-deictic,3shot,free,0.222,126,0.286,0.037,,other_object=0.349;previous_owner=0.024;speaker_confusion=0.206;tie=0.198
-falcon-mamba-7b,dx-self-3-third,0shot,all,0.300,180,0.287,0.034,,
-falcon-mamba-7b,dx-self-3-third,0shot,free,0.175,126,0.286,0.034,,
-falcon-mamba-7b,dx-self-3-third,3shot,all,0.317,180,0.287,0.035,,
-falcon-mamba-7b,dx-self-3-third,3shot,free,0.262,126,0.286,0.039,,
-falcon-mamba-7b,dx-self-2-deictic,0shot,all,0.178,180,0.287,0.029,,speaker_confusion=0.622;tie=0.2
-falcon-mamba-7b,dx-self-2-deictic,0shot,free,0.191,126,0.286,0.035,,speaker_confusion=0.611;tie=0.198
-falcon-mamba-7b,dx-self-2-deictic,3shot,all,0.272,180,0.287,0.033,,speaker_confusion=0.567;tie=0.161
-falcon-mamba-7b,dx-self-2-deictic,3shot,free,0.309,126,0.286,0.041,,speaker_confusion=0.5;tie=0.19
-falcon-mamba-7b,dx-self-2-third,0shot,all,0.406,180,0.287,0.037,,
-falcon-mamba-7b,dx-self-2-third,0shot,free,0.318,126,0.286,0.042,,
-falcon-mamba-7b,dx-self-2-third,3shot,all,0.400,180,0.287,0.036,,
-falcon-mamba-7b,dx-self-2-third,3shot,free,0.357,126,0.286,0.043,,
-falcon-mamba-7b,dx-addressee-3-deictic,0shot,all,0.183,180,0.287,0.029,,other_object=0.228;previous_owner=0.078;speaker_confusion=0.394;tie=0.117
-falcon-mamba-7b,dx-addressee-3-deictic,0shot,free,0.191,126,0.286,0.035,,other_object=0.206;previous_owner=0.095;speaker_confusion=0.397;tie=0.111
-falcon-mamba-7b,dx-addressee-3-deictic,3shot,all,0.172,180,0.287,0.028,,other_object=0.25;previous_owner=0.106;speaker_confusion=0.361;tie=0.111
-falcon-mamba-7b,dx-addressee-3-deictic,3shot,free,0.191,126,0.286,0.035,,other_object=0.206;previous_owner=0.127;speaker_confusion=0.357;tie=0.119
-falcon-mamba-7b,dx-addressee-3-third,0shot,all,0.344,180,0.287,0.035,,
-falcon-mamba-7b,dx-addressee-3-third,0shot,free,0.214,126,0.286,0.037,,
-falcon-mamba-7b,dx-addressee-3-third,3shot,all,0.272,180,0.287,0.033,,
-falcon-mamba-7b,dx-addressee-3-third,3shot,free,0.230,126,0.286,0.037,,
-falcon-mamba-7b,dx-addressee-2-deictic,0shot,all,0.144,180,0.287,0.026,,speaker_confusion=0.694;tie=0.161
-falcon-mamba-7b,dx-addressee-2-deictic,0shot,free,0.167,126,0.286,0.033,,speaker_confusion=0.675;tie=0.159
-falcon-mamba-7b,dx-addressee-2-deictic,3shot,all,0.144,180,0.287,0.026,,speaker_confusion=0.744;tie=0.111
-falcon-mamba-7b,dx-addressee-2-deictic,3shot,free,0.127,126,0.286,0.030,,speaker_confusion=0.73;tie=0.143
-falcon-mamba-7b,dx-addressee-2-third,0shot,all,0.444,180,0.287,0.037,,
-falcon-mamba-7b,dx-addressee-2-third,0shot,free,0.365,126,0.286,0.043,,
-falcon-mamba-7b,dx-addressee-2-third,3shot,all,0.439,180,0.287,0.037,,
-falcon-mamba-7b,dx-addressee-2-third,3shot,free,0.405,126,0.286,0.044,,
-bamba-9b,attr,0shot,all,0.301,1210,0.168,0.013,,
-bamba-9b,attr,3shot_collide,all,0.245,1210,0.168,0.012,,
-bamba-9b,attr,3shot,all,0.237,1210,0.168,0.012,,
-bamba-9b,codevar,0shot,all,0.314,1200,0.267,0.013,,
-bamba-9b,codevar,3shot_collide,all,0.331,1200,0.267,0.014,,
-bamba-9b,codevar,3shot,all,0.327,1200,0.267,0.013,,
-bamba-9b,dialogue,0shot,all,0.540,1200,0.312,0.014,,
-bamba-9b,dialogue,3shot_collide,all,0.435,1200,0.312,0.014,,
-bamba-9b,dialogue,3shot,all,0.462,1200,0.312,0.014,,
-bamba-9b,dx-owner-3-deictic,0shot,all,0.392,120,0.333,0.045,,other_participant=0.425;speaker_confusion=0.183
-bamba-9b,dx-owner-3-deictic,0shot,free,0.250,40,0.333,0.069,,other_participant=0.575;speaker_confusion=0.175
-bamba-9b,dx-owner-3-deictic,3shot,all,0.417,120,0.333,0.045,,other_participant=0.433;speaker_confusion=0.142;tie=0.008
-bamba-9b,dx-owner-3-deictic,3shot,free,0.225,40,0.333,0.066,,other_participant=0.6;speaker_confusion=0.175
-bamba-9b,dx-owner-3-third,0shot,all,0.408,120,0.333,0.045,,
-bamba-9b,dx-owner-3-third,0shot,free,0.250,40,0.333,0.069,,
-bamba-9b,dx-owner-3-third,3shot,all,0.400,120,0.333,0.045,,
-bamba-9b,dx-owner-3-third,3shot,free,0.225,40,0.333,0.066,,
-bamba-9b,dx-self-3-deictic,0shot,all,0.283,180,0.287,0.034,,other_object=0.217;previous_owner=0.111;speaker_confusion=0.383;tie=0.006
-bamba-9b,dx-self-3-deictic,0shot,free,0.206,126,0.286,0.036,,other_object=0.246;previous_owner=0.063;speaker_confusion=0.484
-bamba-9b,dx-self-3-deictic,3shot,all,0.272,180,0.287,0.033,,other_object=0.2;previous_owner=0.117;speaker_confusion=0.411
-bamba-9b,dx-self-3-deictic,3shot,free,0.214,126,0.286,0.037,,other_object=0.206;previous_owner=0.087;speaker_confusion=0.492
-bamba-9b,dx-self-3-third,0shot,all,0.250,180,0.287,0.032,,
-bamba-9b,dx-self-3-third,0shot,free,0.111,126,0.286,0.028,,
-bamba-9b,dx-self-3-third,3shot,all,0.244,180,0.287,0.032,,
-bamba-9b,dx-self-3-third,3shot,free,0.167,126,0.286,0.033,,
-bamba-9b,dx-self-2-deictic,0shot,all,0.228,180,0.287,0.031,,speaker_confusion=0.767;tie=0.006
-bamba-9b,dx-self-2-deictic,0shot,free,0.135,126,0.286,0.030,,speaker_confusion=0.857;tie=0.008
-bamba-9b,dx-self-2-deictic,3shot,all,0.233,180,0.287,0.032,,speaker_confusion=0.767
-bamba-9b,dx-self-2-deictic,3shot,free,0.206,126,0.286,0.036,,speaker_confusion=0.794
-bamba-9b,dx-self-2-third,0shot,all,0.339,180,0.287,0.035,,
-bamba-9b,dx-self-2-third,0shot,free,0.191,126,0.286,0.035,,
-bamba-9b,dx-self-2-third,3shot,all,0.278,180,0.287,0.033,,
-bamba-9b,dx-self-2-third,3shot,free,0.198,126,0.286,0.035,,
-bamba-9b,dx-addressee-3-deictic,0shot,all,0.367,180,0.287,0.036,,other_object=0.117;previous_owner=0.189;speaker_confusion=0.328
-bamba-9b,dx-addressee-3-deictic,0shot,free,0.230,126,0.286,0.037,,other_object=0.111;previous_owner=0.254;speaker_confusion=0.405
-bamba-9b,dx-addressee-3-deictic,3shot,all,0.278,180,0.287,0.033,,other_object=0.172;previous_owner=0.228;speaker_confusion=0.322
-bamba-9b,dx-addressee-3-deictic,3shot,free,0.143,126,0.286,0.031,,other_object=0.167;previous_owner=0.294;speaker_confusion=0.397
-bamba-9b,dx-addressee-3-third,0shot,all,0.339,180,0.287,0.035,,
-bamba-9b,dx-addressee-3-third,0shot,free,0.151,126,0.286,0.032,,
-bamba-9b,dx-addressee-3-third,3shot,all,0.294,180,0.287,0.034,,
-bamba-9b,dx-addressee-3-third,3shot,free,0.198,126,0.286,0.035,,
-bamba-9b,dx-addressee-2-deictic,0shot,all,0.283,180,0.287,0.034,,speaker_confusion=0.717
-bamba-9b,dx-addressee-2-deictic,0shot,free,0.167,126,0.286,0.033,,speaker_confusion=0.833
-bamba-9b,dx-addressee-2-deictic,3shot,all,0.267,180,0.287,0.033,,speaker_confusion=0.733
-bamba-9b,dx-addressee-2-deictic,3shot,free,0.159,126,0.286,0.033,,speaker_confusion=0.841
-bamba-9b,dx-addressee-2-third,0shot,all,0.372,180,0.287,0.036,,
-bamba-9b,dx-addressee-2-third,0shot,free,0.230,126,0.286,0.037,,
-bamba-9b,dx-addressee-2-third,3shot,all,0.261,180,0.287,0.033,,
-bamba-9b,dx-addressee-2-third,3shot,free,0.143,126,0.286,0.031,,
-recurrentgemma-9b,dx-owner-3-deictic,0shot,all,0.433,120,0.333,0.045,,other_participant=0.433;speaker_confusion=0.1;tie=0.033
-recurrentgemma-9b,dx-owner-3-deictic,0shot,free,0.425,40,0.333,0.078,,other_participant=0.45;speaker_confusion=0.075;tie=0.05
-recurrentgemma-9b,dx-owner-3-deictic,3shot,all,0.208,120,0.333,0.037,,other_participant=0.408;speaker_confusion=0.367;tie=0.017
-recurrentgemma-9b,dx-owner-3-deictic,3shot,free,0.175,40,0.333,0.060,,other_participant=0.575;speaker_confusion=0.225;tie=0.025
-recurrentgemma-9b,dx-owner-3-third,0shot,all,0.500,120,0.333,0.046,,
-recurrentgemma-9b,dx-owner-3-third,0shot,free,0.450,40,0.333,0.079,,
-recurrentgemma-9b,dx-owner-3-third,3shot,all,0.333,120,0.333,0.043,,
-recurrentgemma-9b,dx-owner-3-third,3shot,free,0.325,40,0.333,0.074,,
-recurrentgemma-9b,dx-self-3-deictic,0shot,all,0.250,180,0.287,0.032,,other_object=0.106;previous_owner=0.117;speaker_confusion=0.517;tie=0.011
-recurrentgemma-9b,dx-self-3-deictic,0shot,free,0.095,126,0.286,0.026,,other_object=0.135;previous_owner=0.087;speaker_confusion=0.675;tie=0.008
-recurrentgemma-9b,dx-self-3-deictic,3shot,all,0.272,180,0.287,0.033,,other_object=0.233;previous_owner=0.089;speaker_confusion=0.389;tie=0.017
-recurrentgemma-9b,dx-self-3-deictic,3shot,free,0.238,126,0.286,0.038,,other_object=0.246;previous_owner=0.071;speaker_confusion=0.421;tie=0.024
-recurrentgemma-9b,dx-self-3-third,0shot,all,0.244,180,0.287,0.032,,
-recurrentgemma-9b,dx-self-3-third,0shot,free,0.095,126,0.286,0.026,,
-recurrentgemma-9b,dx-self-3-third,3shot,all,0.306,180,0.287,0.034,,
-recurrentgemma-9b,dx-self-3-third,3shot,free,0.222,126,0.286,0.037,,
-recurrentgemma-9b,dx-self-2-deictic,0shot,all,0.283,180,0.287,0.034,,speaker_confusion=0.711;tie=0.006
-recurrentgemma-9b,dx-self-2-deictic,0shot,free,0.151,126,0.286,0.032,,speaker_confusion=0.841;tie=0.008
-recurrentgemma-9b,dx-self-2-deictic,3shot,all,0.261,180,0.287,0.033,,speaker_confusion=0.722;tie=0.017
-recurrentgemma-9b,dx-self-2-deictic,3shot,free,0.214,126,0.286,0.037,,speaker_confusion=0.778;tie=0.008
-recurrentgemma-9b,dx-self-2-third,0shot,all,0.261,180,0.287,0.033,,
-recurrentgemma-9b,dx-self-2-third,0shot,free,0.095,126,0.286,0.026,,
-recurrentgemma-9b,dx-self-2-third,3shot,all,0.300,180,0.287,0.034,,
-recurrentgemma-9b,dx-self-2-third,3shot,free,0.182,126,0.286,0.034,,
-recurrentgemma-9b,dx-addressee-3-deictic,0shot,all,0.306,180,0.287,0.034,,other_object=0.083;previous_owner=0.244;speaker_confusion=0.344;tie=0.022
-recurrentgemma-9b,dx-addressee-3-deictic,0shot,free,0.111,126,0.286,0.028,,other_object=0.095;previous_owner=0.333;speaker_confusion=0.429;tie=0.032
-recurrentgemma-9b,dx-addressee-3-deictic,3shot,all,0.283,180,0.287,0.034,,other_object=0.156;previous_owner=0.228;speaker_confusion=0.322;tie=0.011
-recurrentgemma-9b,dx-addressee-3-deictic,3shot,free,0.159,126,0.286,0.033,,other_object=0.151;previous_owner=0.302;speaker_confusion=0.381;tie=0.008
-recurrentgemma-9b,dx-addressee-3-third,0shot,all,0.317,180,0.287,0.035,,
-recurrentgemma-9b,dx-addressee-3-third,0shot,free,0.143,126,0.286,0.031,,
-recurrentgemma-9b,dx-addressee-3-third,3shot,all,0.300,180,0.287,0.034,,
-recurrentgemma-9b,dx-addressee-3-third,3shot,free,0.206,126,0.286,0.036,,
-recurrentgemma-9b,dx-addressee-2-deictic,0shot,all,0.228,180,0.287,0.031,,speaker_confusion=0.772
-recurrentgemma-9b,dx-addressee-2-deictic,0shot,free,0.048,126,0.286,0.019,,speaker_confusion=0.952
-recurrentgemma-9b,dx-addressee-2-deictic,3shot,all,0.233,180,0.287,0.032,,speaker_confusion=0.767
-recurrentgemma-9b,dx-addressee-2-deictic,3shot,free,0.127,126,0.286,0.030,,speaker_confusion=0.873
-recurrentgemma-9b,dx-addressee-2-third,0shot,all,0.278,180,0.287,0.033,,
-recurrentgemma-9b,dx-addressee-2-third,0shot,free,0.111,126,0.286,0.028,,
-recurrentgemma-9b,dx-addressee-2-third,3shot,all,0.328,180,0.287,0.035,,
-recurrentgemma-9b,dx-addressee-2-third,3shot,free,0.222,126,0.286,0.037,,
-falcon-h1-34b-base,dx-owner-3-deictic,0shot,all,0.808,120,0.333,0.036,,other_participant=0.175;speaker_confusion=0.017
-falcon-h1-34b-base,dx-owner-3-deictic,0shot,free,0.750,40,0.333,0.069,,other_participant=0.25
-falcon-h1-34b-base,dx-owner-3-deictic,3shot_collide,all,0.983,120,0.333,0.012,,other_participant=0.017
-falcon-h1-34b-base,dx-owner-3-deictic,3shot_collide,free,1.000,40,0.333,0.000,,
-falcon-h1-34b-base,dx-owner-3-deictic,3shot,all,0.983,120,0.333,0.012,,other_participant=0.017
-falcon-h1-34b-base,dx-owner-3-deictic,3shot,free,1.000,40,0.333,0.000,,
-falcon-h1-34b-base,dx-owner-3-third,0shot,all,0.800,120,0.333,0.036,,
-falcon-h1-34b-base,dx-owner-3-third,0shot,free,0.650,40,0.333,0.075,,
-falcon-h1-34b-base,dx-owner-3-third,3shot_collide,all,1.000,120,0.333,0.000,,
-falcon-h1-34b-base,dx-owner-3-third,3shot_collide,free,1.000,40,0.333,0.000,,
-falcon-h1-34b-base,dx-owner-3-third,3shot,all,1.000,120,0.333,0.000,,
-falcon-h1-34b-base,dx-owner-3-third,3shot,free,1.000,40,0.333,0.000,,
-falcon-h1-34b-base,dx-self-3-deictic,0shot,all,0.544,180,0.287,0.037,,other_object=0.161;previous_owner=0.033;speaker_confusion=0.261
-falcon-h1-34b-base,dx-self-3-deictic,0shot,free,0.611,126,0.286,0.043,,other_object=0.135;previous_owner=0.016;speaker_confusion=0.238
-falcon-h1-34b-base,dx-self-3-deictic,3shot_collide,all,0.728,180,0.287,0.033,,other_object=0.067;previous_owner=0.039;speaker_confusion=0.156;tie=0.011
-falcon-h1-34b-base,dx-self-3-deictic,3shot_collide,free,0.818,126,0.286,0.034,,other_object=0.079;previous_owner=0.016;speaker_confusion=0.079;tie=0.008
-falcon-h1-34b-base,dx-self-3-deictic,3shot,all,0.839,180,0.287,0.027,,other_object=0.05;previous_owner=0.05;speaker_confusion=0.061
-falcon-h1-34b-base,dx-self-3-deictic,3shot,free,0.913,126,0.286,0.025,,other_object=0.04;previous_owner=0.024;speaker_confusion=0.024
-falcon-h1-34b-base,dx-self-3-third,0shot,all,0.839,180,0.287,0.027,,
-falcon-h1-34b-base,dx-self-3-third,0shot,free,0.936,126,0.286,0.022,,
-falcon-h1-34b-base,dx-self-3-third,3shot_collide,all,0.883,180,0.287,0.024,,
-falcon-h1-34b-base,dx-self-3-third,3shot_collide,free,0.992,126,0.286,0.008,,
-falcon-h1-34b-base,dx-self-3-third,3shot,all,0.861,180,0.287,0.026,,
-falcon-h1-34b-base,dx-self-3-third,3shot,free,0.952,126,0.286,0.019,,
-falcon-h1-34b-base,dx-self-2-deictic,0shot,all,0.461,180,0.287,0.037,,speaker_confusion=0.539
-falcon-h1-34b-base,dx-self-2-deictic,0shot,free,0.524,126,0.286,0.044,,speaker_confusion=0.476
-falcon-h1-34b-base,dx-self-2-deictic,3shot_collide,all,0.578,180,0.287,0.037,,speaker_confusion=0.422
-falcon-h1-34b-base,dx-self-2-deictic,3shot_collide,free,0.643,126,0.286,0.043,,speaker_confusion=0.357
-falcon-h1-34b-base,dx-self-2-deictic,3shot,all,0.639,180,0.287,0.036,,speaker_confusion=0.361
-falcon-h1-34b-base,dx-self-2-deictic,3shot,free,0.714,126,0.286,0.040,,speaker_confusion=0.286
-falcon-h1-34b-base,dx-self-2-third,0shot,all,0.722,180,0.287,0.033,,
-falcon-h1-34b-base,dx-self-2-third,0shot,free,0.833,126,0.286,0.033,,
-falcon-h1-34b-base,dx-self-2-third,3shot_collide,all,0.844,180,0.287,0.027,,
-falcon-h1-34b-base,dx-self-2-third,3shot_collide,free,0.913,126,0.286,0.025,,
-falcon-h1-34b-base,dx-self-2-third,3shot,all,0.789,180,0.287,0.030,,
-falcon-h1-34b-base,dx-self-2-third,3shot,free,0.889,126,0.286,0.028,,
-falcon-h1-34b-base,dx-addressee-3-deictic,0shot,all,0.494,180,0.287,0.037,,other_object=0.144;previous_owner=0.05;speaker_confusion=0.306;tie=0.006
-falcon-h1-34b-base,dx-addressee-3-deictic,0shot,free,0.548,126,0.286,0.044,,other_object=0.135;previous_owner=0.056;speaker_confusion=0.254;tie=0.008
-falcon-h1-34b-base,dx-addressee-3-deictic,3shot_collide,all,0.672,180,0.287,0.035,,other_object=0.067;previous_owner=0.033;speaker_confusion=0.217;tie=0.011
-falcon-h1-34b-base,dx-addressee-3-deictic,3shot_collide,free,0.730,126,0.286,0.040,,other_object=0.04;previous_owner=0.048;speaker_confusion=0.183
-falcon-h1-34b-base,dx-addressee-3-deictic,3shot,all,0.733,180,0.287,0.033,,other_object=0.056;previous_owner=0.033;speaker_confusion=0.178
-falcon-h1-34b-base,dx-addressee-3-deictic,3shot,free,0.770,126,0.286,0.037,,other_object=0.032;previous_owner=0.048;speaker_confusion=0.151
-falcon-h1-34b-base,dx-addressee-3-third,0shot,all,0.872,180,0.287,0.025,,
-falcon-h1-34b-base,dx-addressee-3-third,0shot,free,0.913,126,0.286,0.025,,
-falcon-h1-34b-base,dx-addressee-3-third,3shot_collide,all,0.911,180,0.287,0.021,,
-falcon-h1-34b-base,dx-addressee-3-third,3shot_collide,free,0.952,126,0.286,0.019,,
-falcon-h1-34b-base,dx-addressee-3-third,3shot,all,0.900,180,0.287,0.022,,
-falcon-h1-34b-base,dx-addressee-3-third,3shot,free,0.960,126,0.286,0.017,,
-falcon-h1-34b-base,dx-addressee-2-deictic,0shot,all,0.344,180,0.287,0.035,,speaker_confusion=0.656
-falcon-h1-34b-base,dx-addressee-2-deictic,0shot,free,0.365,126,0.286,0.043,,speaker_confusion=0.635
-falcon-h1-34b-base,dx-addressee-2-deictic,3shot_collide,all,0.433,180,0.287,0.037,,speaker_confusion=0.556;tie=0.011
-falcon-h1-34b-base,dx-addressee-2-deictic,3shot_collide,free,0.452,126,0.286,0.044,,speaker_confusion=0.532;tie=0.016
-falcon-h1-34b-base,dx-addressee-2-deictic,3shot,all,0.433,180,0.287,0.037,,speaker_confusion=0.567
-falcon-h1-34b-base,dx-addressee-2-deictic,3shot,free,0.460,126,0.286,0.044,,speaker_confusion=0.54
-falcon-h1-34b-base,dx-addressee-2-third,0shot,all,0.806,180,0.287,0.029,,
-falcon-h1-34b-base,dx-addressee-2-third,0shot,free,0.913,126,0.286,0.025,,
-falcon-h1-34b-base,dx-addressee-2-third,3shot_collide,all,0.817,180,0.287,0.029,,
-falcon-h1-34b-base,dx-addressee-2-third,3shot_collide,free,0.913,126,0.286,0.025,,
-falcon-h1-34b-base,dx-addressee-2-third,3shot,all,0.794,180,0.287,0.030,,
-falcon-h1-34b-base,dx-addressee-2-third,3shot,free,0.913,126,0.286,0.025,,
-falcon-h1-34b-base,sb-k1,0shot,all,0.984,64,0.125,0.015,,
-falcon-h1-34b-base,sb-k1,3shot_collide,all,1.000,64,0.125,0.000,,
-falcon-h1-34b-base,sb-k1,3shot,all,1.000,64,0.125,0.000,,
-falcon-h1-34b-base,sb-k23,0shot,all,0.836,128,0.027,0.033,,
-falcon-h1-34b-base,sb-k23,3shot_collide,all,0.992,128,0.027,0.008,,
-falcon-h1-34b-base,sb-k23,3shot,all,0.992,128,0.027,0.008,,
-falcon-h1-34b-base,sb-split,0shot,all,0.812,128,0.027,0.035,,
-falcon-h1-34b-base,sb-split,3shot_collide,all,0.930,128,0.027,0.023,,
-falcon-h1-34b-base,sb-split,3shot,all,0.945,128,0.027,0.020,,
-falcon-h1-34b-base,sb-dyn,0shot,all,0.695,256,0.027,0.029,,
-falcon-h1-34b-base,sb-dyn,3shot_collide,all,0.652,256,0.027,0.030,,
-falcon-h1-34b-base,sb-dyn,3shot,all,0.656,256,0.027,0.030,,
-falcon-h1-34b-base,an-narr,0shot,all,0.714,640,0.250,0.018,,
-falcon-h1-34b-base,an-narr,3shot_collide,all,0.986,640,0.250,0.005,,
-falcon-h1-34b-base,an-narr,3shot,all,0.992,640,0.250,0.004,,
-falcon-h1-34b-base,an-other-any,0shot,all,0.356,320,0.250,0.027,,
-falcon-h1-34b-base,an-other-any,3shot_collide,all,0.866,320,0.250,0.019,,
-falcon-h1-34b-base,an-other-any,3shot,all,0.863,320,0.250,0.019,,
-falcon-h1-34b-base,an-me-any,0shot,all,0.800,160,0.250,0.032,,
-falcon-h1-34b-base,an-me-any,3shot_collide,all,0.787,160,0.250,0.032,,
-falcon-h1-34b-base,an-me-any,3shot,all,0.831,160,0.250,0.030,,
-falcon-h1-34b-base,an-you-voc,0shot,all,0.650,80,0.250,0.053,,
-falcon-h1-34b-base,an-you-voc,3shot_collide,all,0.925,80,0.250,0.029,,
-falcon-h1-34b-base,an-you-voc,3shot,all,0.887,80,0.250,0.035,,
-falcon-h1-34b-base,an-you-novoc,0shot,all,0.188,80,0.250,0.044,,
-falcon-h1-34b-base,an-you-novoc,3shot_collide,all,0.537,80,0.250,0.056,,
-falcon-h1-34b-base,an-you-novoc,3shot,all,0.588,80,0.250,0.055,,
-falcon-h1-34b-base,adj-adj,0shot,all,0.992,260,0.333,0.005,,
-falcon-h1-34b-base,adj-adj,3shot_collide,all,1.000,260,0.333,0.000,,
-falcon-h1-34b-base,adj-adj,3shot,all,1.000,260,0.333,0.000,,
-falcon-h1-34b-base,adj-voc,0shot,all,1.000,260,0.333,0.000,,
-falcon-h1-34b-base,adj-voc,3shot_collide,all,1.000,260,0.333,0.000,,
-falcon-h1-34b-base,adj-voc,3shot,all,1.000,260,0.333,0.000,,
-falcon-h1-34b-base,adj-third,0shot,all,1.000,260,0.333,0.000,,
-falcon-h1-34b-base,adj-third,3shot_collide,all,1.000,260,0.333,0.000,,
-falcon-h1-34b-base,adj-third,3shot,all,1.000,260,0.333,0.000,,
-falcon-h1-34b-base,cm-mutate,0shot,all,0.835,200,0.200,0.026,,
-falcon-h1-34b-base,cm-mutate,3shot_collide,all,1.000,200,0.200,0.000,,
-falcon-h1-34b-base,cm-mutate,3shot,all,0.990,200,0.200,0.007,,
-falcon-h1-34b-base,cm-rebind,0shot,all,0.775,200,0.200,0.029,,
-falcon-h1-34b-base,cm-rebind,3shot_collide,all,1.000,200,0.200,0.000,,
-falcon-h1-34b-base,cm-rebind,3shot,all,1.000,200,0.200,0.000,,
-falcon-h1-34b-base,cm-copy,0shot,all,0.780,200,0.200,0.029,,
-falcon-h1-34b-base,cm-copy,3shot_collide,all,1.000,200,0.200,0.000,,
-falcon-h1-34b-base,cm-copy,3shot,all,0.995,200,0.200,0.005,,
-nemotron3-ultra-550b-base,attr,0shot,all,0.883,1067,0.170,0.010,,
-nemotron3-ultra-550b-base,attr,3shot_collide,all,1.000,1067,0.170,0.000,,
-nemotron3-ultra-550b-base,attr,3shot,all,1.000,1067,0.170,0.000,,
-nemotron3-ultra-550b-base,codevar,0shot,all,0.841,1107,0.268,0.011,,
-nemotron3-ultra-550b-base,codevar,3shot_collide,all,0.924,1107,0.268,0.008,,
-nemotron3-ultra-550b-base,codevar,3shot,all,0.905,1107,0.268,0.009,,
-nemotron3-ultra-550b-base,dialogue,0shot,all,0.964,1173,0.312,0.005,,
-nemotron3-ultra-550b-base,dialogue,3shot_collide,all,0.994,1173,0.312,0.002,,
-nemotron3-ultra-550b-base,dialogue,3shot,all,0.994,1173,0.312,0.002,,
-nemotron3-ultra-550b-base,dx-owner-3-deictic,0shot,all,0.683,120,0.333,0.043,,other_participant=0.292;speaker_confusion=0.025
-nemotron3-ultra-550b-base,dx-owner-3-deictic,0shot,free,0.575,40,0.333,0.078,,other_participant=0.375;speaker_confusion=0.05
-nemotron3-ultra-550b-base,dx-owner-3-deictic,3shot_collide,all,1.000,120,0.333,0.000,,
-nemotron3-ultra-550b-base,dx-owner-3-deictic,3shot_collide,free,1.000,40,0.333,0.000,,
-nemotron3-ultra-550b-base,dx-owner-3-deictic,3shot,all,0.992,120,0.333,0.008,,other_participant=0.008
-nemotron3-ultra-550b-base,dx-owner-3-deictic,3shot,free,1.000,40,0.333,0.000,,
-nemotron3-ultra-550b-base,dx-owner-3-third,0shot,all,0.900,120,0.333,0.027,,
-nemotron3-ultra-550b-base,dx-owner-3-third,0shot,free,0.875,40,0.333,0.052,,
-nemotron3-ultra-550b-base,dx-owner-3-third,3shot_collide,all,1.000,120,0.333,0.000,,
-nemotron3-ultra-550b-base,dx-owner-3-third,3shot_collide,free,1.000,40,0.333,0.000,,
-nemotron3-ultra-550b-base,dx-owner-3-third,3shot,all,1.000,120,0.333,0.000,,
-nemotron3-ultra-550b-base,dx-owner-3-third,3shot,free,1.000,40,0.333,0.000,,
-nemotron3-ultra-550b-base,dx-self-3-deictic,0shot,all,0.580,169,0.288,0.038,,other_object=0.083;previous_owner=0.059;speaker_confusion=0.231;tie=0.047
-nemotron3-ultra-550b-base,dx-self-3-deictic,0shot,free,0.613,119,0.286,0.045,,other_object=0.084;previous_owner=0.017;speaker_confusion=0.244;tie=0.042
-nemotron3-ultra-550b-base,dx-self-3-deictic,3shot_collide,all,0.888,169,0.288,0.024,,other_object=0.047;previous_owner=0.03;speaker_confusion=0.024;tie=0.012
-nemotron3-ultra-550b-base,dx-self-3-deictic,3shot_collide,free,0.908,119,0.286,0.027,,other_object=0.067;speaker_confusion=0.025
-nemotron3-ultra-550b-base,dx-self-3-deictic,3shot,all,0.888,169,0.288,0.024,,other_object=0.047;previous_owner=0.036;speaker_confusion=0.024;tie=0.006
-nemotron3-ultra-550b-base,dx-self-3-deictic,3shot,free,0.908,119,0.286,0.027,,other_object=0.067;speaker_confusion=0.017;tie=0.008
-nemotron3-ultra-550b-base,dx-self-3-third,0shot,all,0.876,169,0.288,0.025,,
-nemotron3-ultra-550b-base,dx-self-3-third,0shot,free,0.924,119,0.286,0.024,,
-nemotron3-ultra-550b-base,dx-self-3-third,3shot_collide,all,0.982,169,0.288,0.010,,
-nemotron3-ultra-550b-base,dx-self-3-third,3shot_collide,free,0.983,119,0.286,0.012,,
-nemotron3-ultra-550b-base,dx-self-3-third,3shot,all,0.982,169,0.288,0.010,,
-nemotron3-ultra-550b-base,dx-self-3-third,3shot,free,0.983,119,0.286,0.012,,
-nemotron3-ultra-550b-base,dx-self-2-deictic,0shot,all,0.388,170,0.288,0.037,,speaker_confusion=0.571;tie=0.041
-nemotron3-ultra-550b-base,dx-self-2-deictic,0shot,free,0.442,120,0.286,0.045,,speaker_confusion=0.5;tie=0.058
-nemotron3-ultra-550b-base,dx-self-2-deictic,3shot_collide,all,0.771,170,0.288,0.032,,speaker_confusion=0.224;tie=0.006
-nemotron3-ultra-550b-base,dx-self-2-deictic,3shot_collide,free,0.808,120,0.286,0.036,,speaker_confusion=0.183;tie=0.008
-nemotron3-ultra-550b-base,dx-self-2-deictic,3shot,all,0.782,170,0.288,0.032,,speaker_confusion=0.206;tie=0.012
-nemotron3-ultra-550b-base,dx-self-2-deictic,3shot,free,0.842,120,0.286,0.033,,speaker_confusion=0.15;tie=0.008
-nemotron3-ultra-550b-base,dx-self-2-third,0shot,all,0.871,170,0.288,0.026,,
-nemotron3-ultra-550b-base,dx-self-2-third,0shot,free,0.850,120,0.286,0.033,,
-nemotron3-ultra-550b-base,dx-self-2-third,3shot_collide,all,0.994,170,0.288,0.006,,
-nemotron3-ultra-550b-base,dx-self-2-third,3shot_collide,free,1.000,120,0.286,0.000,,
-nemotron3-ultra-550b-base,dx-self-2-third,3shot,all,0.988,170,0.288,0.008,,
-nemotron3-ultra-550b-base,dx-self-2-third,3shot,free,0.992,120,0.286,0.008,,
-nemotron3-ultra-550b-base,dx-addressee-3-deictic,0shot,all,0.404,171,0.288,0.037,,other_object=0.14;previous_owner=0.058;speaker_confusion=0.368;tie=0.029
-nemotron3-ultra-550b-base,dx-addressee-3-deictic,0shot,free,0.432,118,0.286,0.046,,other_object=0.144;previous_owner=0.068;speaker_confusion=0.339;tie=0.017
-nemotron3-ultra-550b-base,dx-addressee-3-deictic,3shot_collide,all,0.743,171,0.288,0.033,,other_object=0.058;previous_owner=0.023;speaker_confusion=0.17;tie=0.006
-nemotron3-ultra-550b-base,dx-addressee-3-deictic,3shot_collide,free,0.729,118,0.286,0.041,,other_object=0.076;previous_owner=0.034;speaker_confusion=0.153;tie=0.008
-nemotron3-ultra-550b-base,dx-addressee-3-deictic,3shot,all,0.737,171,0.288,0.034,,other_object=0.053;previous_owner=0.035;speaker_confusion=0.152;tie=0.023
-nemotron3-ultra-550b-base,dx-addressee-3-deictic,3shot,free,0.712,118,0.286,0.042,,other_object=0.059;previous_owner=0.042;speaker_confusion=0.169;tie=0.017
-nemotron3-ultra-550b-base,dx-addressee-3-third,0shot,all,0.895,171,0.288,0.024,,
-nemotron3-ultra-550b-base,dx-addressee-3-third,0shot,free,0.907,118,0.286,0.027,,
-nemotron3-ultra-550b-base,dx-addressee-3-third,3shot_collide,all,1.000,171,0.288,0.000,,
-nemotron3-ultra-550b-base,dx-addressee-3-third,3shot_collide,free,1.000,118,0.286,0.000,,
-nemotron3-ultra-550b-base,dx-addressee-3-third,3shot,all,1.000,171,0.288,0.000,,
-nemotron3-ultra-550b-base,dx-addressee-3-third,3shot,free,1.000,118,0.286,0.000,,
-nemotron3-ultra-550b-base,dx-addressee-2-deictic,0shot,all,0.244,176,0.288,0.032,,speaker_confusion=0.722;tie=0.034
-nemotron3-ultra-550b-base,dx-addressee-2-deictic,0shot,free,0.192,125,0.285,0.035,,speaker_confusion=0.76;tie=0.048
-nemotron3-ultra-550b-base,dx-addressee-2-deictic,3shot_collide,all,0.392,176,0.288,0.037,,speaker_confusion=0.557;tie=0.051
-nemotron3-ultra-550b-base,dx-addressee-2-deictic,3shot_collide,free,0.416,125,0.285,0.044,,speaker_confusion=0.536;tie=0.048
-nemotron3-ultra-550b-base,dx-addressee-2-deictic,3shot,all,0.398,176,0.288,0.037,,speaker_confusion=0.574;tie=0.028
-nemotron3-ultra-550b-base,dx-addressee-2-deictic,3shot,free,0.440,125,0.285,0.044,,speaker_confusion=0.536;tie=0.024
-nemotron3-ultra-550b-base,dx-addressee-2-third,0shot,all,0.920,176,0.288,0.020,,
-nemotron3-ultra-550b-base,dx-addressee-2-third,0shot,free,0.928,125,0.285,0.023,,
-nemotron3-ultra-550b-base,dx-addressee-2-third,3shot_collide,all,0.994,176,0.288,0.006,,
-nemotron3-ultra-550b-base,dx-addressee-2-third,3shot_collide,free,1.000,125,0.285,0.000,,
-nemotron3-ultra-550b-base,dx-addressee-2-third,3shot,all,0.989,176,0.288,0.008,,
-nemotron3-ultra-550b-base,dx-addressee-2-third,3shot,free,1.000,125,0.285,0.000,,
-nemotron3-ultra-550b-base,sb-k1,0shot,all,1.000,53,0.125,0.000,,
-nemotron3-ultra-550b-base,sb-k1,3shot_collide,all,1.000,53,0.125,0.000,,
-nemotron3-ultra-550b-base,sb-k1,3shot,all,1.000,53,0.125,0.000,,
-nemotron3-ultra-550b-base,sb-k23,0shot,all,0.953,106,0.026,0.021,,
-nemotron3-ultra-550b-base,sb-k23,3shot_collide,all,1.000,106,0.026,0.000,,
-nemotron3-ultra-550b-base,sb-k23,3shot,all,1.000,106,0.026,0.000,,
-nemotron3-ultra-550b-base,sb-split,0shot,all,0.972,106,0.027,0.016,,
-nemotron3-ultra-550b-base,sb-split,3shot_collide,all,1.000,106,0.027,0.000,,
-nemotron3-ultra-550b-base,sb-split,3shot,all,1.000,106,0.027,0.000,,
-nemotron3-ultra-550b-base,sb-dyn,0shot,all,0.821,223,0.027,0.026,,
-nemotron3-ultra-550b-base,sb-dyn,3shot_collide,all,0.955,223,0.027,0.014,,
-nemotron3-ultra-550b-base,sb-dyn,3shot,all,0.919,223,0.027,0.018,,
-nemotron3-ultra-550b-base,an-narr,0shot,all,0.559,640,0.250,0.020,,
-nemotron3-ultra-550b-base,an-narr,3shot_collide,all,0.997,640,0.250,0.002,,
-nemotron3-ultra-550b-base,an-narr,3shot,all,0.998,640,0.250,0.002,,
-nemotron3-ultra-550b-base,an-other-any,0shot,all,0.456,320,0.250,0.028,,
-nemotron3-ultra-550b-base,an-other-any,3shot_collide,all,0.956,320,0.250,0.011,,
-nemotron3-ultra-550b-base,an-other-any,3shot,all,0.944,320,0.250,0.013,,
-nemotron3-ultra-550b-base,an-me-any,0shot,all,0.838,160,0.250,0.029,,
-nemotron3-ultra-550b-base,an-me-any,3shot_collide,all,0.988,160,0.250,0.009,,
-nemotron3-ultra-550b-base,an-me-any,3shot,all,0.969,160,0.250,0.014,,
-nemotron3-ultra-550b-base,an-you-voc,0shot,all,0.900,80,0.250,0.034,,
-nemotron3-ultra-550b-base,an-you-voc,3shot_collide,all,0.988,80,0.250,0.012,,
-nemotron3-ultra-550b-base,an-you-voc,3shot,all,1.000,80,0.250,0.000,,
-nemotron3-ultra-550b-base,an-you-novoc,0shot,all,0.400,80,0.250,0.055,,
-nemotron3-ultra-550b-base,an-you-novoc,3shot_collide,all,0.912,80,0.250,0.032,,
-nemotron3-ultra-550b-base,an-you-novoc,3shot,all,0.925,80,0.250,0.029,,
-nemotron3-ultra-550b-base,adj-adj,0shot,all,0.992,260,0.333,0.005,,
-nemotron3-ultra-550b-base,adj-adj,3shot_collide,all,1.000,260,0.333,0.000,,
-nemotron3-ultra-550b-base,adj-adj,3shot,all,1.000,260,0.333,0.000,,
-nemotron3-ultra-550b-base,adj-voc,0shot,all,0.992,260,0.333,0.005,,
-nemotron3-ultra-550b-base,adj-voc,3shot_collide,all,1.000,260,0.333,0.000,,
-nemotron3-ultra-550b-base,adj-voc,3shot,all,1.000,260,0.333,0.000,,
-nemotron3-ultra-550b-base,adj-third,0shot,all,1.000,260,0.333,0.000,,
-nemotron3-ultra-550b-base,adj-third,3shot_collide,all,1.000,260,0.333,0.000,,
-nemotron3-ultra-550b-base,adj-third,3shot,all,1.000,260,0.333,0.000,,
-nemotron3-ultra-550b-base,cm-mutate,0shot,all,1.000,186,0.200,0.000,,
-nemotron3-ultra-550b-base,cm-mutate,3shot_collide,all,1.000,186,0.200,0.000,,
-nemotron3-ultra-550b-base,cm-mutate,3shot,all,1.000,186,0.200,0.000,,
-nemotron3-ultra-550b-base,cm-rebind,0shot,all,0.837,178,0.200,0.028,,
-nemotron3-ultra-550b-base,cm-rebind,3shot_collide,all,1.000,178,0.200,0.000,,
-nemotron3-ultra-550b-base,cm-rebind,3shot,all,1.000,178,0.200,0.000,,
-nemotron3-ultra-550b-base,cm-copy,0shot,all,0.833,186,0.200,0.027,,
-nemotron3-ultra-550b-base,cm-copy,3shot_collide,all,0.962,186,0.200,0.014,,
-nemotron3-ultra-550b-base,cm-copy,3shot,all,1.000,186,0.200,0.000,,
+row_id,col_id,condition,acc,n,chance,score,lo,hi,state
+human,lookup,0shot,1.000,5,0.185,1.000,,,
+human,pairs,0shot,1.000,1,0.125,1.000,,,
+human,handoffs,0shot,1.000,6,0.319,1.000,,,
+human,handoffs,3shot_collide,1.000,1,0.250,1.000,,,
+human,handoffs,3shot,1.000,1,0.250,1.000,,,
+human,sets,0shot,1.000,1,0.036,1.000,,,
+human,codevar,0shot,0.800,5,0.257,0.731,,,
+human,sharedlists,0shot,1.000,1,0.200,1.000,,,
+human,i-moves,0shot,1.000,3,0.306,1.000,,,
+human,i-moves,0shot,1.000,1,0.250,1.000,,,
+human,you-moves,0shot,1.000,4,0.312,1.000,,,
+human,you-moves,0shot,1.000,2,0.292,1.000,,,
+human,you-named,0shot,1.000,3,0.306,1.000,,,
+human,you-named,0shot,1.000,1,0.250,1.000,,,
+human,answer-self,0shot,1.000,1,0.250,1.000,,,
+pythia-160m,lookup,0shot,0.222,1210,0.168,0.069,0.055,0.083,above
+pythia-160m,lookup,fair,0.251,1210,0.168,0.103,0.082,0.124,above
+pythia-160m,shortlist,0shot,0.230,960,0.040,0.198,0.174,0.221,above
+pythia-160m,pairs,0shot,0.169,64,0.125,0.051,0.019,0.092,above
+pythia-160m,pairs,fair,0.231,64,0.125,0.121,0.035,0.216,above
+pythia-160m,noise,0shot,0.373,720,0.200,0.217,0.185,0.246,above
+pythia-160m,now,0shot,0.339,300,0.292,0.066,0.016,0.118,above
+pythia-160m,handoffs,0shot,0.359,1200,0.312,0.068,0.047,0.091,above
+pythia-160m,handoffs,fair,0.374,1200,0.312,0.089,0.059,0.117,above
+pythia-160m,sets,0shot,0.352,320,0.275,0.112,0.070,0.153,above
+pythia-160m,sets,fair,0.320,320,0.275,0.062,0.017,0.115,above
+pythia-160m,refilled,0shot,0.224,720,0.200,0.030,0.008,0.053,above
+pythia-160m,refills,0shot,0.189,600,0.200,-0.014,-0.037,0.013,at
+pythia-160m,codevar,0shot,0.288,1200,0.267,0.030,0.007,0.051,above
+pythia-160m,codevar,fair,0.278,1200,0.267,0.014,-0.009,0.039,at
+pythia-160m,sharedlists,0shot,0.238,600,0.200,0.047,0.016,0.081,above
+pythia-160m,sharedlists,fair,0.190,600,0.200,-0.013,-0.040,0.016,at
+pythia-160m,box-narrative,0shot,0.241,200,0.253,-0.017,-0.072,0.034,at
+pythia-160m,box-narrative,fair,0.255,200,0.253,-0.001,-0.053,0.050,at
+pythia-160m,box-screenplay,0shot,0.272,200,0.253,0.029,-0.023,0.077,at
+pythia-160m,box-screenplay,fair,0.258,200,0.253,0.016,-0.036,0.068,at
+pythia-160m,box-code,0shot,0.283,200,0.253,0.059,-0.002,0.119,at
+pythia-160m,box-code,fair,0.261,200,0.253,0.012,-0.052,0.077,at
+pythia-160m,box-chat,0shot,0.294,200,0.253,0.057,0.000,0.114,above
+pythia-160m,box-chat,fair,0.263,200,0.253,0.020,-0.033,0.071,at
+pythia-160m,you-static,0shot,0.366,300,0.292,0.104,0.055,0.155,above
+pythia-160m,i-moves,0shot,0.298,180,0.287,0.011,-0.038,0.061,at
+pythia-160m,i-moves,fair,0.281,180,0.287,-0.011,-0.089,0.061,at
+pythia-160m,you-moves,0shot,0.281,180,0.287,-0.009,-0.069,0.051,at
+pythia-160m,you-moves,fair,0.252,180,0.287,-0.051,-0.109,0.012,at
+pythia-160m,you-named,0shot,0.307,180,0.287,0.029,-0.027,0.095,at
+pythia-160m,you-named,fair,0.325,180,0.287,0.053,-0.011,0.128,at
+pythia-160m,answer-self,0shot,0.264,2560,0.250,0.018,0.004,0.031,above
+pythia-160m,answer-self,fair,0.267,2560,0.250,0.023,0.005,0.040,above
+pythia-160m,grammar,ladder,,1080,,0.374,0.355,0.394,above
+pythia-160m,operators,ladder,,1080,,0.106,0.084,0.126,above
+pythia-160m,patterns,ladder,,1080,,0.135,0.114,0.164,above
+pythia-160m,facts,ladder,,768,,0.437,0.401,0.466,above
+smollm2-360m,lookup,0shot,0.462,1210,0.168,0.348,0.313,0.381,above
+smollm2-360m,lookup,fair,0.445,1210,0.168,0.331,0.297,0.364,above
+smollm2-360m,shortlist,0shot,0.617,960,0.040,0.601,0.569,0.631,above
+smollm2-360m,pairs,0shot,0.352,64,0.125,0.259,0.134,0.402,above
+smollm2-360m,pairs,fair,0.266,64,0.125,0.161,0.036,0.286,above
+smollm2-360m,noise,0shot,0.411,720,0.200,0.264,0.222,0.306,above
+smollm2-360m,now,0shot,0.465,300,0.292,0.245,0.172,0.320,above
+smollm2-360m,handoffs,0shot,0.588,1200,0.312,0.397,0.361,0.438,above
+smollm2-360m,handoffs,fair,0.545,1200,0.312,0.336,0.292,0.375,above
+smollm2-360m,sets,0shot,0.358,320,0.275,0.118,0.052,0.189,above
+smollm2-360m,sets,fair,0.345,320,0.275,0.097,0.025,0.169,above
+smollm2-360m,refilled,0shot,0.409,720,0.200,0.261,0.216,0.310,above
+smollm2-360m,refills,0shot,0.278,600,0.200,0.097,0.054,0.141,above
+smollm2-360m,codevar,0shot,0.316,1200,0.267,0.058,0.022,0.097,above
+smollm2-360m,codevar,fair,0.311,1200,0.267,0.052,0.016,0.090,above
+smollm2-360m,sharedlists,0shot,0.210,600,0.200,0.013,-0.026,0.054,at
+smollm2-360m,sharedlists,fair,0.184,600,0.200,-0.020,-0.057,0.019,at
+smollm2-360m,box-narrative,0shot,0.306,200,0.253,0.052,-0.036,0.143,at
+smollm2-360m,box-narrative,fair,0.417,200,0.253,0.223,0.121,0.316,above
+smollm2-360m,box-screenplay,0shot,0.364,200,0.253,0.144,0.051,0.238,above
+smollm2-360m,box-screenplay,fair,0.407,200,0.253,0.207,0.112,0.303,above
+smollm2-360m,box-code,0shot,0.343,200,0.253,0.120,0.025,0.210,above
+smollm2-360m,box-code,fair,0.560,200,0.253,0.396,0.299,0.489,above
+smollm2-360m,box-chat,0shot,0.458,200,0.253,0.274,0.178,0.359,above
+smollm2-360m,box-chat,fair,0.440,200,0.253,0.253,0.156,0.345,above
+smollm2-360m,you-static,0shot,0.412,300,0.292,0.166,0.093,0.239,above
+smollm2-360m,i-moves,0shot,0.314,180,0.287,0.029,-0.063,0.123,at
+smollm2-360m,i-moves,fair,0.222,180,0.287,-0.095,-0.182,-0.005,below
+smollm2-360m,you-moves,0shot,0.256,180,0.287,-0.046,-0.133,0.040,at
+smollm2-360m,you-moves,fair,0.269,180,0.287,-0.028,-0.119,0.058,at
+smollm2-360m,you-named,0shot,0.222,180,0.287,-0.096,-0.176,-0.010,below
+smollm2-360m,you-named,fair,0.303,180,0.287,0.017,-0.073,0.105,at
+smollm2-360m,answer-self,0shot,0.299,2560,0.250,0.066,0.042,0.090,above
+smollm2-360m,answer-self,fair,0.280,2560,0.250,0.040,0.018,0.063,above
+smollm2-360m,grammar,ladder,,1080,,0.750,0.726,0.776,above
+smollm2-360m,operators,ladder,,1080,,0.261,0.229,0.291,above
+smollm2-360m,patterns,ladder,,1080,,0.678,0.649,0.708,above
+smollm2-360m,facts,ladder,,768,,0.973,0.960,0.984,above
+qwen2.5-0.5b,lookup,0shot,0.397,1210,0.168,0.267,0.231,0.301,above
+qwen2.5-0.5b,lookup,fair,0.792,1210,0.168,0.751,0.723,0.778,above
+qwen2.5-0.5b,shortlist,0shot,0.486,960,0.040,0.465,0.433,0.498,above
+qwen2.5-0.5b,pairs,0shot,0.391,64,0.125,0.304,0.179,0.446,above
+qwen2.5-0.5b,pairs,fair,0.328,64,0.125,0.232,0.098,0.357,above
+qwen2.5-0.5b,noise,0shot,0.594,720,0.200,0.492,0.445,0.533,above
+qwen2.5-0.5b,now,0shot,0.627,300,0.292,0.466,0.392,0.538,above
+qwen2.5-0.5b,handoffs,0shot,0.462,1200,0.312,0.217,0.177,0.257,above
+qwen2.5-0.5b,handoffs,fair,0.513,1200,0.312,0.290,0.250,0.333,above
+qwen2.5-0.5b,sets,0shot,0.372,320,0.275,0.143,0.074,0.218,above
+qwen2.5-0.5b,sets,fair,0.508,320,0.275,0.334,0.261,0.405,above
+qwen2.5-0.5b,refilled,0shot,0.328,720,0.200,0.160,0.118,0.202,above
+qwen2.5-0.5b,refills,0shot,0.311,600,0.200,0.139,0.093,0.188,above
+qwen2.5-0.5b,codevar,0shot,0.329,1200,0.267,0.083,0.047,0.119,above
+qwen2.5-0.5b,codevar,fair,0.311,1200,0.267,0.057,0.022,0.093,above
+qwen2.5-0.5b,sharedlists,0shot,0.227,600,0.200,0.033,-0.009,0.076,at
+qwen2.5-0.5b,sharedlists,fair,0.332,600,0.200,0.165,0.120,0.210,above
+qwen2.5-0.5b,box-narrative,0shot,0.338,200,0.253,0.080,-0.026,0.173,at
+qwen2.5-0.5b,box-narrative,fair,0.492,200,0.253,0.312,0.214,0.408,above
+qwen2.5-0.5b,box-screenplay,0shot,0.427,200,0.253,0.191,0.095,0.292,above
+qwen2.5-0.5b,box-screenplay,fair,0.507,200,0.253,0.305,0.204,0.398,above
+qwen2.5-0.5b,box-code,0shot,0.362,200,0.253,0.164,0.074,0.255,above
+qwen2.5-0.5b,box-code,fair,0.575,200,0.253,0.407,0.306,0.502,above
+qwen2.5-0.5b,box-chat,0shot,0.502,200,0.253,0.288,0.184,0.391,above
+qwen2.5-0.5b,box-chat,fair,0.525,200,0.253,0.342,0.239,0.427,above
+qwen2.5-0.5b,you-static,0shot,0.428,300,0.292,0.177,0.100,0.253,above
+qwen2.5-0.5b,i-moves,0shot,0.289,180,0.287,-0.004,-0.093,0.082,at
+qwen2.5-0.5b,i-moves,fair,0.294,180,0.287,0.005,-0.092,0.101,at
+qwen2.5-0.5b,you-moves,0shot,0.242,180,0.287,-0.066,-0.153,0.018,at
+qwen2.5-0.5b,you-moves,fair,0.331,180,0.287,0.063,-0.034,0.164,at
+qwen2.5-0.5b,you-named,0shot,0.317,180,0.287,0.038,-0.051,0.132,at
+qwen2.5-0.5b,you-named,fair,0.294,180,0.287,0.010,-0.081,0.100,at
+qwen2.5-0.5b,answer-self,0shot,0.304,2560,0.250,0.072,0.048,0.095,above
+qwen2.5-0.5b,answer-self,fair,0.288,2560,0.250,0.051,0.028,0.073,above
+qwen2.5-0.5b,grammar,ladder,,1080,,0.707,0.681,0.735,above
+qwen2.5-0.5b,operators,ladder,,1080,,0.205,0.178,0.235,above
+qwen2.5-0.5b,patterns,ladder,,1080,,0.644,0.612,0.679,above
+qwen2.5-0.5b,facts,ladder,,768,,0.919,0.895,0.941,above
+falcon-h1-0.5b,lookup,0shot,0.610,1210,0.168,0.518,0.484,0.553,above
+falcon-h1-0.5b,lookup,fair,0.809,1210,0.168,0.766,0.740,0.793,above
+falcon-h1-0.5b,shortlist,0shot,0.794,960,0.040,0.785,0.759,0.813,above
+falcon-h1-0.5b,pairs,0shot,0.766,64,0.125,0.732,0.607,0.839,above
+falcon-h1-0.5b,pairs,fair,0.406,64,0.125,0.321,0.179,0.464,above
+falcon-h1-0.5b,noise,0shot,0.747,720,0.200,0.684,0.645,0.722,above
+falcon-h1-0.5b,now,0shot,0.780,300,0.292,0.685,0.612,0.752,above
+falcon-h1-0.5b,handoffs,0shot,0.606,1200,0.312,0.419,0.376,0.458,above
+falcon-h1-0.5b,handoffs,fair,0.658,1200,0.312,0.497,0.458,0.536,above
+falcon-h1-0.5b,sets,0shot,0.589,320,0.275,0.435,0.361,0.507,above
+falcon-h1-0.5b,sets,fair,0.436,320,0.275,0.225,0.155,0.301,above
+falcon-h1-0.5b,refilled,0shot,0.428,720,0.200,0.286,0.240,0.335,above
+falcon-h1-0.5b,refills,0shot,0.313,600,0.200,0.142,0.097,0.190,above
+falcon-h1-0.5b,codevar,0shot,0.329,1200,0.267,0.079,0.040,0.120,above
+falcon-h1-0.5b,codevar,fair,0.330,1200,0.267,0.083,0.044,0.119,above
+falcon-h1-0.5b,sharedlists,0shot,0.212,600,0.200,0.016,-0.025,0.056,at
+falcon-h1-0.5b,sharedlists,fair,0.302,600,0.200,0.127,0.080,0.176,above
+falcon-h1-0.5b,box-narrative,0shot,0.450,200,0.253,0.265,0.166,0.360,above
+falcon-h1-0.5b,box-narrative,fair,0.367,200,0.253,0.134,0.041,0.226,above
+falcon-h1-0.5b,box-screenplay,0shot,0.568,200,0.253,0.430,0.338,0.518,above
+falcon-h1-0.5b,box-screenplay,fair,0.445,200,0.253,0.260,0.162,0.350,above
+falcon-h1-0.5b,box-code,0shot,0.398,200,0.253,0.216,0.124,0.302,above
+falcon-h1-0.5b,box-code,fair,0.635,200,0.253,0.492,0.398,0.581,above
+falcon-h1-0.5b,box-chat,0shot,0.590,200,0.253,0.454,0.361,0.544,above
+falcon-h1-0.5b,box-chat,fair,0.333,200,0.253,0.081,-0.022,0.172,at
+falcon-h1-0.5b,you-static,0shot,0.547,300,0.292,0.339,0.262,0.424,above
+falcon-h1-0.5b,i-moves,0shot,0.350,180,0.287,0.082,-0.018,0.184,at
+falcon-h1-0.5b,i-moves,fair,0.286,180,0.287,-0.006,-0.095,0.093,at
+falcon-h1-0.5b,you-moves,0shot,0.211,180,0.287,-0.115,-0.194,-0.026,below
+falcon-h1-0.5b,you-moves,fair,0.247,180,0.287,-0.057,-0.151,0.033,at
+falcon-h1-0.5b,you-named,0shot,0.333,180,0.287,0.061,-0.036,0.163,at
+falcon-h1-0.5b,you-named,fair,0.294,180,0.287,0.005,-0.084,0.103,at
+falcon-h1-0.5b,answer-self,0shot,0.318,2560,0.250,0.090,0.067,0.115,above
+falcon-h1-0.5b,answer-self,fair,0.295,2560,0.250,0.060,0.035,0.085,above
+falcon-h1-0.5b,grammar,ladder,,1080,,0.700,0.673,0.733,above
+falcon-h1-0.5b,operators,ladder,,1080,,0.225,0.202,0.257,above
+falcon-h1-0.5b,patterns,ladder,,1080,,0.507,0.476,0.539,above
+falcon-h1-0.5b,facts,ladder,,768,,0.898,0.875,0.922,above
+qwen3-0.6b,lookup,0shot,0.642,1210,0.168,0.559,0.527,0.592,above
+qwen3-0.6b,lookup,fair,0.935,1210,0.168,0.921,0.905,0.938,above
+qwen3-0.6b,shortlist,0shot,0.504,960,0.040,0.483,0.451,0.515,above
+qwen3-0.6b,pairs,0shot,0.523,64,0.125,0.455,0.330,0.580,above
+qwen3-0.6b,pairs,fair,0.458,64,0.125,0.381,0.238,0.518,above
+qwen3-0.6b,noise,0shot,0.785,720,0.200,0.731,0.693,0.768,above
+qwen3-0.6b,now,0shot,0.756,300,0.292,0.649,0.578,0.716,above
+qwen3-0.6b,handoffs,0shot,0.569,1200,0.312,0.369,0.328,0.409,above
+qwen3-0.6b,handoffs,fair,0.626,1200,0.312,0.450,0.409,0.489,above
+qwen3-0.6b,sets,0shot,0.545,320,0.275,0.379,0.309,0.454,above
+qwen3-0.6b,sets,fair,0.653,320,0.275,0.530,0.454,0.598,above
+qwen3-0.6b,refilled,0shot,0.314,720,0.200,0.142,0.103,0.188,above
+qwen3-0.6b,refills,0shot,0.301,600,0.200,0.127,0.081,0.174,above
+qwen3-0.6b,codevar,0shot,0.409,1200,0.267,0.192,0.152,0.229,above
+qwen3-0.6b,codevar,fair,0.467,1200,0.267,0.266,0.228,0.303,above
+qwen3-0.6b,sharedlists,0shot,0.294,600,0.200,0.118,0.071,0.163,above
+qwen3-0.6b,sharedlists,fair,0.278,600,0.200,0.097,0.055,0.140,above
+qwen3-0.6b,box-narrative,0shot,0.362,200,0.253,0.141,0.057,0.222,above
+qwen3-0.6b,box-narrative,fair,0.432,200,0.253,0.199,0.099,0.293,above
+qwen3-0.6b,box-screenplay,0shot,0.422,200,0.253,0.206,0.108,0.303,above
+qwen3-0.6b,box-screenplay,fair,0.430,200,0.253,0.210,0.113,0.300,above
+qwen3-0.6b,box-code,0shot,0.525,200,0.253,0.349,0.249,0.448,above
+qwen3-0.6b,box-code,fair,0.623,200,0.253,0.467,0.370,0.562,above
+qwen3-0.6b,box-chat,0shot,0.467,200,0.253,0.277,0.182,0.373,above
+qwen3-0.6b,box-chat,fair,0.432,200,0.253,0.209,0.110,0.304,above
+qwen3-0.6b,you-static,0shot,0.622,300,0.292,0.456,0.379,0.533,above
+qwen3-0.6b,i-moves,0shot,0.378,180,0.287,0.126,0.030,0.230,above
+qwen3-0.6b,i-moves,fair,0.408,180,0.287,0.170,0.075,0.273,above
+qwen3-0.6b,you-moves,0shot,0.286,180,0.287,-0.007,-0.099,0.082,at
+qwen3-0.6b,you-moves,fair,0.378,180,0.287,0.127,0.028,0.232,above
+qwen3-0.6b,you-named,0shot,0.286,180,0.287,-0.005,-0.096,0.093,at
+qwen3-0.6b,you-named,fair,0.283,180,0.287,-0.010,-0.100,0.087,at
+qwen3-0.6b,answer-self,0shot,0.318,2560,0.250,0.091,0.068,0.115,above
+qwen3-0.6b,answer-self,fair,0.317,2560,0.250,0.089,0.068,0.113,above
+qwen3-0.6b,grammar,ladder,,1080,,0.728,0.701,0.754,above
+qwen3-0.6b,operators,ladder,,1080,,0.247,0.221,0.278,above
+qwen3-0.6b,patterns,ladder,,1080,,0.767,0.742,0.793,above
+qwen3-0.6b,facts,ladder,,768,,0.943,0.922,0.960,above
+pythia-1b,lookup,0shot,0.468,1210,0.168,0.359,0.325,0.392,above
+pythia-1b,lookup,fair,0.493,1210,0.168,0.389,0.354,0.423,above
+pythia-1b,shortlist,0shot,0.570,960,0.040,0.552,0.520,0.584,above
+pythia-1b,pairs,0shot,0.281,64,0.125,0.179,0.062,0.304,above
+pythia-1b,pairs,fair,0.286,64,0.125,0.184,0.062,0.312,above
+pythia-1b,noise,0shot,0.604,720,0.200,0.504,0.460,0.549,above
+pythia-1b,now,0shot,0.560,300,0.292,0.376,0.299,0.458,above
+pythia-1b,handoffs,0shot,0.527,1200,0.312,0.306,0.268,0.346,above
+pythia-1b,handoffs,fair,0.554,1200,0.312,0.346,0.307,0.386,above
+pythia-1b,sets,0shot,0.434,320,0.275,0.227,0.151,0.300,above
+pythia-1b,sets,fair,0.453,320,0.275,0.250,0.178,0.324,above
+pythia-1b,refilled,0shot,0.326,720,0.200,0.157,0.117,0.199,above
+pythia-1b,refills,0shot,0.302,600,0.200,0.128,0.084,0.173,above
+pythia-1b,codevar,0shot,0.272,1200,0.267,0.007,-0.029,0.040,at
+pythia-1b,codevar,fair,0.269,1200,0.267,0.001,-0.031,0.035,at
+pythia-1b,sharedlists,0shot,0.228,600,0.200,0.035,-0.003,0.076,at
+pythia-1b,sharedlists,fair,0.254,600,0.200,0.068,0.026,0.116,above
+pythia-1b,box-narrative,0shot,0.327,200,0.253,0.105,0.018,0.192,above
+pythia-1b,box-narrative,fair,0.325,200,0.253,0.100,0.011,0.200,above
+pythia-1b,box-screenplay,0shot,0.307,200,0.253,0.056,-0.033,0.148,at
+pythia-1b,box-screenplay,fair,0.323,200,0.253,0.093,0.008,0.189,above
+pythia-1b,box-code,0shot,0.367,200,0.253,0.162,0.076,0.248,above
+pythia-1b,box-code,fair,0.497,200,0.253,0.311,0.213,0.401,above
+pythia-1b,box-chat,0shot,0.345,200,0.253,0.134,0.044,0.226,above
+pythia-1b,box-chat,fair,0.305,200,0.253,0.053,-0.044,0.146,at
+pythia-1b,you-static,0shot,0.398,300,0.292,0.142,0.066,0.226,above
+pythia-1b,i-moves,0shot,0.317,180,0.287,0.037,-0.051,0.136,at
+pythia-1b,i-moves,fair,0.253,180,0.287,-0.050,-0.133,0.043,at
+pythia-1b,you-moves,0shot,0.197,180,0.287,-0.127,-0.206,-0.045,below
+pythia-1b,you-moves,fair,0.258,180,0.287,-0.045,-0.133,0.047,at
+pythia-1b,you-named,0shot,0.322,180,0.287,0.048,-0.053,0.141,at
+pythia-1b,you-named,fair,0.253,180,0.287,-0.048,-0.131,0.047,at
+pythia-1b,answer-self,0shot,0.296,2560,0.250,0.061,0.038,0.085,above
+pythia-1b,answer-self,fair,0.286,2560,0.250,0.049,0.027,0.070,above
+pythia-1b,grammar,ladder,,1080,,0.674,0.650,0.701,above
+pythia-1b,operators,ladder,,1080,,0.229,0.201,0.265,above
+pythia-1b,patterns,ladder,,1080,,0.273,0.233,0.307,above
+pythia-1b,facts,ladder,,768,,0.903,0.878,0.925,above
+llama3.2-1b,lookup,0shot,0.580,1210,0.168,0.480,0.445,0.514,above
+llama3.2-1b,lookup,fair,0.857,1210,0.168,0.824,0.798,0.846,above
+llama3.2-1b,shortlist,0shot,0.681,960,0.040,0.668,0.636,0.698,above
+llama3.2-1b,pairs,0shot,0.490,64,0.125,0.417,0.274,0.545,above
+llama3.2-1b,pairs,fair,0.398,64,0.125,0.312,0.179,0.438,above
+llama3.2-1b,noise,0shot,0.692,720,0.200,0.616,0.572,0.658,above
+llama3.2-1b,now,0shot,0.618,300,0.292,0.459,0.379,0.531,above
+llama3.2-1b,handoffs,0shot,0.552,1200,0.312,0.341,0.301,0.383,above
+llama3.2-1b,handoffs,fair,0.616,1200,0.312,0.435,0.396,0.473,above
+llama3.2-1b,sets,0shot,0.409,320,0.275,0.185,0.116,0.262,above
+llama3.2-1b,sets,fair,0.592,320,0.275,0.453,0.378,0.521,above
+llama3.2-1b,refilled,0shot,0.316,720,0.200,0.145,0.103,0.188,above
+llama3.2-1b,refills,0shot,0.290,600,0.200,0.113,0.065,0.156,above
+llama3.2-1b,codevar,0shot,0.313,1200,0.267,0.059,0.023,0.096,above
+llama3.2-1b,codevar,fair,0.364,1200,0.267,0.123,0.088,0.161,above
+llama3.2-1b,sharedlists,0shot,0.341,600,0.200,0.176,0.129,0.224,above
+llama3.2-1b,sharedlists,fair,0.303,600,0.200,0.129,0.085,0.173,above
+llama3.2-1b,box-narrative,0shot,0.522,200,0.253,0.334,0.234,0.430,above
+llama3.2-1b,box-narrative,fair,0.555,200,0.253,0.411,0.316,0.494,above
+llama3.2-1b,box-screenplay,0shot,0.618,200,0.253,0.484,0.396,0.574,above
+llama3.2-1b,box-screenplay,fair,0.585,200,0.253,0.444,0.354,0.526,above
+llama3.2-1b,box-code,0shot,0.603,200,0.253,0.442,0.342,0.538,above
+llama3.2-1b,box-code,fair,0.682,200,0.253,0.550,0.452,0.640,above
+llama3.2-1b,box-chat,0shot,0.594,200,0.253,0.447,0.355,0.532,above
+llama3.2-1b,box-chat,fair,0.593,200,0.253,0.442,0.344,0.529,above
+llama3.2-1b,you-static,0shot,0.526,300,0.292,0.319,0.238,0.403,above
+llama3.2-1b,i-moves,0shot,0.304,180,0.287,0.019,-0.067,0.109,at
+llama3.2-1b,i-moves,fair,0.342,180,0.287,0.074,-0.032,0.170,at
+llama3.2-1b,you-moves,0shot,0.255,180,0.287,-0.050,-0.141,0.034,at
+llama3.2-1b,you-moves,fair,0.311,180,0.287,0.037,-0.053,0.126,at
+llama3.2-1b,you-named,0shot,0.281,180,0.287,-0.014,-0.106,0.077,at
+llama3.2-1b,you-named,fair,0.339,180,0.287,0.069,-0.029,0.168,at
+llama3.2-1b,answer-self,0shot,0.315,2560,0.250,0.087,0.063,0.112,above
+llama3.2-1b,answer-self,fair,0.280,2560,0.250,0.041,0.019,0.063,above
+llama3.2-1b,grammar,ladder,,1080,,0.797,0.777,0.823,above
+llama3.2-1b,operators,ladder,,1080,,0.234,0.210,0.265,above
+llama3.2-1b,patterns,ladder,,1080,,0.669,0.641,0.694,above
+llama3.2-1b,facts,ladder,,768,,0.997,0.992,1.000,above
+olmo1-1b,lookup,0shot,0.436,1210,0.168,0.308,0.275,0.343,above
+olmo1-1b,lookup,fair,0.784,1210,0.168,0.741,0.713,0.769,above
+olmo1-1b,shortlist,0shot,0.685,960,0.040,0.672,0.640,0.701,above
+olmo1-1b,pairs,0shot,0.336,64,0.125,0.241,0.116,0.375,above
+olmo1-1b,pairs,fair,0.367,64,0.125,0.277,0.152,0.402,above
+olmo1-1b,noise,0shot,0.317,720,0.200,0.146,0.108,0.189,above
+olmo1-1b,now,0shot,0.485,300,0.292,0.271,0.195,0.353,above
+olmo1-1b,handoffs,0shot,0.501,1200,0.312,0.268,0.227,0.307,above
+olmo1-1b,handoffs,fair,0.584,1200,0.312,0.390,0.352,0.432,above
+olmo1-1b,sets,0shot,0.470,320,0.275,0.266,0.196,0.337,above
+olmo1-1b,sets,fair,0.503,320,0.275,0.328,0.253,0.399,above
+olmo1-1b,refilled,0shot,0.431,720,0.200,0.288,0.244,0.335,above
+olmo1-1b,refills,0shot,0.327,600,0.200,0.158,0.114,0.205,above
+olmo1-1b,codevar,0shot,0.321,1200,0.267,0.070,0.035,0.107,above
+olmo1-1b,codevar,fair,0.277,1200,0.267,0.008,-0.028,0.042,at
+olmo1-1b,sharedlists,0shot,0.229,600,0.200,0.036,-0.005,0.078,at
+olmo1-1b,sharedlists,fair,0.261,600,0.200,0.077,0.034,0.119,above
+olmo1-1b,box-narrative,0shot,0.387,200,0.253,0.166,0.070,0.259,above
+olmo1-1b,box-narrative,fair,0.380,200,0.253,0.163,0.072,0.260,above
+olmo1-1b,box-screenplay,0shot,0.484,200,0.253,0.292,0.191,0.384,above
+olmo1-1b,box-screenplay,fair,0.327,200,0.253,0.079,-0.010,0.166,at
+olmo1-1b,box-code,0shot,0.537,200,0.253,0.367,0.264,0.465,above
+olmo1-1b,box-code,fair,0.490,200,0.253,0.298,0.198,0.398,above
+olmo1-1b,box-chat,0shot,0.510,200,0.253,0.340,0.241,0.441,above
+olmo1-1b,box-chat,fair,0.430,200,0.253,0.224,0.128,0.324,above
+olmo1-1b,you-static,0shot,0.450,300,0.292,0.222,0.146,0.297,above
+olmo1-1b,i-moves,0shot,0.403,180,0.287,0.161,0.059,0.261,above
+olmo1-1b,i-moves,fair,0.294,180,0.287,0.010,-0.082,0.103,at
+olmo1-1b,you-moves,0shot,0.206,180,0.287,-0.113,-0.198,-0.031,below
+olmo1-1b,you-moves,fair,0.247,180,0.287,-0.055,-0.139,0.030,at
+olmo1-1b,you-named,0shot,0.267,180,0.287,-0.033,-0.123,0.057,at
+olmo1-1b,you-named,fair,0.300,180,0.287,0.018,-0.073,0.110,at
+olmo1-1b,answer-self,0shot,0.300,2560,0.250,0.066,0.042,0.090,above
+olmo1-1b,answer-self,fair,0.294,2560,0.250,0.059,0.037,0.081,above
+olmo1-1b,grammar,ladder,,1080,,0.773,0.749,0.803,above
+olmo1-1b,operators,ladder,,1080,,0.254,0.222,0.286,above
+olmo1-1b,patterns,ladder,,1080,,0.556,0.520,0.587,above
+olmo1-1b,facts,ladder,,768,,0.981,0.969,0.991,above
+tsumugi,lookup,0shot,0.555,1210,0.168,0.453,0.420,0.487,above
+tsumugi,lookup,fair,0.986,1210,0.168,0.983,0.975,0.991,above
+tsumugi,shortlist,0shot,0.693,960,0.040,0.680,0.648,0.710,above
+tsumugi,pairs,0shot,0.508,64,0.125,0.438,0.304,0.580,above
+tsumugi,pairs,fair,0.688,64,0.125,0.643,0.518,0.768,above
+tsumugi,noise,0shot,0.569,720,0.200,0.461,0.416,0.506,above
+tsumugi,now,0shot,0.737,300,0.292,0.621,0.547,0.692,above
+tsumugi,handoffs,0shot,0.604,1200,0.312,0.417,0.381,0.458,above
+tsumugi,handoffs,fair,0.621,1200,0.312,0.445,0.404,0.485,above
+tsumugi,sets,0shot,0.478,320,0.275,0.287,0.219,0.360,above
+tsumugi,sets,fair,0.578,320,0.275,0.426,0.349,0.502,above
+tsumugi,refilled,0shot,0.371,720,0.200,0.213,0.170,0.260,above
+tsumugi,refills,0shot,0.309,600,0.200,0.137,0.092,0.184,above
+tsumugi,codevar,0shot,0.323,1200,0.267,0.072,0.035,0.109,above
+tsumugi,codevar,fair,0.301,1200,0.267,0.042,0.009,0.078,above
+tsumugi,sharedlists,0shot,0.254,600,0.200,0.067,0.025,0.114,above
+tsumugi,sharedlists,fair,0.319,600,0.200,0.149,0.104,0.192,above
+tsumugi,box-narrative,0shot,0.420,200,0.253,0.192,0.089,0.284,above
+tsumugi,box-narrative,fair,0.422,200,0.253,0.196,0.099,0.297,above
+tsumugi,box-screenplay,0shot,0.542,200,0.253,0.367,0.266,0.467,above
+tsumugi,box-screenplay,fair,0.440,200,0.253,0.220,0.117,0.313,above
+tsumugi,box-code,0shot,0.468,200,0.253,0.292,0.192,0.384,above
+tsumugi,box-code,fair,0.640,200,0.253,0.489,0.392,0.583,above
+tsumugi,box-chat,0shot,0.390,200,0.253,0.164,0.067,0.254,above
+tsumugi,box-chat,fair,0.520,200,0.253,0.343,0.246,0.438,above
+tsumugi,you-static,0shot,0.790,300,0.292,0.697,0.629,0.759,above
+tsumugi,i-moves,0shot,0.317,180,0.287,0.035,-0.065,0.129,at
+tsumugi,i-moves,fair,0.344,180,0.287,0.081,-0.016,0.177,at
+tsumugi,you-moves,0shot,0.253,180,0.287,-0.052,-0.141,0.031,at
+tsumugi,you-moves,fair,0.311,180,0.287,0.033,-0.055,0.132,at
+tsumugi,you-named,0shot,0.331,180,0.287,0.056,-0.042,0.149,at
+tsumugi,you-named,fair,0.353,180,0.287,0.088,-0.013,0.190,at
+tsumugi,answer-self,0shot,0.357,2560,0.250,0.143,0.118,0.166,above
+tsumugi,answer-self,fair,0.332,2560,0.250,0.110,0.087,0.132,above
+tsumugi,grammar,ladder,,1080,,0.791,0.770,0.815,above
+tsumugi,operators,ladder,,1080,,0.284,0.254,0.320,above
+tsumugi,patterns,ladder,,1080,,0.796,0.769,0.820,above
+tsumugi,facts,ladder,,768,,0.949,0.931,0.966,above
+olmo2-1b,lookup,0shot,0.329,1210,0.168,0.186,0.152,0.220,above
+olmo2-1b,lookup,fair,0.450,1210,0.168,0.333,0.298,0.365,above
+olmo2-1b,shortlist,0shot,0.702,960,0.040,0.689,0.657,0.718,above
+olmo2-1b,pairs,0shot,0.406,64,0.125,0.321,0.196,0.464,above
+olmo2-1b,pairs,fair,0.188,64,0.125,0.071,-0.036,0.179,at
+olmo2-1b,noise,0shot,0.463,720,0.200,0.329,0.286,0.375,above
+olmo2-1b,now,0shot,0.527,300,0.292,0.325,0.245,0.406,above
+olmo2-1b,handoffs,0shot,0.602,1200,0.312,0.414,0.371,0.452,above
+olmo2-1b,handoffs,fair,0.661,1200,0.312,0.503,0.464,0.539,above
+olmo2-1b,sets,0shot,0.541,320,0.275,0.363,0.293,0.442,above
+olmo2-1b,sets,fair,0.500,320,0.275,0.309,0.228,0.385,above
+olmo2-1b,refilled,0shot,0.544,720,0.200,0.431,0.382,0.476,above
+olmo2-1b,refills,0shot,0.393,600,0.200,0.242,0.196,0.291,above
+olmo2-1b,codevar,0shot,0.349,1200,0.267,0.110,0.073,0.147,above
+olmo2-1b,codevar,fair,0.336,1200,0.267,0.088,0.052,0.125,above
+olmo2-1b,sharedlists,0shot,0.216,600,0.200,0.020,-0.020,0.065,at
+olmo2-1b,sharedlists,fair,0.251,600,0.200,0.064,0.022,0.108,above
+olmo2-1b,box-narrative,0shot,0.412,200,0.253,0.216,0.122,0.314,above
+olmo2-1b,box-narrative,fair,0.347,200,0.253,0.104,0.011,0.189,above
+olmo2-1b,box-screenplay,0shot,0.438,200,0.253,0.247,0.159,0.342,above
+olmo2-1b,box-screenplay,fair,0.410,200,0.253,0.201,0.106,0.291,above
+olmo2-1b,box-code,0shot,0.410,200,0.253,0.225,0.134,0.320,above
+olmo2-1b,box-code,fair,0.600,200,0.253,0.426,0.324,0.527,above
+olmo2-1b,box-chat,0shot,0.522,200,0.253,0.352,0.257,0.440,above
+olmo2-1b,box-chat,fair,0.325,200,0.253,0.074,-0.023,0.171,at
+olmo2-1b,you-static,0shot,0.553,300,0.292,0.359,0.279,0.435,above
+olmo2-1b,i-moves,0shot,0.381,180,0.287,0.126,0.027,0.236,above
+olmo2-1b,i-moves,fair,0.328,180,0.287,0.057,-0.037,0.157,at
+olmo2-1b,you-moves,0shot,0.192,180,0.287,-0.138,-0.214,-0.052,below
+olmo2-1b,you-moves,fair,0.272,180,0.287,-0.022,-0.109,0.072,at
+olmo2-1b,you-named,0shot,0.322,180,0.287,0.047,-0.047,0.138,at
+olmo2-1b,you-named,fair,0.308,180,0.287,0.030,-0.067,0.124,at
+olmo2-1b,answer-self,0shot,0.348,2560,0.250,0.131,0.108,0.156,above
+olmo2-1b,answer-self,fair,0.354,2560,0.250,0.139,0.113,0.163,above
+olmo2-1b,grammar,ladder,,1080,,0.699,0.672,0.726,above
+olmo2-1b,operators,ladder,,1080,,0.266,0.234,0.303,above
+olmo2-1b,patterns,ladder,,1080,,0.606,0.576,0.637,above
+olmo2-1b,facts,ladder,,768,,0.990,0.979,0.997,above
+pythia-1.4b,lookup,0shot,0.526,1210,0.168,0.425,0.390,0.458,above
+pythia-1.4b,lookup,fair,0.601,1210,0.168,0.515,0.481,0.549,above
+pythia-1.4b,shortlist,0shot,0.596,960,0.040,0.580,0.546,0.613,above
+pythia-1.4b,pairs,0shot,0.469,64,0.125,0.393,0.250,0.536,above
+pythia-1.4b,pairs,fair,0.414,64,0.125,0.330,0.205,0.473,above
+pythia-1.4b,noise,0shot,0.563,720,0.200,0.454,0.409,0.496,above
+pythia-1.4b,now,0shot,0.568,300,0.292,0.388,0.310,0.468,above
+pythia-1.4b,handoffs,0shot,0.491,1200,0.312,0.254,0.213,0.296,above
+pythia-1.4b,handoffs,fair,0.473,1200,0.312,0.229,0.188,0.267,above
+pythia-1.4b,sets,0shot,0.537,320,0.275,0.363,0.283,0.435,above
+pythia-1.4b,sets,fair,0.495,320,0.275,0.315,0.241,0.393,above
+pythia-1.4b,refilled,0shot,0.353,720,0.200,0.192,0.146,0.238,above
+pythia-1.4b,refills,0shot,0.242,600,0.200,0.052,0.009,0.093,above
+pythia-1.4b,codevar,0shot,0.245,1200,0.267,-0.031,-0.064,0.001,at
+pythia-1.4b,codevar,fair,0.247,1200,0.267,-0.030,-0.064,0.002,at
+pythia-1.4b,sharedlists,0shot,0.212,600,0.200,0.016,-0.024,0.057,at
+pythia-1.4b,sharedlists,fair,0.195,600,0.200,-0.006,-0.044,0.035,at
+pythia-1.4b,box-narrative,0shot,0.420,200,0.253,0.214,0.125,0.306,above
+pythia-1.4b,box-narrative,fair,0.458,200,0.253,0.257,0.157,0.353,above
+pythia-1.4b,box-screenplay,0shot,0.357,200,0.253,0.119,0.023,0.213,above
+pythia-1.4b,box-screenplay,fair,0.415,200,0.253,0.193,0.093,0.294,above
+pythia-1.4b,box-code,0shot,0.395,200,0.253,0.197,0.104,0.285,above
+pythia-1.4b,box-code,fair,0.475,200,0.253,0.280,0.182,0.381,above
+pythia-1.4b,box-chat,0shot,0.415,200,0.253,0.201,0.109,0.295,above
+pythia-1.4b,box-chat,fair,0.390,200,0.253,0.148,0.052,0.241,above
+pythia-1.4b,you-static,0shot,0.423,300,0.292,0.174,0.094,0.253,above
+pythia-1.4b,i-moves,0shot,0.344,180,0.287,0.077,-0.018,0.181,at
+pythia-1.4b,i-moves,fair,0.294,180,0.287,0.013,-0.073,0.101,at
+pythia-1.4b,you-moves,0shot,0.214,180,0.287,-0.105,-0.187,-0.022,below
+pythia-1.4b,you-moves,fair,0.286,180,0.287,-0.003,-0.092,0.091,at
+pythia-1.4b,you-named,0shot,0.353,180,0.287,0.093,0.006,0.190,above
+pythia-1.4b,you-named,fair,0.331,180,0.287,0.064,-0.033,0.163,at
+pythia-1.4b,answer-self,0shot,0.309,2560,0.250,0.079,0.058,0.102,above
+pythia-1.4b,answer-self,fair,0.292,2560,0.250,0.056,0.034,0.079,above
+pythia-1.4b,grammar,ladder,,1080,,0.697,0.672,0.721,above
+pythia-1.4b,operators,ladder,,1080,,0.228,0.201,0.261,above
+pythia-1.4b,patterns,ladder,,1080,,0.376,0.345,0.408,above
+pythia-1.4b,facts,ladder,,768,,0.955,0.936,0.972,above
+qwen2.5-1.5b,lookup,0shot,0.722,1210,0.168,0.656,0.625,0.687,above
+qwen2.5-1.5b,lookup,fair,0.984,1210,0.168,0.980,0.970,0.988,above
+qwen2.5-1.5b,shortlist,0shot,0.638,960,0.040,0.623,0.588,0.656,above
+qwen2.5-1.5b,pairs,0shot,0.805,64,0.125,0.777,0.661,0.875,above
+qwen2.5-1.5b,pairs,fair,0.555,64,0.125,0.491,0.348,0.616,above
+qwen2.5-1.5b,noise,0shot,0.744,720,0.200,0.680,0.641,0.717,above
+qwen2.5-1.5b,now,0shot,0.716,300,0.292,0.596,0.526,0.667,above
+qwen2.5-1.5b,handoffs,0shot,0.649,1200,0.312,0.483,0.449,0.523,above
+qwen2.5-1.5b,handoffs,fair,0.661,1200,0.312,0.500,0.462,0.535,above
+qwen2.5-1.5b,sets,0shot,0.625,320,0.275,0.487,0.417,0.558,above
+qwen2.5-1.5b,sets,fair,0.640,320,0.275,0.523,0.457,0.585,above
+qwen2.5-1.5b,refilled,0shot,0.593,720,0.200,0.491,0.443,0.538,above
+qwen2.5-1.5b,refills,0shot,0.397,600,0.200,0.246,0.197,0.293,above
+qwen2.5-1.5b,codevar,0shot,0.399,1200,0.267,0.171,0.134,0.207,above
+qwen2.5-1.5b,codevar,fair,0.433,1200,0.267,0.219,0.182,0.256,above
+qwen2.5-1.5b,sharedlists,0shot,0.278,600,0.200,0.097,0.056,0.142,above
+qwen2.5-1.5b,sharedlists,fair,0.315,600,0.200,0.143,0.101,0.189,above
+qwen2.5-1.5b,box-narrative,0shot,0.332,200,0.253,0.066,-0.028,0.167,at
+qwen2.5-1.5b,box-narrative,fair,0.427,200,0.253,0.223,0.135,0.325,above
+qwen2.5-1.5b,box-screenplay,0shot,0.432,200,0.253,0.207,0.102,0.305,above
+qwen2.5-1.5b,box-screenplay,fair,0.424,200,0.253,0.208,0.109,0.308,above
+qwen2.5-1.5b,box-code,0shot,0.650,200,0.253,0.512,0.416,0.599,above
+qwen2.5-1.5b,box-code,fair,0.718,200,0.253,0.605,0.514,0.691,above
+qwen2.5-1.5b,box-chat,0shot,0.495,200,0.253,0.308,0.203,0.408,above
+qwen2.5-1.5b,box-chat,fair,0.485,200,0.253,0.288,0.191,0.389,above
+qwen2.5-1.5b,you-static,0shot,0.640,300,0.292,0.486,0.407,0.560,above
+qwen2.5-1.5b,i-moves,0shot,0.397,180,0.287,0.152,0.053,0.253,above
+qwen2.5-1.5b,i-moves,fair,0.422,180,0.287,0.190,0.093,0.293,above
+qwen2.5-1.5b,you-moves,0shot,0.286,180,0.287,-0.003,-0.098,0.090,at
+qwen2.5-1.5b,you-moves,fair,0.286,180,0.287,-0.002,-0.097,0.090,at
+qwen2.5-1.5b,you-named,0shot,0.329,180,0.287,0.057,-0.042,0.149,at
+qwen2.5-1.5b,you-named,fair,0.263,180,0.287,-0.035,-0.124,0.059,at
+qwen2.5-1.5b,answer-self,0shot,0.316,2560,0.250,0.088,0.066,0.113,above
+qwen2.5-1.5b,answer-self,fair,0.313,2560,0.250,0.084,0.061,0.107,above
+qwen2.5-1.5b,grammar,ladder,,1080,,0.779,0.762,0.804,above
+qwen2.5-1.5b,operators,ladder,,1080,,0.196,0.172,0.229,above
+qwen2.5-1.5b,patterns,ladder,,1080,,0.793,0.766,0.815,above
+qwen2.5-1.5b,facts,ladder,,768,,0.995,0.989,1.000,above
+falcon-h1-1.5b,lookup,0shot,0.844,1210,0.168,0.804,0.777,0.831,above
+falcon-h1-1.5b,lookup,fair,0.989,1210,0.168,0.986,0.978,0.993,above
+falcon-h1-1.5b,shortlist,0shot,0.817,960,0.040,0.809,0.783,0.835,above
+falcon-h1-1.5b,pairs,0shot,0.891,64,0.125,0.875,0.786,0.946,above
+falcon-h1-1.5b,pairs,fair,0.828,64,0.125,0.804,0.696,0.911,above
+falcon-h1-1.5b,noise,0shot,0.693,720,0.200,0.616,0.573,0.660,above
+falcon-h1-1.5b,now,0shot,0.575,300,0.292,0.395,0.316,0.473,above
+falcon-h1-1.5b,handoffs,0shot,0.593,1200,0.312,0.397,0.357,0.440,above
+falcon-h1-1.5b,handoffs,fair,0.747,1200,0.312,0.626,0.589,0.660,above
+falcon-h1-1.5b,sets,0shot,0.537,320,0.275,0.366,0.295,0.443,above
+falcon-h1-1.5b,sets,fair,0.753,320,0.275,0.664,0.594,0.724,above
+falcon-h1-1.5b,refilled,0shot,0.526,720,0.200,0.408,0.364,0.453,above
+falcon-h1-1.5b,refills,0shot,0.310,600,0.200,0.138,0.091,0.183,above
+falcon-h1-1.5b,codevar,0shot,0.432,1200,0.267,0.222,0.184,0.260,above
+falcon-h1-1.5b,codevar,fair,0.518,1200,0.267,0.339,0.300,0.376,above
+falcon-h1-1.5b,sharedlists,0shot,0.350,600,0.200,0.188,0.142,0.233,above
+falcon-h1-1.5b,sharedlists,fair,0.500,600,0.200,0.375,0.323,0.429,above
+falcon-h1-1.5b,box-narrative,0shot,0.393,200,0.253,0.177,0.084,0.267,above
+falcon-h1-1.5b,box-narrative,fair,0.380,200,0.253,0.159,0.062,0.253,above
+falcon-h1-1.5b,box-screenplay,0shot,0.485,200,0.253,0.326,0.230,0.417,above
+falcon-h1-1.5b,box-screenplay,fair,0.365,200,0.253,0.147,0.053,0.242,above
+falcon-h1-1.5b,box-code,0shot,0.575,200,0.253,0.409,0.315,0.499,above
+falcon-h1-1.5b,box-code,fair,0.755,200,0.253,0.663,0.578,0.743,above
+falcon-h1-1.5b,box-chat,0shot,0.545,200,0.253,0.385,0.287,0.481,above
+falcon-h1-1.5b,box-chat,fair,0.395,200,0.253,0.191,0.095,0.289,above
+falcon-h1-1.5b,you-static,0shot,0.832,300,0.292,0.756,0.690,0.815,above
+falcon-h1-1.5b,i-moves,0shot,0.417,180,0.287,0.180,0.074,0.284,above
+falcon-h1-1.5b,i-moves,fair,0.428,180,0.287,0.202,0.106,0.299,above
+falcon-h1-1.5b,you-moves,0shot,0.211,180,0.287,-0.109,-0.196,-0.022,below
+falcon-h1-1.5b,you-moves,fair,0.294,180,0.287,0.016,-0.070,0.109,at
+falcon-h1-1.5b,you-named,0shot,0.311,180,0.287,0.029,-0.066,0.137,at
+falcon-h1-1.5b,you-named,fair,0.297,180,0.287,0.013,-0.084,0.111,at
+falcon-h1-1.5b,answer-self,0shot,0.330,2560,0.250,0.107,0.083,0.132,above
+falcon-h1-1.5b,answer-self,fair,0.325,2560,0.250,0.101,0.077,0.124,above
+falcon-h1-1.5b,grammar,ladder,,1080,,0.752,0.726,0.774,above
+falcon-h1-1.5b,operators,ladder,,1080,,0.226,0.199,0.255,above
+falcon-h1-1.5b,patterns,ladder,,1080,,0.653,0.623,0.682,above
+falcon-h1-1.5b,facts,ladder,,768,,0.970,0.957,0.982,above
+falcon-h1-1.5b-deep,lookup,0shot,0.809,1210,0.168,0.760,0.732,0.787,above
+falcon-h1-1.5b-deep,lookup,fair,0.989,1210,0.168,0.987,0.981,0.994,above
+falcon-h1-1.5b-deep,shortlist,0shot,0.924,960,0.040,0.921,0.905,0.938,above
+falcon-h1-1.5b-deep,pairs,0shot,0.891,64,0.125,0.875,0.786,0.964,above
+falcon-h1-1.5b-deep,pairs,fair,0.875,64,0.125,0.857,0.768,0.946,above
+falcon-h1-1.5b-deep,noise,0shot,0.800,720,0.200,0.750,0.714,0.787,above
+falcon-h1-1.5b-deep,now,0shot,0.738,300,0.292,0.627,0.554,0.692,above
+falcon-h1-1.5b-deep,handoffs,0shot,0.761,1200,0.312,0.647,0.612,0.683,above
+falcon-h1-1.5b-deep,handoffs,fair,0.810,1200,0.312,0.720,0.686,0.752,above
+falcon-h1-1.5b-deep,sets,0shot,0.734,320,0.275,0.634,0.569,0.702,above
+falcon-h1-1.5b-deep,sets,fair,0.683,320,0.275,0.566,0.492,0.635,above
+falcon-h1-1.5b-deep,refilled,0shot,0.556,720,0.200,0.444,0.401,0.496,above
+falcon-h1-1.5b-deep,refills,0shot,0.421,600,0.200,0.276,0.227,0.323,above
+falcon-h1-1.5b-deep,codevar,0shot,0.493,1200,0.267,0.305,0.264,0.346,above
+falcon-h1-1.5b-deep,codevar,fair,0.618,1200,0.267,0.474,0.435,0.511,above
+falcon-h1-1.5b-deep,sharedlists,0shot,0.418,600,0.200,0.273,0.225,0.321,above
+falcon-h1-1.5b-deep,sharedlists,fair,0.527,600,0.200,0.408,0.358,0.456,above
+falcon-h1-1.5b-deep,box-narrative,0shot,0.395,200,0.253,0.161,0.067,0.265,above
+falcon-h1-1.5b-deep,box-narrative,fair,0.320,200,0.253,0.065,-0.034,0.159,at
+falcon-h1-1.5b-deep,box-screenplay,0shot,0.500,200,0.253,0.325,0.235,0.417,above
+falcon-h1-1.5b-deep,box-screenplay,fair,0.445,200,0.253,0.252,0.161,0.352,above
+falcon-h1-1.5b-deep,box-code,0shot,0.542,200,0.253,0.379,0.281,0.471,above
+falcon-h1-1.5b-deep,box-code,fair,0.830,200,0.253,0.763,0.690,0.830,above
+falcon-h1-1.5b-deep,box-chat,0shot,0.623,200,0.253,0.500,0.415,0.595,above
+falcon-h1-1.5b-deep,box-chat,fair,0.575,200,0.253,0.429,0.328,0.525,above
+falcon-h1-1.5b-deep,you-static,0shot,0.733,300,0.292,0.615,0.542,0.681,above
+falcon-h1-1.5b-deep,i-moves,0shot,0.439,180,0.287,0.209,0.106,0.308,above
+falcon-h1-1.5b-deep,i-moves,fair,0.422,180,0.287,0.191,0.092,0.305,above
+falcon-h1-1.5b-deep,you-moves,0shot,0.194,180,0.287,-0.131,-0.206,-0.049,below
+falcon-h1-1.5b-deep,you-moves,fair,0.250,180,0.287,-0.050,-0.140,0.038,at
+falcon-h1-1.5b-deep,you-named,0shot,0.319,180,0.287,0.038,-0.059,0.137,at
+falcon-h1-1.5b-deep,you-named,fair,0.300,180,0.287,0.012,-0.079,0.104,at
+falcon-h1-1.5b-deep,answer-self,0shot,0.442,2560,0.250,0.257,0.231,0.283,above
+falcon-h1-1.5b-deep,answer-self,fair,0.433,2560,0.250,0.243,0.219,0.269,above
+falcon-h1-1.5b-deep,grammar,ladder,,1080,,0.812,0.789,0.839,above
+falcon-h1-1.5b-deep,operators,ladder,,1080,,0.269,0.237,0.301,above
+falcon-h1-1.5b-deep,patterns,ladder,,1080,,0.684,0.655,0.712,above
+falcon-h1-1.5b-deep,facts,ladder,,768,,0.984,0.974,0.991,above
+gpt2-xl,lookup,0shot,0.571,1210,0.168,0.478,0.443,0.510,above
+gpt2-xl,lookup,fair,0.655,1210,0.168,0.584,0.552,0.617,above
+gpt2-xl,shortlist,0shot,0.460,960,0.040,0.438,0.404,0.472,above
+gpt2-xl,pairs,0shot,0.516,64,0.125,0.446,0.304,0.589,above
+gpt2-xl,pairs,fair,0.617,64,0.125,0.562,0.420,0.696,above
+gpt2-xl,noise,0shot,0.542,720,0.200,0.428,0.382,0.469,above
+gpt2-xl,now,0shot,0.428,300,0.292,0.189,0.113,0.270,above
+gpt2-xl,handoffs,0shot,0.398,1200,0.312,0.125,0.085,0.164,above
+gpt2-xl,handoffs,fair,0.424,1200,0.312,0.162,0.122,0.200,above
+gpt2-xl,sets,0shot,0.442,320,0.275,0.238,0.164,0.313,above
+gpt2-xl,sets,fair,0.448,320,0.275,0.248,0.174,0.324,above
+gpt2-xl,refilled,0shot,0.379,720,0.200,0.223,0.178,0.272,above
+gpt2-xl,refills,0shot,0.195,600,0.200,-0.006,-0.048,0.035,at
+gpt2-xl,codevar,0shot,0.253,1200,0.267,-0.016,-0.050,0.018,at
+gpt2-xl,codevar,fair,0.223,1200,0.267,-0.062,-0.094,-0.029,below
+gpt2-xl,sharedlists,0shot,0.274,600,0.200,0.093,0.050,0.134,above
+gpt2-xl,sharedlists,fair,0.209,600,0.200,0.011,-0.030,0.052,at
+gpt2-xl,box-narrative,0shot,0.367,200,0.253,0.147,0.056,0.239,above
+gpt2-xl,box-narrative,fair,0.330,200,0.253,0.112,0.021,0.201,above
+gpt2-xl,box-screenplay,0shot,0.410,200,0.253,0.211,0.115,0.302,above
+gpt2-xl,box-screenplay,fair,0.328,200,0.253,0.102,0.009,0.194,above
+gpt2-xl,box-code,0shot,0.307,200,0.253,0.066,-0.020,0.156,at
+gpt2-xl,box-code,fair,0.420,200,0.253,0.234,0.144,0.323,above
+gpt2-xl,box-chat,0shot,0.407,200,0.253,0.209,0.124,0.291,above
+gpt2-xl,box-chat,fair,0.292,200,0.253,0.050,-0.040,0.140,at
+gpt2-xl,you-static,0shot,0.346,300,0.292,0.073,-0.006,0.148,at
+gpt2-xl,i-moves,0shot,0.302,180,0.287,0.015,-0.075,0.111,at
+gpt2-xl,i-moves,fair,0.283,180,0.287,-0.009,-0.096,0.088,at
+gpt2-xl,you-moves,0shot,0.272,180,0.287,-0.021,-0.113,0.065,at
+gpt2-xl,you-moves,fair,0.328,180,0.287,0.054,-0.042,0.146,at
+gpt2-xl,you-named,0shot,0.339,180,0.287,0.070,-0.020,0.163,at
+gpt2-xl,you-named,fair,0.324,180,0.287,0.051,-0.040,0.150,at
+gpt2-xl,answer-self,0shot,0.288,2560,0.250,0.051,0.028,0.074,above
+gpt2-xl,answer-self,fair,0.261,2560,0.250,0.015,-0.007,0.036,at
+gpt2-xl,grammar,ladder,,1080,,0.725,0.694,0.752,above
+gpt2-xl,operators,ladder,,1080,,0.218,0.194,0.246,above
+gpt2-xl,patterns,ladder,,1080,,0.587,0.551,0.619,above
+gpt2-xl,facts,ladder,,768,,0.917,0.894,0.936,above
+smollm2-1.7b,lookup,0shot,0.419,1210,0.168,0.290,0.258,0.324,above
+smollm2-1.7b,lookup,fair,0.744,1210,0.168,0.695,0.665,0.722,above
+smollm2-1.7b,shortlist,0shot,0.765,960,0.040,0.755,0.729,0.780,above
+smollm2-1.7b,pairs,0shot,0.328,64,0.125,0.232,0.107,0.357,above
+smollm2-1.7b,pairs,fair,0.281,64,0.125,0.179,0.054,0.304,above
+smollm2-1.7b,noise,0shot,0.544,720,0.200,0.430,0.385,0.473,above
+smollm2-1.7b,now,0shot,0.568,300,0.292,0.396,0.319,0.470,above
+smollm2-1.7b,handoffs,0shot,0.612,1200,0.312,0.430,0.391,0.469,above
+smollm2-1.7b,handoffs,fair,0.714,1200,0.312,0.580,0.543,0.615,above
+smollm2-1.7b,sets,0shot,0.395,320,0.275,0.166,0.095,0.242,above
+smollm2-1.7b,sets,fair,0.416,320,0.275,0.201,0.129,0.271,above
+smollm2-1.7b,refilled,0shot,0.349,720,0.200,0.186,0.144,0.230,above
+smollm2-1.7b,refills,0shot,0.253,600,0.200,0.066,0.024,0.115,above
+smollm2-1.7b,codevar,0shot,0.361,1200,0.267,0.124,0.088,0.163,above
+smollm2-1.7b,codevar,fair,0.409,1200,0.267,0.187,0.151,0.226,above
+smollm2-1.7b,sharedlists,0shot,0.287,600,0.200,0.109,0.065,0.150,above
+smollm2-1.7b,sharedlists,fair,0.332,600,0.200,0.165,0.118,0.210,above
+smollm2-1.7b,box-narrative,0shot,0.307,200,0.253,0.048,-0.037,0.138,at
+smollm2-1.7b,box-narrative,fair,0.343,200,0.253,0.104,0.010,0.198,above
+smollm2-1.7b,box-screenplay,0shot,0.412,200,0.253,0.211,0.117,0.302,above
+smollm2-1.7b,box-screenplay,fair,0.410,200,0.253,0.199,0.106,0.297,above
+smollm2-1.7b,box-code,0shot,0.573,200,0.253,0.417,0.321,0.510,above
+smollm2-1.7b,box-code,fair,0.647,200,0.253,0.507,0.406,0.600,above
+smollm2-1.7b,box-chat,0shot,0.427,200,0.253,0.242,0.152,0.334,above
+smollm2-1.7b,box-chat,fair,0.228,200,0.253,-0.034,-0.119,0.048,at
+smollm2-1.7b,you-static,0shot,0.593,300,0.292,0.425,0.344,0.503,above
+smollm2-1.7b,i-moves,0shot,0.375,180,0.287,0.122,0.022,0.226,above
+smollm2-1.7b,i-moves,fair,0.378,180,0.287,0.127,0.027,0.218,above
+smollm2-1.7b,you-moves,0shot,0.232,180,0.287,-0.081,-0.168,0.005,at
+smollm2-1.7b,you-moves,fair,0.344,180,0.287,0.082,-0.010,0.175,at
+smollm2-1.7b,you-named,0shot,0.286,180,0.287,-0.009,-0.097,0.090,at
+smollm2-1.7b,you-named,fair,0.319,180,0.287,0.040,-0.059,0.134,at
+smollm2-1.7b,answer-self,0shot,0.286,2560,0.250,0.048,0.026,0.071,above
+smollm2-1.7b,answer-self,fair,0.277,2560,0.250,0.036,0.013,0.059,above
+smollm2-1.7b,grammar,ladder,,1080,,0.764,0.741,0.791,above
+smollm2-1.7b,operators,ladder,,1080,,0.247,0.216,0.278,above
+smollm2-1.7b,patterns,ladder,,1080,,0.714,0.689,0.741,above
+smollm2-1.7b,facts,ladder,,768,,1.000,1.000,1.000,above
+qwen3-1.7b,lookup,0shot,0.731,1210,0.168,0.665,0.636,0.694,above
+qwen3-1.7b,lookup,fair,0.998,1210,0.168,0.997,0.994,1.000,above
+qwen3-1.7b,shortlist,0shot,0.897,960,0.040,0.893,0.874,0.913,above
+qwen3-1.7b,pairs,0shot,0.766,64,0.125,0.732,0.607,0.848,above
+qwen3-1.7b,pairs,fair,0.836,64,0.125,0.812,0.705,0.911,above
+qwen3-1.7b,noise,0shot,0.910,720,0.200,0.888,0.862,0.913,above
+qwen3-1.7b,now,0shot,0.852,300,0.292,0.787,0.728,0.838,above
+qwen3-1.7b,handoffs,0shot,0.730,1200,0.312,0.604,0.565,0.640,above
+qwen3-1.7b,handoffs,fair,0.785,1200,0.312,0.683,0.650,0.715,above
+qwen3-1.7b,sets,0shot,0.788,320,0.275,0.714,0.655,0.770,above
+qwen3-1.7b,sets,fair,0.767,320,0.275,0.689,0.628,0.751,above
+qwen3-1.7b,refilled,0shot,0.626,720,0.200,0.533,0.490,0.576,above
+qwen3-1.7b,refills,0shot,0.363,600,0.200,0.204,0.156,0.251,above
+qwen3-1.7b,codevar,0shot,0.475,1200,0.267,0.280,0.244,0.321,above
+qwen3-1.7b,codevar,fair,0.535,1200,0.267,0.361,0.322,0.405,above
+qwen3-1.7b,sharedlists,0shot,0.372,600,0.200,0.215,0.167,0.258,above
+qwen3-1.7b,sharedlists,fair,0.501,600,0.200,0.376,0.329,0.425,above
+qwen3-1.7b,box-narrative,0shot,0.459,200,0.253,0.258,0.165,0.355,above
+qwen3-1.7b,box-narrative,fair,0.515,200,0.253,0.324,0.229,0.416,above
+qwen3-1.7b,box-screenplay,0shot,0.605,200,0.253,0.475,0.386,0.564,above
+qwen3-1.7b,box-screenplay,fair,0.517,200,0.253,0.332,0.232,0.419,above
+qwen3-1.7b,box-code,0shot,0.600,200,0.253,0.445,0.347,0.536,above
+qwen3-1.7b,box-code,fair,0.695,200,0.253,0.567,0.474,0.651,above
+qwen3-1.7b,box-chat,0shot,0.650,200,0.253,0.530,0.435,0.623,above
+qwen3-1.7b,box-chat,fair,0.555,200,0.253,0.393,0.295,0.488,above
+qwen3-1.7b,you-static,0shot,0.667,300,0.292,0.512,0.434,0.586,above
+qwen3-1.7b,i-moves,0shot,0.450,180,0.287,0.228,0.131,0.344,above
+qwen3-1.7b,i-moves,fair,0.428,180,0.287,0.197,0.093,0.295,above
+qwen3-1.7b,you-moves,0shot,0.239,180,0.287,-0.072,-0.157,0.005,at
+qwen3-1.7b,you-moves,fair,0.360,180,0.287,0.106,0.009,0.208,above
+qwen3-1.7b,you-named,0shot,0.306,180,0.287,0.025,-0.064,0.121,at
+qwen3-1.7b,you-named,fair,0.332,180,0.287,0.062,-0.029,0.153,at
+qwen3-1.7b,answer-self,0shot,0.372,2560,0.250,0.163,0.140,0.186,above
+qwen3-1.7b,answer-self,fair,0.401,2560,0.250,0.202,0.176,0.226,above
+qwen3-1.7b,grammar,ladder,,1080,,0.819,0.800,0.839,above
+qwen3-1.7b,operators,ladder,,1080,,0.271,0.233,0.299,above
+qwen3-1.7b,patterns,ladder,,1080,,0.833,0.812,0.852,above
+qwen3-1.7b,facts,ladder,,768,,0.994,0.986,0.998,above
+gemma-2b,lookup,0shot,0.570,1210,0.168,0.470,0.434,0.503,above
+gemma-2b,lookup,fair,0.967,1210,0.168,0.960,0.946,0.972,above
+gemma-2b,shortlist,0shot,0.844,960,0.040,0.837,0.812,0.859,above
+gemma-2b,pairs,0shot,0.562,64,0.125,0.500,0.375,0.634,above
+gemma-2b,pairs,fair,0.516,64,0.125,0.446,0.304,0.571,above
+gemma-2b,noise,0shot,0.583,720,0.200,0.478,0.436,0.521,above
+gemma-2b,now,0shot,0.422,300,0.292,0.181,0.101,0.260,above
+gemma-2b,handoffs,0shot,0.658,1200,0.312,0.497,0.458,0.535,above
+gemma-2b,handoffs,fair,0.668,1200,0.312,0.513,0.473,0.553,above
+gemma-2b,sets,0shot,0.506,320,0.275,0.316,0.247,0.394,above
+gemma-2b,sets,fair,0.642,320,0.275,0.510,0.438,0.584,above
+gemma-2b,refilled,0shot,0.422,720,0.200,0.278,0.233,0.324,above
+gemma-2b,refills,0shot,0.447,600,0.200,0.309,0.260,0.357,above
+gemma-2b,codevar,0shot,0.403,1200,0.267,0.183,0.146,0.220,above
+gemma-2b,codevar,fair,0.416,1200,0.267,0.197,0.159,0.236,above
+gemma-2b,sharedlists,0shot,0.330,600,0.200,0.163,0.117,0.207,above
+gemma-2b,sharedlists,fair,0.417,600,0.200,0.272,0.222,0.321,above
+gemma-2b,box-narrative,0shot,0.378,200,0.253,0.151,0.060,0.245,above
+gemma-2b,box-narrative,fair,0.458,200,0.253,0.245,0.141,0.339,above
+gemma-2b,box-screenplay,0shot,0.500,200,0.253,0.311,0.214,0.407,above
+gemma-2b,box-screenplay,fair,0.443,200,0.253,0.212,0.113,0.308,above
+gemma-2b,box-code,0shot,0.542,200,0.253,0.374,0.271,0.465,above
+gemma-2b,box-code,fair,0.647,200,0.253,0.503,0.407,0.595,above
+gemma-2b,box-chat,0shot,0.555,200,0.253,0.401,0.308,0.494,above
+gemma-2b,box-chat,fair,0.608,200,0.253,0.463,0.370,0.554,above
+gemma-2b,you-static,0shot,0.622,300,0.292,0.462,0.387,0.539,above
+gemma-2b,i-moves,0shot,0.361,180,0.287,0.098,0.004,0.200,above
+gemma-2b,i-moves,fair,0.344,180,0.287,0.078,-0.019,0.182,at
+gemma-2b,you-moves,0shot,0.236,180,0.287,-0.071,-0.155,0.023,at
+gemma-2b,you-moves,fair,0.231,180,0.287,-0.081,-0.163,0.009,at
+gemma-2b,you-named,0shot,0.303,180,0.287,0.020,-0.069,0.113,at
+gemma-2b,you-named,fair,0.303,180,0.287,0.020,-0.070,0.115,at
+gemma-2b,answer-self,0shot,0.328,2560,0.250,0.104,0.080,0.126,above
+gemma-2b,answer-self,fair,0.316,2560,0.250,0.087,0.064,0.110,above
+gemma-2b,grammar,ladder,,1080,,0.727,0.702,0.755,above
+gemma-2b,operators,ladder,,1080,,0.197,0.169,0.224,above
+gemma-2b,patterns,ladder,,1080,,0.753,0.728,0.776,above
+gemma-2b,facts,ladder,,768,,0.997,0.992,1.000,above
+gemma2-2b,lookup,0shot,0.520,1210,0.168,0.409,0.374,0.444,above
+gemma2-2b,lookup,fair,0.996,1210,0.168,0.995,0.991,0.999,above
+gemma2-2b,shortlist,0shot,0.826,960,0.040,0.819,0.795,0.842,above
+gemma2-2b,pairs,0shot,0.435,64,0.125,0.354,0.220,0.491,above
+gemma2-2b,pairs,fair,0.836,64,0.125,0.812,0.705,0.911,above
+gemma2-2b,noise,0shot,0.665,720,0.200,0.581,0.538,0.625,above
+gemma2-2b,now,0shot,0.498,300,0.292,0.288,0.217,0.362,above
+gemma2-2b,handoffs,0shot,0.689,1200,0.312,0.543,0.507,0.581,above
+gemma2-2b,handoffs,fair,0.778,1200,0.312,0.673,0.640,0.707,above
+gemma2-2b,sets,0shot,0.455,320,0.275,0.242,0.170,0.322,above
+gemma2-2b,sets,fair,0.647,320,0.275,0.520,0.453,0.591,above
+gemma2-2b,refilled,0shot,0.529,720,0.200,0.412,0.365,0.458,above
+gemma2-2b,refills,0shot,0.491,600,0.200,0.364,0.312,0.414,above
+gemma2-2b,codevar,0shot,0.431,1200,0.267,0.221,0.183,0.260,above
+gemma2-2b,codevar,fair,0.414,1200,0.267,0.195,0.159,0.231,above
+gemma2-2b,sharedlists,0shot,0.415,600,0.200,0.268,0.223,0.319,above
+gemma2-2b,sharedlists,fair,0.489,600,0.200,0.361,0.315,0.406,above
+gemma2-2b,box-narrative,0shot,0.470,200,0.253,0.280,0.186,0.369,above
+gemma2-2b,box-narrative,fair,0.463,200,0.253,0.266,0.168,0.367,above
+gemma2-2b,box-screenplay,0shot,0.512,200,0.253,0.344,0.255,0.435,above
+gemma2-2b,box-screenplay,fair,0.515,200,0.253,0.330,0.231,0.422,above
+gemma2-2b,box-code,0shot,0.627,200,0.253,0.480,0.379,0.577,above
+gemma2-2b,box-code,fair,0.715,200,0.253,0.603,0.507,0.691,above
+gemma2-2b,box-chat,0shot,0.587,200,0.253,0.441,0.352,0.533,above
+gemma2-2b,box-chat,fair,0.597,200,0.253,0.453,0.357,0.537,above
+gemma2-2b,you-static,0shot,0.763,300,0.292,0.660,0.591,0.720,above
+gemma2-2b,i-moves,0shot,0.431,180,0.287,0.202,0.105,0.297,above
+gemma2-2b,i-moves,fair,0.364,180,0.287,0.109,0.016,0.206,above
+gemma2-2b,you-moves,0shot,0.242,180,0.287,-0.061,-0.143,0.026,at
+gemma2-2b,you-moves,fair,0.257,180,0.287,-0.043,-0.124,0.042,at
+gemma2-2b,you-named,0shot,0.394,180,0.287,0.146,0.047,0.249,above
+gemma2-2b,you-named,fair,0.323,180,0.287,0.045,-0.046,0.139,at
+gemma2-2b,answer-self,0shot,0.305,2560,0.250,0.073,0.050,0.098,above
+gemma2-2b,answer-self,fair,0.361,2560,0.250,0.148,0.125,0.172,above
+gemma2-2b,grammar,ladder,,1080,,0.801,0.775,0.828,above
+gemma2-2b,operators,ladder,,1080,,0.274,0.241,0.306,above
+gemma2-2b,patterns,ladder,,1080,,0.719,0.694,0.746,above
+gemma2-2b,facts,ladder,,768,,1.000,1.000,1.000,above
+pythia-2.8b,lookup,0shot,0.619,1210,0.168,0.534,0.500,0.568,above
+pythia-2.8b,lookup,fair,0.861,1210,0.168,0.828,0.805,0.851,above
+pythia-2.8b,shortlist,0shot,0.559,960,0.040,0.541,0.508,0.573,above
+pythia-2.8b,pairs,0shot,0.664,64,0.125,0.616,0.482,0.732,above
+pythia-2.8b,pairs,fair,0.539,64,0.125,0.473,0.339,0.616,above
+pythia-2.8b,noise,0shot,0.621,720,0.200,0.526,0.483,0.569,above
+pythia-2.8b,now,0shot,0.713,300,0.292,0.592,0.522,0.658,above
+pythia-2.8b,handoffs,0shot,0.578,1200,0.312,0.380,0.339,0.420,above
+pythia-2.8b,handoffs,fair,0.587,1200,0.312,0.394,0.354,0.435,above
+pythia-2.8b,sets,0shot,0.450,320,0.275,0.247,0.170,0.320,above
+pythia-2.8b,sets,fair,0.512,320,0.275,0.337,0.255,0.407,above
+pythia-2.8b,refilled,0shot,0.319,720,0.200,0.148,0.107,0.191,above
+pythia-2.8b,refills,0shot,0.228,600,0.200,0.034,-0.008,0.076,at
+pythia-2.8b,codevar,0shot,0.332,1200,0.267,0.084,0.047,0.120,above
+pythia-2.8b,codevar,fair,0.285,1200,0.267,0.022,-0.014,0.057,at
+pythia-2.8b,sharedlists,0shot,0.309,600,0.200,0.137,0.094,0.185,above
+pythia-2.8b,sharedlists,fair,0.287,600,0.200,0.108,0.064,0.152,above
+pythia-2.8b,box-narrative,0shot,0.450,200,0.253,0.242,0.148,0.340,above
+pythia-2.8b,box-narrative,fair,0.532,200,0.253,0.376,0.286,0.467,above
+pythia-2.8b,box-screenplay,0shot,0.407,200,0.253,0.216,0.131,0.310,above
+pythia-2.8b,box-screenplay,fair,0.520,200,0.253,0.352,0.262,0.445,above
+pythia-2.8b,box-code,0shot,0.573,200,0.253,0.422,0.327,0.513,above
+pythia-2.8b,box-code,fair,0.605,200,0.253,0.455,0.357,0.550,above
+pythia-2.8b,box-chat,0shot,0.463,200,0.253,0.269,0.171,0.363,above
+pythia-2.8b,box-chat,fair,0.537,200,0.253,0.378,0.284,0.476,above
+pythia-2.8b,you-static,0shot,0.438,300,0.292,0.203,0.126,0.282,above
+pythia-2.8b,i-moves,0shot,0.264,180,0.287,-0.038,-0.129,0.049,at
+pythia-2.8b,i-moves,fair,0.319,180,0.287,0.041,-0.049,0.135,at
+pythia-2.8b,you-moves,0shot,0.206,180,0.287,-0.114,-0.192,-0.032,below
+pythia-2.8b,you-moves,fair,0.310,180,0.287,0.032,-0.055,0.129,at
+pythia-2.8b,you-named,0shot,0.331,180,0.287,0.062,-0.025,0.163,at
+pythia-2.8b,you-named,fair,0.303,180,0.287,0.019,-0.069,0.114,at
+pythia-2.8b,answer-self,0shot,0.332,2560,0.250,0.109,0.085,0.133,above
+pythia-2.8b,answer-self,fair,0.298,2560,0.250,0.064,0.041,0.086,above
+pythia-2.8b,grammar,ladder,,1080,,0.798,0.772,0.824,above
+pythia-2.8b,operators,ladder,,1080,,0.252,0.221,0.284,above
+pythia-2.8b,patterns,ladder,,1080,,0.583,0.553,0.615,above
+pythia-2.8b,facts,ladder,,768,,0.984,0.972,0.992,above
+pythia-2.8b-deduped,lookup,0shot,0.625,1210,0.168,0.543,0.510,0.576,above
+pythia-2.8b-deduped,lookup,fair,0.883,1210,0.168,0.855,0.833,0.876,above
+pythia-2.8b-deduped,shortlist,0shot,0.578,960,0.040,0.560,0.528,0.590,above
+pythia-2.8b-deduped,pairs,0shot,0.648,64,0.125,0.598,0.464,0.723,above
+pythia-2.8b-deduped,pairs,fair,0.594,64,0.125,0.536,0.393,0.661,above
+pythia-2.8b-deduped,noise,0shot,0.634,720,0.200,0.542,0.499,0.585,above
+pythia-2.8b-deduped,now,0shot,0.713,300,0.292,0.592,0.521,0.663,above
+pythia-2.8b-deduped,handoffs,0shot,0.574,1200,0.312,0.374,0.335,0.415,above
+pythia-2.8b-deduped,handoffs,fair,0.586,1200,0.312,0.393,0.352,0.434,above
+pythia-2.8b-deduped,sets,0shot,0.467,320,0.275,0.273,0.191,0.349,above
+pythia-2.8b-deduped,sets,fair,0.496,320,0.275,0.309,0.231,0.384,above
+pythia-2.8b-deduped,refilled,0shot,0.306,720,0.200,0.133,0.092,0.175,above
+pythia-2.8b-deduped,refills,0shot,0.223,600,0.200,0.028,-0.011,0.069,at
+pythia-2.8b-deduped,codevar,0shot,0.347,1200,0.267,0.104,0.068,0.141,above
+pythia-2.8b-deduped,codevar,fair,0.267,1200,0.267,-0.003,-0.036,0.032,at
+pythia-2.8b-deduped,sharedlists,0shot,0.279,600,0.200,0.099,0.052,0.144,above
+pythia-2.8b-deduped,sharedlists,fair,0.291,600,0.200,0.114,0.069,0.156,above
+pythia-2.8b-deduped,box-narrative,0shot,0.430,200,0.253,0.213,0.120,0.307,above
+pythia-2.8b-deduped,box-narrative,fair,0.535,200,0.253,0.378,0.284,0.464,above
+pythia-2.8b-deduped,box-screenplay,0shot,0.440,200,0.253,0.254,0.163,0.345,above
+pythia-2.8b-deduped,box-screenplay,fair,0.525,200,0.253,0.367,0.278,0.454,above
+pythia-2.8b-deduped,box-code,0shot,0.550,200,0.253,0.393,0.296,0.486,above
+pythia-2.8b-deduped,box-code,fair,0.578,200,0.253,0.418,0.325,0.512,above
+pythia-2.8b-deduped,box-chat,0shot,0.470,200,0.253,0.277,0.185,0.382,above
+pythia-2.8b-deduped,box-chat,fair,0.522,200,0.253,0.354,0.259,0.450,above
+pythia-2.8b-deduped,you-static,0shot,0.415,300,0.292,0.170,0.090,0.244,above
+pythia-2.8b-deduped,i-moves,0shot,0.275,180,0.287,-0.025,-0.115,0.069,at
+pythia-2.8b-deduped,i-moves,fair,0.327,180,0.287,0.056,-0.032,0.147,at
+pythia-2.8b-deduped,you-moves,0shot,0.247,180,0.287,-0.057,-0.139,0.028,at
+pythia-2.8b-deduped,you-moves,fair,0.303,180,0.287,0.020,-0.069,0.121,at
+pythia-2.8b-deduped,you-named,0shot,0.311,180,0.287,0.033,-0.057,0.128,at
+pythia-2.8b-deduped,you-named,fair,0.297,180,0.287,0.010,-0.088,0.107,at
+pythia-2.8b-deduped,answer-self,0shot,0.327,2560,0.250,0.102,0.078,0.124,above
+pythia-2.8b-deduped,answer-self,fair,0.287,2560,0.250,0.050,0.028,0.074,above
+pythia-2.8b-deduped,grammar,ladder,,1080,,0.800,0.777,0.824,above
+pythia-2.8b-deduped,operators,ladder,,1080,,0.273,0.240,0.303,above
+pythia-2.8b-deduped,patterns,ladder,,1080,,0.609,0.577,0.644,above
+pythia-2.8b-deduped,facts,ladder,,768,,0.987,0.977,0.994,above
+qwen2.5-3b,lookup,0shot,0.708,1210,0.168,0.632,0.599,0.662,above
+qwen2.5-3b,lookup,fair,0.995,1210,0.168,0.994,0.989,0.998,above
+qwen2.5-3b,shortlist,0shot,0.731,960,0.040,0.720,0.690,0.750,above
+qwen2.5-3b,pairs,0shot,0.766,64,0.125,0.732,0.616,0.848,above
+qwen2.5-3b,pairs,fair,0.906,64,0.125,0.893,0.804,0.964,above
+qwen2.5-3b,noise,0shot,0.726,720,0.200,0.657,0.617,0.696,above
+qwen2.5-3b,now,0shot,0.820,300,0.292,0.745,0.685,0.802,above
+qwen2.5-3b,handoffs,0shot,0.680,1200,0.312,0.533,0.493,0.570,above
+qwen2.5-3b,handoffs,fair,0.757,1200,0.312,0.645,0.611,0.678,above
+qwen2.5-3b,sets,0shot,0.754,320,0.275,0.656,0.593,0.725,above
+qwen2.5-3b,sets,fair,0.644,320,0.275,0.516,0.445,0.587,above
+qwen2.5-3b,refilled,0shot,0.438,720,0.200,0.297,0.251,0.341,above
+qwen2.5-3b,refills,0shot,0.303,600,0.200,0.129,0.085,0.173,above
+qwen2.5-3b,codevar,0shot,0.446,1200,0.267,0.239,0.203,0.277,above
+qwen2.5-3b,codevar,fair,0.469,1200,0.267,0.267,0.229,0.308,above
+qwen2.5-3b,sharedlists,0shot,0.371,600,0.200,0.214,0.169,0.260,above
+qwen2.5-3b,sharedlists,fair,0.438,600,0.200,0.297,0.250,0.345,above
+qwen2.5-3b,box-narrative,0shot,0.349,200,0.253,0.093,0.001,0.186,above
+qwen2.5-3b,box-narrative,fair,0.618,200,0.253,0.472,0.372,0.567,above
+qwen2.5-3b,box-screenplay,0shot,0.472,200,0.253,0.267,0.171,0.366,above
+qwen2.5-3b,box-screenplay,fair,0.652,200,0.253,0.517,0.426,0.608,above
+qwen2.5-3b,box-code,0shot,0.623,200,0.253,0.466,0.356,0.559,above
+qwen2.5-3b,box-code,fair,0.665,200,0.253,0.526,0.433,0.616,above
+qwen2.5-3b,box-chat,0shot,0.482,200,0.253,0.281,0.191,0.381,above
+qwen2.5-3b,box-chat,fair,0.685,200,0.253,0.577,0.488,0.658,above
+qwen2.5-3b,you-static,0shot,0.878,300,0.292,0.824,0.772,0.875,above
+qwen2.5-3b,i-moves,0shot,0.333,180,0.287,0.068,-0.028,0.170,at
+qwen2.5-3b,i-moves,fair,0.358,180,0.287,0.108,0.015,0.209,above
+qwen2.5-3b,you-moves,0shot,0.251,180,0.287,-0.051,-0.136,0.038,at
+qwen2.5-3b,you-moves,fair,0.247,180,0.287,-0.056,-0.138,0.038,at
+qwen2.5-3b,you-named,0shot,0.239,180,0.287,-0.071,-0.156,0.014,at
+qwen2.5-3b,you-named,fair,0.288,180,0.287,-0.003,-0.099,0.093,at
+qwen2.5-3b,answer-self,0shot,0.352,2560,0.250,0.135,0.112,0.158,above
+qwen2.5-3b,answer-self,fair,0.344,2560,0.250,0.125,0.102,0.150,above
+qwen2.5-3b,grammar,ladder,,1080,,0.792,0.770,0.818,above
+qwen2.5-3b,operators,ladder,,1080,,0.183,0.157,0.218,above
+qwen2.5-3b,patterns,ladder,,1080,,0.897,0.879,0.914,above
+qwen2.5-3b,facts,ladder,,768,,0.998,0.995,1.000,above
+falcon-h1-3b,lookup,0shot,0.950,1210,0.168,0.937,0.920,0.952,above
+falcon-h1-3b,lookup,fair,0.993,1210,0.168,0.990,0.984,0.996,above
+falcon-h1-3b,shortlist,0shot,0.904,960,0.040,0.900,0.882,0.919,above
+falcon-h1-3b,pairs,0shot,1.000,64,0.125,1.000,1.000,1.000,above
+falcon-h1-3b,pairs,fair,0.891,64,0.125,0.875,0.786,0.946,above
+falcon-h1-3b,noise,0shot,0.749,720,0.200,0.686,0.648,0.724,above
+falcon-h1-3b,now,0shot,0.593,300,0.292,0.421,0.344,0.498,above
+falcon-h1-3b,handoffs,0shot,0.752,1200,0.312,0.637,0.605,0.673,above
+falcon-h1-3b,handoffs,fair,0.860,1200,0.312,0.794,0.767,0.820,above
+falcon-h1-3b,sets,0shot,0.927,320,0.275,0.901,0.861,0.939,above
+falcon-h1-3b,sets,fair,0.791,320,0.275,0.721,0.661,0.778,above
+falcon-h1-3b,refilled,0shot,0.763,720,0.200,0.704,0.661,0.744,above
+falcon-h1-3b,refills,0shot,0.470,600,0.200,0.338,0.291,0.391,above
+falcon-h1-3b,codevar,0shot,0.548,1200,0.267,0.376,0.338,0.416,above
+falcon-h1-3b,codevar,fair,0.683,1200,0.267,0.562,0.524,0.599,above
+falcon-h1-3b,sharedlists,0shot,0.548,600,0.200,0.435,0.383,0.483,above
+falcon-h1-3b,sharedlists,fair,0.551,600,0.200,0.439,0.391,0.485,above
+falcon-h1-3b,box-narrative,0shot,0.400,200,0.253,0.141,0.044,0.240,above
+falcon-h1-3b,box-narrative,fair,0.505,200,0.253,0.299,0.188,0.394,above
+falcon-h1-3b,box-screenplay,0shot,0.547,200,0.253,0.367,0.272,0.470,above
+falcon-h1-3b,box-screenplay,fair,0.620,200,0.253,0.478,0.381,0.577,above
+falcon-h1-3b,box-code,0shot,0.545,200,0.253,0.389,0.294,0.485,above
+falcon-h1-3b,box-code,fair,0.765,200,0.253,0.679,0.594,0.756,above
+falcon-h1-3b,box-chat,0shot,0.645,200,0.253,0.516,0.426,0.611,above
+falcon-h1-3b,box-chat,fair,0.655,200,0.253,0.540,0.453,0.634,above
+falcon-h1-3b,you-static,0shot,0.940,300,0.292,0.913,0.874,0.952,above
+falcon-h1-3b,i-moves,0shot,0.333,180,0.287,0.060,-0.040,0.163,at
+falcon-h1-3b,i-moves,fair,0.464,180,0.287,0.251,0.149,0.361,above
+falcon-h1-3b,you-moves,0shot,0.261,180,0.287,-0.032,-0.116,0.057,at
+falcon-h1-3b,you-moves,fair,0.289,180,0.287,0.003,-0.087,0.095,at
+falcon-h1-3b,you-named,0shot,0.294,180,0.287,0.005,-0.082,0.102,at
+falcon-h1-3b,you-named,fair,0.278,180,0.287,-0.018,-0.108,0.074,at
+falcon-h1-3b,answer-self,0shot,0.388,2560,0.250,0.184,0.157,0.208,above
+falcon-h1-3b,answer-self,fair,0.430,2560,0.250,0.241,0.216,0.267,above
+falcon-h1-3b,grammar,ladder,,1080,,0.836,0.814,0.857,above
+falcon-h1-3b,operators,ladder,,1080,,0.262,0.230,0.299,above
+falcon-h1-3b,patterns,ladder,,1080,,0.768,0.746,0.792,above
+falcon-h1-3b,facts,ladder,,768,,0.984,0.977,0.991,above
+falcon3-3b,lookup,0shot,0.558,1210,0.168,0.460,0.425,0.492,above
+falcon3-3b,lookup,fair,0.962,1210,0.168,0.953,0.939,0.965,above
+falcon3-3b,shortlist,0shot,0.574,960,0.040,0.556,0.526,0.588,above
+falcon3-3b,pairs,0shot,0.492,64,0.125,0.420,0.295,0.545,above
+falcon3-3b,pairs,fair,0.625,64,0.125,0.571,0.429,0.696,above
+falcon3-3b,noise,0shot,0.685,720,0.200,0.606,0.562,0.652,above
+falcon3-3b,now,0shot,0.753,300,0.292,0.649,0.579,0.718,above
+falcon3-3b,handoffs,0shot,0.725,1200,0.312,0.594,0.559,0.632,above
+falcon3-3b,handoffs,fair,0.771,1200,0.312,0.664,0.630,0.697,above
+falcon3-3b,sets,0shot,0.439,320,0.275,0.230,0.164,0.301,above
+falcon3-3b,sets,fair,0.470,320,0.275,0.280,0.210,0.356,above
+falcon3-3b,refilled,0shot,0.446,720,0.200,0.307,0.260,0.354,above
+falcon3-3b,refills,0shot,0.350,600,0.200,0.187,0.142,0.234,above
+falcon3-3b,codevar,0shot,0.436,1200,0.267,0.222,0.184,0.260,above
+falcon3-3b,codevar,fair,0.578,1200,0.267,0.420,0.381,0.456,above
+falcon3-3b,sharedlists,0shot,0.357,600,0.200,0.196,0.147,0.242,above
+falcon3-3b,sharedlists,fair,0.578,600,0.200,0.472,0.422,0.523,above
+falcon3-3b,box-narrative,0shot,0.400,200,0.253,0.197,0.104,0.292,above
+falcon3-3b,box-narrative,fair,0.439,200,0.253,0.230,0.136,0.327,above
+falcon3-3b,box-screenplay,0shot,0.540,200,0.253,0.386,0.286,0.479,above
+falcon3-3b,box-screenplay,fair,0.547,200,0.253,0.387,0.283,0.474,above
+falcon3-3b,box-code,0shot,0.415,200,0.253,0.226,0.131,0.317,above
+falcon3-3b,box-code,fair,0.735,200,0.253,0.623,0.531,0.707,above
+falcon3-3b,box-chat,0shot,0.570,200,0.253,0.421,0.328,0.520,above
+falcon3-3b,box-chat,fair,0.682,200,0.253,0.585,0.489,0.668,above
+falcon3-3b,you-static,0shot,0.825,300,0.292,0.748,0.685,0.803,above
+falcon3-3b,i-moves,0shot,0.274,180,0.287,-0.027,-0.114,0.068,at
+falcon3-3b,i-moves,fair,0.360,180,0.287,0.103,0.007,0.206,above
+falcon3-3b,you-moves,0shot,0.256,180,0.287,-0.045,-0.135,0.047,at
+falcon3-3b,you-moves,fair,0.296,180,0.287,0.014,-0.079,0.113,at
+falcon3-3b,you-named,0shot,0.314,180,0.287,0.038,-0.043,0.131,at
+falcon3-3b,you-named,fair,0.291,180,0.287,0.001,-0.086,0.088,at
+falcon3-3b,answer-self,0shot,0.334,2560,0.250,0.112,0.088,0.135,above
+falcon3-3b,answer-self,fair,0.349,2560,0.250,0.132,0.108,0.156,above
+falcon3-3b,grammar,ladder,,1080,,0.851,0.833,0.875,above
+falcon3-3b,operators,ladder,,1080,,0.237,0.206,0.267,above
+falcon3-3b,patterns,ladder,,1080,,0.787,0.764,0.810,above
+falcon3-3b,facts,ladder,,768,,0.968,0.952,0.984,above
+qwen3-30b-a3b,lookup,0shot,0.842,1210,0.168,0.800,0.775,0.825,above
+qwen3-30b-a3b,lookup,fair,1.000,1210,0.168,1.000,1.000,1.000,above
+qwen3-30b-a3b,shortlist,0shot,0.766,960,0.040,0.756,0.729,0.784,above
+qwen3-30b-a3b,pairs,0shot,0.906,64,0.125,0.893,0.804,0.964,above
+qwen3-30b-a3b,pairs,fair,0.977,64,0.125,0.973,0.929,1.000,above
+qwen3-30b-a3b,noise,0shot,0.812,720,0.200,0.766,0.730,0.802,above
+qwen3-30b-a3b,now,0shot,0.387,300,0.292,0.132,0.056,0.214,above
+qwen3-30b-a3b,handoffs,0shot,0.821,1200,0.312,0.736,0.704,0.766,above
+qwen3-30b-a3b,handoffs,fair,0.904,1200,0.312,0.858,0.833,0.881,above
+qwen3-30b-a3b,sets,0shot,0.828,320,0.275,0.754,0.696,0.814,above
+qwen3-30b-a3b,sets,fair,0.866,320,0.275,0.815,0.760,0.867,above
+qwen3-30b-a3b,refilled,0shot,0.493,720,0.200,0.366,0.324,0.411,above
+qwen3-30b-a3b,refills,0shot,0.461,600,0.200,0.327,0.278,0.376,above
+qwen3-30b-a3b,codevar,0shot,0.757,1200,0.267,0.665,0.632,0.697,above
+qwen3-30b-a3b,codevar,fair,0.832,1200,0.267,0.765,0.735,0.794,above
+qwen3-30b-a3b,sharedlists,0shot,0.775,600,0.200,0.719,0.676,0.759,above
+qwen3-30b-a3b,sharedlists,fair,0.794,600,0.200,0.743,0.702,0.781,above
+qwen3-30b-a3b,box-narrative,0shot,0.367,200,0.253,0.128,0.032,0.226,above
+qwen3-30b-a3b,box-narrative,fair,0.515,200,0.253,0.324,0.226,0.426,above
+qwen3-30b-a3b,box-screenplay,0shot,0.635,200,0.253,0.501,0.409,0.587,above
+qwen3-30b-a3b,box-screenplay,fair,0.597,200,0.253,0.439,0.344,0.526,above
+qwen3-30b-a3b,box-code,0shot,0.733,200,0.253,0.624,0.527,0.707,above
+qwen3-30b-a3b,box-code,fair,0.855,200,0.253,0.803,0.735,0.863,above
+qwen3-30b-a3b,box-chat,0shot,0.728,200,0.253,0.624,0.541,0.709,above
+qwen3-30b-a3b,box-chat,fair,0.688,200,0.253,0.574,0.487,0.661,above
+qwen3-30b-a3b,you-static,0shot,0.963,300,0.292,0.945,0.910,0.975,above
+qwen3-30b-a3b,i-moves,0shot,0.378,180,0.287,0.124,0.028,0.222,above
+qwen3-30b-a3b,i-moves,fair,0.528,180,0.287,0.340,0.235,0.446,above
+qwen3-30b-a3b,you-moves,0shot,0.317,180,0.287,0.044,-0.038,0.138,at
+qwen3-30b-a3b,you-moves,fair,0.357,180,0.287,0.101,0.009,0.204,above
+qwen3-30b-a3b,you-named,0shot,0.352,180,0.287,0.087,-0.001,0.185,at
+qwen3-30b-a3b,you-named,fair,0.511,180,0.287,0.307,0.206,0.413,above
+qwen3-30b-a3b,answer-self,0shot,0.440,2560,0.250,0.253,0.228,0.278,above
+qwen3-30b-a3b,answer-self,fair,0.486,2560,0.250,0.314,0.289,0.340,above
+qwen3-30b-a3b,grammar,ladder,,1080,,0.844,0.821,0.863,above
+qwen3-30b-a3b,operators,ladder,,1080,,0.208,0.181,0.240,above
+qwen3-30b-a3b,patterns,ladder,,1080,,0.990,0.983,0.997,above
+qwen3-30b-a3b,facts,ladder,,768,,0.995,0.989,1.000,above
+qwen3-4b,lookup,0shot,0.975,1210,0.168,0.966,0.954,0.977,above
+qwen3-4b,lookup,fair,1.000,1210,0.168,1.000,1.000,1.000,above
+qwen3-4b,shortlist,0shot,0.886,960,0.040,0.881,0.862,0.901,above
+qwen3-4b,pairs,0shot,1.000,64,0.125,1.000,1.000,1.000,above
+qwen3-4b,pairs,fair,0.969,64,0.125,0.964,0.911,1.000,above
+qwen3-4b,noise,0shot,0.830,720,0.200,0.788,0.754,0.820,above
+qwen3-4b,now,0shot,0.807,300,0.292,0.720,0.658,0.782,above
+qwen3-4b,handoffs,0shot,0.877,1200,0.312,0.818,0.790,0.845,above
+qwen3-4b,handoffs,fair,0.870,1200,0.312,0.807,0.781,0.834,above
+qwen3-4b,sets,0shot,0.884,320,0.275,0.838,0.787,0.886,above
+qwen3-4b,sets,fair,0.798,320,0.275,0.727,0.667,0.785,above
+qwen3-4b,refilled,0shot,0.592,720,0.200,0.490,0.443,0.535,above
+qwen3-4b,refills,0shot,0.505,600,0.200,0.382,0.333,0.429,above
+qwen3-4b,codevar,0shot,0.619,1200,0.267,0.477,0.438,0.515,above
+qwen3-4b,codevar,fair,0.635,1200,0.267,0.496,0.457,0.533,above
+qwen3-4b,sharedlists,0shot,0.529,600,0.200,0.411,0.363,0.458,above
+qwen3-4b,sharedlists,fair,0.694,600,0.200,0.618,0.572,0.660,above
+qwen3-4b,box-narrative,0shot,0.315,200,0.253,0.055,-0.037,0.152,at
+qwen3-4b,box-narrative,fair,0.497,200,0.253,0.301,0.211,0.398,above
+qwen3-4b,box-screenplay,0shot,0.582,200,0.253,0.425,0.333,0.521,above
+qwen3-4b,box-screenplay,fair,0.507,200,0.253,0.324,0.229,0.417,above
+qwen3-4b,box-code,0shot,0.723,200,0.253,0.601,0.513,0.691,above
+qwen3-4b,box-code,fair,0.802,200,0.253,0.720,0.637,0.793,above
+qwen3-4b,box-chat,0shot,0.623,200,0.253,0.482,0.388,0.580,above
+qwen3-4b,box-chat,fair,0.570,200,0.253,0.417,0.324,0.511,above
+qwen3-4b,you-static,0shot,0.784,300,0.292,0.680,0.608,0.744,above
+qwen3-4b,i-moves,0shot,0.450,180,0.287,0.226,0.124,0.330,above
+qwen3-4b,i-moves,fair,0.533,180,0.287,0.347,0.250,0.448,above
+qwen3-4b,you-moves,0shot,0.335,180,0.287,0.063,-0.030,0.160,at
+qwen3-4b,you-moves,fair,0.431,180,0.287,0.199,0.096,0.302,above
+qwen3-4b,you-named,0shot,0.400,180,0.287,0.152,0.055,0.256,above
+qwen3-4b,you-named,fair,0.360,180,0.287,0.098,0.003,0.206,above
+qwen3-4b,answer-self,0shot,0.460,2560,0.250,0.279,0.254,0.306,above
+qwen3-4b,answer-self,fair,0.564,2560,0.250,0.418,0.393,0.443,above
+qwen3-4b,grammar,ladder,,1080,,0.846,0.826,0.869,above
+qwen3-4b,operators,ladder,,1080,,0.218,0.191,0.254,above
+qwen3-4b,patterns,ladder,,1080,,0.947,0.934,0.962,above
+qwen3-4b,facts,ladder,,768,,0.998,0.995,1.000,above
+pythia-6.9b,lookup,0shot,0.520,1210,0.168,0.413,0.378,0.448,above
+pythia-6.9b,lookup,fair,0.827,1210,0.168,0.793,0.767,0.818,above
+pythia-6.9b,shortlist,0shot,0.588,960,0.040,0.571,0.538,0.603,above
+pythia-6.9b,pairs,0shot,0.492,64,0.125,0.420,0.286,0.562,above
+pythia-6.9b,pairs,fair,0.570,64,0.125,0.509,0.375,0.643,above
+pythia-6.9b,noise,0shot,0.624,720,0.200,0.529,0.488,0.571,above
+pythia-6.9b,now,0shot,0.590,300,0.292,0.425,0.348,0.502,above
+pythia-6.9b,handoffs,0shot,0.579,1200,0.312,0.383,0.344,0.423,above
+pythia-6.9b,handoffs,fair,0.571,1200,0.312,0.372,0.332,0.411,above
+pythia-6.9b,sets,0shot,0.486,320,0.275,0.297,0.228,0.376,above
+pythia-6.9b,sets,fair,0.523,320,0.275,0.346,0.278,0.420,above
+pythia-6.9b,refilled,0shot,0.350,720,0.200,0.188,0.143,0.228,above
+pythia-6.9b,refills,0shot,0.258,600,0.200,0.073,0.031,0.118,above
+pythia-6.9b,codevar,0shot,0.360,1200,0.267,0.120,0.084,0.157,above
+pythia-6.9b,codevar,fair,0.320,1200,0.267,0.065,0.031,0.101,above
+pythia-6.9b,sharedlists,0shot,0.279,600,0.200,0.099,0.056,0.146,above
+pythia-6.9b,sharedlists,fair,0.212,600,0.200,0.016,-0.023,0.053,at
+pythia-6.9b,box-narrative,0shot,0.463,200,0.253,0.267,0.169,0.360,above
+pythia-6.9b,box-narrative,fair,0.507,200,0.253,0.343,0.242,0.434,above
+pythia-6.9b,box-screenplay,0shot,0.537,200,0.253,0.381,0.276,0.467,above
+pythia-6.9b,box-screenplay,fair,0.527,200,0.253,0.369,0.272,0.459,above
+pythia-6.9b,box-code,0shot,0.458,200,0.253,0.275,0.178,0.355,above
+pythia-6.9b,box-code,fair,0.560,200,0.253,0.390,0.294,0.484,above
+pythia-6.9b,box-chat,0shot,0.515,200,0.253,0.338,0.241,0.433,above
+pythia-6.9b,box-chat,fair,0.482,200,0.253,0.292,0.194,0.387,above
+pythia-6.9b,you-static,0shot,0.470,300,0.292,0.248,0.169,0.328,above
+pythia-6.9b,i-moves,0shot,0.325,180,0.287,0.048,-0.047,0.140,at
+pythia-6.9b,i-moves,fair,0.311,180,0.287,0.028,-0.069,0.127,at
+pythia-6.9b,you-moves,0shot,0.211,180,0.287,-0.111,-0.194,-0.032,below
+pythia-6.9b,you-moves,fair,0.275,180,0.287,-0.023,-0.118,0.070,at
+pythia-6.9b,you-named,0shot,0.358,180,0.287,0.097,0.001,0.197,above
+pythia-6.9b,you-named,fair,0.369,180,0.287,0.118,0.015,0.214,above
+pythia-6.9b,answer-self,0shot,0.315,2560,0.250,0.087,0.062,0.110,above
+pythia-6.9b,answer-self,fair,0.292,2560,0.250,0.056,0.034,0.080,above
+pythia-6.9b,grammar,ladder,,1080,,0.779,0.754,0.806,above
+pythia-6.9b,operators,ladder,,1080,,0.215,0.186,0.248,above
+pythia-6.9b,patterns,ladder,,1080,,0.496,0.460,0.525,above
+pythia-6.9b,facts,ladder,,768,,0.995,0.989,0.998,above
+falcon-mamba-7b,lookup,0shot,0.503,1210,0.168,0.389,0.359,0.422,above
+falcon-mamba-7b,lookup,fair,0.981,1210,0.168,0.977,0.969,0.985,above
+falcon-mamba-7b,shortlist,0shot,0.754,960,0.040,0.743,0.719,0.769,above
+falcon-mamba-7b,pairs,0shot,0.526,64,0.125,0.459,0.330,0.582,above
+falcon-mamba-7b,pairs,fair,0.232,64,0.125,0.123,0.028,0.228,above
+falcon-mamba-7b,noise,0shot,0.656,720,0.200,0.570,0.534,0.606,above
+falcon-mamba-7b,now,0shot,0.570,300,0.292,0.393,0.328,0.457,above
+falcon-mamba-7b,handoffs,0shot,0.712,1200,0.312,0.574,0.539,0.610,above
+falcon-mamba-7b,handoffs,fair,0.694,1200,0.312,0.550,0.517,0.585,above
+falcon-mamba-7b,sets,0shot,0.422,320,0.275,0.207,0.143,0.268,above
+falcon-mamba-7b,sets,fair,0.402,320,0.275,0.182,0.129,0.235,above
+falcon-mamba-7b,refilled,0shot,0.472,720,0.200,0.339,0.307,0.376,above
+falcon-mamba-7b,refills,0shot,0.288,600,0.200,0.111,0.070,0.149,above
+falcon-mamba-7b,codevar,0shot,0.362,1200,0.267,0.121,0.090,0.152,above
+falcon-mamba-7b,codevar,fair,0.383,1200,0.267,0.149,0.117,0.181,above
+falcon-mamba-7b,sharedlists,0shot,0.245,600,0.200,0.056,0.020,0.094,above
+falcon-mamba-7b,sharedlists,fair,0.263,600,0.200,0.079,0.043,0.116,above
+falcon-mamba-7b,box-narrative,0shot,0.279,200,0.253,0.023,-0.052,0.098,at
+falcon-mamba-7b,box-narrative,fair,0.343,200,0.253,0.104,0.025,0.176,above
+falcon-mamba-7b,box-screenplay,0shot,0.422,200,0.253,0.204,0.118,0.286,above
+falcon-mamba-7b,box-screenplay,fair,0.393,200,0.253,0.174,0.096,0.253,above
+falcon-mamba-7b,box-code,0shot,0.472,200,0.253,0.289,0.187,0.382,above
+falcon-mamba-7b,box-code,fair,0.613,200,0.253,0.479,0.392,0.558,above
+falcon-mamba-7b,box-chat,0shot,0.540,200,0.253,0.376,0.296,0.458,above
+falcon-mamba-7b,box-chat,fair,0.431,200,0.253,0.226,0.144,0.305,above
+falcon-mamba-7b,you-static,0shot,0.791,300,0.292,0.704,0.647,0.758,above
+falcon-mamba-7b,i-moves,0shot,0.353,180,0.287,0.090,0.019,0.168,above
+falcon-mamba-7b,i-moves,fair,0.410,180,0.287,0.174,0.088,0.262,above
+falcon-mamba-7b,you-moves,0shot,0.278,180,0.287,-0.015,-0.091,0.059,at
+falcon-mamba-7b,you-moves,fair,0.236,180,0.287,-0.071,-0.144,0.004,at
+falcon-mamba-7b,you-named,0shot,0.315,180,0.287,0.036,-0.039,0.118,at
+falcon-mamba-7b,you-named,fair,0.256,180,0.287,-0.048,-0.124,0.022,at
+falcon-mamba-7b,answer-self,0shot,0.288,2560,0.250,0.051,0.032,0.071,above
+falcon-mamba-7b,answer-self,fair,0.285,2560,0.250,0.047,0.029,0.065,above
+falcon-mamba-7b,grammar,ladder,,1080,,0.817,0.799,0.832,above
+falcon-mamba-7b,operators,ladder,,1080,,0.275,0.253,0.301,above
+falcon-mamba-7b,patterns,ladder,,1080,,0.801,0.783,0.824,above
+falcon-mamba-7b,facts,ladder,,768,,0.998,0.995,1.000,above
+olmo2-7b,lookup,0shot,0.459,1210,0.168,0.335,0.300,0.368,above
+olmo2-7b,lookup,fair,0.981,1210,0.168,0.977,0.968,0.986,above
+olmo2-7b,shortlist,0shot,0.885,960,0.040,0.881,0.860,0.900,above
+olmo2-7b,pairs,0shot,0.367,64,0.125,0.277,0.152,0.411,above
+olmo2-7b,pairs,fair,0.797,64,0.125,0.768,0.661,0.875,above
+olmo2-7b,noise,0shot,0.647,720,0.200,0.559,0.519,0.602,above
+olmo2-7b,now,0shot,0.517,300,0.292,0.316,0.237,0.393,above
+olmo2-7b,handoffs,0shot,0.770,1200,0.312,0.660,0.624,0.695,above
+olmo2-7b,handoffs,fair,0.801,1200,0.312,0.706,0.669,0.740,above
+olmo2-7b,sets,0shot,0.588,320,0.275,0.449,0.381,0.527,above
+olmo2-7b,sets,fair,0.762,320,0.275,0.691,0.627,0.754,above
+olmo2-7b,refilled,0shot,0.579,720,0.200,0.474,0.429,0.521,above
+olmo2-7b,refills,0shot,0.401,600,0.200,0.251,0.204,0.297,above
+olmo2-7b,codevar,0shot,0.372,1200,0.267,0.137,0.100,0.174,above
+olmo2-7b,codevar,fair,0.419,1200,0.267,0.201,0.164,0.239,above
+olmo2-7b,sharedlists,0shot,0.318,600,0.200,0.148,0.104,0.192,above
+olmo2-7b,sharedlists,fair,0.333,600,0.200,0.167,0.117,0.212,above
+olmo2-7b,box-narrative,0shot,0.370,200,0.253,0.134,0.038,0.237,above
+olmo2-7b,box-narrative,fair,0.425,200,0.253,0.214,0.110,0.308,above
+olmo2-7b,box-screenplay,0shot,0.555,200,0.253,0.410,0.313,0.505,above
+olmo2-7b,box-screenplay,fair,0.422,200,0.253,0.199,0.090,0.299,above
+olmo2-7b,box-code,0shot,0.595,200,0.253,0.451,0.349,0.546,above
+olmo2-7b,box-code,fair,0.635,200,0.253,0.482,0.389,0.574,above
+olmo2-7b,box-chat,0shot,0.525,200,0.253,0.363,0.265,0.457,above
+olmo2-7b,box-chat,fair,0.405,200,0.253,0.171,0.072,0.272,above
+olmo2-7b,you-static,0shot,0.877,300,0.292,0.824,0.773,0.877,above
+olmo2-7b,i-moves,0shot,0.342,180,0.287,0.080,-0.018,0.170,at
+olmo2-7b,i-moves,fair,0.394,180,0.287,0.156,0.056,0.253,above
+olmo2-7b,you-moves,0shot,0.272,180,0.287,-0.023,-0.112,0.071,at
+olmo2-7b,you-moves,fair,0.339,180,0.287,0.073,-0.020,0.174,at
+olmo2-7b,you-named,0shot,0.333,180,0.287,0.062,-0.032,0.158,at
+olmo2-7b,you-named,fair,0.322,180,0.287,0.048,-0.047,0.146,at
+olmo2-7b,answer-self,0shot,0.346,2560,0.250,0.129,0.105,0.154,above
+olmo2-7b,answer-self,fair,0.380,2560,0.250,0.173,0.148,0.200,above
+olmo2-7b,grammar,ladder,,1080,,0.862,0.841,0.882,above
+olmo2-7b,operators,ladder,,1080,,0.286,0.257,0.322,above
+olmo2-7b,patterns,ladder,,1080,,0.810,0.788,0.831,above
+olmo2-7b,facts,ladder,,768,,1.000,1.000,1.000,above
+falcon3-7b,lookup,0shot,0.752,1210,0.168,0.697,0.666,0.728,above
+falcon3-7b,lookup,fair,0.999,1210,0.168,0.999,0.997,1.000,above
+falcon3-7b,shortlist,0shot,0.728,960,0.040,0.716,0.687,0.743,above
+falcon3-7b,pairs,0shot,0.688,64,0.125,0.643,0.500,0.750,above
+falcon3-7b,pairs,fair,0.891,64,0.125,0.875,0.786,0.946,above
+falcon3-7b,noise,0shot,0.711,720,0.200,0.639,0.600,0.681,above
+falcon3-7b,now,0shot,0.572,300,0.292,0.396,0.317,0.471,above
+falcon3-7b,handoffs,0shot,0.859,1200,0.312,0.791,0.763,0.819,above
+falcon3-7b,handoffs,fair,0.881,1200,0.312,0.824,0.797,0.850,above
+falcon3-7b,sets,0shot,0.828,320,0.275,0.762,0.697,0.821,above
+falcon3-7b,sets,fair,0.658,320,0.275,0.539,0.470,0.603,above
+falcon3-7b,refilled,0shot,0.593,720,0.200,0.491,0.443,0.536,above
+falcon3-7b,refills,0shot,0.450,600,0.200,0.312,0.263,0.365,above
+falcon3-7b,codevar,0shot,0.625,1200,0.267,0.482,0.444,0.518,above
+falcon3-7b,codevar,fair,0.824,1200,0.267,0.755,0.722,0.785,above
+falcon3-7b,sharedlists,0shot,0.395,600,0.200,0.244,0.194,0.296,above
+falcon3-7b,sharedlists,fair,0.777,600,0.200,0.721,0.677,0.760,above
+falcon3-7b,box-narrative,0shot,0.465,200,0.253,0.264,0.171,0.356,above
+falcon3-7b,box-narrative,fair,0.470,200,0.253,0.283,0.184,0.377,above
+falcon3-7b,box-screenplay,0shot,0.590,200,0.253,0.440,0.346,0.532,above
+falcon3-7b,box-screenplay,fair,0.605,200,0.253,0.477,0.384,0.571,above
+falcon3-7b,box-code,0shot,0.495,200,0.253,0.338,0.243,0.424,above
+falcon3-7b,box-code,fair,0.820,200,0.253,0.748,0.671,0.821,above
+falcon3-7b,box-chat,0shot,0.642,200,0.253,0.516,0.421,0.604,above
+falcon3-7b,box-chat,fair,0.660,200,0.253,0.546,0.445,0.632,above
+falcon3-7b,you-static,0shot,0.890,300,0.292,0.840,0.786,0.890,above
+falcon3-7b,i-moves,0shot,0.347,180,0.287,0.082,-0.015,0.184,at
+falcon3-7b,i-moves,fair,0.372,180,0.287,0.119,0.024,0.220,above
+falcon3-7b,you-moves,0shot,0.278,180,0.287,-0.009,-0.093,0.078,at
+falcon3-7b,you-moves,fair,0.250,180,0.287,-0.051,-0.140,0.043,at
+falcon3-7b,you-named,0shot,0.361,180,0.287,0.105,0.008,0.199,above
+falcon3-7b,you-named,fair,0.428,180,0.287,0.195,0.099,0.299,above
+falcon3-7b,answer-self,0shot,0.409,2560,0.250,0.212,0.188,0.238,above
+falcon3-7b,answer-self,fair,0.452,2560,0.250,0.269,0.244,0.297,above
+falcon3-7b,grammar,ladder,,1080,,0.833,0.814,0.851,above
+falcon3-7b,operators,ladder,,1080,,0.227,0.198,0.264,above
+falcon3-7b,patterns,ladder,,1080,,0.833,0.812,0.852,above
+falcon3-7b,facts,ladder,,768,,1.000,1.000,1.000,above
+falcon-h1-7b,lookup,0shot,0.882,1210,0.168,0.853,0.830,0.874,above
+falcon-h1-7b,lookup,fair,0.998,1210,0.168,0.997,0.993,1.000,above
+falcon-h1-7b,shortlist,0shot,0.971,960,0.040,0.970,0.959,0.981,above
+falcon-h1-7b,pairs,0shot,0.953,64,0.125,0.946,0.875,1.000,above
+falcon-h1-7b,pairs,fair,1.000,64,0.125,1.000,1.000,1.000,above
+falcon-h1-7b,noise,0shot,0.831,720,0.200,0.788,0.756,0.821,above
+falcon-h1-7b,now,0shot,0.293,300,0.292,0.001,-0.063,0.077,at
+falcon-h1-7b,handoffs,0shot,0.903,1200,0.312,0.856,0.832,0.880,above
+falcon-h1-7b,handoffs,fair,0.920,1200,0.312,0.882,0.859,0.902,above
+falcon-h1-7b,sets,0shot,0.892,320,0.275,0.850,0.804,0.897,above
+falcon-h1-7b,sets,fair,0.772,320,0.275,0.694,0.632,0.759,above
+falcon-h1-7b,refilled,0shot,0.701,720,0.200,0.627,0.587,0.667,above
+falcon-h1-7b,refills,0shot,0.632,600,0.200,0.540,0.491,0.588,above
+falcon-h1-7b,codevar,0shot,0.536,1200,0.267,0.366,0.328,0.405,above
+falcon-h1-7b,codevar,fair,0.775,1200,0.267,0.687,0.654,0.720,above
+falcon-h1-7b,sharedlists,0shot,0.379,600,0.200,0.224,0.180,0.271,above
+falcon-h1-7b,sharedlists,fair,0.757,600,0.200,0.696,0.652,0.737,above
+falcon-h1-7b,box-narrative,0shot,0.320,200,0.253,0.067,-0.025,0.167,at
+falcon-h1-7b,box-narrative,fair,0.537,200,0.253,0.371,0.273,0.470,above
+falcon-h1-7b,box-screenplay,0shot,0.650,200,0.253,0.528,0.438,0.624,above
+falcon-h1-7b,box-screenplay,fair,0.660,200,0.253,0.549,0.458,0.639,above
+falcon-h1-7b,box-code,0shot,0.620,200,0.253,0.467,0.378,0.558,above
+falcon-h1-7b,box-code,fair,0.855,200,0.253,0.799,0.732,0.866,above
+falcon-h1-7b,box-chat,0shot,0.640,200,0.253,0.522,0.423,0.611,above
+falcon-h1-7b,box-chat,fair,0.680,200,0.253,0.562,0.475,0.647,above
+falcon-h1-7b,you-static,0shot,0.957,300,0.292,0.937,0.900,0.971,above
+falcon-h1-7b,i-moves,0shot,0.333,180,0.287,0.057,-0.035,0.158,at
+falcon-h1-7b,i-moves,fair,0.547,180,0.287,0.367,0.270,0.475,above
+falcon-h1-7b,you-moves,0shot,0.261,180,0.287,-0.041,-0.127,0.050,at
+falcon-h1-7b,you-moves,fair,0.356,180,0.287,0.096,-0.002,0.200,at
+falcon-h1-7b,you-named,0shot,0.353,180,0.287,0.090,-0.006,0.190,at
+falcon-h1-7b,you-named,fair,0.464,180,0.287,0.240,0.137,0.340,above
+falcon-h1-7b,answer-self,0shot,0.419,2560,0.250,0.225,0.200,0.252,above
+falcon-h1-7b,answer-self,fair,0.493,2560,0.250,0.325,0.298,0.352,above
+falcon-h1-7b,grammar,ladder,,1080,,0.873,0.857,0.893,above
+falcon-h1-7b,operators,ladder,,1080,,0.279,0.246,0.317,above
+falcon-h1-7b,patterns,ladder,,1080,,0.918,0.903,0.936,above
+falcon-h1-7b,facts,ladder,,768,,0.998,0.995,1.000,above
+qwen2.5-7b,lookup,0shot,0.795,1210,0.168,0.745,0.716,0.773,above
+qwen2.5-7b,lookup,fair,1.000,1210,0.168,1.000,0.999,1.000,above
+qwen2.5-7b,shortlist,0shot,0.881,960,0.040,0.876,0.854,0.897,above
+qwen2.5-7b,pairs,0shot,0.953,64,0.125,0.946,0.893,1.000,above
+qwen2.5-7b,pairs,fair,1.000,64,0.125,1.000,1.000,1.000,above
+qwen2.5-7b,noise,0shot,0.909,720,0.200,0.886,0.861,0.911,above
+qwen2.5-7b,now,0shot,0.787,300,0.292,0.699,0.634,0.759,above
+qwen2.5-7b,handoffs,0shot,0.822,1200,0.312,0.738,0.707,0.770,above
+qwen2.5-7b,handoffs,fair,0.868,1200,0.312,0.806,0.778,0.834,above
+qwen2.5-7b,sets,0shot,0.880,320,0.275,0.836,0.787,0.889,above
+qwen2.5-7b,sets,fair,0.892,320,0.275,0.856,0.809,0.901,above
+qwen2.5-7b,refilled,0shot,0.652,720,0.200,0.565,0.524,0.609,above
+qwen2.5-7b,refills,0shot,0.549,600,0.200,0.436,0.388,0.487,above
+qwen2.5-7b,codevar,0shot,0.619,1200,0.267,0.478,0.438,0.513,above
+qwen2.5-7b,codevar,fair,0.657,1200,0.267,0.526,0.487,0.562,above
+qwen2.5-7b,sharedlists,0shot,0.561,600,0.200,0.451,0.402,0.502,above
+qwen2.5-7b,sharedlists,fair,0.669,600,0.200,0.587,0.542,0.630,above
+qwen2.5-7b,box-narrative,0shot,0.455,200,0.253,0.243,0.144,0.343,above
+qwen2.5-7b,box-narrative,fair,0.520,200,0.253,0.335,0.235,0.431,above
+qwen2.5-7b,box-screenplay,0shot,0.670,200,0.253,0.551,0.463,0.642,above
+qwen2.5-7b,box-screenplay,fair,0.650,200,0.253,0.516,0.421,0.605,above
+qwen2.5-7b,box-code,0shot,0.665,200,0.253,0.512,0.405,0.602,above
+qwen2.5-7b,box-code,fair,0.802,200,0.253,0.716,0.631,0.786,above
+qwen2.5-7b,box-chat,0shot,0.662,200,0.253,0.536,0.444,0.622,above
+qwen2.5-7b,box-chat,fair,0.695,200,0.253,0.582,0.492,0.668,above
+qwen2.5-7b,you-static,0shot,0.827,300,0.292,0.751,0.687,0.807,above
+qwen2.5-7b,i-moves,0shot,0.444,180,0.287,0.225,0.123,0.326,above
+qwen2.5-7b,i-moves,fair,0.506,180,0.287,0.307,0.204,0.405,above
+qwen2.5-7b,you-moves,0shot,0.356,180,0.287,0.096,-0.005,0.194,at
+qwen2.5-7b,you-moves,fair,0.383,180,0.287,0.132,0.040,0.237,above
+qwen2.5-7b,you-named,0shot,0.383,180,0.287,0.131,0.038,0.238,above
+qwen2.5-7b,you-named,fair,0.367,180,0.287,0.106,0.011,0.208,above
+qwen2.5-7b,answer-self,0shot,0.387,2560,0.250,0.183,0.159,0.207,above
+qwen2.5-7b,answer-self,fair,0.468,2560,0.250,0.291,0.266,0.317,above
+qwen2.5-7b,grammar,ladder,,1080,,0.826,0.803,0.847,above
+qwen2.5-7b,operators,ladder,,1080,,0.224,0.196,0.261,above
+qwen2.5-7b,patterns,ladder,,1080,,0.936,0.920,0.950,above
+qwen2.5-7b,facts,ladder,,768,,1.000,1.000,1.000,above
+llama3-8b,lookup,0shot,0.745,1210,0.168,0.680,0.647,0.708,above
+llama3-8b,lookup,fair,1.000,1210,0.168,1.000,1.000,1.000,above
+llama3-8b,shortlist,0shot,0.988,960,0.040,0.987,0.979,0.994,above
+llama3-8b,pairs,0shot,0.859,64,0.125,0.839,0.750,0.929,above
+llama3-8b,pairs,fair,0.969,64,0.125,0.964,0.911,1.000,above
+llama3-8b,noise,0shot,0.915,720,0.200,0.894,0.868,0.917,above
+llama3-8b,now,0shot,0.334,300,0.292,0.053,-0.017,0.125,at
+llama3-8b,handoffs,0shot,0.847,1200,0.312,0.774,0.746,0.803,above
+llama3-8b,handoffs,fair,0.859,1200,0.312,0.793,0.767,0.822,above
+llama3-8b,sets,0shot,0.863,320,0.275,0.809,0.757,0.861,above
+llama3-8b,sets,fair,0.830,320,0.275,0.771,0.720,0.823,above
+llama3-8b,refilled,0shot,0.445,720,0.200,0.306,0.262,0.350,above
+llama3-8b,refills,0shot,0.428,600,0.200,0.285,0.239,0.333,above
+llama3-8b,codevar,0shot,0.574,1200,0.267,0.414,0.378,0.453,above
+llama3-8b,codevar,fair,0.674,1200,0.267,0.548,0.514,0.583,above
+llama3-8b,sharedlists,0shot,0.417,600,0.200,0.272,0.227,0.321,above
+llama3-8b,sharedlists,fair,0.617,600,0.200,0.521,0.473,0.569,above
+llama3-8b,box-narrative,0shot,0.278,200,0.253,0.014,-0.074,0.107,at
+llama3-8b,box-narrative,fair,0.520,200,0.253,0.328,0.220,0.423,above
+llama3-8b,box-screenplay,0shot,0.657,200,0.253,0.545,0.454,0.634,above
+llama3-8b,box-screenplay,fair,0.609,200,0.253,0.453,0.351,0.548,above
+llama3-8b,box-code,0shot,0.692,200,0.253,0.565,0.476,0.647,above
+llama3-8b,box-code,fair,0.725,200,0.253,0.599,0.510,0.685,above
+llama3-8b,box-chat,0shot,0.564,200,0.253,0.413,0.317,0.500,above
+llama3-8b,box-chat,fair,0.706,200,0.253,0.596,0.506,0.679,above
+llama3-8b,you-static,0shot,0.933,300,0.292,0.901,0.858,0.939,above
+llama3-8b,i-moves,0shot,0.328,180,0.287,0.053,-0.041,0.151,at
+llama3-8b,i-moves,fair,0.450,180,0.287,0.232,0.126,0.334,above
+llama3-8b,you-moves,0shot,0.261,180,0.287,-0.037,-0.118,0.053,at
+llama3-8b,you-moves,fair,0.317,180,0.287,0.044,-0.045,0.141,at
+llama3-8b,you-named,0shot,0.406,180,0.287,0.162,0.070,0.259,above
+llama3-8b,you-named,fair,0.366,180,0.287,0.107,0.010,0.208,above
+llama3-8b,answer-self,0shot,0.402,2560,0.250,0.203,0.180,0.230,above
+llama3-8b,answer-self,fair,0.409,2560,0.250,0.212,0.186,0.236,above
+llama3-8b,grammar,ladder,,1080,,0.848,0.829,0.869,above
+llama3-8b,operators,ladder,,1080,,0.260,0.231,0.291,above
+llama3-8b,patterns,ladder,,1080,,0.932,0.919,0.947,above
+llama3-8b,facts,ladder,,768,,1.000,1.000,1.000,above
+llama3.1-8b,lookup,0shot,0.674,1210,0.168,0.589,0.555,0.622,above
+llama3.1-8b,lookup,fair,1.000,1210,0.168,1.000,1.000,1.000,above
+llama3.1-8b,shortlist,0shot,0.988,960,0.040,0.987,0.978,0.994,above
+llama3.1-8b,pairs,0shot,0.727,64,0.125,0.688,0.562,0.804,above
+llama3.1-8b,pairs,fair,0.992,64,0.125,0.991,0.973,1.000,above
+llama3.1-8b,noise,0shot,0.924,720,0.200,0.905,0.878,0.928,above
+llama3.1-8b,now,0shot,0.366,300,0.292,0.098,0.025,0.172,above
+llama3.1-8b,handoffs,0shot,0.830,1200,0.312,0.750,0.720,0.781,above
+llama3.1-8b,handoffs,fair,0.871,1200,0.312,0.811,0.786,0.838,above
+llama3.1-8b,sets,0shot,0.860,320,0.275,0.804,0.751,0.853,above
+llama3.1-8b,sets,fair,0.864,320,0.275,0.816,0.765,0.867,above
+llama3.1-8b,refilled,0shot,0.452,720,0.200,0.315,0.267,0.358,above
+llama3.1-8b,refills,0shot,0.433,600,0.200,0.291,0.244,0.339,above
+llama3.1-8b,codevar,0shot,0.581,1200,0.267,0.422,0.385,0.458,above
+llama3.1-8b,codevar,fair,0.682,1200,0.267,0.560,0.524,0.595,above
+llama3.1-8b,sharedlists,0shot,0.426,600,0.200,0.282,0.235,0.326,above
+llama3.1-8b,sharedlists,fair,0.609,600,0.200,0.511,0.462,0.558,above
+llama3.1-8b,box-narrative,0shot,0.306,200,0.253,0.044,-0.047,0.136,at
+llama3.1-8b,box-narrative,fair,0.557,200,0.253,0.381,0.275,0.481,above
+llama3.1-8b,box-screenplay,0shot,0.615,200,0.253,0.477,0.378,0.568,above
+llama3.1-8b,box-screenplay,fair,0.647,200,0.253,0.508,0.409,0.598,above
+llama3.1-8b,box-code,0shot,0.677,200,0.253,0.544,0.449,0.630,above
+llama3.1-8b,box-code,fair,0.762,200,0.253,0.649,0.559,0.731,above
+llama3.1-8b,box-chat,0shot,0.615,200,0.253,0.481,0.401,0.573,above
+llama3.1-8b,box-chat,fair,0.690,200,0.253,0.580,0.487,0.669,above
+llama3.1-8b,you-static,0shot,0.913,300,0.292,0.874,0.829,0.915,above
+llama3.1-8b,i-moves,0shot,0.339,180,0.287,0.069,-0.019,0.164,at
+llama3.1-8b,i-moves,fair,0.449,180,0.287,0.231,0.131,0.332,above
+llama3.1-8b,you-moves,0shot,0.233,180,0.287,-0.078,-0.154,0.010,at
+llama3.1-8b,you-moves,fair,0.335,180,0.287,0.069,-0.024,0.167,at
+llama3.1-8b,you-named,0shot,0.400,180,0.287,0.155,0.057,0.253,above
+llama3.1-8b,you-named,fair,0.373,180,0.287,0.115,0.015,0.214,above
+llama3.1-8b,answer-self,0shot,0.388,2560,0.250,0.184,0.159,0.209,above
+llama3.1-8b,answer-self,fair,0.404,2560,0.250,0.206,0.179,0.231,above
+llama3.1-8b,grammar,ladder,,1080,,0.843,0.822,0.868,above
+llama3.1-8b,operators,ladder,,1080,,0.266,0.238,0.295,above
+llama3.1-8b,patterns,ladder,,1080,,0.942,0.928,0.953,above
+llama3.1-8b,facts,ladder,,768,,1.000,1.000,1.000,above
+gemma-7b,lookup,0shot,0.764,1210,0.168,0.701,0.674,0.728,above
+gemma-7b,lookup,fair,0.999,1210,0.168,0.999,0.997,1.000,above
+gemma-7b,shortlist,0shot,0.960,960,0.040,0.958,0.946,0.969,above
+gemma-7b,pairs,0shot,0.630,64,0.125,0.577,0.449,0.696,above
+gemma-7b,pairs,fair,0.859,64,0.125,0.838,0.760,0.913,above
+gemma-7b,noise,0shot,0.755,720,0.200,0.693,0.660,0.732,above
+gemma-7b,now,0shot,0.289,300,0.292,-0.006,-0.063,0.053,at
+gemma-7b,handoffs,0shot,0.756,1200,0.312,0.640,0.609,0.669,above
+gemma-7b,handoffs,fair,0.880,1200,0.312,0.823,0.800,0.847,above
+gemma-7b,sets,0shot,0.696,320,0.275,0.582,0.528,0.638,above
+gemma-7b,sets,fair,0.789,320,0.275,0.714,0.667,0.760,above
+gemma-7b,refilled,0shot,0.495,720,0.200,0.368,0.333,0.410,above
+gemma-7b,refills,0shot,0.410,600,0.200,0.262,0.222,0.305,above
+gemma-7b,codevar,0shot,0.595,1200,0.267,0.440,0.411,0.468,above
+gemma-7b,codevar,fair,0.603,1200,0.267,0.451,0.423,0.481,above
+gemma-7b,sharedlists,0shot,0.394,600,0.200,0.243,0.201,0.284,above
+gemma-7b,sharedlists,fair,0.535,600,0.200,0.418,0.381,0.456,above
+gemma-7b,box-narrative,0shot,0.206,200,0.253,-0.068,-0.145,0.010,at
+gemma-7b,box-narrative,fair,0.348,200,0.253,0.101,0.013,0.183,above
+gemma-7b,box-screenplay,0shot,0.434,200,0.253,0.249,0.168,0.330,above
+gemma-7b,box-screenplay,fair,0.479,200,0.253,0.279,0.188,0.365,above
+gemma-7b,box-code,0shot,0.699,200,0.253,0.581,0.491,0.662,above
+gemma-7b,box-code,fair,0.767,200,0.253,0.676,0.607,0.743,above
+gemma-7b,box-chat,0shot,0.384,200,0.253,0.157,0.079,0.233,above
+gemma-7b,box-chat,fair,0.508,200,0.253,0.322,0.236,0.411,above
+gemma-7b,you-static,0shot,0.955,300,0.292,0.933,0.900,0.961,above
+gemma-7b,i-moves,0shot,0.468,180,0.287,0.255,0.163,0.344,above
+gemma-7b,i-moves,fair,0.445,180,0.287,0.226,0.137,0.327,above
+gemma-7b,you-moves,0shot,0.258,180,0.287,-0.041,-0.118,0.034,at
+gemma-7b,you-moves,fair,0.326,180,0.287,0.055,-0.026,0.138,at
+gemma-7b,you-named,0shot,0.307,180,0.287,0.025,-0.051,0.113,at
+gemma-7b,you-named,fair,0.289,180,0.287,-0.002,-0.077,0.082,at
+gemma-7b,answer-self,0shot,0.373,2560,0.250,0.164,0.144,0.184,above
+gemma-7b,answer-self,fair,0.380,2560,0.250,0.174,0.155,0.194,above
+gemma-7b,grammar,ladder,,1080,,0.845,0.826,0.864,above
+gemma-7b,operators,ladder,,1080,,0.236,0.206,0.265,above
+gemma-7b,patterns,ladder,,1080,,0.896,0.876,0.913,above
+gemma-7b,facts,ladder,,768,,1.000,1.000,1.000,above
+gemma2-9b,lookup,0shot,0.773,1210,0.168,0.722,0.693,0.750,above
+gemma2-9b,lookup,fair,0.998,1210,0.168,0.998,0.994,1.000,above
+gemma2-9b,shortlist,0shot,0.940,960,0.040,0.938,0.922,0.951,above
+gemma2-9b,pairs,0shot,0.906,64,0.125,0.893,0.812,0.964,above
+gemma2-9b,pairs,fair,0.984,64,0.125,0.982,0.946,1.000,above
+gemma2-9b,noise,0shot,0.941,720,0.200,0.926,0.906,0.947,above
+gemma2-9b,now,0shot,0.440,300,0.292,0.210,0.137,0.287,above
+gemma2-9b,handoffs,0shot,0.856,1200,0.312,0.786,0.758,0.813,above
+gemma2-9b,handoffs,fair,0.928,1200,0.312,0.893,0.873,0.914,above
+gemma2-9b,sets,0shot,0.834,320,0.275,0.769,0.716,0.823,above
+gemma2-9b,sets,fair,0.808,320,0.275,0.734,0.673,0.795,above
+gemma2-9b,refilled,0shot,0.510,720,0.200,0.388,0.342,0.432,above
+gemma2-9b,refills,0shot,0.486,600,0.200,0.358,0.309,0.406,above
+gemma2-9b,codevar,0shot,0.643,1200,0.267,0.507,0.472,0.545,above
+gemma2-9b,codevar,fair,0.760,1200,0.267,0.668,0.637,0.700,above
+gemma2-9b,sharedlists,0shot,0.609,600,0.200,0.511,0.460,0.555,above
+gemma2-9b,sharedlists,fair,0.706,600,0.200,0.632,0.588,0.677,above
+gemma2-9b,box-narrative,0shot,0.491,200,0.253,0.319,0.226,0.412,above
+gemma2-9b,box-narrative,fair,0.642,200,0.253,0.500,0.415,0.588,above
+gemma2-9b,box-screenplay,0shot,0.559,200,0.253,0.408,0.316,0.501,above
+gemma2-9b,box-screenplay,fair,0.701,200,0.253,0.590,0.505,0.672,above
+gemma2-9b,box-code,0shot,0.670,200,0.253,0.533,0.441,0.624,above
+gemma2-9b,box-code,fair,0.820,200,0.253,0.749,0.672,0.821,above
+gemma2-9b,box-chat,0shot,0.655,200,0.253,0.534,0.446,0.617,above
+gemma2-9b,box-chat,fair,0.713,200,0.253,0.610,0.520,0.691,above
+gemma2-9b,you-static,0shot,0.888,300,0.292,0.838,0.785,0.885,above
+gemma2-9b,i-moves,0shot,0.387,180,0.287,0.141,0.048,0.242,above
+gemma2-9b,i-moves,fair,0.517,180,0.287,0.322,0.231,0.424,above
+gemma2-9b,you-moves,0shot,0.229,180,0.287,-0.084,-0.165,0.009,at
+gemma2-9b,you-moves,fair,0.397,180,0.287,0.157,0.063,0.257,above
+gemma2-9b,you-named,0shot,0.306,180,0.287,0.023,-0.062,0.121,at
+gemma2-9b,you-named,fair,0.425,180,0.287,0.189,0.090,0.290,above
+gemma2-9b,answer-self,0shot,0.394,2560,0.250,0.192,0.169,0.218,above
+gemma2-9b,answer-self,fair,0.513,2560,0.250,0.351,0.328,0.377,above
+gemma2-9b,grammar,ladder,,1080,,0.860,0.840,0.883,above
+gemma2-9b,operators,ladder,,1080,,0.297,0.265,0.333,above
+gemma2-9b,patterns,ladder,,1080,,0.899,0.881,0.918,above
+gemma2-9b,facts,ladder,,768,,0.998,0.995,1.000,above
+recurrentgemma-9b,lookup,0shot,0.363,1210,0.168,0.233,0.201,0.268,above
+recurrentgemma-9b,lookup,fair,0.299,1210,0.168,0.163,0.133,0.194,above
+recurrentgemma-9b,shortlist,0shot,0.698,960,0.040,0.686,0.657,0.715,above
+recurrentgemma-9b,pairs,0shot,0.169,64,0.125,0.051,-0.045,0.158,at
+recurrentgemma-9b,pairs,fair,0.180,64,0.125,0.062,-0.036,0.179,at
+recurrentgemma-9b,noise,0shot,0.427,720,0.200,0.284,0.240,0.326,above
+recurrentgemma-9b,now,0shot,0.459,300,0.292,0.235,0.159,0.312,above
+recurrentgemma-9b,handoffs,0shot,0.623,1200,0.312,0.445,0.406,0.487,above
+recurrentgemma-9b,handoffs,fair,0.518,1200,0.312,0.294,0.254,0.337,above
+recurrentgemma-9b,sets,0shot,0.332,320,0.275,0.080,0.012,0.147,above
+recurrentgemma-9b,sets,fair,0.317,320,0.275,0.064,-0.009,0.139,at
+recurrentgemma-9b,refilled,0shot,0.245,720,0.200,0.056,0.018,0.097,above
+recurrentgemma-9b,refills,0shot,0.277,600,0.200,0.096,0.054,0.138,above
+recurrentgemma-9b,codevar,0shot,0.357,1200,0.267,0.119,0.083,0.154,above
+recurrentgemma-9b,codevar,fair,0.283,1200,0.267,0.017,-0.014,0.051,at
+recurrentgemma-9b,sharedlists,0shot,0.208,600,0.200,0.010,-0.032,0.050,at
+recurrentgemma-9b,sharedlists,fair,0.292,600,0.200,0.116,0.073,0.164,above
+recurrentgemma-9b,box-narrative,0shot,0.253,200,0.253,0.004,-0.075,0.085,at
+recurrentgemma-9b,box-narrative,fair,0.279,200,0.253,0.021,-0.070,0.108,at
+recurrentgemma-9b,box-screenplay,0shot,0.333,200,0.253,0.115,0.027,0.200,above
+recurrentgemma-9b,box-screenplay,fair,0.435,200,0.253,0.235,0.141,0.332,above
+recurrentgemma-9b,box-code,0shot,0.435,200,0.253,0.254,0.156,0.337,above
+recurrentgemma-9b,box-code,fair,0.439,200,0.253,0.257,0.167,0.345,above
+recurrentgemma-9b,box-chat,0shot,0.327,200,0.253,0.127,0.045,0.209,above
+recurrentgemma-9b,box-chat,fair,0.460,200,0.253,0.279,0.186,0.371,above
+recurrentgemma-9b,you-static,0shot,0.574,300,0.292,0.398,0.321,0.479,above
+recurrentgemma-9b,i-moves,0shot,0.300,180,0.287,0.012,-0.084,0.111,at
+recurrentgemma-9b,i-moves,fair,0.261,180,0.287,-0.043,-0.133,0.047,at
+recurrentgemma-9b,you-moves,0shot,0.243,180,0.287,-0.064,-0.148,0.024,at
+recurrentgemma-9b,you-moves,fair,0.303,180,0.287,0.024,-0.066,0.115,at
+recurrentgemma-9b,you-named,0shot,0.336,180,0.287,0.067,-0.029,0.162,at
+recurrentgemma-9b,you-named,fair,0.317,180,0.287,0.039,-0.055,0.134,at
+recurrentgemma-9b,answer-self,0shot,0.279,2560,0.250,0.038,0.015,0.062,above
+recurrentgemma-9b,answer-self,fair,0.243,2560,0.250,-0.009,-0.031,0.013,at
+recurrentgemma-9b,grammar,ladder,,1080,,0.631,0.604,0.658,above
+recurrentgemma-9b,operators,ladder,,1080,,0.128,0.104,0.159,above
+recurrentgemma-9b,patterns,ladder,,1080,,0.342,0.311,0.374,above
+recurrentgemma-9b,facts,ladder,,768,,0.997,0.992,1.000,above
+bamba-9b,lookup,0shot,0.303,1210,0.168,0.168,0.137,0.198,above
+bamba-9b,lookup,fair,0.214,1210,0.168,0.060,0.031,0.089,above
+bamba-9b,shortlist,0shot,0.653,960,0.040,0.639,0.608,0.669,above
+bamba-9b,pairs,0shot,0.156,64,0.125,0.036,-0.054,0.143,at
+bamba-9b,pairs,fair,0.109,64,0.125,-0.018,-0.107,0.071,at
+bamba-9b,noise,0shot,0.386,720,0.200,0.233,0.189,0.276,above
+bamba-9b,now,0shot,0.402,300,0.292,0.157,0.070,0.232,above
+bamba-9b,handoffs,0shot,0.542,1200,0.312,0.330,0.288,0.372,above
+bamba-9b,handoffs,fair,0.466,1200,0.312,0.222,0.180,0.262,above
+bamba-9b,sets,0shot,0.323,320,0.275,0.067,-0.006,0.139,at
+bamba-9b,sets,fair,0.358,320,0.275,0.129,0.056,0.200,above
+bamba-9b,refilled,0shot,0.414,720,0.200,0.267,0.223,0.309,above
+bamba-9b,refills,0shot,0.374,600,0.200,0.218,0.171,0.269,above
+bamba-9b,codevar,0shot,0.313,1200,0.267,0.061,0.025,0.100,above
+bamba-9b,codevar,fair,0.300,1200,0.267,0.043,0.007,0.076,above
+bamba-9b,sharedlists,0shot,0.237,600,0.200,0.047,0.007,0.090,above
+bamba-9b,sharedlists,fair,0.182,600,0.200,-0.022,-0.060,0.018,at
+bamba-9b,box-narrative,0shot,0.172,200,0.253,-0.120,-0.192,-0.045,below
+bamba-9b,box-narrative,fair,0.190,200,0.253,-0.085,-0.164,-0.009,below
+bamba-9b,box-screenplay,0shot,0.180,200,0.253,-0.087,-0.157,-0.014,below
+bamba-9b,box-screenplay,fair,0.235,200,0.253,-0.030,-0.113,0.065,at
+bamba-9b,box-code,0shot,0.285,200,0.253,0.050,-0.038,0.137,at
+bamba-9b,box-code,fair,0.240,200,0.253,-0.015,-0.095,0.070,at
+bamba-9b,box-chat,0shot,0.165,200,0.253,-0.132,-0.208,-0.048,below
+bamba-9b,box-chat,fair,0.245,200,0.253,0.001,-0.078,0.083,at
+bamba-9b,you-static,0shot,0.378,300,0.292,0.123,0.050,0.196,above
+bamba-9b,i-moves,0shot,0.233,180,0.287,-0.077,-0.167,0.010,at
+bamba-9b,i-moves,fair,0.258,180,0.287,-0.041,-0.135,0.058,at
+bamba-9b,you-moves,0shot,0.272,180,0.287,-0.022,-0.113,0.064,at
+bamba-9b,you-moves,fair,0.283,180,0.287,-0.007,-0.104,0.084,at
+bamba-9b,you-named,0shot,0.369,180,0.287,0.115,0.018,0.216,above
+bamba-9b,you-named,fair,0.292,180,0.287,0.007,-0.086,0.101,at
+bamba-9b,answer-self,0shot,0.253,2560,0.250,0.004,-0.019,0.025,at
+bamba-9b,answer-self,fair,0.256,2560,0.250,0.009,-0.013,0.030,at
+bamba-9b,grammar,ladder,,1080,,0.575,0.543,0.602,above
+bamba-9b,operators,ladder,,1080,,0.136,0.113,0.166,above
+bamba-9b,patterns,ladder,,1080,,0.430,0.399,0.459,above
+bamba-9b,facts,ladder,,768,,0.998,0.995,1.000,above
+olmo2-13b,lookup,0shot,0.598,1210,0.168,0.498,0.465,0.533,above
+olmo2-13b,lookup,fair,0.992,1210,0.168,0.990,0.983,0.995,above
+olmo2-13b,shortlist,0shot,0.925,960,0.040,0.922,0.904,0.940,above
+olmo2-13b,pairs,0shot,0.844,64,0.125,0.821,0.714,0.911,above
+olmo2-13b,pairs,fair,0.883,64,0.125,0.866,0.759,0.946,above
+olmo2-13b,noise,0shot,0.694,720,0.200,0.618,0.576,0.660,above
+olmo2-13b,now,0shot,0.263,300,0.292,-0.042,-0.114,0.028,at
+olmo2-13b,handoffs,0shot,0.791,1200,0.312,0.693,0.657,0.726,above
+olmo2-13b,handoffs,fair,0.913,1200,0.312,0.873,0.847,0.896,above
+olmo2-13b,sets,0shot,0.869,320,0.275,0.815,0.761,0.865,above
+olmo2-13b,sets,fair,0.897,320,0.275,0.859,0.815,0.901,above
+olmo2-13b,refilled,0shot,0.746,720,0.200,0.682,0.642,0.721,above
+olmo2-13b,refills,0shot,0.581,600,0.200,0.476,0.426,0.525,above
+olmo2-13b,codevar,0shot,0.410,1200,0.267,0.185,0.146,0.224,above
+olmo2-13b,codevar,fair,0.526,1200,0.267,0.350,0.310,0.389,above
+olmo2-13b,sharedlists,0shot,0.348,600,0.200,0.185,0.138,0.235,above
+olmo2-13b,sharedlists,fair,0.553,600,0.200,0.442,0.394,0.487,above
+olmo2-13b,box-narrative,0shot,0.535,200,0.253,0.381,0.289,0.475,above
+olmo2-13b,box-narrative,fair,0.440,200,0.253,0.225,0.119,0.330,above
+olmo2-13b,box-screenplay,0shot,0.555,200,0.253,0.404,0.309,0.502,above
+olmo2-13b,box-screenplay,fair,0.505,200,0.253,0.329,0.227,0.424,above
+olmo2-13b,box-code,0shot,0.660,200,0.253,0.515,0.420,0.603,above
+olmo2-13b,box-code,fair,0.705,200,0.253,0.603,0.515,0.684,above
+olmo2-13b,box-chat,0shot,0.550,200,0.253,0.411,0.320,0.513,above
+olmo2-13b,box-chat,fair,0.570,200,0.253,0.443,0.353,0.535,above
+olmo2-13b,you-static,0shot,0.970,300,0.292,0.957,0.927,0.981,above
+olmo2-13b,i-moves,0shot,0.411,180,0.287,0.176,0.081,0.277,above
+olmo2-13b,i-moves,fair,0.567,180,0.287,0.391,0.291,0.492,above
+olmo2-13b,you-moves,0shot,0.294,180,0.287,0.009,-0.082,0.105,at
+olmo2-13b,you-moves,fair,0.461,180,0.287,0.245,0.145,0.356,above
+olmo2-13b,you-named,0shot,0.433,180,0.287,0.201,0.104,0.292,above
+olmo2-13b,you-named,fair,0.522,180,0.287,0.327,0.221,0.433,above
+olmo2-13b,answer-self,0shot,0.456,2560,0.250,0.274,0.249,0.300,above
+olmo2-13b,answer-self,fair,0.445,2560,0.250,0.259,0.233,0.285,above
+olmo2-13b,grammar,ladder,,1080,,0.843,0.825,0.862,above
+olmo2-13b,operators,ladder,,1080,,0.240,0.213,0.274,above
+olmo2-13b,patterns,ladder,,1080,,0.822,0.802,0.844,above
+olmo2-13b,facts,ladder,,768,,0.998,0.995,1.000,above
+olmo3-32b,lookup,0shot,0.694,1210,0.168,0.620,0.588,0.652,above
+olmo3-32b,lookup,fair,1.000,1210,0.168,1.000,1.000,1.000,above
+olmo3-32b,shortlist,0shot,0.939,960,0.040,0.936,0.920,0.951,above
+olmo3-32b,pairs,0shot,0.844,64,0.125,0.821,0.714,0.911,above
+olmo3-32b,pairs,fair,0.984,64,0.125,0.982,0.946,1.000,above
+olmo3-32b,noise,0shot,0.698,720,0.200,0.623,0.582,0.665,above
+olmo3-32b,now,0shot,0.216,300,0.292,-0.108,-0.174,-0.047,below
+olmo3-32b,handoffs,0shot,0.850,1200,0.312,0.779,0.751,0.808,above
+olmo3-32b,handoffs,fair,0.897,1200,0.312,0.848,0.823,0.873,above
+olmo3-32b,sets,0shot,0.880,320,0.275,0.831,0.784,0.880,above
+olmo3-32b,sets,fair,0.831,320,0.275,0.769,0.710,0.826,above
+olmo3-32b,refilled,0shot,0.671,720,0.200,0.589,0.549,0.634,above
+olmo3-32b,refills,0shot,0.565,600,0.200,0.456,0.407,0.503,above
+olmo3-32b,codevar,0shot,0.727,1200,0.267,0.628,0.594,0.661,above
+olmo3-32b,codevar,fair,0.840,1200,0.267,0.779,0.750,0.808,above
+olmo3-32b,sharedlists,0shot,0.701,600,0.200,0.626,0.578,0.672,above
+olmo3-32b,sharedlists,fair,0.792,600,0.200,0.740,0.697,0.780,above
+olmo3-32b,box-narrative,0shot,0.409,200,0.253,0.205,0.111,0.299,above
+olmo3-32b,box-narrative,fair,0.532,200,0.253,0.340,0.235,0.439,above
+olmo3-32b,box-screenplay,0shot,0.664,200,0.253,0.550,0.460,0.639,above
+olmo3-32b,box-screenplay,fair,0.682,200,0.253,0.562,0.466,0.653,above
+olmo3-32b,box-code,0shot,0.760,200,0.253,0.659,0.572,0.739,above
+olmo3-32b,box-code,fair,0.845,200,0.253,0.783,0.712,0.845,above
+olmo3-32b,box-chat,0shot,0.670,200,0.253,0.555,0.465,0.643,above
+olmo3-32b,box-chat,fair,0.645,200,0.253,0.498,0.397,0.596,above
+olmo3-32b,you-static,0shot,0.985,300,0.292,0.978,0.956,0.995,above
+olmo3-32b,i-moves,0shot,0.428,180,0.287,0.200,0.109,0.302,above
+olmo3-32b,i-moves,fair,0.578,180,0.287,0.409,0.306,0.519,above
+olmo3-32b,you-moves,0shot,0.281,180,0.287,-0.011,-0.106,0.078,at
+olmo3-32b,you-moves,fair,0.447,180,0.287,0.224,0.128,0.329,above
+olmo3-32b,you-named,0shot,0.408,180,0.287,0.165,0.059,0.269,above
+olmo3-32b,you-named,fair,0.503,180,0.287,0.299,0.201,0.403,above
+olmo3-32b,answer-self,0shot,0.421,2560,0.250,0.229,0.202,0.254,above
+olmo3-32b,answer-self,fair,0.524,2560,0.250,0.366,0.341,0.390,above
+olmo3-32b,grammar,ladder,,1080,,0.846,0.825,0.865,above
+olmo3-32b,operators,ladder,,1080,,0.211,0.181,0.244,above
+olmo3-32b,patterns,ladder,,1080,,0.900,0.884,0.918,above
+olmo3-32b,facts,ladder,,768,,1.000,1.000,1.000,above
+olmo3-32b-stage1,lookup,0shot,0.704,1210,0.168,0.628,0.596,0.660,above
+olmo3-32b-stage1,lookup,fair,0.999,1210,0.168,0.999,0.997,1.000,above
+olmo3-32b-stage1,shortlist,0shot,0.882,960,0.040,0.877,0.856,0.897,above
+olmo3-32b-stage1,pairs,0shot,0.828,64,0.125,0.804,0.696,0.911,above
+olmo3-32b-stage1,pairs,fair,1.000,64,0.125,1.000,1.000,1.000,above
+olmo3-32b-stage1,noise,0shot,0.685,720,0.200,0.607,0.564,0.650,above
+olmo3-32b-stage1,now,0shot,0.094,300,0.292,-0.285,-0.329,-0.240,below
+olmo3-32b-stage1,handoffs,0shot,0.861,1200,0.312,0.794,0.765,0.823,above
+olmo3-32b-stage1,handoffs,fair,0.921,1200,0.312,0.883,0.861,0.905,above
+olmo3-32b-stage1,sets,0shot,0.863,320,0.275,0.808,0.757,0.857,above
+olmo3-32b-stage1,sets,fair,0.884,320,0.275,0.842,0.789,0.890,above
+olmo3-32b-stage1,refilled,0shot,0.718,720,0.200,0.648,0.606,0.688,above
+olmo3-32b-stage1,refills,0shot,0.579,600,0.200,0.474,0.424,0.524,above
+olmo3-32b-stage1,codevar,0shot,0.540,1200,0.267,0.371,0.332,0.409,above
+olmo3-32b-stage1,codevar,fair,0.712,1200,0.267,0.603,0.566,0.639,above
+olmo3-32b-stage1,sharedlists,0shot,0.347,600,0.200,0.183,0.137,0.234,above
+olmo3-32b-stage1,sharedlists,fair,0.662,600,0.200,0.578,0.532,0.624,above
+olmo3-32b-stage1,box-narrative,0shot,0.395,200,0.253,0.173,0.080,0.267,above
+olmo3-32b-stage1,box-narrative,fair,0.537,200,0.253,0.353,0.256,0.447,above
+olmo3-32b-stage1,box-screenplay,0shot,0.685,200,0.253,0.574,0.483,0.655,above
+olmo3-32b-stage1,box-screenplay,fair,0.623,200,0.253,0.480,0.382,0.576,above
+olmo3-32b-stage1,box-code,0shot,0.713,200,0.253,0.594,0.500,0.681,above
+olmo3-32b-stage1,box-code,fair,0.828,200,0.253,0.759,0.688,0.828,above
+olmo3-32b-stage1,box-chat,0shot,0.682,200,0.253,0.570,0.478,0.652,above
+olmo3-32b-stage1,box-chat,fair,0.682,200,0.253,0.561,0.469,0.650,above
+olmo3-32b-stage1,you-static,0shot,0.957,300,0.292,0.938,0.903,0.971,above
+olmo3-32b-stage1,i-moves,0shot,0.403,180,0.287,0.161,0.062,0.259,above
+olmo3-32b-stage1,i-moves,fair,0.494,180,0.287,0.293,0.189,0.402,above
+olmo3-32b-stage1,you-moves,0shot,0.308,180,0.287,0.028,-0.065,0.124,at
+olmo3-32b-stage1,you-moves,fair,0.411,180,0.287,0.172,0.066,0.275,above
+olmo3-32b-stage1,you-named,0shot,0.303,180,0.287,0.014,-0.075,0.113,at
+olmo3-32b-stage1,you-named,fair,0.453,180,0.287,0.229,0.123,0.333,above
+olmo3-32b-stage1,answer-self,0shot,0.328,2560,0.250,0.104,0.082,0.129,above
+olmo3-32b-stage1,answer-self,fair,0.466,2560,0.250,0.288,0.262,0.313,above
+olmo3-32b-stage1,grammar,ladder,,1080,,0.832,0.810,0.852,above
+olmo3-32b-stage1,operators,ladder,,1080,,0.277,0.241,0.313,above
+olmo3-32b-stage1,patterns,ladder,,1080,,0.919,0.904,0.939,above
+olmo3-32b-stage1,facts,ladder,,768,,0.995,0.989,1.000,above
+glm4-32b-base,lookup,0shot,0.778,1210,0.168,0.724,0.693,0.752,above
+glm4-32b-base,lookup,fair,1.000,1210,0.168,1.000,1.000,1.000,above
+glm4-32b-base,shortlist,0shot,0.992,960,0.040,0.991,0.985,0.997,above
+glm4-32b-base,pairs,0shot,0.859,64,0.125,0.839,0.750,0.929,above
+glm4-32b-base,pairs,fair,1.000,64,0.125,1.000,1.000,1.000,above
+glm4-32b-base,noise,0shot,0.808,720,0.200,0.760,0.727,0.794,above
+glm4-32b-base,now,0shot,0.101,300,0.292,-0.272,-0.317,-0.226,below
+glm4-32b-base,handoffs,0shot,0.915,1200,0.312,0.874,0.851,0.895,above
+glm4-32b-base,handoffs,fair,0.970,1200,0.312,0.957,0.942,0.969,above
+glm4-32b-base,sets,0shot,0.948,320,0.275,0.931,0.899,0.960,above
+glm4-32b-base,sets,fair,0.941,320,0.275,0.922,0.883,0.952,above
+glm4-32b-base,refilled,0shot,0.694,720,0.200,0.617,0.575,0.660,above
+glm4-32b-base,refills,0shot,0.621,600,0.200,0.526,0.475,0.574,above
+glm4-32b-base,codevar,0shot,0.793,1200,0.267,0.713,0.681,0.744,above
+glm4-32b-base,codevar,fair,0.892,1200,0.267,0.851,0.826,0.874,above
+glm4-32b-base,sharedlists,0shot,0.547,600,0.200,0.434,0.382,0.480,above
+glm4-32b-base,sharedlists,fair,0.718,600,0.200,0.648,0.604,0.689,above
+glm4-32b-base,box-narrative,0shot,0.502,200,0.253,0.314,0.217,0.415,above
+glm4-32b-base,box-narrative,fair,0.625,200,0.253,0.467,0.366,0.565,above
+glm4-32b-base,box-screenplay,0shot,0.627,200,0.253,0.465,0.371,0.556,above
+glm4-32b-base,box-screenplay,fair,0.818,200,0.253,0.755,0.680,0.828,above
+glm4-32b-base,box-code,0shot,0.795,200,0.253,0.702,0.614,0.779,above
+glm4-32b-base,box-code,fair,0.899,200,0.253,0.860,0.797,0.912,above
+glm4-32b-base,box-chat,0shot,0.662,200,0.253,0.533,0.445,0.621,above
+glm4-32b-base,box-chat,fair,0.757,200,0.253,0.658,0.573,0.739,above
+glm4-32b-base,you-static,0shot,0.962,300,0.292,0.943,0.909,0.971,above
+glm4-32b-base,i-moves,0shot,0.496,180,0.287,0.295,0.192,0.395,above
+glm4-32b-base,i-moves,fair,0.655,180,0.287,0.519,0.426,0.619,above
+glm4-32b-base,you-moves,0shot,0.303,180,0.287,0.019,-0.070,0.106,at
+glm4-32b-base,you-moves,fair,0.444,180,0.287,0.221,0.115,0.319,above
+glm4-32b-base,you-named,0shot,0.375,180,0.287,0.124,0.034,0.223,above
+glm4-32b-base,you-named,fair,0.556,180,0.287,0.372,0.275,0.474,above
+glm4-32b-base,answer-self,0shot,0.454,2560,0.250,0.272,0.247,0.298,above
+glm4-32b-base,answer-self,fair,0.618,2560,0.250,0.490,0.467,0.516,above
+glm4-32b-base,grammar,ladder,,1080,,0.857,0.836,0.876,above
+glm4-32b-base,operators,ladder,,1080,,0.225,0.199,0.265,above
+glm4-32b-base,patterns,ladder,,1080,,0.957,0.944,0.967,above
+glm4-32b-base,facts,ladder,,768,,1.000,1.000,1.000,above
+falcon-h1-34b,lookup,0shot,0.957,1210,0.168,0.947,0.932,0.961,above
+falcon-h1-34b,lookup,fair,1.000,1210,0.168,1.000,1.000,1.000,above
+falcon-h1-34b,shortlist,0shot,0.987,960,0.040,0.986,0.978,0.992,above
+falcon-h1-34b,pairs,0shot,0.969,64,0.125,0.964,0.911,1.000,above
+falcon-h1-34b,pairs,fair,1.000,64,0.125,1.000,1.000,1.000,above
+falcon-h1-34b,noise,0shot,0.783,720,0.200,0.728,0.688,0.766,above
+falcon-h1-34b,now,0shot,0.107,300,0.292,-0.266,-0.313,-0.216,below
+falcon-h1-34b,handoffs,0shot,0.930,1200,0.312,0.896,0.873,0.917,above
+falcon-h1-34b,handoffs,fair,0.951,1200,0.312,0.927,0.909,0.944,above
+falcon-h1-34b,sets,0shot,0.934,320,0.275,0.907,0.866,0.948,above
+falcon-h1-34b,sets,fair,0.898,320,0.275,0.860,0.813,0.905,above
+falcon-h1-34b,refilled,0shot,0.828,720,0.200,0.785,0.748,0.818,above
+falcon-h1-34b,refills,0shot,0.725,600,0.200,0.656,0.612,0.700,above
+falcon-h1-34b,codevar,0shot,0.741,1200,0.267,0.640,0.605,0.672,above
+falcon-h1-34b,codevar,fair,0.887,1200,0.267,0.843,0.818,0.868,above
+falcon-h1-34b,sharedlists,0shot,0.801,600,0.200,0.751,0.712,0.791,above
+falcon-h1-34b,sharedlists,fair,0.832,600,0.200,0.790,0.754,0.828,above
+falcon-h1-34b,box-narrative,0shot,0.487,200,0.253,0.316,0.220,0.415,above
+falcon-h1-34b,box-narrative,fair,0.738,200,0.253,0.646,0.553,0.722,above
+falcon-h1-34b,box-screenplay,0shot,0.770,200,0.253,0.680,0.595,0.759,above
+falcon-h1-34b,box-screenplay,fair,0.882,200,0.253,0.836,0.772,0.895,above
+falcon-h1-34b,box-code,0shot,0.725,200,0.253,0.623,0.535,0.706,above
+falcon-h1-34b,box-code,fair,0.915,200,0.253,0.879,0.821,0.931,above
+falcon-h1-34b,box-chat,0shot,0.755,200,0.253,0.664,0.584,0.747,above
+falcon-h1-34b,box-chat,fair,0.840,200,0.253,0.779,0.702,0.848,above
+falcon-h1-34b,you-static,0shot,0.943,300,0.292,0.915,0.875,0.950,above
+falcon-h1-34b,i-moves,0shot,0.461,180,0.287,0.243,0.143,0.347,above
+falcon-h1-34b,i-moves,fair,0.642,180,0.287,0.499,0.403,0.604,above
+falcon-h1-34b,you-moves,0shot,0.344,180,0.287,0.081,-0.022,0.176,at
+falcon-h1-34b,you-moves,fair,0.539,180,0.287,0.355,0.260,0.454,above
+falcon-h1-34b,you-named,0shot,0.497,180,0.287,0.294,0.194,0.397,above
+falcon-h1-34b,you-named,fair,0.689,180,0.287,0.557,0.462,0.654,above
+falcon-h1-34b,answer-self,0shot,0.528,2560,0.250,0.371,0.346,0.396,above
+falcon-h1-34b,answer-self,fair,0.659,2560,0.250,0.545,0.521,0.569,above
+falcon-h1-34b,grammar,ladder,,1080,,0.874,0.859,0.892,above
+falcon-h1-34b,operators,ladder,,1080,,0.245,0.215,0.278,above
+falcon-h1-34b,patterns,ladder,,1080,,0.945,0.930,0.960,above
+falcon-h1-34b,facts,ladder,,768,,1.000,1.000,1.000,above
+llama3.1-70b,lookup,0shot,0.539,1210,0.168,0.438,0.402,0.472,above
+llama3.1-70b,lookup,fair,0.998,1210,0.168,0.997,0.994,1.000,above
+llama3.1-70b,shortlist,0shot,0.979,960,0.040,0.978,0.969,0.988,above
+llama3.1-70b,pairs,0shot,0.172,64,0.125,0.054,-0.036,0.161,at
+llama3.1-70b,pairs,fair,1.000,64,0.125,1.000,1.000,1.000,above
+llama3.1-70b,noise,0shot,0.887,720,0.200,0.859,0.831,0.884,above
+llama3.1-70b,now,0shot,0.184,300,0.292,-0.153,-0.208,-0.091,below
+llama3.1-70b,handoffs,0shot,0.911,1200,0.312,0.870,0.845,0.892,above
+llama3.1-70b,handoffs,fair,0.982,1200,0.312,0.973,0.962,0.984,above
+llama3.1-70b,sets,0shot,0.931,320,0.275,0.901,0.860,0.938,above
+llama3.1-70b,sets,fair,0.941,320,0.275,0.924,0.890,0.955,above
+llama3.1-70b,refilled,0shot,0.629,720,0.200,0.536,0.495,0.580,above
+llama3.1-70b,refills,0shot,0.665,600,0.200,0.581,0.533,0.626,above
+llama3.1-70b,codevar,0shot,0.805,1200,0.267,0.731,0.699,0.761,above
+llama3.1-70b,codevar,fair,0.890,1200,0.267,0.843,0.818,0.867,above
+llama3.1-70b,sharedlists,0shot,0.840,600,0.200,0.800,0.766,0.837,above
+llama3.1-70b,sharedlists,fair,0.720,600,0.200,0.650,0.606,0.693,above
+llama3.1-70b,box-narrative,0shot,0.350,200,0.253,0.104,0.015,0.195,above
+llama3.1-70b,box-narrative,fair,0.747,200,0.253,0.629,0.539,0.713,above
+llama3.1-70b,box-screenplay,0shot,0.650,200,0.253,0.532,0.446,0.615,above
+llama3.1-70b,box-screenplay,fair,0.887,200,0.253,0.849,0.787,0.904,above
+llama3.1-70b,box-code,0shot,0.767,200,0.253,0.670,0.575,0.754,above
+llama3.1-70b,box-code,fair,0.915,200,0.253,0.878,0.817,0.929,above
+llama3.1-70b,box-chat,0shot,0.702,200,0.253,0.594,0.507,0.682,above
+llama3.1-70b,box-chat,fair,0.897,200,0.253,0.855,0.793,0.910,above
+llama3.1-70b,you-static,0shot,0.998,300,0.292,0.998,0.990,1.000,above
+llama3.1-70b,i-moves,0shot,0.371,180,0.287,0.112,0.017,0.213,above
+llama3.1-70b,i-moves,fair,0.674,180,0.287,0.544,0.452,0.640,above
+llama3.1-70b,you-moves,0shot,0.344,180,0.287,0.078,-0.016,0.172,at
+llama3.1-70b,you-moves,fair,0.531,180,0.287,0.340,0.241,0.444,above
+llama3.1-70b,you-named,0shot,0.535,180,0.287,0.350,0.255,0.450,above
+llama3.1-70b,you-named,fair,0.731,180,0.287,0.623,0.533,0.712,above
+llama3.1-70b,answer-self,0shot,0.508,2560,0.250,0.344,0.322,0.372,above
+llama3.1-70b,answer-self,fair,0.704,2560,0.250,0.605,0.583,0.627,above
+llama3.1-70b,grammar,ladder,,1080,,0.853,0.833,0.873,above
+llama3.1-70b,operators,ladder,,1080,,0.318,0.285,0.349,above
+llama3.1-70b,patterns,ladder,,1080,,0.956,0.943,0.969,above
+llama3.1-70b,facts,ladder,,768,,1.000,1.000,1.000,above
+qwen2.5-72b,lookup,0shot,0.953,1210,0.168,0.939,0.924,0.954,above
+qwen2.5-72b,lookup,fair,1.000,1210,0.168,1.000,1.000,1.000,above
+qwen2.5-72b,shortlist,0shot,0.985,960,0.040,0.985,0.977,0.992,above
+qwen2.5-72b,pairs,0shot,0.984,64,0.125,0.982,0.946,1.000,above
+qwen2.5-72b,pairs,fair,1.000,64,0.125,1.000,1.000,1.000,above
+qwen2.5-72b,noise,0shot,0.921,720,0.200,0.902,0.878,0.926,above
+qwen2.5-72b,now,0shot,0.102,300,0.292,-0.269,-0.316,-0.221,below
+qwen2.5-72b,handoffs,0shot,0.938,1200,0.312,0.909,0.889,0.928,above
+qwen2.5-72b,handoffs,fair,0.986,1200,0.312,0.979,0.969,0.989,above
+qwen2.5-72b,sets,0shot,0.953,320,0.275,0.936,0.904,0.964,above
+qwen2.5-72b,sets,fair,0.947,320,0.275,0.928,0.894,0.960,above
+qwen2.5-72b,refilled,0shot,0.685,720,0.200,0.607,0.563,0.650,above
+qwen2.5-72b,refills,0shot,0.680,600,0.200,0.600,0.551,0.648,above
+qwen2.5-72b,codevar,0shot,0.750,1200,0.267,0.653,0.620,0.686,above
+qwen2.5-72b,codevar,fair,0.873,1200,0.267,0.823,0.797,0.850,above
+qwen2.5-72b,sharedlists,0shot,0.838,600,0.200,0.798,0.762,0.832,above
+qwen2.5-72b,sharedlists,fair,0.906,600,0.200,0.882,0.854,0.909,above
+qwen2.5-72b,box-narrative,0shot,0.294,200,0.253,0.036,-0.052,0.124,at
+qwen2.5-72b,box-narrative,fair,0.667,200,0.253,0.537,0.440,0.623,above
+qwen2.5-72b,box-screenplay,0shot,0.665,200,0.253,0.540,0.453,0.630,above
+qwen2.5-72b,box-screenplay,fair,0.863,200,0.253,0.813,0.750,0.874,above
+qwen2.5-72b,box-code,0shot,0.733,200,0.253,0.628,0.535,0.712,above
+qwen2.5-72b,box-code,fair,0.858,200,0.253,0.802,0.730,0.871,above
+qwen2.5-72b,box-chat,0shot,0.715,200,0.253,0.621,0.539,0.701,above
+qwen2.5-72b,box-chat,fair,0.749,200,0.253,0.658,0.571,0.736,above
+qwen2.5-72b,you-static,0shot,0.930,300,0.292,0.896,0.854,0.937,above
+qwen2.5-72b,i-moves,0shot,0.386,180,0.287,0.135,0.041,0.237,above
+qwen2.5-72b,i-moves,fair,0.764,180,0.287,0.670,0.576,0.755,above
+qwen2.5-72b,you-moves,0shot,0.327,180,0.287,0.055,-0.042,0.148,at
+qwen2.5-72b,you-moves,fair,0.586,180,0.287,0.423,0.323,0.518,above
+qwen2.5-72b,you-named,0shot,0.508,180,0.287,0.313,0.214,0.409,above
+qwen2.5-72b,you-named,fair,0.778,180,0.287,0.689,0.610,0.769,above
+qwen2.5-72b,answer-self,0shot,0.489,2560,0.250,0.319,0.295,0.345,above
+qwen2.5-72b,answer-self,fair,0.623,2560,0.250,0.497,0.473,0.521,above
+qwen2.5-72b,grammar,ladder,,1080,,0.873,0.858,0.889,above
+qwen2.5-72b,operators,ladder,,1080,,0.224,0.193,0.252,above
+qwen2.5-72b,patterns,ladder,,1080,,0.990,0.984,0.996,above
+qwen2.5-72b,facts,ladder,,768,,1.000,1.000,1.000,above
+llama3.1-405b,lookup,0shot,0.801,1210,0.168,0.750,0.724,0.779,above
+llama3.1-405b,lookup,fair,1.000,1210,0.168,1.000,1.000,1.000,above
+llama3.1-405b,shortlist,0shot,0.987,960,0.040,0.986,0.978,0.992,above
+llama3.1-405b,pairs,0shot,0.906,64,0.125,0.893,0.804,0.964,above
+llama3.1-405b,pairs,fair,1.000,64,0.125,1.000,1.000,1.000,above
+llama3.1-405b,noise,0shot,0.900,720,0.200,0.875,0.847,0.901,above
+llama3.1-405b,now,0shot,0.075,300,0.292,-0.309,-0.351,-0.263,below
+llama3.1-405b,handoffs,0shot,0.948,1200,0.312,0.922,0.904,0.940,above
+llama3.1-405b,handoffs,fair,0.993,1200,0.312,0.990,0.982,0.996,above
+llama3.1-405b,sets,0shot,0.991,320,0.275,0.986,0.968,1.000,above
+llama3.1-405b,sets,fair,0.991,320,0.275,0.989,0.979,1.000,above
+llama3.1-405b,refilled,0shot,0.786,720,0.200,0.733,0.696,0.768,above
+llama3.1-405b,refills,0shot,0.795,600,0.200,0.744,0.704,0.781,above
+llama3.1-405b,codevar,0shot,0.851,1200,0.267,0.793,0.765,0.819,above
+llama3.1-405b,codevar,fair,0.943,1200,0.267,0.919,0.899,0.938,above
+llama3.1-405b,sharedlists,0shot,0.881,600,0.200,0.851,0.820,0.882,above
+llama3.1-405b,sharedlists,fair,0.979,600,0.200,0.974,0.960,0.987,above
+llama3.1-405b,box-narrative,0shot,0.395,200,0.253,0.168,0.073,0.271,above
+llama3.1-405b,box-narrative,fair,0.845,200,0.253,0.772,0.692,0.842,above
+llama3.1-405b,box-screenplay,0shot,0.695,200,0.253,0.571,0.481,0.666,above
+llama3.1-405b,box-screenplay,fair,0.910,200,0.253,0.868,0.806,0.918,above
+llama3.1-405b,box-code,0shot,0.833,200,0.253,0.761,0.682,0.829,above
+llama3.1-405b,box-code,fair,0.877,200,0.253,0.820,0.751,0.884,above
+llama3.1-405b,box-chat,0shot,0.835,200,0.253,0.767,0.696,0.840,above
+llama3.1-405b,box-chat,fair,0.917,200,0.253,0.885,0.831,0.937,above
+llama3.1-405b,you-static,0shot,0.997,300,0.292,0.995,0.985,1.000,above
+llama3.1-405b,i-moves,0shot,0.442,180,0.287,0.217,0.131,0.326,above
+llama3.1-405b,i-moves,fair,0.811,180,0.287,0.737,0.659,0.812,above
+llama3.1-405b,you-moves,0shot,0.341,180,0.287,0.075,-0.027,0.172,at
+llama3.1-405b,you-moves,fair,0.711,180,0.287,0.594,0.500,0.678,above
+llama3.1-405b,you-named,0shot,0.468,180,0.287,0.252,0.159,0.345,above
+llama3.1-405b,you-named,fair,0.739,180,0.287,0.637,0.545,0.722,above
+llama3.1-405b,answer-self,0shot,0.452,2560,0.250,0.269,0.243,0.295,above
+llama3.1-405b,answer-self,fair,0.768,2560,0.250,0.691,0.670,0.712,above
+llama3.1-405b,grammar,ladder,,1080,,0.903,0.886,0.920,above
+llama3.1-405b,operators,ladder,,1080,,0.214,0.186,0.244,above
+llama3.1-405b,patterns,ladder,,1080,,0.976,0.966,0.984,above
+llama3.1-405b,facts,ladder,,768,,0.999,0.998,1.000,above
+tsumugi-s17-a5B,lookup,0shot,0.478,1210,0.168,0.372,0.336,0.404,above
+tsumugi-s17-a5B,lookup,fair,0.717,1210,0.168,0.659,0.628,0.690,above
+tsumugi-s17-a5B,shortlist,0shot,0.498,960,0.040,0.477,0.444,0.507,above
+tsumugi-s17-a5B,pairs,0shot,0.336,64,0.125,0.241,0.107,0.375,above
+tsumugi-s17-a5B,pairs,fair,0.531,64,0.125,0.464,0.339,0.607,above
+tsumugi-s17-a5B,noise,0shot,0.491,720,0.200,0.364,0.319,0.408,above
+tsumugi-s17-a5B,now,0shot,0.458,300,0.292,0.235,0.157,0.308,above
+tsumugi-s17-a5B,handoffs,0shot,0.370,1200,0.312,0.082,0.045,0.122,above
+tsumugi-s17-a5B,handoffs,fair,0.494,1200,0.312,0.259,0.219,0.299,above
+tsumugi-s17-a5B,sets,0shot,0.408,320,0.275,0.195,0.116,0.266,above
+tsumugi-s17-a5B,sets,fair,0.458,320,0.275,0.258,0.181,0.334,above
+tsumugi-s17-a5B,refilled,0shot,0.235,720,0.200,0.043,0.006,0.082,above
+tsumugi-s17-a5B,refills,0shot,0.198,600,0.200,-0.003,-0.041,0.034,at
+tsumugi-s17-a5B,codevar,0shot,0.258,1200,0.267,-0.008,-0.042,0.026,at
+tsumugi-s17-a5B,codevar,fair,0.256,1200,0.267,-0.018,-0.051,0.016,at
+tsumugi-s17-a5B,sharedlists,0shot,0.265,600,0.200,0.081,0.038,0.127,above
+tsumugi-s17-a5B,sharedlists,fair,0.210,600,0.200,0.013,-0.026,0.051,at
+tsumugi-s17-a5B,box-narrative,0shot,0.315,200,0.253,0.078,-0.009,0.172,at
+tsumugi-s17-a5B,box-narrative,fair,0.310,200,0.253,0.064,-0.027,0.152,at
+tsumugi-s17-a5B,box-screenplay,0shot,0.395,200,0.253,0.201,0.114,0.291,above
+tsumugi-s17-a5B,box-screenplay,fair,0.355,200,0.253,0.133,0.035,0.219,above
+tsumugi-s17-a5B,box-code,0shot,0.290,200,0.253,0.061,-0.025,0.149,at
+tsumugi-s17-a5B,box-code,fair,0.412,200,0.253,0.197,0.099,0.292,above
+tsumugi-s17-a5B,box-chat,0shot,0.398,200,0.253,0.187,0.098,0.282,above
+tsumugi-s17-a5B,box-chat,fair,0.350,200,0.253,0.121,0.022,0.211,above
+tsumugi-s17-a5B,you-static,0shot,0.387,300,0.292,0.132,0.056,0.214,above
+tsumugi-s17-a5B,i-moves,0shot,0.319,180,0.287,0.040,-0.055,0.129,at
+tsumugi-s17-a5B,i-moves,fair,0.247,180,0.287,-0.060,-0.143,0.027,at
+tsumugi-s17-a5B,you-moves,0shot,0.300,180,0.287,0.009,-0.084,0.105,at
+tsumugi-s17-a5B,you-moves,fair,0.256,180,0.287,-0.048,-0.139,0.041,at
+tsumugi-s17-a5B,you-named,0shot,0.275,180,0.287,-0.018,-0.106,0.075,at
+tsumugi-s17-a5B,you-named,fair,0.283,180,0.287,-0.008,-0.094,0.095,at
+tsumugi-s17-a5B,answer-self,0shot,0.307,2560,0.250,0.076,0.053,0.100,above
+tsumugi-s17-a5B,answer-self,fair,0.276,2560,0.250,0.035,0.012,0.057,above
+tsumugi-s17-a5B,grammar,ladder,,1080,,0.665,0.635,0.690,above
+tsumugi-s17-a5B,operators,ladder,,1080,,0.252,0.224,0.281,above
+tsumugi-s17-a5B,patterns,ladder,,1080,,0.562,0.525,0.595,above
+tsumugi-s17-a5B,facts,ladder,,768,,0.635,0.598,0.671,above
+tsumugi-s7-a5B,lookup,0shot,0.487,1210,0.168,0.379,0.346,0.412,above
+tsumugi-s7-a5B,lookup,fair,0.828,1210,0.168,0.792,0.765,0.817,above
+tsumugi-s7-a5B,shortlist,0shot,0.527,960,0.040,0.507,0.474,0.538,above
+tsumugi-s7-a5B,pairs,0shot,0.273,64,0.125,0.170,0.054,0.295,above
+tsumugi-s7-a5B,pairs,fair,0.555,64,0.125,0.491,0.348,0.616,above
+tsumugi-s7-a5B,noise,0shot,0.536,720,0.200,0.420,0.374,0.468,above
+tsumugi-s7-a5B,now,0shot,0.397,300,0.292,0.147,0.071,0.231,above
+tsumugi-s7-a5B,handoffs,0shot,0.346,1200,0.312,0.050,0.013,0.087,above
+tsumugi-s7-a5B,handoffs,fair,0.523,1200,0.312,0.301,0.262,0.344,above
+tsumugi-s7-a5B,sets,0shot,0.334,320,0.275,0.091,0.019,0.163,above
+tsumugi-s7-a5B,sets,fair,0.468,320,0.275,0.270,0.195,0.340,above
+tsumugi-s7-a5B,refilled,0shot,0.239,720,0.200,0.049,0.011,0.087,above
+tsumugi-s7-a5B,refills,0shot,0.172,600,0.200,-0.035,-0.073,0.001,at
+tsumugi-s7-a5B,codevar,0shot,0.276,1200,0.267,0.012,-0.023,0.047,at
+tsumugi-s7-a5B,codevar,fair,0.236,1200,0.267,-0.047,-0.081,-0.014,below
+tsumugi-s7-a5B,sharedlists,0shot,0.249,600,0.200,0.061,0.018,0.104,above
+tsumugi-s7-a5B,sharedlists,fair,0.233,600,0.200,0.041,-0.004,0.085,at
+tsumugi-s7-a5B,box-narrative,0shot,0.253,200,0.253,-0.028,-0.115,0.061,at
+tsumugi-s7-a5B,box-narrative,fair,0.320,200,0.253,0.075,-0.018,0.164,at
+tsumugi-s7-a5B,box-screenplay,0shot,0.378,200,0.253,0.170,0.075,0.261,above
+tsumugi-s7-a5B,box-screenplay,fair,0.378,200,0.253,0.153,0.060,0.240,above
+tsumugi-s7-a5B,box-code,0shot,0.340,200,0.253,0.131,0.037,0.220,above
+tsumugi-s7-a5B,box-code,fair,0.477,200,0.253,0.289,0.189,0.383,above
+tsumugi-s7-a5B,box-chat,0shot,0.352,200,0.253,0.119,0.028,0.205,above
+tsumugi-s7-a5B,box-chat,fair,0.385,200,0.253,0.166,0.071,0.255,above
+tsumugi-s7-a5B,you-static,0shot,0.365,300,0.292,0.104,0.033,0.181,above
+tsumugi-s7-a5B,i-moves,0shot,0.283,180,0.287,-0.013,-0.095,0.082,at
+tsumugi-s7-a5B,i-moves,fair,0.239,180,0.287,-0.074,-0.163,0.018,at
+tsumugi-s7-a5B,you-moves,0shot,0.222,180,0.287,-0.100,-0.181,-0.011,below
+tsumugi-s7-a5B,you-moves,fair,0.233,180,0.287,-0.078,-0.167,0.012,at
+tsumugi-s7-a5B,you-named,0shot,0.300,180,0.287,0.017,-0.071,0.106,at
+tsumugi-s7-a5B,you-named,fair,0.261,180,0.287,-0.038,-0.123,0.048,at
+tsumugi-s7-a5B,answer-self,0shot,0.277,2560,0.250,0.036,0.014,0.060,above
+tsumugi-s7-a5B,answer-self,fair,0.281,2560,0.250,0.042,0.018,0.065,above
+tsumugi-s7-a5B,grammar,ladder,,1080,,0.654,0.624,0.679,above
+tsumugi-s7-a5B,operators,ladder,,1080,,0.219,0.189,0.251,above
+tsumugi-s7-a5B,patterns,ladder,,1080,,0.491,0.458,0.526,above
+tsumugi-s7-a5B,facts,ladder,,768,,0.654,0.616,0.692,above
+tsumugi-s17-a11B,lookup,0shot,0.534,1210,0.168,0.433,0.399,0.469,above
+tsumugi-s17-a11B,lookup,fair,0.907,1210,0.168,0.887,0.867,0.906,above
+tsumugi-s17-a11B,shortlist,0shot,0.515,960,0.040,0.494,0.463,0.527,above
+tsumugi-s17-a11B,pairs,0shot,0.344,64,0.125,0.250,0.125,0.375,above
+tsumugi-s17-a11B,pairs,fair,0.719,64,0.125,0.679,0.536,0.804,above
+tsumugi-s17-a11B,noise,0shot,0.446,720,0.200,0.307,0.260,0.352,above
+tsumugi-s17-a11B,now,0shot,0.532,300,0.292,0.341,0.261,0.418,above
+tsumugi-s17-a11B,handoffs,0shot,0.419,1200,0.312,0.152,0.114,0.194,above
+tsumugi-s17-a11B,handoffs,fair,0.541,1200,0.312,0.330,0.287,0.371,above
+tsumugi-s17-a11B,sets,0shot,0.455,320,0.275,0.260,0.185,0.337,above
+tsumugi-s17-a11B,sets,fair,0.491,320,0.275,0.306,0.230,0.383,above
+tsumugi-s17-a11B,refilled,0shot,0.157,720,0.200,-0.054,-0.088,-0.021,below
+tsumugi-s17-a11B,refills,0shot,0.189,600,0.200,-0.013,-0.051,0.027,at
+tsumugi-s17-a11B,codevar,0shot,0.267,1200,0.267,-0.003,-0.039,0.032,at
+tsumugi-s17-a11B,codevar,fair,0.250,1200,0.267,-0.028,-0.063,0.006,at
+tsumugi-s17-a11B,sharedlists,0shot,0.231,600,0.200,0.038,-0.004,0.078,at
+tsumugi-s17-a11B,sharedlists,fair,0.228,600,0.200,0.034,-0.005,0.080,at
+tsumugi-s17-a11B,box-narrative,0shot,0.347,200,0.253,0.117,0.027,0.211,above
+tsumugi-s17-a11B,box-narrative,fair,0.403,200,0.253,0.190,0.092,0.294,above
+tsumugi-s17-a11B,box-screenplay,0shot,0.502,200,0.253,0.322,0.228,0.421,above
+tsumugi-s17-a11B,box-screenplay,fair,0.512,200,0.253,0.333,0.231,0.438,above
+tsumugi-s17-a11B,box-code,0shot,0.287,200,0.253,0.054,-0.030,0.143,at
+tsumugi-s17-a11B,box-code,fair,0.535,200,0.253,0.346,0.234,0.441,above
+tsumugi-s17-a11B,box-chat,0shot,0.419,200,0.253,0.195,0.096,0.286,above
+tsumugi-s17-a11B,box-chat,fair,0.475,200,0.253,0.272,0.168,0.370,above
+tsumugi-s17-a11B,you-static,0shot,0.383,300,0.292,0.126,0.050,0.196,above
+tsumugi-s17-a11B,i-moves,0shot,0.275,180,0.287,-0.020,-0.113,0.061,at
+tsumugi-s17-a11B,i-moves,fair,0.361,180,0.287,0.102,-0.005,0.205,at
+tsumugi-s17-a11B,you-moves,0shot,0.267,180,0.287,-0.030,-0.117,0.050,at
+tsumugi-s17-a11B,you-moves,fair,0.306,180,0.287,0.026,-0.065,0.124,at
+tsumugi-s17-a11B,you-named,0shot,0.292,180,0.287,0.002,-0.090,0.089,at
+tsumugi-s17-a11B,you-named,fair,0.306,180,0.287,0.017,-0.072,0.114,at
+tsumugi-s17-a11B,answer-self,0shot,0.317,2560,0.250,0.089,0.066,0.112,above
+tsumugi-s17-a11B,answer-self,fair,0.304,2560,0.250,0.072,0.049,0.095,above
+tsumugi-s17-a11B,grammar,ladder,,1080,,0.759,0.730,0.781,above
+tsumugi-s17-a11B,operators,ladder,,1080,,0.267,0.238,0.293,above
+tsumugi-s17-a11B,patterns,ladder,,1080,,0.556,0.518,0.585,above
+tsumugi-s17-a11B,facts,ladder,,768,,0.713,0.674,0.741,above
+tsumugi-s7-a11B,lookup,0shot,0.515,1210,0.168,0.412,0.377,0.447,above
+tsumugi-s7-a11B,lookup,fair,0.916,1210,0.168,0.898,0.878,0.916,above
+tsumugi-s7-a11B,shortlist,0shot,0.545,960,0.040,0.526,0.494,0.558,above
+tsumugi-s7-a11B,pairs,0shot,0.461,64,0.125,0.384,0.241,0.518,above
+tsumugi-s7-a11B,pairs,fair,0.602,64,0.125,0.545,0.411,0.679,above
+tsumugi-s7-a11B,noise,0shot,0.513,720,0.200,0.392,0.345,0.437,above
+tsumugi-s7-a11B,now,0shot,0.542,300,0.292,0.351,0.274,0.426,above
+tsumugi-s7-a11B,handoffs,0shot,0.437,1200,0.312,0.178,0.138,0.215,above
+tsumugi-s7-a11B,handoffs,fair,0.559,1200,0.312,0.354,0.312,0.392,above
+tsumugi-s7-a11B,sets,0shot,0.405,320,0.275,0.189,0.118,0.260,above
+tsumugi-s7-a11B,sets,fair,0.510,320,0.275,0.333,0.254,0.410,above
+tsumugi-s7-a11B,refilled,0shot,0.201,720,0.200,0.001,-0.034,0.036,at
+tsumugi-s7-a11B,refills,0shot,0.221,600,0.200,0.026,-0.015,0.071,at
+tsumugi-s7-a11B,codevar,0shot,0.307,1200,0.267,0.057,0.025,0.094,above
+tsumugi-s7-a11B,codevar,fair,0.275,1200,0.267,0.007,-0.029,0.043,at
+tsumugi-s7-a11B,sharedlists,0shot,0.270,600,0.200,0.087,0.046,0.133,above
+tsumugi-s7-a11B,sharedlists,fair,0.246,600,0.200,0.057,0.016,0.100,above
+tsumugi-s7-a11B,box-narrative,0shot,0.398,200,0.253,0.197,0.106,0.289,above
+tsumugi-s7-a11B,box-narrative,fair,0.490,200,0.253,0.301,0.201,0.399,above
+tsumugi-s7-a11B,box-screenplay,0shot,0.492,200,0.253,0.321,0.229,0.415,above
+tsumugi-s7-a11B,box-screenplay,fair,0.482,200,0.253,0.288,0.187,0.386,above
+tsumugi-s7-a11B,box-code,0shot,0.393,200,0.253,0.181,0.090,0.272,above
+tsumugi-s7-a11B,box-code,fair,0.580,200,0.253,0.416,0.313,0.506,above
+tsumugi-s7-a11B,box-chat,0shot,0.482,200,0.253,0.298,0.203,0.393,above
+tsumugi-s7-a11B,box-chat,fair,0.487,200,0.253,0.286,0.178,0.386,above
+tsumugi-s7-a11B,you-static,0shot,0.393,300,0.292,0.136,0.055,0.217,above
+tsumugi-s7-a11B,i-moves,0shot,0.286,180,0.287,-0.005,-0.097,0.090,at
+tsumugi-s7-a11B,i-moves,fair,0.292,180,0.287,0.005,-0.091,0.100,at
+tsumugi-s7-a11B,you-moves,0shot,0.258,180,0.287,-0.044,-0.133,0.039,at
+tsumugi-s7-a11B,you-moves,fair,0.289,180,0.287,0.001,-0.094,0.097,at
+tsumugi-s7-a11B,you-named,0shot,0.256,180,0.287,-0.044,-0.132,0.047,at
+tsumugi-s7-a11B,you-named,fair,0.328,180,0.287,0.053,-0.036,0.148,at
+tsumugi-s7-a11B,answer-self,0shot,0.304,2560,0.250,0.072,0.048,0.094,above
+tsumugi-s7-a11B,answer-self,fair,0.294,2560,0.250,0.058,0.033,0.079,above
+tsumugi-s7-a11B,grammar,ladder,,1080,,0.773,0.743,0.797,above
+tsumugi-s7-a11B,operators,ladder,,1080,,0.232,0.195,0.263,above
+tsumugi-s7-a11B,patterns,ladder,,1080,,0.674,0.643,0.703,above
+tsumugi-s7-a11B,facts,ladder,,768,,0.752,0.716,0.786,above
+tsumugi-s17-a33B,lookup,0shot,0.706,1210,0.168,0.636,0.607,0.667,above
+tsumugi-s17-a33B,lookup,fair,0.942,1210,0.168,0.931,0.914,0.946,above
+tsumugi-s17-a33B,shortlist,0shot,0.609,960,0.040,0.593,0.560,0.625,above
+tsumugi-s17-a33B,pairs,0shot,0.586,64,0.125,0.527,0.393,0.652,above
+tsumugi-s17-a33B,pairs,fair,0.703,64,0.125,0.661,0.536,0.777,above
+tsumugi-s17-a33B,noise,0shot,0.521,720,0.200,0.402,0.356,0.444,above
+tsumugi-s17-a33B,now,0shot,0.738,300,0.292,0.627,0.555,0.689,above
+tsumugi-s17-a33B,handoffs,0shot,0.448,1200,0.312,0.193,0.151,0.230,above
+tsumugi-s17-a33B,handoffs,fair,0.520,1200,0.312,0.300,0.259,0.339,above
+tsumugi-s17-a33B,sets,0shot,0.520,320,0.275,0.353,0.281,0.422,above
+tsumugi-s17-a33B,sets,fair,0.520,320,0.275,0.358,0.284,0.434,above
+tsumugi-s17-a33B,refilled,0shot,0.257,720,0.200,0.072,0.032,0.116,above
+tsumugi-s17-a33B,refills,0shot,0.210,600,0.200,0.013,-0.028,0.053,at
+tsumugi-s17-a33B,codevar,0shot,0.315,1200,0.267,0.057,0.019,0.092,above
+tsumugi-s17-a33B,codevar,fair,0.282,1200,0.267,0.013,-0.025,0.050,at
+tsumugi-s17-a33B,sharedlists,0shot,0.200,600,0.200,0.000,-0.040,0.043,at
+tsumugi-s17-a33B,sharedlists,fair,0.211,600,0.200,0.013,-0.029,0.058,at
+tsumugi-s17-a33B,box-narrative,0shot,0.400,200,0.253,0.176,0.085,0.263,above
+tsumugi-s17-a33B,box-narrative,fair,0.517,200,0.253,0.343,0.250,0.439,above
+tsumugi-s17-a33B,box-screenplay,0shot,0.515,200,0.253,0.335,0.239,0.431,above
+tsumugi-s17-a33B,box-screenplay,fair,0.490,200,0.253,0.302,0.204,0.399,above
+tsumugi-s17-a33B,box-code,0shot,0.435,200,0.253,0.253,0.162,0.347,above
+tsumugi-s17-a33B,box-code,fair,0.635,200,0.253,0.483,0.386,0.572,above
+tsumugi-s17-a33B,box-chat,0shot,0.407,200,0.253,0.171,0.071,0.267,above
+tsumugi-s17-a33B,box-chat,fair,0.515,200,0.253,0.333,0.234,0.427,above
+tsumugi-s17-a33B,you-static,0shot,0.620,300,0.292,0.455,0.374,0.527,above
+tsumugi-s17-a33B,i-moves,0shot,0.372,180,0.287,0.118,0.020,0.213,above
+tsumugi-s17-a33B,i-moves,fair,0.364,180,0.287,0.108,0.002,0.216,above
+tsumugi-s17-a33B,you-moves,0shot,0.222,180,0.287,-0.098,-0.182,-0.012,below
+tsumugi-s17-a33B,you-moves,fair,0.342,180,0.287,0.077,-0.014,0.181,at
+tsumugi-s17-a33B,you-named,0shot,0.289,180,0.287,0.000,-0.082,0.101,at
+tsumugi-s17-a33B,you-named,fair,0.333,180,0.287,0.059,-0.032,0.163,at
+tsumugi-s17-a33B,answer-self,0shot,0.320,2560,0.250,0.093,0.070,0.115,above
+tsumugi-s17-a33B,answer-self,fair,0.312,2560,0.250,0.083,0.061,0.107,above
+tsumugi-s17-a33B,grammar,ladder,,1080,,0.786,0.762,0.813,above
+tsumugi-s17-a33B,operators,ladder,,1080,,0.279,0.247,0.311,above
+tsumugi-s17-a33B,patterns,ladder,,1080,,0.737,0.709,0.764,above
+tsumugi-s17-a33B,facts,ladder,,768,,0.886,0.856,0.909,above
+tsumugi-s17-a55B,lookup,0shot,0.694,1210,0.168,0.625,0.592,0.655,above
+tsumugi-s17-a55B,lookup,fair,0.976,1210,0.168,0.972,0.962,0.982,above
+tsumugi-s17-a55B,shortlist,0shot,0.622,960,0.040,0.606,0.573,0.639,above
+tsumugi-s17-a55B,pairs,0shot,0.594,64,0.125,0.536,0.411,0.679,above
+tsumugi-s17-a55B,pairs,fair,0.734,64,0.125,0.696,0.571,0.821,above
+tsumugi-s17-a55B,noise,0shot,0.574,720,0.200,0.467,0.423,0.513,above
+tsumugi-s17-a55B,now,0shot,0.550,300,0.292,0.362,0.284,0.441,above
+tsumugi-s17-a55B,handoffs,0shot,0.542,1200,0.312,0.329,0.288,0.368,above
+tsumugi-s17-a55B,handoffs,fair,0.635,1200,0.312,0.463,0.423,0.503,above
+tsumugi-s17-a55B,sets,0shot,0.475,320,0.275,0.283,0.207,0.357,above
+tsumugi-s17-a55B,sets,fair,0.580,320,0.275,0.438,0.365,0.508,above
+tsumugi-s17-a55B,refilled,0shot,0.371,720,0.200,0.213,0.170,0.260,above
+tsumugi-s17-a55B,refills,0shot,0.272,600,0.200,0.090,0.045,0.134,above
+tsumugi-s17-a55B,codevar,0shot,0.301,1200,0.267,0.041,0.007,0.079,above
+tsumugi-s17-a55B,codevar,fair,0.321,1200,0.267,0.067,0.030,0.102,above
+tsumugi-s17-a55B,sharedlists,0shot,0.221,600,0.200,0.027,-0.013,0.067,at
+tsumugi-s17-a55B,sharedlists,fair,0.268,600,0.200,0.084,0.042,0.130,above
+tsumugi-s17-a55B,box-narrative,0shot,0.417,200,0.253,0.191,0.092,0.283,above
+tsumugi-s17-a55B,box-narrative,fair,0.443,200,0.253,0.239,0.145,0.327,above
+tsumugi-s17-a55B,box-screenplay,0shot,0.557,200,0.253,0.414,0.317,0.512,above
+tsumugi-s17-a55B,box-screenplay,fair,0.507,200,0.253,0.322,0.221,0.413,above
+tsumugi-s17-a55B,box-code,0shot,0.470,200,0.253,0.285,0.195,0.377,above
+tsumugi-s17-a55B,box-code,fair,0.652,200,0.253,0.505,0.403,0.598,above
+tsumugi-s17-a55B,box-chat,0shot,0.502,200,0.253,0.332,0.234,0.424,above
+tsumugi-s17-a55B,box-chat,fair,0.555,200,0.253,0.383,0.278,0.471,above
+tsumugi-s17-a55B,you-static,0shot,0.592,300,0.292,0.419,0.339,0.499,above
+tsumugi-s17-a55B,i-moves,0shot,0.364,180,0.287,0.106,0.009,0.208,above
+tsumugi-s17-a55B,i-moves,fair,0.308,180,0.287,0.031,-0.059,0.130,at
+tsumugi-s17-a55B,you-moves,0shot,0.222,180,0.287,-0.093,-0.176,-0.013,below
+tsumugi-s17-a55B,you-moves,fair,0.331,180,0.287,0.059,-0.038,0.159,at
+tsumugi-s17-a55B,you-named,0shot,0.272,180,0.287,-0.023,-0.110,0.071,at
+tsumugi-s17-a55B,you-named,fair,0.311,180,0.287,0.029,-0.065,0.121,at
+tsumugi-s17-a55B,answer-self,0shot,0.305,2560,0.250,0.074,0.050,0.098,above
+tsumugi-s17-a55B,answer-self,fair,0.295,2560,0.250,0.060,0.038,0.084,above
+tsumugi-s17-a55B,grammar,ladder,,1080,,0.777,0.753,0.805,above
+tsumugi-s17-a55B,operators,ladder,,1080,,0.266,0.238,0.296,above
+tsumugi-s17-a55B,patterns,ladder,,1080,,0.747,0.723,0.772,above
+tsumugi-s17-a55B,facts,ladder,,768,,0.895,0.870,0.920,above
+tsumugi-s17-a88B,lookup,0shot,0.618,1210,0.168,0.533,0.497,0.566,above
+tsumugi-s17-a88B,lookup,fair,0.976,1210,0.168,0.971,0.960,0.981,above
+tsumugi-s17-a88B,shortlist,0shot,0.646,960,0.040,0.631,0.599,0.662,above
+tsumugi-s17-a88B,pairs,0shot,0.578,64,0.125,0.518,0.393,0.643,above
+tsumugi-s17-a88B,pairs,fair,0.672,64,0.125,0.625,0.500,0.750,above
+tsumugi-s17-a88B,noise,0shot,0.640,720,0.200,0.550,0.503,0.591,above
+tsumugi-s17-a88B,now,0shot,0.802,300,0.292,0.715,0.647,0.778,above
+tsumugi-s17-a88B,handoffs,0shot,0.510,1200,0.312,0.282,0.242,0.326,above
+tsumugi-s17-a88B,handoffs,fair,0.642,1200,0.312,0.476,0.433,0.515,above
+tsumugi-s17-a88B,sets,0shot,0.436,320,0.275,0.228,0.156,0.299,above
+tsumugi-s17-a88B,sets,fair,0.603,320,0.275,0.461,0.390,0.528,above
+tsumugi-s17-a88B,refilled,0shot,0.459,720,0.200,0.324,0.281,0.371,above
+tsumugi-s17-a88B,refills,0shot,0.379,600,0.200,0.224,0.175,0.271,above
+tsumugi-s17-a88B,codevar,0shot,0.350,1200,0.267,0.108,0.069,0.147,above
+tsumugi-s17-a88B,codevar,fair,0.365,1200,0.267,0.128,0.091,0.165,above
+tsumugi-s17-a88B,sharedlists,0shot,0.258,600,0.200,0.072,0.029,0.116,above
+tsumugi-s17-a88B,sharedlists,fair,0.324,600,0.200,0.155,0.110,0.205,above
+tsumugi-s17-a88B,box-narrative,0shot,0.438,200,0.253,0.209,0.112,0.309,above
+tsumugi-s17-a88B,box-narrative,fair,0.453,200,0.253,0.235,0.131,0.337,above
+tsumugi-s17-a88B,box-screenplay,0shot,0.573,200,0.253,0.423,0.328,0.518,above
+tsumugi-s17-a88B,box-screenplay,fair,0.490,200,0.253,0.289,0.186,0.386,above
+tsumugi-s17-a88B,box-code,0shot,0.510,200,0.253,0.343,0.250,0.436,above
+tsumugi-s17-a88B,box-code,fair,0.650,200,0.253,0.496,0.398,0.590,above
+tsumugi-s17-a88B,box-chat,0shot,0.487,200,0.253,0.280,0.177,0.372,above
+tsumugi-s17-a88B,box-chat,fair,0.522,200,0.253,0.351,0.257,0.442,above
+tsumugi-s17-a88B,you-static,0shot,0.655,300,0.292,0.511,0.430,0.577,above
+tsumugi-s17-a88B,i-moves,0shot,0.350,180,0.287,0.086,-0.009,0.194,at
+tsumugi-s17-a88B,i-moves,fair,0.311,180,0.287,0.035,-0.057,0.137,at
+tsumugi-s17-a88B,you-moves,0shot,0.203,180,0.287,-0.122,-0.205,-0.037,below
+tsumugi-s17-a88B,you-moves,fair,0.292,180,0.287,0.003,-0.086,0.097,at
+tsumugi-s17-a88B,you-named,0shot,0.344,180,0.287,0.080,-0.012,0.179,at
+tsumugi-s17-a88B,you-named,fair,0.372,180,0.287,0.118,0.018,0.218,above
+tsumugi-s17-a88B,answer-self,0shot,0.323,2560,0.250,0.098,0.072,0.121,above
+tsumugi-s17-a88B,answer-self,fair,0.319,2560,0.250,0.092,0.069,0.116,above
+tsumugi-s17-a88B,grammar,ladder,,1080,,0.818,0.797,0.842,above
+tsumugi-s17-a88B,operators,ladder,,1080,,0.295,0.270,0.330,above
+tsumugi-s17-a88B,patterns,ladder,,1080,,0.801,0.773,0.824,above
+tsumugi-s17-a88B,facts,ladder,,768,,0.911,0.889,0.933,above
 ```

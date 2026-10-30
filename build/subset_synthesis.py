@@ -1,8 +1,8 @@
 """Cut data/inputs/synthesis.jsonl from a full synthesis table: only the rows build_stage.py reads, under public ids.
 
-Usage: python build/subset_synthesis.py FULL_SYNTHESIS.jsonl NAMES.tsv [OUT.jsonl]   (default data/inputs/synthesis.jsonl)
+Usage: python build/subset_synthesis.py <full synthesis table> <names map> [<out>]   (default data/inputs/synthesis.jsonl)
 
-NAMES.tsv (local, not tracked) maps checkpoint ids of the full table to the public ids the builders use, one per
+The names map (local, not tracked) maps checkpoint ids of the full table to the public ids the builders use, one per
 line: `model<TAB>checkpoint<TAB>public checkpoint`. Every row is renamed first; then build_stage.py runs against
 the renamed table and records each (model, checkpoint, metric) it looks up. Kept rows:
   - every row matching a looked-up key (hit or miss, so an ambiguous key stays ambiguous and a missing one missing);

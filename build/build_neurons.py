@@ -9,13 +9,13 @@ i = position * 4096 + neuron. Writes:
   layout-<key>.bin    x u16[N] then y u16[N], one shared scale per layout (aspect kept; 0.2 / 99.8 percentile clip)
 
 Inputs (all from the compendium build; paths are arguments, nothing machine-specific is tracked):
-  --map-v1 DIR      neurons_v1.jsonl, compendium-draft.json, taxonomy.json, known_v1.json   (meaning map, named)
-  --map-v2 DIR      neurons_v1.jsonl                                                       (firing token masked)
-  --weights FILE    weight_layouts.npz (optional; weight-space layouts; its .json sibling adds the PCA statistics)
-  --binding FILE    binding_maps.npz (mean attribution per family, (72, 4096))
-  --sets FILE       ablation_sets2.json (the causal supporter / interferer sets)
+  --map-v1 <dir>    the named meaning map: the neuron rows, the draft compendium, the taxonomy, the known neurons
+  --map-v2 <dir>    the meaning map with the firing token masked (its neuron rows)
+  --weights <file>  the weight-space layouts (optional; a JSON sibling adds the PCA statistics)
+  --binding <file>  the mean binding attribution per family, shape (72, 4096)
+  --sets <file>     the causal supporter / interferer sets
 
-  python build/build_neurons.py --map-v1 D1 --map-v2 D2 --weights W.npz --binding B.npz --sets S.json --out DIR
+  python build/build_neurons.py --map-v1 <d1> --map-v2 <d2> --weights <w> --binding <b> --sets <s> --out <dir>
 """
 from __future__ import annotations
 

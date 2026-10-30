@@ -5,8 +5,8 @@ The base holds the curated parts (figure layout, stage texts, model lists, the b
 every number from the synthesis table through facts.py (the trajectory, Figure 2 and 3 values, the stage texts that
 quote numbers, the lead, and the decomposition, riders, release and run tables) and writes the result. Rebuilding
 from an up-to-date base reproduces it exactly (`make stage-check`).
-Ledger directory: atlas-ledger.json (every synthesis row behind a number written) and stage-diffs.log (base values
-that moved by more than .0015). Values a checkpoint does not have are written as null and render as "pending".
+The ledger directory gets a ledger of every synthesis row behind a number written, and a log of the base values
+that moved by more than .0015. Values a checkpoint does not have are written as null and render as "pending".
 """
 from __future__ import annotations
 

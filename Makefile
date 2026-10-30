@@ -1,16 +1,14 @@
 # Binding Atlas builds. `make help` lists the targets.
 #   page : data/built/*.json -> site/ (HTML, Markdown twin, link card)        needs python3 (+ Pillow, Chrome for the card)
-#   data : raw grids + synthesis table -> data/built/{stage,atlas}.json       needs kotodama (pyproject [data] extra)
+#   data : the zoo sweep's score rows + synthesis table -> data/built/{stage,atlas}.json   needs binding-bench
 SHELL   := /bin/bash
 PY      ?= python3
-# python with kotodama importable, for `make data` (e.g. .venv/bin/python after `uv pip install -e '.[data]'`)
+# python with binding-bench's dependencies (numpy), for `make data`
 PY_DATA ?= $(PY)
-# optional: a kotodama source checkout to put on PYTHONPATH instead of installing it
-KOTODAMA_SRC ?=
+# python with the legibility checker's pinned spaCy (tools/legibility_requirements.txt), for `make gates`
+PY_LEG ?= .venv-legibility/bin/python
 CONFIG  ?= config/default.toml
 SITE    ?= site
-GRIDS   ?= $(ATLAS_GRIDS)
-GRIDMAP ?= config/local-grids.tsv
 # local copies of the configured web font, used only to render the link card (absent: fallback faces)
 FONT_DIR ?= site/fonts
 ifndef STAMP
@@ -18,26 +16,36 @@ STAMP := $(shell date -u '+%Y-%m-%d %H:%M UTC')
 endif
 # the build the kotodama.animalabs.ai deployment serves (config/animalabs.sha256)
 VERIFY_CONFIG := animalabs
-VERIFY_STAMP := 2026-10-30 07:43 UTC
+VERIFY_STAMP := 2026-10-30 22:24 UTC
 
-DATA_ENV := $(if $(KOTODAMA_SRC),PYTHONPATH=$(KOTODAMA_SRC),)
 PAGE_ARGS = --config $(CONFIG) --stamp "$(STAMP)"
 
-.PHONY: help page html md card neurons neurons-binding data stage atlas grids verify guard stage-check data-check check legibility clean
+.PHONY: help atlas4 atlas4-check gates page html md card neurons neurons-binding data stage verify guard stage-check data-check check clean
 
 help:
 	@echo "make page   [CONFIG=config/x.toml] [SITE=dir] [STAMP='YYYY-MM-DD HH:MM UTC']  data/built -> site/"
-	@echo "make data   GRIDS=dir [PY_DATA=python] [KOTODAMA_SRC=dir]  raw grids -> data/built/{stage,atlas}.json"
+	@echo "make data   ZOO=dir PROMPTS=dir BENCH=dir [PY_DATA=python]  the zoo sweep + synthesis -> data/built/{stage,atlas}.json"
+	@echo "make atlas4 ZOO=dir PROMPTS=dir BENCH=dir [PY_DATA=python]  the zoo-sweep rows -> data/built/atlas.json (the grid)"
+	@echo "make atlas4-check ZOO=... PROMPTS=... BENCH=...  rebuild the grid into out/ and compare with data/built/"
 	@echo "make stage  refresh every synthesis-derived value in data/built/stage.json (no grids needed)"
 	@echo "make neurons [CONFIG=...] [SITE=dir]  Threads (the neuron page) + its data dir (data/built/neurons -> site/)"
 	@echo "make neurons-binding   data/inputs/binding -> data/built/neurons/binding.json"
-	@echo "make grids  [GRIDMAP=config/local-grids.tsv]  link local copies into .grids/ (sha256-checked)"
 	@echo "make verify       rebuild the kotodama.animalabs.ai deployment into out/verify and check its sha256"
 	@echo "make guard        scan every tracked file for internal names (build/forbidden.py)"
 	@echo "make stage-check  rebuild stage.json into out/ and compare with data/built/"
-	@echo "make data-check   GRIDS=dir  rebuild atlas.json + stage.json into out/ and compare with data/built/"
+	@echo "make data-check   ZOO=... PROMPTS=... BENCH=...  rebuild atlas.json + stage.json into out/ and compare with data/built/"
 	@echo "make check        verify + stage-check + guard"
-	@echo "make legibility   KOTODAMA_SRC=dir  legibility report on README.md [LEGIBILITY_FILES=…] (report only)"
+	@echo "make gates        the documentation gates: timelessness, referents, legibility (PY_LEG=python with spaCy)"
+
+# ---- the grid from the zoo sweep (v4): ZOO = the sweep's score rows, PROMPTS = the battery files, BENCH = binding-bench
+ZOO     ?=
+PROMPTS ?=
+BENCH   ?=
+atlas4:
+	$(PY_DATA) build/build_atlas_v4.py --zoo $(ZOO) --prompts $(PROMPTS) --bench $(BENCH) --old data/built/atlas.json --out data/built/atlas.json
+
+atlas4-check:
+	mkdir -p out/data && $(PY_DATA) build/build_atlas_v4.py --zoo $(ZOO) --prompts $(PROMPTS) --bench $(BENCH) --old data/built/atlas.json --out out/data/atlas.json && cmp out/data/atlas.json data/built/atlas.json && echo "atlas4-check ok: out/data/atlas.json = data/built/atlas.json"
 
 # ---- page: data/built -> site/
 page: html md card
@@ -46,7 +54,7 @@ html:
 	$(PY) page/build_page.py $(PAGE_ARGS) --out $(SITE)/binding-atlas.html
 
 md:
-	$(PY) page/build_md.py $(PAGE_ARGS) --swap data/built/swap.json --out $(SITE)/binding-atlas.md
+	$(PY) page/build_md.py $(PAGE_ARGS) --out $(SITE)/binding-atlas.md
 
 card:
 	PY=$(PY) FONT_DIR=$(FONT_DIR) bash page/build_card.sh out/card $(SITE)/binding-atlas-card.png --config $(CONFIG)
@@ -60,17 +68,10 @@ neurons-binding:
 	$(PY) build/build_binding.py
 
 # ---- data: raw inputs -> data/built
-data: stage atlas
+data: stage atlas4
 
 stage:
 	$(PY) build/build_stage.py --out data/built/stage.json
-
-atlas:
-	@test -n "$(GRIDS)" || { echo "set GRIDS=dir (or ATLAS_GRIDS); see data/INPUTS-MANIFEST.tsv and 'make grids'"; exit 2; }
-	$(DATA_ENV) $(PY_DATA) build/build_atlas_v3.py data/built/atlas.json --grids $(GRIDS)
-
-grids:
-	$(PY) build/link_grids.py $(GRIDMAP) .grids --verify
 
 # ---- equivalence checks
 verify:
@@ -86,19 +87,15 @@ stage-check:
 	$(PY) build/build_stage.py --base data/built/stage.json --out out/data/stage.json
 	cmp out/data/stage.json data/built/stage.json && echo "stage-check ok: out/data/stage.json = data/built/stage.json"
 
-data-check: stage-check
-	@test -n "$(GRIDS)" || { echo "set GRIDS=dir (or ATLAS_GRIDS)"; exit 2; }
-	$(DATA_ENV) $(PY_DATA) build/build_atlas_v3.py out/data/atlas.json --grids $(GRIDS)
-	cmp out/data/atlas.json data/built/atlas.json && echo "data-check ok: out/data/atlas.json = data/built/atlas.json"
+data-check: stage-check atlas4-check
 
 check: verify stage-check guard
 
-# a report, never a gate: kotodama's tools/check_legibility.py (needs spacy + en_core_web_trf + wordfreq in PY_DATA).
-# The Markdown twin is mostly data and slow to parse on a CPU: add it with LEGIBILITY_FILES="README.md site/binding-atlas.md".
-LEGIBILITY_FILES ?= README.md
-legibility:
-	@test -n "$(KOTODAMA_SRC)" || { echo "set KOTODAMA_SRC=/path/to/kotodama/src (the checker is its tools/check_legibility.py)"; exit 2; }
-	$(PY_DATA) $(KOTODAMA_SRC)/../tools/check_legibility.py $(LEGIBILITY_FILES)
+# the documentation gates (CONTRIBUTING.md): what comments say, what they point at, and how legible the pages are
+gates:
+	$(PY) -m tools.check_timelessness --root build page take tools
+	$(PY) -m tools.check_referents --root build page take tools
+	$(PY_LEG) -m tools.check_legibility
 
 clean:
 	rm -rf out

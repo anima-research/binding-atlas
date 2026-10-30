@@ -3,7 +3,7 @@
 Every item is drawn from the recipe of a scored battery with a seed that battery never used, and rendered exactly as
 a model sees it (the bench's own payload builder), so a person and a model read the same kind of text.
   * deixis-v2: the bindprobes deixis generator at the commit that drew `bp-deixis-v2`, replayed with a new seed
-    (`binding_bench` `tools/replay_recipe.py`); every variant (deictic, third, twin), every query (self, addressee,
+    (binding-bench's recipe replay); every variant (deictic, third, twin), every query (self, addressee,
     owner), two and three speakers, under 0shot and `fair` (balanced worked examples from the same draw).
   * joinlite: the static stage gauge, `joinlite_rows(seed=…)`: third, self and addressee queries, original and
     speaker-swapped.

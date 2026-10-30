@@ -1,4 +1,0 @@
-# Logical prefix (data/INPUTS-MANIFEST.tsv, root=grids) -> local directory holding those files. Tab-separated.
-# Copy to config/local-grids.tsv (gitignored), point each line at a local copy, then: make grids && make data
-# A single line `<TAB>/path/to/dataset` maps everything when the files sit in one tree laid out like the manifest.
-	/path/to/binding-atlas-grids/
