@@ -107,6 +107,10 @@ def map_typed(text: str, candidates: tuple[str, ...]) -> Optional[str]:
 _ASK = {"self": "who is I", "addressee": "who is you", "owner": "who has it", "third": "who has it (named)"}
 
 
+_RUNG = {"r0": "as written", "r1": "scene says who talks to whom", "r2": "each line says who it is to",
+         "r2null": "each line tagged, no name", "r3": "hand-offs narrated", "r4": "told without I / you"}
+
+
 def label(slice_: str) -> str:
     """A reader's name for a slice: what the item asks, and whether objects change hands in it."""
     parts = slice_.split("|")
@@ -115,6 +119,8 @@ def label(slice_: str) -> str:
         return f"{ask} · objects change hands"
     if parts[0] == "joinlite":
         return f"{_ASK.get(parts[1], parts[1])} · nothing changes hands"
+    if parts[0] == "frame":
+        return f"{_ASK.get(parts[2], parts[2])} · objects change hands · {_RUNG.get(parts[1], parts[1])}"
     return parts[0]
 
 

@@ -142,3 +142,4 @@ def test_labels_read_as_questions() -> None:
     assert server.label("deixis|deictic|P2|addressee") == "who is you · objects change hands"
     assert server.label("deixis|third|P3|owner") == "who has it (told without I / you) · objects change hands"
     assert server.label("joinlite|self|swap") == "who is I · nothing changes hands"
+    assert server.label("frame|r2|addressee") == "who is you · objects change hands · each line says who it is to"

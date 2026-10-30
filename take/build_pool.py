@@ -7,6 +7,10 @@ a model sees it (the bench's own payload builder), so a person and a model read 
     owner), two and three speakers, under 0shot and `fair` (balanced worked examples from the same draw).
   * joinlite: the static stage gauge, `joinlite_rows(seed=…)`: third, self and addressee queries, original and
     speaker-swapped.
+  * frame ladder: the two-speaker deictic items of the same deixis draw, each rendered on every rung of
+    `frame-ladder-v1` (R0 as built, R1 scene line, R2 addressee tags, R2-null tag format only, R3 transfers narrated,
+    R4 no I / you), 0-shot. A rung item shares its story id with the deixis item it comes from, so no reader sees two
+    renderings of one story.
 
 Needs `binding_bench` importable and a kotodama clone (for the historical generator):
     python take/build_pool.py --kotodama PATH --bench PATH --seeds 900001,900002 --out take/data/pool.jsonl
@@ -36,6 +40,7 @@ def deixis_items(kotodama: Path, seed: int) -> Iterator[dict[str, Any]]:
     with tempfile.TemporaryDirectory(prefix="take-pool-") as tmp:
         path = replay(EmitRecipe(DEIXIS_COMMIT, seed, {"deixis": DEIXIS_PER_CELL}), kotodama, Path(tmp))
         items = load_items(path)
+        yield from frame_items(path, items, seed)
     pool = FairPool(items)
     for it in items:
         P, E, q = it.cell
@@ -46,6 +51,17 @@ def deixis_items(kotodama: Path, seed: int) -> Iterator[dict[str, Any]]:
                    "battery": "deixis-v2", "slice": f"deixis|{variant}|P{P}|{q}", "condition": cond, "seed": seed,
                    "prompt": pay["prompt"], "candidates": [c.strip() for c in pay["candidates"]], "gold": it.gold,
                    "meta": {"P": P, "E": E, "qkind": q, "variant": variant}}
+
+
+def frame_items(path: Path, items: list[Any], seed: int) -> Iterator[dict[str, Any]]:
+    from binding_bench.binding.stagegauges import frame_rows, swapdyn_rows
+
+    pair = {it.item_id: it.meta["pair_id"] for it in items}
+    for r in frame_rows(swapdyn_rows(path)):
+        yield {"item_id": f"fr{seed}-{r['id']}", "base_id": f"dx{seed}-{pair[r['base_id']]}", "battery": "frame-ladder",
+               "slice": f"frame|{r['rung']}|{r['qkind']}", "condition": "0shot", "seed": seed, "prompt": r["prompt"],
+               "candidates": [c.strip() for c in r["candidates"]], "gold": r["gold"],
+               "meta": {"rung": r["rung"], "qkind": r["qkind"]}}
 
 
 def joinlite_items(seed: int) -> Iterator[dict[str, Any]]:
