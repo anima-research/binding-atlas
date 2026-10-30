@@ -1,5 +1,7 @@
 # /take, the human reader. Copy to /etc/systemd/system/, then: systemctl daemon-reload && systemctl enable --now kotodama-take
 # SERVICE_DIR holds this repository's take/ (with its uv venv in take/.venv); DATA_DIR holds the pool, invites and database.
+# Build the venv on the system python (uv venv --python /usr/bin/python3 take/.venv): a venv on a uv-managed python links
+# into the installing user's home, which the service user cannot execute.
 [Unit]
 Description=Binding Atlas /take (human reader)
 After=network.target
