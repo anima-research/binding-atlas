@@ -18,7 +18,7 @@ STAMP := $(shell date -u '+%Y-%m-%d %H:%M UTC')
 endif
 # the build the kotodama.animalabs.ai deployment serves (config/animalabs.sha256)
 VERIFY_CONFIG := animalabs
-VERIFY_STAMP := 2026-10-30 07:31 UTC
+VERIFY_STAMP := 2026-10-30 07:43 UTC
 
 DATA_ENV := $(if $(KOTODAMA_SRC),PYTHONPATH=$(KOTODAMA_SRC),)
 PAGE_ARGS = --config $(CONFIG) --stamp "$(STAMP)"

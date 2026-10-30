@@ -174,7 +174,7 @@ config before serving it under another domain. The card carries the canonical UR
 
 ## Credits
 
-Research, code and development: Luxia (@LuxiaSL) and Claude (Anthropic). Compute and hosting provided by Anima Labs.
+Research, code and development: Luxia ([@kataletheia](https://x.com/kataletheia)) and Claude (Anthropic). Compute and hosting provided by Anima Labs.
 
 ## Licence
 
