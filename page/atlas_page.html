@@ -271,7 +271,7 @@ table.levers td.cost { color: var(--muted); }
       effective layers, with looped depth and boundary-fitted attention residuals. It reaches stage 3 by <b>33B tokens</b>
       (annealed; 40B on the constant-learning-rate trunk), about what OLMo-2 13B needs, where OLMo-2 1B needs about 420B.
       At 110B tokens its zero-shot dynamic <i>you</i> is not inverted (−.021), where most 1–2B bases invert. In a check
-      of 20 bases, it follows a narrated hand-off better (.336) than every Pythia model up to 6.9B (.275 to .294).
+      of 20 bases, it follows a narrated hand-off better (.335) than every Pythia model up to 6.9B (.275 to .299).
       For every model of its size, that hand-off is the open step toward stage 5.</p>
     <div class="byline"><span>kotodama · 2026</span><span>__N_BASES__ public bases in the atlas · 30 public bases and 5 public training trajectories in the figures · kotodama-tsumugi (seed 17 to 110B tokens; seed 7 to 11B)</span>
       <a href="#atlas">full atlas ↓</a><a href="binding-atlas.md">agent view (markdown)</a><a href="__THREADS_LINK__">tsumugi's neurons: Threads</a>__BACK_LINK__</div>
@@ -294,8 +294,8 @@ table.levers td.cost { color: var(--muted); }
         <p class="cap"><b>Dynamic <i>you</i> at each model's final checkpoint (OLMo-2 1B: its 4T pre-anneal checkpoint).</b> A positive swap shift means <i>you</i>
           follows the addressee; a negative one means <i>you</i> resolves to the speaker. Zero-shot (filled) is negative for
           every model at or below 8B, for token counts up to 36T, and turns positive between 8B and 14B on both Qwen
-          recipes. The same holds with each chat rewritten as a scene (8 of 8 models tested at or below 8B; the
-          highest is +.010, Qwen2.5-7B), so the result does not come from the chat format. In all of these
+          recipes. The same holds with each chat rewritten as a scene, for all 8 models tested at or below 8B (the
+          highest is Qwen2.5-7B, +.010). So the result does not come from the chat format. In all of these
           standard-shape transformers, depth grows with size. The chart therefore leaves two routes open for small
           models: more tokens, and more depth at a fixed size. No model at or below 8B has been trained far enough to
           rule out the first. From 14B to 1T parameters, stage 5 is weak and nearly flat. Ten of the 11 bases with
@@ -352,7 +352,7 @@ table.levers td.cost { color: var(--muted); }
       <div class="ctl" role="group" aria-labelledby="lab-cond"><span id="lab-cond">Condition</span><div class="seg" id="cond">
         <button data-v="fair" aria-pressed="true" title="four solved items first, balanced so no answer can be copied from them: the reading">With examples</button>
         <button data-v="0shot" aria-pressed="false" title="the item alone, with no solved items before it: the floor">Cold</button></div></div>
-      <label class="ctl"><span>Find a model</span><input type="search" id="q" placeholder="e.g. 405B, Claude, Qwen3"></label>
+      <label class="ctl"><span>Find a model</span><input type="search" id="q" placeholder="e.g. 405B, Qwen3, tsumugi"></label>
       <label class="ctl"><span>Sort rows</span><select id="sort"><option value="">by group (default)</option></select></label>
       <label class="ctl"><span>Parameters</span><select id="psz"><option value="">any size</option><option value="0-2">up to 2B</option><option value="2-10">2B to 10B</option><option value="10-100">10B to 100B</option><option value="100-">100B and up</option><option value="known">published size only</option></select></label>
       <label class="ctl"><span>&nbsp;</span><span style="display:flex;gap:8px;text-transform:none;letter-spacing:0">
@@ -464,28 +464,27 @@ table.levers td.cost { color: var(--muted); }
   <div class="two">
     <details class="panel prose"><summary>Reading the grid</summary>
       <ul>
-        <li><b>Score</b> = (accuracy − chance) / (1 − chance). 0 is guessing among the candidates, 1 is perfect, below 0 is
-          worse than guessing (a systematic wrong answer — usually the shortcut).</li>
-        <li><b>Deixis columns come in pairs</b>: the <i>I/you/my</i> version and a <b>3rd-person twin</b> narrating the same
-          events with names. The twin is the control — same memory load, no perspective. The <b>Perspective gap</b> view is
-          twin minus deictic: how much a model loses purely by having to take a seat.</li>
-        <li><b>Shortcut-free</b> keeps only items where the answer is neither the last-mentioned person nor the last speaker.
-          Most deixis "success" lives in those two shortcuts; with them removed, nearly everything falls to chance on
-          query-side <i>you</i> — up to 405B.</li>
-        <li><b>P3 / P2</b> = three or two people in the scene. P2 <i>you</i> is the structural case: no name tells you who
-          <i>you</i> is; only the turn structure does.</li>
-        <li><b>Open models</b> are scored by log-probability over the candidates. <b>API models</b> (Claude, OpenRouter rows)
-          can't expose that, so they answer in words: <i>reflex</i> = "reply with only the next word", <i>deliberate</i> =
-          "think it through, then answer". Compare within a scoring type first.</li>
+        <li><b>Score</b> = (accuracy − chance) / (1 − chance). 0 is guessing among the candidates, 1 is always right, and
+          below 0 is reliably wrong: a systematic wrong answer, usually a shortcut.</li>
+        <li><b>A cell has three states.</b> A colored cell is above chance. An outlined cell is at chance: its 95% interval
+          includes 0. A red-hatched cell is below chance. When candidates tie exactly, the item's credit is split among
+          them.</li>
+        <li><b>With examples</b> puts four solved items before each item, balanced so that no answer can be copied from
+          them. That is the reading. <b>Cold</b> shows the item alone, with no solved items: the floor.</li>
+        <li><b>Each model</b> is scored by the log-probability that it gives each candidate answer. The human row read
+          each item cold, once, without options.</li>
+        <li><b>Columns are grouped</b> by what the questions look like. Each column is its own test, and a collapsed group
+          shows one named column, never an average. Rows are grouped by size, with kotodama-tsumugi's checkpoints in
+          training order at the foot.</li>
       </ul>
     </details>
-    <details class="panel prose"><summary>Findings by probe</summary>
+    <details class="panel prose"><summary>Findings from the deixis study</summary>
       <ul id="findings"></ul>
     </details>
   </div>
 
   <div class="two">
-    <details class="panel prose"><summary>Scoring notes</summary><ul id="gaps"></ul></details>
+    <details class="panel prose"><summary>Scoring notes for the deixis study</summary><ul id="gaps"></ul></details>
   </div>
 
   <details class="panel prose"><summary>Methods and instruments</summary>

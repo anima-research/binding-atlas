@@ -399,7 +399,7 @@
    "cost": "costs code and structure binding"
   }
  ],
- "lead": "Base language models acquire the referent of *you* in five ordered stages. Every base of 0.6B parameters or more trained on trillions of tokens reaches the first three. The fifth stage, tracking *you* after objects change hands, is **never reached zero-shot** (with no worked examples) by a public model up to 8B, at any token count measured up to 36T; its swap shift is negative in every one of them. From 14B to 1T parameters, stage 5 is weak and nearly flat. In these models, parameter count and depth grow together. **kotodama-tsumugi**, a 1.4B model run as 72 effective layers (looped depth, boundary-fitted attention residuals), separates them: it reaches stage 3 by **33B tokens** (annealed; on the constant-LR trunk by 40B), the token cost of OLMo-2 13B, against about 420B for OLMo-2 1B. At 110B tokens its zero-shot stage-5 reading (−.021) is not inverted under the gauge rule, where every 1–2B public base whose static *you* binds, except Llama-3.2-1B, inverts. In a check of 20 bases, kotodama-tsumugi (.336) follows a hand-off told in the third person better than every Pythia model up to 6.9B (.275 to .294) and Llama-3.2-1B (.303). Most bases up to 1.5B barely follow one: 7 of those 10 score .26 to .34, against about .29 by chance. For every model of this size, that hand-off is the open step toward stage 5.",
+ "lead": "Base language models acquire the referent of *you* in five ordered stages. Every base of 0.6B parameters or more trained on trillions of tokens reaches the first three. The fifth stage is tracking *you* after objects change hands. **No public model up to 8B reaches it zero-shot** (with no worked examples), at any token count measured up to 36T, and every one of them has a negative swap shift. From 14B to 1T parameters, stage 5 is weak and nearly flat. In these models, parameter count and depth grow together. **kotodama-tsumugi** separates the two. It is a 1.4B model run as 72 effective layers (looped depth, boundary-fitted attention residuals). It reaches stage 3 by **33B tokens** (annealed; on the constant-LR trunk by 40B). That is the token cost of OLMo-2 13B, against about 420B for OLMo-2 1B. At 110B tokens its zero-shot stage-5 reading (−.021) is not inverted under the gauge rule. Every 1–2B public base whose static *you* binds inverts, except Llama-3.2-1B. In a check of 20 bases, kotodama-tsumugi (.335) follows a hand-off told in the third person better than every Pythia model up to 6.9B (.275 to .299) and Llama-3.2-1B (.304). Most bases up to 1.5B barely follow one: 7 of those 10 score .26 to .34, against about .29 by chance. For every model of this size, that hand-off is the open step toward stage 5.",
  "tsumugi": {
   "_note": "kotodama-tsumugi s17 trunk (constant LR, to 100B) and cooldown branches (annealed), stage gauges = P2 speaker swap (static I, static you) and dynamic swap (addressee, 0-shot / 3-shot). Seed 7 = the seed replicate to 11B. Values from the synthesis table.",
   "traj": {
@@ -819,9 +819,9 @@
     "p": 1.41,
     "tok": "134B",
     "ours": false,
-    "third": 0.286,
-    "deictic": 0.283,
-    "named_transfer": 0.253,
+    "third": 0.289,
+    "deictic": 0.28,
+    "named_transfer": 0.25,
     "vocative": 0.242
    },
    {
@@ -829,20 +829,20 @@
     "p": 1.42,
     "tok": "33B",
     "ours": true,
-    "third": 0.308,
+    "third": 0.31,
     "deictic": 0.297,
-    "named_transfer": 0.3,
-    "vocative": 0.306
+    "named_transfer": 0.299,
+    "vocative": 0.296
    },
    {
     "m": "kotodama-tsumugi · 55B",
     "p": 1.42,
     "tok": "55B",
     "ours": true,
-    "third": 0.297,
-    "deictic": 0.289,
+    "third": 0.303,
+    "deictic": 0.293,
     "named_transfer": 0.292,
-    "vocative": 0.283
+    "vocative": 0.282
    },
    {
     "m": "kotodama-tsumugi · 88B",
@@ -850,28 +850,28 @@
     "tok": "88B",
     "ours": true,
     "third": 0.314,
-    "deictic": 0.275,
+    "deictic": 0.276,
     "named_transfer": 0.319,
-    "vocative": 0.264
+    "vocative": 0.272
    },
    {
     "m": "kotodama-tsumugi · 110B, second anneal",
     "p": 1.42,
     "tok": "110B",
     "ours": true,
-    "third": 0.331,
-    "deictic": 0.297,
-    "named_transfer": 0.339,
-    "vocative": 0.292
+    "third": 0.328,
+    "deictic": 0.3,
+    "named_transfer": 0.34,
+    "vocative": 0.293
    },
    {
     "m": "kotodama-tsumugi · 110B, release",
     "p": 1.42,
     "tok": "110B",
     "ours": true,
-    "third": 0.336,
-    "deictic": 0.281,
-    "named_transfer": 0.339,
+    "third": 0.335,
+    "deictic": 0.285,
+    "named_transfer": 0.343,
     "vocative": 0.292
    },
    {
@@ -879,30 +879,30 @@
     "p": 1.48,
     "tok": "4T",
     "ours": false,
-    "third": 0.306,
-    "deictic": 0.319,
+    "third": 0.31,
+    "deictic": 0.318,
     "named_transfer": 0.333,
-    "vocative": 0.308
+    "vocative": 0.31
    },
    {
     "m": "SmolLM2 1.7B",
     "p": 1.71,
     "tok": "11T",
     "ours": false,
-    "third": 0.444,
-    "deictic": 0.3,
-    "named_transfer": 0.347,
-    "vocative": 0.281
+    "third": 0.45,
+    "deictic": 0.304,
+    "named_transfer": 0.343,
+    "vocative": 0.276
    },
    {
     "m": "Qwen3 1.7B",
     "p": 1.72,
     "tok": "36T",
     "ours": false,
-    "third": 0.514,
-    "deictic": 0.353,
-    "named_transfer": 0.258,
-    "vocative": 0.325
+    "third": 0.502,
+    "deictic": 0.344,
+    "named_transfer": 0.264,
+    "vocative": 0.326
    },
    {
     "m": "Qwen3 4B",
@@ -910,9 +910,9 @@
     "tok": "36T",
     "ours": false,
     "third": 0.669,
-    "deictic": 0.4,
-    "named_transfer": 0.406,
-    "vocative": 0.353
+    "deictic": 0.393,
+    "named_transfer": 0.404,
+    "vocative": 0.354
    },
    {
     "m": "Qwen2.5 7B",
@@ -921,8 +921,8 @@
     "ours": false,
     "third": 0.572,
     "deictic": 0.4,
-    "named_transfer": 0.514,
-    "vocative": 0.381
+    "named_transfer": 0.519,
+    "vocative": 0.385
    },
    {
     "m": "Llama-3.1 8B",
@@ -930,29 +930,29 @@
     "tok": "15T",
     "ours": false,
     "third": 0.589,
-    "deictic": 0.289,
-    "named_transfer": 0.436,
-    "vocative": 0.258
+    "deictic": 0.286,
+    "named_transfer": 0.44,
+    "vocative": 0.246
    },
    {
     "m": "Qwen3 8B",
     "p": 8.19,
     "tok": "36T",
     "ours": false,
-    "third": 0.714,
-    "deictic": 0.397,
-    "named_transfer": 0.45,
-    "vocative": 0.319
+    "third": 0.709,
+    "deictic": 0.384,
+    "named_transfer": 0.439,
+    "vocative": 0.332
    },
    {
     "m": "Qwen2.5 14B",
     "p": 14.77,
     "tok": "18T",
     "ours": false,
-    "third": 0.725,
-    "deictic": 0.361,
-    "named_transfer": 0.533,
-    "vocative": 0.317
+    "third": 0.729,
+    "deictic": 0.35,
+    "named_transfer": 0.541,
+    "vocative": 0.311
    },
    {
     "m": "Qwen3 14B",
@@ -960,8 +960,8 @@
     "tok": "36T",
     "ours": false,
     "third": 0.675,
-    "deictic": 0.406,
-    "named_transfer": 0.542,
+    "deictic": 0.396,
+    "named_transfer": 0.537,
     "vocative": 0.358
    },
    {
@@ -969,10 +969,10 @@
     "p": 30.53,
     "tok": "36T",
     "ours": false,
-    "third": 0.592,
-    "deictic": 0.339,
-    "named_transfer": 0.531,
-    "vocative": 0.297
+    "third": 0.588,
+    "deictic": 0.347,
+    "named_transfer": 0.534,
+    "vocative": 0.296
    },
    {
     "m": "Llama-3.1 70B",
@@ -981,8 +981,8 @@
     "ours": false,
     "third": 0.797,
     "deictic": 0.358,
-    "named_transfer": 0.631,
-    "vocative": 0.331
+    "named_transfer": 0.633,
+    "vocative": 0.328
    }
   ]
  },

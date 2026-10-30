@@ -11,7 +11,8 @@ rows and columns can be re-added once the clean bench has scored them.
     python build/build_atlas_v4.py --zoo ZOO_DIR --prompts PROMPTS_DIR --bench BINDING_BENCH --out data/built/atlas.json
     (the one-time diff against the previous grid: add --old OLD_ATLAS --dropped data/DROPPED-2026-10.tsv)
 
-ZOO_DIR: suite/<battery>/<model>.jsonl, riders/rows_<model>.jsonl, zoo_tierA.tsv, report/report.json.
+ZOO_DIR holds <zoo_dir>/suite/<battery>/<model>.jsonl, <zoo_dir>/riders/rows_<model>.jsonl, <zoo_dir>/zoo_tierA.tsv
+and <zoo_dir>/report/report.json.
 """
 from __future__ import annotations
 

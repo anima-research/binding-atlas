@@ -128,8 +128,8 @@ def main() -> None:
     P("")
     P(stage["lead"])
     P("")
-    P("Swap shift = mean[p(gold | original) − p(gold | speaker swapped)] over the candidates: above +.02 a pronoun binds "
-      "(its answer moves with the speaker), below −.02 it inverts (it resolves to the speaker).")
+    P("Swap shift = mean[p(gold | original) − p(gold | speaker swapped)] over the candidates. Above +.02, a pronoun "
+      "binds: its answer moves with the speaker. Below −.02, it inverts: it resolves to the speaker.")
     P("")
     P("## Part I · Where base models fail")
     P("")
@@ -153,7 +153,7 @@ def main() -> None:
     P(f"| {o['m']} | {o['p']} | 110B | {f3(o['z'])} | {f3(o['t'])} |")
     P("")
     P("No model at or below 8B binds zero-shot dynamic *you* at any token count measured (to 36T). The same holds with "
-      "each chat rewritten as a scene (8 of 8 models tested at or below 8B; the highest is +.010, Qwen2.5-7B), so the "
+      "each chat rewritten as a scene, for all 8 models tested at or below 8B (the highest is Qwen2.5-7B, +.010). So the "
       "result does not come from the chat format. In these models depth grows with size, so the table leaves two "
       "routes open for small models: more tokens, and more depth at a fixed size. No model at or below 8B has been "
       "trained far enough to rule out the first. From 14B to 1T parameters, stage 5 is weak and nearly flat. Ten of the 11 bases "
@@ -180,13 +180,14 @@ def main() -> None:
     for r in dec["rows"]:
         P(f"| {r['m']} | {r['tok']} | " + " | ".join(pend(r[c['k']]) for c in dec["cols"]) + " |")
     P("")
-    P("Three layers: (1) possession transfer itself: every 1.4–1.5B model is at or near chance even narrated (kotodama-tsumugi "
-      "through 110B, Pythia-1.4B, OLMo-2 1B at 4T); SmolLM2 1.7B at 11T and Qwen3 1.7B at 36T lift off chance; from 4B "
-      "it is easy. (2) The transfer as a speech act is the mid-size wall: 4B–70B models that pass the narrated version "
-      "stay at .29–.41 spoken; narrating only the hand-off recovers part of the gap. (3) Naming the addressee does not "
-      "help: the vocative variant is at or below the spoken one for every public model.")
+    P("The rewrites show three layers. (1) The first is possession transfer itself. Every 1.4–1.5B model is at or near "
+      "chance even when the transfer is narrated (kotodama-tsumugi through 110B, Pythia-1.4B, OLMo-2 1B at 4T). "
+      "SmolLM2 1.7B at 11T and Qwen3 1.7B at 36T lift off chance, and from 4B the narrated transfer is easy. (2) The "
+      "transfer as a speech act is the mid-size wall. Models from 4B to 70B that pass the narrated version stay at "
+      ".29–.41 when the transfer is spoken. Narrating only the hand-off recovers part of the gap. (3) Naming the "
+      "addressee does not help: the vocative variant is at or below the spoken one for every public model.")
     P("")
-    P("### Findings")
+    P("### Findings from the deixis study")
     P("")
     for i, f in enumerate(meta["findings"], 1):
         for a, b in MD_REWRITES.items():
@@ -296,7 +297,7 @@ def main() -> None:
     for t, d in GLOSSARY:
         P(f"| {t} | {d} |")
     P("")
-    P("## Scoring notes")
+    P("## Scoring notes for the deixis study")
     P("")
     for g in meta["gaps"]:
         P(f"- {md_text(g)}")
