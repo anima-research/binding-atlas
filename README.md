@@ -68,6 +68,8 @@ TAKE_POOL=take/data/pool.jsonl TAKE_DB=take/data/take.sqlite TAKE_INVITES=take/d
 ```
 
 The pool stays out of the repository (`take/data/` is ignored), so the human items are not published.
+On a server, build the venv on the system Python (`uv venv --python /usr/bin/python3 take/.venv`). A venv on a
+uv-managed Python links into the home directory of whoever built it, and the service user cannot run it.
 
 ## Layout
 
