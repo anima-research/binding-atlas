@@ -31,7 +31,7 @@ __FONT_FACES__
   --bg: #ffffff; --surface: #ffffff; --surface2: #f3f4f6; --fg: #0b0c0e; --muted: #5a626d; --line: #d5d9de; --rule: #0b0c0e;
   --pos: #1c2531; --neg: #9aa4b1; --mid: #eceef1; --hatch: #c9ced5; --accent: #0b0c0e; --human: #3d4652;
   --chip: #f3f4f6; --gold-bg: #e3e7ec; --gold-fg: #0b0c0e; --warn: #3d4652; --shadow: 0 10px 40px rgba(11,12,14,.16);
-  --hatch-neg: rgba(11,12,14,.32);
+  --hatch-neg: rgba(11,12,14,.32); --below: #a8322d; --below-bg: #f6e3e1;
   --f-display: __FONT__"Courier Prime", "Courier New", ui-monospace, monospace;
   --f-body: __FONT__"Courier Prime", "Courier New", ui-monospace, monospace;
   --f-mono: "Courier Prime", __FONT__"Courier New", ui-monospace, monospace;
@@ -40,12 +40,12 @@ __FONT_FACES__
   --bg: #0b0c0e; --surface: #0b0c0e; --surface2: #15181c; --fg: #f2f3f5; --muted: #9aa3ad; --line: #2b3038; --rule: #f2f3f5;
   --pos: #e9ecf0; --neg: #5d6672; --mid: #1b1f25; --hatch: #39404a; --accent: #f2f3f5; --human: #b9c1cb;
   --chip: #15181c; --gold-bg: #262c34; --gold-fg: #f2f3f5; --warn: #b9c1cb; --shadow: 0 10px 40px rgba(0,0,0,.6);
-  --hatch-neg: rgba(242,243,245,.30); color-scheme: dark } }
+  --hatch-neg: rgba(242,243,245,.30); --below: #ef8a83; --below-bg: #3a1d1c; color-scheme: dark } }
 :root[data-theme="dark"] {
   --bg: #0b0c0e; --surface: #0b0c0e; --surface2: #15181c; --fg: #f2f3f5; --muted: #9aa3ad; --line: #2b3038; --rule: #f2f3f5;
   --pos: #e9ecf0; --neg: #5d6672; --mid: #1b1f25; --hatch: #39404a; --accent: #f2f3f5; --human: #b9c1cb;
   --chip: #15181c; --gold-bg: #262c34; --gold-fg: #f2f3f5; --warn: #b9c1cb; --shadow: 0 10px 40px rgba(0,0,0,.6);
-  --hatch-neg: rgba(242,243,245,.30); color-scheme: dark }
+  --hatch-neg: rgba(242,243,245,.30); --below: #ef8a83; --below-bg: #3a1d1c; color-scheme: dark }
 * { box-sizing: border-box; }
 html, body { margin: 0; }
 body { background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 15px; line-height: 1.55; }
@@ -87,6 +87,13 @@ select { max-width: 100%; font: inherit; font-size: 14px; padding: 5px 8px; bord
 .sw { display: inline-block; width: 16px; height: 12px; border-radius: 3px; vertical-align: -2px; margin-right: 6px; border: 1px solid var(--line); }
 .sw.hatch { background: repeating-linear-gradient(135deg, var(--hatch) 0 2px, transparent 2px 5px); }
 .sw.small { border: 1.5px dashed var(--muted); background: var(--mid); }
+.sw.st-at { border: 1px solid var(--muted); background: transparent; }
+.sw.st-below { background: repeating-linear-gradient(135deg, var(--below) 0 2px, transparent 2px 4px), var(--below-bg); }
+.cellbtn.st-at { background: transparent !important; color: var(--muted) !important; box-shadow: inset 0 0 0 1px var(--line); }
+.cellbtn.st-below { color: var(--below) !important; font-weight: 700; }
+.cellbtn { position: relative; }
+.cellbtn.only::after { content: "°"; position: absolute; top: 0; right: 2px; font-size: 10px; line-height: 1; }
+.atlas thead th.cg button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-transform: inherit; letter-spacing: inherit; }
 /* grid */
 .gridwrap { width: fit-content; max-width: 100%; overflow: auto; max-height: 78vh; border: 1px solid var(--line); border-radius: 3px; background: var(--surface); }
 table.atlas { border-collapse: separate; border-spacing: 2px; font-variant-numeric: tabular-nums; padding: 0 10px 10px 0; }
@@ -252,9 +259,10 @@ table.levers td.cost { color: var(--muted); }
       <button class="iconbtn" id="theme" aria-label="toggle light / dark theme">light / dark</button></div>
     <h1>Binding Atlas</h1>
     <p class="credit">By Luxia (<a href="https://x.com/kataletheia">@kataletheia</a>), with Claude (Anthropic) · compute and hosting by <a href="https://animalabs.ai">Anima Labs</a></p>
-    <p class="claim">This atlas scores <b>__N_MODELS__ models and checkpoints</b>, plus one human reader, on <b>__N_TESTS__ tests</b>
-      of tracking who <i>I</i> and <i>you</i> refer to. Click any cell in the <a href="#atlas">full atlas</a> to read the
-      exact prompt that the model was given.</p>
+    <p class="claim">This atlas scores <b>__N_MODELS__ base models and checkpoints</b>, plus one human reader, on
+      <b>__N_TESTS__ tests</b>: who holds what, who holds it after things move, who <i>I</i> and <i>you</i> refer to,
+      and whether a model learns a new rule from examples. Click any cell in the <a href="#atlas">full atlas</a> to read
+      the exact prompt that the model was given.</p>
     <p class="claim">Base language models acquire the referent of <i>you</i> in five ordered stages. Every base of 0.6B
       parameters or more trained on trillions of tokens reaches the first three. <b>No public model up to 8B reaches the fifth stage zero-shot</b> (with no worked examples):
       tracking <i>you</i> after objects change hands. That holds at every token count measured, up to 36T, and at their
@@ -265,7 +273,7 @@ table.levers td.cost { color: var(--muted); }
       At 110B tokens its zero-shot dynamic <i>you</i> is not inverted (−.021), where most 1–2B bases invert. In a check
       of 20 bases, it follows a narrated hand-off better (.336) than every Pythia model up to 6.9B (.275 to .294).
       For every model of its size, that hand-off is the open step toward stage 5.</p>
-    <div class="byline"><span>kotodama · 2026</span><span>30 public bases · 5 public training trajectories · kotodama-tsumugi (seed 17 to 110B tokens; seed 7 to 11B)</span>
+    <div class="byline"><span>kotodama · 2026</span><span>__N_BASES__ public bases in the atlas · 30 public bases and 5 public training trajectories in the figures · kotodama-tsumugi (seed 17 to 110B tokens; seed 7 to 11B)</span>
       <a href="#atlas">full atlas ↓</a><a href="binding-atlas.md">agent view (markdown)</a><a href="__THREADS_LINK__">tsumugi's neurons: Threads</a>__BACK_LINK__</div>
   </header>
 
@@ -329,8 +337,10 @@ table.levers td.cost { color: var(--muted); }
 
   <section class="sect" id="atlas" aria-labelledby="ah">
     <h2 id="ah">Full atlas</h2>
-    <p class="cap">Every reachable model against every referent-binding probe, chance-normalized (0 = guessing,
-      1 = perfect). Click a cell to read the exact text the model was given.</p>
+    <p class="cap">Every base model, scored by one scorer on one set of tests. A score of 0 means guessing, 1 means always
+      right, and below 0 means reliably wrong. Each column is read with worked examples first; <i>Cold</i> shows the items
+      alone. Columns are grouped by what the questions look like, and each column is read on its own. Click a cell to read
+      the exact text that the model was given.</p>
     <div class="stats" id="stats"></div>
   </section>
 
@@ -338,15 +348,10 @@ table.levers td.cost { color: var(--muted); }
     <div class="controls">
       <div class="ctl" role="group" aria-labelledby="lab-view"><span id="lab-view">View</span><div class="seg" id="view">
         <button data-v="score" aria-pressed="true" title="(acc − chance) / (1 − chance)">Score</button>
-        <button data-v="acc" aria-pressed="false">Accuracy</button>
-        <button data-v="gap" aria-pressed="false" title="3rd-person twin score minus I/you score, per deixis query">Perspective gap</button></div></div>
+        <button data-v="acc" aria-pressed="false">Accuracy</button></div></div>
       <div class="ctl" role="group" aria-labelledby="lab-cond"><span id="lab-cond">Condition</span><div class="seg" id="cond">
-        <button data-v="0shot" aria-pressed="true">0-shot</button>
-        <button data-v="3shot" aria-pressed="false" title="three solved items of the test item's own type: shows how much a model takes from same-type examples">3-shot (same type)</button>
-        <button data-v="3shot_collide" aria-pressed="false" title="exemplars that reuse the query's names/objects">3-shot collide</button></div></div>
-      <div class="ctl" role="group" aria-labelledby="lab-mode"><span id="lab-mode">Items</span><div class="seg" id="mode">
-        <button data-v="all" aria-pressed="true">All</button>
-        <button data-v="free" aria-pressed="false" title="deixis only: the answer is neither the last-mentioned person nor the last speaker">Shortcut-free</button></div></div>
+        <button data-v="fair" aria-pressed="true" title="four solved items first, balanced so no answer can be copied from them: the reading">With examples</button>
+        <button data-v="0shot" aria-pressed="false" title="the item alone, with no solved items before it: the floor">Cold</button></div></div>
       <label class="ctl"><span>Find a model</span><input type="search" id="q" placeholder="e.g. 405B, Claude, Qwen3"></label>
       <label class="ctl"><span>Sort rows</span><select id="sort"><option value="">by group (default)</option></select></label>
       <label class="ctl"><span>Parameters</span><select id="psz"><option value="">any size</option><option value="0-2">up to 2B</option><option value="2-10">2B to 10B</option><option value="10-100">10B to 100B</option><option value="100-">100B and up</option><option value="known">published size only</option></select></label>
@@ -357,8 +362,9 @@ table.levers td.cost { color: var(--muted); }
     <div class="chips" id="groups" aria-label="row groups"></div>
     <div class="legend">
       <span class="ramp"><span id="rlo">−1</span><canvas id="ramp" width="220" height="12"></canvas><span id="rhi">1</span></span>
+      <span><span class="sw st-at"></span>at chance (the 95% interval includes 0)</span>
+      <span><span class="sw st-below"></span>below chance: reliably wrong</span>
       <span><span class="sw hatch"></span>no data</span>
-      <span><span class="sw small"></span>small sample (n &lt; 30, read loosely)</span>
       <span id="legnote"></span>
     </div>
   </section>
@@ -693,7 +699,9 @@ const COLS = D.cols, ROWS = D.rows, CELLS = D.cells, EX = D.examples;
 const colById = Object.fromEntries(COLS.map(c => [c.id, c]));
 const rowById = Object.fromEntries(ROWS.map(r => [r.id, r]));
 const GROUPS = [...new Set(ROWS.map(r => r.group))];
-const S = { quiz: false, view: "score", cond: "0shot", mode: "all", q: "", sort: "", psz: "", hidden: new Set(), collapsed: new Set(), sel: null, col: null };
+const COLGROUPS = [...new Set(COLS.map(c => c.group))];
+const OPEN_DEFAULT = COLGROUPS.filter(g => /\bI and you\b/.test(g));
+const S = { quiz: false, view: "score", cond: "fair", mode: "all", q: "", sort: "", psz: "", hidden: new Set(), collapsed: new Set(), open: new Set(OPEN_DEFAULT), sel: null, col: null };
 const SIZE_SORTS = ["size-asc", "size-desc"], PSZ = ["0-2", "2-10", "10-100", "100-", "known"];
 function inSize(r) {   // rows without a published parameter count (closed APIs, the human reader) drop out of any size filter
   if (!S.psz) return true;
@@ -706,23 +714,26 @@ function inSize(r) {   // rows without a published parameter count (closed APIs,
 // ── state <-> URL ─────────────────────────────────────────────
 function readHash() {
   const h = new URLSearchParams(location.hash.slice(1));
-  const OK = { view: ["score", "acc", "gap"], cond: ["0shot", "3shot", "3shot_collide"], mode: ["all", "free"] };
+  const OK = { view: ["score", "acc"], cond: ["fair", "0shot"], mode: ["all"] };
   for (const k of ["view", "cond", "mode", "q", "sort"]) { const v = h.get(k); if (v !== null && (!OK[k] || OK[k].includes(v))) S[k] = v; }
   if (S.sort && !colById[S.sort] && !SIZE_SORTS.includes(S.sort)) S.sort = "";
   if (PSZ.includes(h.get("psz") || "")) S.psz = h.get("psz");
   if (h.get("hide")) S.hidden = new Set(h.get("hide").split("~").filter(Boolean));
   if (h.get("cell")) { const [r, c] = h.get("cell").split("~"); if (rowById[r] && colById[c]) S.sel = {r, c}; }
   if (h.get("col") && colById[h.get("col")]) S.col = h.get("col");
+  if (h.get("open") !== null) S.open = new Set(h.get("open").split("~").map(Number).map(i => COLGROUPS[i]).filter(Boolean));
 }
 function writeHash() {
   const h = new URLSearchParams();
   if (S.view !== "score") h.set("view", S.view);
-  if (S.cond !== "0shot") h.set("cond", S.cond);
+  if (S.cond !== "fair") h.set("cond", S.cond);
   if (S.mode !== "all") h.set("mode", S.mode);
   if (S.q) h.set("q", S.q);
   if (S.sort) h.set("sort", S.sort);
   if (S.psz) h.set("psz", S.psz);
   if (S.hidden.size) h.set("hide", [...S.hidden].join("~"));
+  const op = COLGROUPS.map((g, i) => S.open.has(g) ? i : -1).filter(i => i >= 0);
+  if (op.join("~") !== COLGROUPS.map((g, i) => OPEN_DEFAULT.includes(g) ? i : -1).filter(i => i >= 0).join("~")) h.set("open", op.join("~"));
   if (S.sel) h.set("cell", S.sel.r + "~" + S.sel.c);
   else if (S.col) h.set("col", S.col);
   history.replaceState(null, "", h.toString() ? "#" + h.toString() : location.pathname);
@@ -756,11 +767,15 @@ function drawRamp() {
 }
 
 // ── values ────────────────────────────────────────────────────
-function cell(r, c, cond = S.cond, mode = S.mode) {
-  if (mode === "free" && !colById[c].free_ok) return CELLS[`${r}|${c}|${cond}|all`] ? { ...CELLS[`${r}|${c}|${cond}|all`], fallback: true } : null;
-  return CELLS[`${r}|${c}|${cond}|${mode}`] || null;
+function cell(r, c, cond = S.cond) {     // a column without this condition shows its own reading, marked
+  const own = (colById[c] && colById[c].conds) || [cond];
+  for (const k of [cond, ...own, "0shot"]) {
+    const x = CELLS[`${r}|${c}|${k}|all`];
+    if (x) return k === cond ? x : { ...x, only: k };
+  }
+  return null;
 }
-function twinOf(cid) { return cid.endsWith("-deictic") ? cid.replace(/-deictic$/, "-third") : cid === "adj-adj" ? "adj-third" : null; }
+function twinOf() { return null; }
 function value(r, c) {
   if (S.view === "gap") {
     const t = twinOf(c); if (!t) return null;
@@ -776,11 +791,17 @@ function fmt(v) {
   const s = (Math.round(v * 100) / 100).toFixed(2).replace(/^(-?)0\./, "$1.");
   return s === "-.00" ? ".00" : s;
 }
-function visibleCols() { return S.view === "gap" ? COLS.filter(c => twinOf(c.id)) : COLS; }
+function visibleCols() {           // a closed group shows its headline columns (or its first column)
+  return COLS.filter(c => {
+    if (S.open.has(c.group)) return true;
+    const g = COLS.filter(x => x.group === c.group);
+    return g.some(x => x.headline) ? c.headline : c === g[0];
+  });
+}
 
 // ── grid ──────────────────────────────────────────────────────
 function rowLabel(r) { const m = r.label.match(/^(.*) · (reflex|deliberate)$/); return m ? `${esc(m[1])} <small class="tag">${m[2]}</small>` : esc(r.label); }
-function shortGroup(g) { if (g === "Deixis · owner") return "deixis · owner"; return g.replace(/^Deixis · /, "").replace(/ \((vocative|structural)\)/, "").replace(/ \(v3\)/, ""); }
+function shortGroup(g) { return g; }
 function rowsInView() {
   const q = S.q.trim().toLowerCase();
   let rs = ROWS.filter(r => !S.hidden.has(r.group) && inSize(r) && (!q || (r.label + " " + r.group + " " + (r.note || "")).toLowerCase().includes(q)));
@@ -799,7 +820,7 @@ function render() {
   const cols = visibleCols(), [lo, hi] = range();
   const gap = S.view === "gap";
   const groups = []; for (const c of cols) { const nm = gap ? "Perspective gap · twin − I/you" : c.group; const g = groups[groups.length - 1]; if (g && g.name === nm) g.n++; else groups.push({name: nm, n: 1}); }
-  let h = `<thead><tr class="r1"><th class="corner" rowspan="2"></th>${groups.map(g => `<th class="cg" colspan="${g.n}" title="${esc(g.name)}"><span style="display:block;max-width:${Math.max(g.n * 40 - 6, 34)}px;overflow:hidden;text-overflow:ellipsis">${esc(gap ? g.name : shortGroup(g.name))}</span></th>`).join("")}</tr>
+  let h = `<thead><tr class="r1"><th class="corner" rowspan="2"></th>${groups.map(g => { const all = COLS.filter(c => c.group === g.name).length, op = S.open.has(g.name); return `<th class="cg" colspan="${g.n}" title="${esc(g.name)}"><button data-cg="${esc(g.name)}" aria-expanded="${op}" title="${op ? "show this group's headline column only" : `show all ${all} columns`}"><span style="display:block;${g.n < 3 ? "white-space:nowrap" : `max-width:${Math.max(g.n * 40 - 6, 34)}px;overflow:hidden;text-overflow:ellipsis`}">${all > g.n || op ? (op ? "▾ " : "▸ ") : ""}${esc(g.n < 3 ? (COLS.find(c => c.group === g.name).group_short || g.name) : g.name)}</span></button></th>`; }).join("")}</tr>
     <tr class="r2">${cols.map(c => `<th class="cl"><button data-col="${c.id}" aria-pressed="${S.col === c.id}" title="${esc(c.what)}">${esc(gap ? shortGroup(c.group) : c.label)}${S.sort === c.id ? ' <span class="srt">◀</span>' : ""}</button></th>`).join("")}</tr></thead><tbody>`;
   const rs = rowsInView();
   let last = null;
@@ -815,8 +836,11 @@ function render() {
       const v = value(r.id, c.id);
       if (!v) { h += `<td><span class="cellbtn na" aria-hidden="true"></span></td>`; continue; }
       const k = S.view === "acc" ? colour(v.v - (v.x.chance ?? 0.33), -0.5, 0.67) : colour(v.v, lo, hi);
-      const n = (v.x || v.a).n, small = n < 30 ? " small" : "", sel = S.sel && S.sel.r === r.id && S.sel.c === c.id ? " sel" : "";
-      h += `<td class="${S.col === c.id ? "colsel" : ""}"><button class="cellbtn${small}${sel}" data-r="${r.id}" data-c="${c.id}" style="background:${v.v < 0 && S.view !== "acc" ? `repeating-linear-gradient(135deg, var(--hatch-neg) 0 1.5px, transparent 1.5px 4px), ${k.bg}` : k.bg};color:${k.ink}" tabindex="-1" aria-label="${esc(r.label)}, ${esc(c.group)} ${esc(c.label)}: ${fmt(v.v)}, n ${n}${n < 30 ? ", small sample" : ""}">${fmt(v.v)}</button></td>`;
+      const x = v.x || v.a, n = x.n, st = S.view === "acc" ? "" : (x.state ? ` st-${x.state}` : ""), only = x.only ? " only" : "";
+      const small = n < 30 ? " small" : "", sel = S.sel && S.sel.r === r.id && S.sel.c === c.id ? " sel" : "";
+      const bg = x.state === "below" && S.view !== "acc" ? "repeating-linear-gradient(135deg, color-mix(in srgb, var(--below) 35%, transparent) 0 1px, transparent 1px 5px), var(--below-bg)" : k.bg;
+      const stateTxt = x.state === "below" ? ", below chance" : x.state === "at" ? ", at chance" : "";
+      h += `<td class="${S.col === c.id ? "colsel" : ""}"><button class="cellbtn${small}${sel}${st}${only}" data-r="${r.id}" data-c="${c.id}" style="background:${bg};color:${k.ink}" tabindex="-1" aria-label="${esc(r.label)}, ${esc(c.group)} ${esc(c.label)}: ${fmt(v.v)}${stateTxt}, n ${n}">${fmt(v.v)}</button></td>`;
     }
     h += `</tr>`;
   }
@@ -843,7 +867,10 @@ document.addEventListener("pointermove", e => {
   const r = rowById[b.dataset.r], c = colById[b.dataset.c], v = value(r.id, c.id);
   let t = `<b>${esc(r.label)}</b><br>${esc(c.group)} · ${esc(c.label)}<br>`;
   if (S.view === "gap") t += `twin ${fmt2(v.b.score)} − deictic ${fmt2(v.a.score)} = <b>${fmt2(v.v)}</b>`;
-  else { const x = v.x; t += `acc <b>${pct(x.acc)}</b> ± ${pct(x.se)} · n ${x.n} · chance ${pct(x.chance)}<br>score <b>${fmt2(x.score)}</b>${x.fallback ? "<br><i>no shortcut split for this column — showing all items</i>" : ""}`; }
+  else { const x = v.x; t += (x.acc != null ? `acc <b>${pct(x.acc)}</b> · n ${x.n} · chance ${pct(x.chance)}<br>` : `ladder AUC · n ${x.n}<br>`) +
+    `score <b>${fmt2(x.score)}</b>${x.lo != null ? ` [${fmt2(x.lo)}, ${fmt2(x.hi)}]` : ""}${x.state === "below" ? " · <b>below chance</b>" : x.state === "at" ? " · at chance" : ""}` +
+    (x.only ? `<br><i>${x.only === "ladder" ? "read across its difficulty ladder" : "this column has a cold reading only"}</i>` : "") +
+    (c.flag ? `<br><i>${esc(c.flag)}</i>` : ""); }
   tip.innerHTML = t + `<br><span style="opacity:.7">click for the raw context</span>`;
   tip.style.display = "block";
   const w = tip.offsetWidth, hgt = tip.offsetHeight;
@@ -1000,10 +1027,11 @@ function quizWho(cid, it) {
   for (let i = ls.length - 1; i >= 0; i--) { const m = ls[i].match(/^(\w+): Who has/); if (m) return norm(m[1]); }
   return null;
 }
-function condLabel() { return { "0shot": "0-shot", "3shot": "3-shot (same type)", "3shot_collide": "3-shot collide" }[S.cond]; }
+const COND_NAMES = { fair: "with examples", "0shot": "cold", ladder: "across its ladder" };
+function condLabel() { return COND_NAMES[S.cond]; }
 function conds(rid, cid) {
-  return ["0shot", "3shot", "3shot_collide"].map(k => { const x = cell(rid, cid, k, S.mode === "free" && colById[cid].free_ok ? "free" : "all");
-    return x ? `<dt>${{"0shot": "0-shot", "3shot": "3-shot", "3shot_collide": "collide"}[k]}</dt><dd>${pct(x.acc)} · score ${fmt2(x.score)} · n ${x.n}</dd>` : ""; }).join("");
+  return (colById[cid].conds || ["0shot"]).map(k => { const x = CELLS[`${rid}|${cid}|${k}|all`];
+    return x ? `<dt>${COND_NAMES[k] || k}</dt><dd>${x.acc != null ? pct(x.acc) + " · " : ""}score ${fmt2(x.score)}${x.lo != null ? ` [${fmt2(x.lo)}, ${fmt2(x.hi)}]` : ""} · n ${x.n}</dd>` : ""; }).join("");
 }
 
 // ── drawer: column ────────────────────────────────────────────
@@ -1054,13 +1082,14 @@ function scatter(pts) {
 // ── events ────────────────────────────────────────────────────
 function seg(id, key) { $(id).addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; S[key] = b.dataset.v;
   if ($("#drawer").classList.contains("open")) refreshDrawer(); else render(); }); }
-seg("#view", "view"); seg("#cond", "cond"); seg("#mode", "mode");
+seg("#view", "view"); seg("#cond", "cond");
 function refreshDrawer() { if (!$("#drawer").classList.contains("open")) return; if (S.sel) openCell(S.sel.r, S.sel.c); else if (S.col) openCol(S.col); }
 $("#q").addEventListener("input", e => { S.q = e.target.value; render(); });
 $("#sort").addEventListener("change", e => { S.sort = e.target.value; render(); });
 $("#psz").addEventListener("change", e => { S.psz = e.target.value; render(); });
 $("#grid").addEventListener("click", e => {
   const b = e.target.closest(".cellbtn:not(.na)"); if (b) return openCell(b.dataset.r, b.dataset.c);
+  const cg = e.target.closest("th.cg button"); if (cg) { const n = cg.dataset.cg; S.open.has(n) ? S.open.delete(n) : S.open.add(n); return render(); }
   const h = e.target.closest("th.cl button"); if (h) return openCol(h.dataset.col);
   const g = e.target.closest("tr.grp th"); if (g) { S.focusKey = null; const n = g.dataset.grp; S.collapsed.has(n) ? S.collapsed.delete(n) : S.collapsed.add(n); return render(); }
   const rh = e.target.closest("th.rowh"); if (rh) { const r = rowById[rh.dataset.row]; const c = COLS.find(c => value(r.id, c.id)); if (c) openCell(r.id, c.id); }

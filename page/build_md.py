@@ -273,25 +273,21 @@ def main() -> None:
     P("")
     P("## How to read the full atlas")
     P("")
-    P("- **A cell** = one model (row) on one probe type (column) under one condition, as `acc` = share of items where "
-      "the gold answer is the model's top choice among the item's candidates, with `n` items and the `chance` rate "
-      "(mean 1/#candidates). `score` = (acc − chance)/(1 − chance); `se` = binomial standard error.")
-    P("- **Conditions:** `0shot` = the item alone; `3shot` = three solved items of the test item's own type first (a diagnostic: on aliased lists it teaches the "
-      "answer's role; see Scoring notes); `3shot_collide` "
-      "= the three exemplars reuse the test item's names/objects in other roles (interference test).")
-    P("- **Modes:** `all` = every item; `free` = shortcut-free subset (deixis columns only): the answer is neither the "
-      "last-mentioned candidate nor the last speaker.")
-    P("- **Open models** (bases, hybrids, post-trained) are scored by log-probability over the candidate set "
-      "(vLLM or HF transformers, never mixed within a row; parity-checked to ±.01). **API models** are scored by "
-      "generation: `reflex` rows = single next word with reasoning off (calls that reasoned anyway are excluded); "
-      "`deliberate` rows = think, then answer. **Human** row = one person reading items cold, typed answers.")
-    P("- **Answer-deixis columns** (`an-*`) use a calibrated read for open models (argmax of logp(item) − logp(body "
-      "hidden)); API rows use referent scoring (the person's name counts as correct as well as me/you). Per-role "
-      "cells mix skill with each model's standing preference — compare a model's answer columns together.")
-    P("- **Deixis twins:** every `I/you/my` item has a `3rd-person twin` with the same events, gold and candidates, "
-      "told in third person with names. The gap between the two is the cost of perspective.")
+    P("- **A cell** = one model (row) on one test (column) under one condition: `score` = mean over items of "
+      "(credit − chance)/(1 − chance), where `credit` is 1 when the gold is the model's top-ranked candidate (an exact "
+      "tie between candidates splits the credit evenly) and `chance` = 1/#candidates. 0 = guessing, 1 = always right, "
+      "below 0 = reliably wrong. `lo`, `hi` = the bootstrap 95% interval (1,000 resamples of items).")
+    P("- **State:** `above` (the interval is above 0), `at` (it includes 0), `below` (it is below 0: the model picks a "
+      "wrong answer more often than guessing would).")
+    P("- **Conditions:** `fair` = four solved items first, balanced so that no answer can be copied from them (the "
+      "reading); `0shot` = the item alone (the floor). Columns without worked examples (lookups in lists, box refills, the "
+      "static gauges) have a `0shot` reading only. The rule-learning columns are read across their difficulty ladder "
+      "(`ladder`: the mean chance-normalized accuracy over the ladder's rungs, clipped at 0 and 1).")
+    P("- **Groups:** columns are grouped by what the questions look like. Each column is scored and read on its own.")
+    P("- **Models:** every base model is scored by log-probability over the candidate set, with one scorer and one set "
+      "of batteries. The **Human** row is one person reading items cold, with typed answers.")
     P("- **Parsing:** sections are `##` headings outside code fences (prompts inside ``` fences can contain lines "
-      "that start with `#`). Two CSV blocks at the end: `rows` (id → label, group, size) and `cells` (every number).")
+      "that start with `#`). Two CSV blocks at the end: `rows` (id → label, group, size, tokens) and `cells` (every number).")
     P("")
     P("## Glossary")
     P("")
@@ -309,11 +305,12 @@ def main() -> None:
     # columns
     P("## Columns")
     P("")
-    P("| id | family | label | what it asks | scoring | shortcut-free |")
+    P("| id | group | label | what it asks | readings | headline |")
     P("|---|---|---|---|---|---|")
     for c in cols:
-        P(f"| `{c['id']}` | {c['group']} | {c['label']} | {md_text(c['what']).replace('|', '/')} | {c['kind']} | "
-          f"{'yes' if c['free_ok'] else '—'} |")
+        P(f"| `{c['id']}` | {c['group']} | {c['label']} | {md_text(c['what']).replace('|', '/')}"
+          f"{' (' + md_text(c['flag']).replace('|', '/') + ')' if c.get('flag') else ''} | {', '.join(c.get('conds', []))} | "
+          f"{'yes' if c.get('headline') else ''} |")
     P("")
     P("## Example items per column (verbatim prompts)")
     P("")
@@ -367,108 +364,66 @@ def main() -> None:
     P("API rows (`or-…`) are all generation-scored; `-A` = reflex frame (single next word, reasoning off), `-B` = "
       "deliberate frame (think, then the word). Notes below list only what differs from that.")
     P("")
-    P("| id | label | group | size (B params) | note |")
-    P("|---|---|---|---|---|")
+    P("| id | label | group | params (B) | active (B) | pretraining tokens | note |")
+    P("|---|---|---|---|---|---|---|")
     for r in rows:
-        note = md_text(r.get("note") or "")
-        for frag in API_NOTE:
-            note = note.replace(frag, "")
-        note = note.strip("; ").replace("|", "/")
-        P(f"| `{r['id']}` | {r['label']} | {r['group']} | {r['size'] if r['size'] is not None else '—'} | {note} |")
+        tok = (f"{r.get('tokens_mark', '')} {r['tokens'] / 1e12:g}T".strip() if (r.get("tokens") or 0) >= 1e12
+               else f"{r['tokens'] / 1e9:g}B" if r.get("tokens") else r.get("tokens_mark") or "—")
+        note = md_text(r.get("note") or "").replace("|", "/")
+        P(f"| `{r['id']}` | {r['label']} | {r['group']} | {r.get('size') if r.get('size') is not None else '—'} | "
+          f"{r.get('active') if r.get('active') is not None else '—'} | {tok} | {note} |")
     P("")
 
-    # wide tables, 0-shot, free where available
-    fams: "OrderedDict[str, list[dict]]" = OrderedDict()
+    # wide tables: score per group, the reading (fair) where a column has one, else its own reading
+    groups: "OrderedDict[str, list[dict]]" = OrderedDict()
     for c in cols:
-        fam = c["group"].split(" · ")[0]
-        fams.setdefault(fam, []).append(c)
-    P("## 0-shot tables by family")
+        groups.setdefault(c["group"], []).append(c)
+    P("## Tables by group")
     P("")
-    P(f"Accuracy × 100, 0-shot; deixis columns are the **shortcut-free** subset. `—` = not measured; `†` = fewer than "
-      f"{SMALL_N} items in that cell (all human cells; many API cells). Rows are grouped (bold separator rows); API "
-      "rows are generation-scored, open rows logprob-scored. Full numbers (n, chance, se, every condition and mode) "
-      "are in the CSV below.")
+    P("Score (0 = guessing, 1 = always right), with worked examples where the column has them; `°` = the column's "
+      "only reading (cold, or across its ladder); `↓` = below chance (the interval is below 0); `—` = not measured. "
+      "Full numbers (n, chance, the interval, every condition) are in the CSV below.")
     P("")
-    for fam, cs in fams.items():
-        P(f"### {fam}")
+    for gname, cs in groups.items():
+        P(f"### {gname}")
         P("")
-        if fam == "Deixis":
-            P("Key: owner = 'Now the X is with' (P3); self = 'I'm holding the'; you = 'you're holding the'; 2/3 = "
-              "people in the chat (you3 has a vocative, you2 is structural); I = the I/you/my version, 3rd = its "
-              "3rd-person twin.")
-            P("")
-        heads = [SHORT.get(c["id"]) or (f"{c['group'].split(' · ', 1)[-1]} {c['label']}" if c["group"] != fam
-                                        else c["label"]) for c in cs]
-        P("| model | " + " | ".join(heads) + " |")
+        P("| model | " + " | ".join(c["label"] for c in cs) + " |")
         P("|---|" + "---|" * len(cs))
         last_group = None
         for r in rows:
             vals = []
             for c in cs:
-                x = cell(cells, r["id"], c["id"], "0shot", "free" if c["free_ok"] else "all")
-                vals.append("—" if x is None else f"{x['acc'] * 100:.0f}{'†' if x['n'] < SMALL_N else ''}")
+                own = c.get("conds") or ["0shot"]
+                k = "fair" if "fair" in own else own[0]
+                x = cell(cells, r["id"], c["id"], k, "all") or cell(cells, r["id"], c["id"], "0shot", "all")
+                if x is None:
+                    vals.append("—")
+                    continue
+                vals.append(f"{x['score']:+.2f}{'°' if k != 'fair' else ''}{'↓' if x.get('state') == 'below' else ''}")
             if all(v == "—" for v in vals):
                 continue
             if r["group"] != last_group:
                 P(f"| **{r['group']}** |" + " |" * len(cs))
                 last_group = r["group"]
             P(f"| {r['label']} | " + " | ".join(vals) + " |")
-        ch = []
-        for c in cs:
-            xs = [v["chance"] for k, v in cells.items() if k.split("|")[1] == c["id"] and k.split("|")[2] == "0shot"]
-            ch.append(f"{100 * sum(xs) / len(xs):.0f}" if xs else "—")
-        P("| *chance* | " + " | ".join(ch) + " |")
-        P("")
-
-    # speaker swap
-    if swap:
-        P("## Speaker-swap test (open bases)")
-        P("")
-        P("Two-person chats; the prompt is repeated with ONLY the name on the final query line changed, which flips the "
-          "right answer. `shift` = mean P(original gold | original asker) − P(original gold | swapped asker), "
-          "candidates renormalised; 95% CI by paired bootstrap over 180 items. `> 0` = the answer follows the speaker "
-          "(binds); `≈ 0` = ignores who is speaking; `< 0` = moves the wrong way (inverts).")
-        P("")
-        P("**Reading rule:** `binds` if the CI's lower bound is above +.02; `inverts` if its upper bound is below −.02; "
-          "otherwise `ignores speaker` (no reliable movement — a CI can exclude 0 and still be read this way).")
-        P("")
-        if SWAP_PROMPTS is not None and SWAP_PROMPTS.exists():
-            pr = [json.loads(l) for l in SWAP_PROMPTS.read_text().splitlines()[:400]]
-            pair = [r for r in pr if r["qkind"] == "addressee" and r["condition"] == "0shot"][:2]
-            if len(pair) == 2:
-                P(f"Example pair (original gold **{pair[0]['gold_orig']}**; under the swap it is held by the new asker):")
-                P("")
-                P(fence(pair[0]["prompt"]))
-                P("")
-                P(fence(pair[1]["prompt"]))
-                P("")
-        label = {r["id"]: r["label"] for r in rows}
-        P("| model | I 0-shot | I 3-shot | you 0-shot | you 0-shot 95% CI | you 0-shot reading | you 3-shot |")
-        P("|---|---|---|---|---|---|---|")
-        for m in sorted(swap):
-            v = swap[m]
-            a = v["0shot/addressee"]
-            P(f"| {label.get(m, m)} | {v['0shot/self']['shift']:+.3f} | {v['3shot/self']['shift']:+.3f} | {a['shift']:+.3f} | "
-              f"[{a['ci'][0]:+.3f}, {a['ci'][1]:+.3f}] | {a['reading']} | {v['3shot/addressee']['shift']:+.3f} |")
         P("")
 
     # long CSV
     P("## Rows (CSV)")
     P("")
-    rl = ["row_id,label,group,size_b,scoring"]
+    rl = ["row_id,label,group,params_b,active_b,tokens,scoring"]
     for r in rows:
-        sc = "generation" if r["id"].startswith("or-") or r["id"] == "human" else "logprob"
+        sc = "generation" if r["id"] == "human" else "logprob"
         q = lambda x: '"' + str(x).replace('"', "'") + '"'  # noqa: E731
-        rl.append(f"{r['id']},{q(r['label'])},{q(r['group'])},{r['size'] if r['size'] is not None else ''},{sc}")
+        rl.append(f"{r['id']},{q(r['label'])},{q(r['group'])},{r['size'] if r.get('size') is not None else ''},"
+                  f"{r.get('active') if r.get('active') is not None else ''},{r.get('tokens') or ''},{sc}")
     P(fence("\n".join(rl), "csv"))
     P("")
     P("## All cells (CSV)")
     P("")
-    P("`row_id,col_id,condition,mode,acc,n,chance,se,seat_form,errs` — `score` (= (acc − chance)/(1 − chance)) is "
-      "left out as derivable; `errs` = error-type shares among items (deixis I/you columns; `;`-separated "
-      "`type=share`, types in the glossary); `seat_form` = share of referent-correct API answers that used me/you.")
+    P("`row_id,col_id,condition,acc,n,chance,score,lo,hi,state` — `acc` and `chance` are empty for ladder readings.")
     P("")
-    lines = ["row_id,col_id,condition,mode,acc,n,chance,se,seat_form,errs"]
+    lines = ["row_id,col_id,condition,acc,n,chance,score,lo,hi,state"]
     order = {r["id"]: i for i, r in enumerate(rows)}
     corder = {c["id"]: i for i, c in enumerate(cols)}
     for k in sorted(cells, key=lambda k: (order.get(k.split("|")[0], 1e9), corder.get(k.split("|")[1], 1e9), k)):
@@ -476,9 +431,9 @@ def main() -> None:
         if rid not in order:
             continue
         v = cells[k]
-        errs = ";".join(f"{a}={b}" for a, b in sorted((v.get("errs") or {}).items()))
-        lines.append(f"{rid},{cid},{cond},{mode},{v['acc']:.3f},{v['n']},{v['chance']:.3f},{v['se']:.3f},"
-                     f"{v.get('seat_form', '')},{errs}")
+        f3 = lambda x: "" if x is None else f"{x:.3f}"  # noqa: E731
+        lines.append(f"{rid},{cid},{cond},{f3(v.get('acc'))},{v['n']},{f3(v.get('chance'))},{f3(v.get('score'))},"
+                     f"{f3(v.get('lo'))},{f3(v.get('hi'))},{v.get('state') or ''}")
     P(fence("\n".join(lines), "csv"))
     P("")
     text = "\n".join(L)

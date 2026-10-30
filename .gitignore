@@ -18,3 +18,5 @@ take/data/
 take/.venv*/
 *.sqlite
 invites.txt
+# the zoo-sweep score rows the v4 builder reads (published separately)
+.zoo/
