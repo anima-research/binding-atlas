@@ -38,8 +38,8 @@ the card, the first screen) reads it from the build, or is checked against it be
 - **Scores split exact ties.** An exact tie between candidates is no evidence for either of them, so its credit is
   shared evenly.
 - **Published wording changes are approved first.** A change to text that a reader sees goes to the page's
-  owner before it is deployed. The credit line stays under every title: "By Luxia (@kataletheia), with Claude (Anthropic) · compute
-  and hosting by Anima Labs".
+  owner before it is deployed. The credit line stays under every title, with each name linked: "Led by Luxia, with Anima
+  Labs · built with Claude".
 
 ## The documentation rules
 

@@ -1,6 +1,6 @@
 # Binding Atlas — agent view
 
-Plain-text twin of the [Binding Atlas page](https://kotodama.animalabs.ai/binding-atlas). Same data, same build. Built 2026-10-30 23:09 UTC: 54 rows (models + one human), 24 columns, 2,029 cells, 1,303,620 scored items.
+Plain-text twin of the [Binding Atlas page](https://kotodama.animalabs.ai/binding-atlas). Same data, same build. Built 2026-10-31 04:22 UTC: 54 rows (models + one human), 24 columns, 2,029 cells, 1,303,620 scored items.
 
 ## Summary
 
