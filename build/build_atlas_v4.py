@@ -84,6 +84,13 @@ TOKENS: dict[str, tuple[Optional[float], str]] = {
     "trinity-base": (17e12, ""), "trinity-truebase": (10e12, ""), "nemotron3-ultra-550b-base": (20e12, ""),
     "mimo-v25-base": (48e12, "≈ text + multimodal"), "mimo-v25-pro-base": (27e12, ""), "gemma4-31b-base": (None, "—"),
 }
+# Creator-stated total parameters for the vLLM-scored bases (model cards and reports); their weight files also hold
+# extra prediction heads and quantization scales.
+CREATOR_SIZE: dict[str, float] = {
+    "dsv3-base": 671e9, "dsv4-flash-base": 284e9, "kimi-k2-base": 1e12, "trinity-base": 398e9,
+    "trinity-truebase": 398e9, "nemotron3-ultra-550b-base": 550e9, "mimo-v25-base": 310e9,
+    "mimo-v25-pro-base": 1.02e12, "gemma4-31b-base": 30.7e9,
+}
 VLLM_NOTE = ("Scored with vLLM across several GPUs: the same prompts, candidates and split-tie rule. On two check "
              "models, its scores match the standard scorer's within .03.")
 BANDS = ((1e9, "under 1B"), (3e9, "1–3B"), (10e9, "3–10B"), (float("inf"), "10B and up"))
@@ -388,9 +395,10 @@ def main() -> int:
             cells[f"human|{new_of.get(cid, cid)}|{cond}|{mode}"] = cell
     for n in names:
         lab, fam = LABELS[n]
-        p = report[n]["params"]
+        p = CREATOR_SIZE.get(n) or report[n]["params"]
         params = float(p) if p else 1.425e9
-        active = float(report[n].get("active") or params)
+        dense = report[n].get("active") in (None, report[n]["params"])
+        active = params if dense else float(report[n]["active"])
         tok, mark = TOKENS[n]
         traj = n.startswith("tsumugi-")
         rows.append({"id": n, "label": lab, "group": TRAJECTORY if traj else band(active), "family": fam,

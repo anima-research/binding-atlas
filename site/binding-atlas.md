@@ -1,10 +1,10 @@
 # Binding Atlas — agent view
 
-Plain-text twin of the [Binding Atlas page](https://kotodama.animalabs.ai/binding-atlas). Same data, same build. Built 2026-10-31 04:22 UTC: 54 rows (models + one human), 24 columns, 2,029 cells, 1,303,620 scored items.
+Plain-text twin of the [Binding Atlas page](https://kotodama.animalabs.ai/binding-atlas). Same data, same build. Built 2026-10-31 04:49 UTC: 63 rows (models + one human), 24 columns, 2,371 cells, 1,524,984 scored items.
 
 ## Summary
 
-This atlas scores 53 models and checkpoints, plus one human reader, on 24 tests of tracking who *I* and *you* refer to. "Example items per column" quotes the exact prompts that the models were given.
+This atlas scores 62 models and checkpoints, plus one human reader, on 24 tests of tracking who *I* and *you* refer to. "Example items per column" quotes the exact prompts that the models were given.
 
 Base language models acquire the referent of *you* in five ordered stages. Every base of 0.6B parameters or more trained on trillions of tokens reaches the first three. The fifth stage is tracking *you* after objects change hands. **No public model up to 8B reaches it zero-shot** (with no worked examples), at any token count measured up to 36T, and every one of them has a negative swap shift. From 14B to 1T parameters, stage 5 is weak and nearly flat. In these models, parameter count and depth grow together. **kotodama-tsumugi** separates the two. It is a 1.4B model run as 72 effective layers (looped depth, boundary-fitted attention residuals). It reaches stage 3 by **33B tokens** (annealed; on the constant-LR trunk by 40B). That is the token cost of OLMo-2 13B, against about 420B for OLMo-2 1B. At 110B tokens its zero-shot stage-5 reading (−.021) is not inverted under the gauge rule. Every 1–2B public base whose static *you* binds inverts, except Llama-3.2-1B. In a check of 20 bases, kotodama-tsumugi (.335) follows a hand-off told in the third person better than every Pythia model up to 6.9B (.275 to .299) and Llama-3.2-1B (.304). Most bases up to 1.5B barely follow one: 7 of those 10 score .26 to .34, against about .29 by chance. For every model of this size, that hand-off is the open step toward stage 5.
 
@@ -602,11 +602,20 @@ Belgium →
 | `gemma2-9b` | Gemma-2 9B | 3–10B | 9.242 | 9.242 | distilled 8T |  |
 | `recurrentgemma-9b` | RecurrentGemma 9B | 3–10B | 9.629 | 9.629 | 2T |  |
 | `bamba-9b` | Bamba 9B | 3–10B | 9.78 | 9.78 | ≈ 3.1T |  |
+| `dsv4-flash-base` | DeepSeek-V4-Flash (MoE) | 10B and up | 284.0 | 13.0 | 32T | Scored with vLLM across several GPUs: the same prompts, candidates and split-tie rule. On two check models, its scores match the standard scorer's within .03. |
+| `trinity-base` | Trinity-Large (MoE) | 10B and up | 398.0 | 13.0 | 17T | Scored with vLLM across several GPUs: the same prompts, candidates and split-tie rule. On two check models, its scores match the standard scorer's within .03. |
+| `trinity-truebase` | Trinity-Large (MoE), before the anneals | 10B and up | 398.0 | 13.0 | 10T | Scored with vLLM across several GPUs: the same prompts, candidates and split-tie rule. On two check models, its scores match the standard scorer's within .03. |
 | `olmo2-13b` | OLMo-2 13B | 10B and up | 13.716 | 13.716 | 5.6T |  |
+| `mimo-v25-base` | MiMo-V2.5 (MoE) | 10B and up | 310.0 | 15.0 | ≈ text + multimodal 48T | Scored with vLLM across several GPUs: the same prompts, candidates and split-tie rule. On two check models, its scores match the standard scorer's within .03. |
+| `gemma4-31b-base` | Gemma-4 31B | 10B and up | 30.7 | 30.7 | — | Scored with vLLM across several GPUs: the same prompts, candidates and split-tie rule. On two check models, its scores match the standard scorer's within .03. |
+| `kimi-k2-base` | Kimi-K2 (MoE) | 10B and up | 1000.0 | 32.0 | 15.5T | Scored with vLLM across several GPUs: the same prompts, candidates and split-tie rule. On two check models, its scores match the standard scorer's within .03. |
 | `olmo3-32b` | OLMo-3 32B | 10B and up | 32.234 | 32.234 | 5.7T |  |
 | `olmo3-32b-stage1` | OLMo-3 32B, before mid-training | 10B and up | 32.234 | 32.234 | stage 1 only 5.5T |  |
 | `glm4-32b-base` | GLM-4 32B | 10B and up | 32.566 | 32.566 | 15T |  |
 | `falcon-h1-34b` | Falcon-H1 34B | 10B and up | 33.643 | 33.643 | ≈ 18T |  |
+| `dsv3-base` | DeepSeek-V3 (MoE) | 10B and up | 671.0 | 37.0 | 14.8T | Scored with vLLM across several GPUs: the same prompts, candidates and split-tie rule. On two check models, its scores match the standard scorer's within .03. |
+| `mimo-v25-pro-base` | MiMo-V2.5-Pro (MoE) | 10B and up | 1020.0 | 42.0 | 27T | Scored with vLLM across several GPUs: the same prompts, candidates and split-tie rule. On two check models, its scores match the standard scorer's within .03. |
+| `nemotron3-ultra-550b-base` | Nemotron-3-Ultra (MoE) | 10B and up | 550.0 | 55.0 | 20T | Scored with vLLM across several GPUs: the same prompts, candidates and split-tie rule. On two check models, its scores match the standard scorer's within .03. |
 | `llama3.1-70b` | Llama-3.1 70B | 10B and up | 70.554 | 70.554 | ≈ 15T |  |
 | `qwen2.5-72b` | Qwen2.5 72B | 10B and up | 72.706 | 72.706 | ≤ 18T |  |
 | `llama3.1-405b` | Llama-3.1 405B | 10B and up | 405.853 | 405.853 | 15.6T |  |
@@ -670,11 +679,20 @@ Score (0 = guessing, 1 = always right), with worked examples where the column ha
 | RecurrentGemma 9B | +0.16 | +0.69° | +0.06 | +0.28° | +0.24° |
 | Bamba 9B | +0.06 | +0.64° | -0.02 | +0.23° | +0.16° |
 | **10B and up** | | | | | |
+| DeepSeek-V4-Flash (MoE) | +1.00 | +1.00° | +1.00 | +0.77° | -0.25°↓ |
+| Trinity-Large (MoE) | +1.00 | +0.99° | +1.00 | +0.79° | -0.06°↓ |
+| Trinity-Large (MoE), before the anneals | +1.00 | +0.99° | +0.98 | +0.94° | -0.21°↓ |
 | OLMo-2 13B | +0.99 | +0.92° | +0.87 | +0.62° | -0.04° |
+| MiMo-V2.5 (MoE) | +1.00 | +0.97° | +1.00 | +0.84° | +0.12° |
+| Gemma-4 31B | +1.00 | +0.99° | +1.00 | +0.96° | +0.09° |
+| Kimi-K2 (MoE) | +1.00 | +1.00° | +1.00 | +0.86° | -0.14°↓ |
 | OLMo-3 32B | +1.00 | +0.94° | +0.98 | +0.62° | -0.11°↓ |
 | OLMo-3 32B, before mid-training | +1.00 | +0.88° | +1.00 | +0.61° | -0.28°↓ |
 | GLM-4 32B | +1.00 | +0.99° | +1.00 | +0.76° | -0.27°↓ |
 | Falcon-H1 34B | +1.00 | +0.99° | +1.00 | +0.73° | -0.27°↓ |
+| DeepSeek-V3 (MoE) | +1.00 | +0.98° | +1.00 | +0.79° | -0.22°↓ |
+| MiMo-V2.5-Pro (MoE) | +1.00 | +0.94° | +1.00 | +0.80° | -0.22°↓ |
+| Nemotron-3-Ultra (MoE) | +1.00 | +1.00° | +1.00 | +0.99° | +0.36° |
 | Llama-3.1 70B | +1.00 | +0.98° | +1.00 | +0.86° | -0.15°↓ |
 | Qwen2.5 72B | +1.00 | +0.98° | +1.00 | +0.90° | -0.27°↓ |
 | Llama-3.1 405B | +1.00 | +0.99° | +1.00 | +0.88° | -0.31°↓ |
@@ -735,11 +753,20 @@ Score (0 = guessing, 1 = always right), with worked examples where the column ha
 | RecurrentGemma 9B | +0.29 | +0.06 | +0.06° | +0.10° |
 | Bamba 9B | +0.22 | +0.13 | +0.27° | +0.22° |
 | **10B and up** | | | | |
+| DeepSeek-V4-Flash (MoE) | +0.97 | +0.99 | +0.72° | +0.69° |
+| Trinity-Large (MoE) | +0.95 | +0.92 | +0.58° | +0.58° |
+| Trinity-Large (MoE), before the anneals | +0.90 | +0.78 | +0.51° | +0.40° |
 | OLMo-2 13B | +0.87 | +0.86 | +0.68° | +0.48° |
+| MiMo-V2.5 (MoE) | +0.97 | +0.94 | +0.69° | +0.56° |
+| Gemma-4 31B | +0.97 | +0.96 | +0.60° | +0.69° |
+| Kimi-K2 (MoE) | +0.99 | +0.97 | +0.80° | +0.84° |
 | OLMo-3 32B | +0.85 | +0.77 | +0.59° | +0.46° |
 | OLMo-3 32B, before mid-training | +0.88 | +0.84 | +0.65° | +0.47° |
 | GLM-4 32B | +0.96 | +0.92 | +0.62° | +0.53° |
 | Falcon-H1 34B | +0.93 | +0.86 | +0.78° | +0.66° |
+| DeepSeek-V3 (MoE) | +0.98 | +0.96 | +0.81° | +0.73° |
+| MiMo-V2.5-Pro (MoE) | +0.98 | +0.96 | +0.54° | +0.54° |
+| Nemotron-3-Ultra (MoE) | +0.98 | +1.00 | +0.78° | +0.69° |
 | Llama-3.1 70B | +0.97 | +0.92 | +0.54° | +0.58° |
 | Qwen2.5 72B | +0.98 | +0.93 | +0.61° | +0.60° |
 | Llama-3.1 405B | +0.99 | +0.99 | +0.73° | +0.74° |
@@ -800,11 +827,20 @@ Score (0 = guessing, 1 = always right), with worked examples where the column ha
 | RecurrentGemma 9B | +0.02 | +0.12 |
 | Bamba 9B | +0.04 | -0.02 |
 | **10B and up** | | |
+| DeepSeek-V4-Flash (MoE) | +0.89 | +0.90 |
+| Trinity-Large (MoE) | +0.88 | +0.94 |
+| Trinity-Large (MoE), before the anneals | +0.85 | +0.82 |
 | OLMo-2 13B | +0.35 | +0.44 |
+| MiMo-V2.5 (MoE) | +0.88 | +0.71 |
+| Gemma-4 31B | +0.91 | +0.89 |
+| Kimi-K2 (MoE) | +0.89 | +0.92 |
 | OLMo-3 32B | +0.78 | +0.74 |
 | OLMo-3 32B, before mid-training | +0.60 | +0.58 |
 | GLM-4 32B | +0.85 | +0.65 |
 | Falcon-H1 34B | +0.84 | +0.79 |
+| DeepSeek-V3 (MoE) | +0.94 | +0.95 |
+| MiMo-V2.5-Pro (MoE) | +0.87 | +0.81 |
+| Nemotron-3-Ultra (MoE) | +0.86 | +0.98 |
 | Llama-3.1 70B | +0.84 | +0.65 |
 | Qwen2.5 72B | +0.82 | +0.88 |
 | Llama-3.1 405B | +0.92 | +0.97 |
@@ -863,11 +899,20 @@ Score (0 = guessing, 1 = always right), with worked examples where the column ha
 | RecurrentGemma 9B | +0.02 | +0.23 | +0.26 | +0.28 |
 | Bamba 9B | -0.08↓ | -0.03 | -0.01 | +0.00 |
 | **10B and up** | | | | |
+| DeepSeek-V4-Flash (MoE) | +0.70 | +0.86 | +0.84 | +0.68 |
+| Trinity-Large (MoE) | +0.66 | +0.76 | +0.88 | +0.74 |
+| Trinity-Large (MoE), before the anneals | +0.36 | +0.58 | +0.87 | +0.58 |
 | OLMo-2 13B | +0.23 | +0.33 | +0.60 | +0.44 |
+| MiMo-V2.5 (MoE) | +0.70 | +0.86 | +0.90 | +0.71 |
+| Gemma-4 31B | +0.71 | +0.84 | +0.88 | +0.85 |
+| Kimi-K2 (MoE) | +0.66 | +0.84 | +0.91 | +0.71 |
 | OLMo-3 32B | +0.34 | +0.56 | +0.78 | +0.50 |
 | OLMo-3 32B, before mid-training | +0.35 | +0.48 | +0.76 | +0.56 |
 | GLM-4 32B | +0.47 | +0.75 | +0.86 | +0.66 |
 | Falcon-H1 34B | +0.65 | +0.84 | +0.88 | +0.78 |
+| DeepSeek-V3 (MoE) | +0.82 | +0.84 | +0.89 | +0.84 |
+| MiMo-V2.5-Pro (MoE) | +0.86 | +0.89 | +0.92 | +0.84 |
+| Nemotron-3-Ultra (MoE) | +0.85 | +0.91 | +0.93 | +0.85 |
 | Llama-3.1 70B | +0.63 | +0.85 | +0.88 | +0.86 |
 | Qwen2.5 72B | +0.54 | +0.81 | +0.80 | +0.66 |
 | Llama-3.1 405B | +0.77 | +0.87 | +0.82 | +0.89 |
@@ -928,11 +973,20 @@ Score (0 = guessing, 1 = always right), with worked examples where the column ha
 | RecurrentGemma 9B | +0.40° | -0.04 | +0.02 | +0.04 | -0.01 |
 | Bamba 9B | +0.12° | -0.04 | -0.01 | +0.01 | +0.01 |
 | **10B and up** | | | | | |
+| DeepSeek-V4-Flash (MoE) | +1.00° | +0.69 | +0.31 | +0.57 | +0.57 |
+| Trinity-Large (MoE) | +0.99° | +0.39 | +0.32 | +0.43 | +0.42 |
+| Trinity-Large (MoE), before the anneals | +0.93° | +0.27 | +0.01 | +0.13 | +0.37 |
 | OLMo-2 13B | +0.96° | +0.39 | +0.25 | +0.33 | +0.26 |
+| MiMo-V2.5 (MoE) | +0.93° | +0.49 | +0.20 | +0.43 | +0.48 |
+| Gemma-4 31B | +0.98° | +0.63 | +0.36 | +0.52 | +0.58 |
+| Kimi-K2 (MoE) | +1.00° | +0.56 | +0.31 | +0.52 | +0.57 |
 | OLMo-3 32B | +0.98° | +0.41 | +0.22 | +0.30 | +0.37 |
 | OLMo-3 32B, before mid-training | +0.94° | +0.29 | +0.17 | +0.23 | +0.29 |
 | GLM-4 32B | +0.94° | +0.52 | +0.22 | +0.37 | +0.49 |
 | Falcon-H1 34B | +0.92° | +0.50 | +0.35 | +0.56 | +0.54 |
+| DeepSeek-V3 (MoE) | +1.00° | +0.54 | +0.32 | +0.69 | +0.53 |
+| MiMo-V2.5-Pro (MoE) | +0.99° | +0.51 | +0.44 | +0.74 | +0.61 |
+| Nemotron-3-Ultra (MoE) | +0.99° | +0.66 | +0.48 | +0.72 | +0.62 |
 | Llama-3.1 70B | +1.00° | +0.54 | +0.34 | +0.62 | +0.61 |
 | Qwen2.5 72B | +0.90° | +0.67 | +0.42 | +0.69 | +0.50 |
 | Llama-3.1 405B | +0.99° | +0.74 | +0.59 | +0.64 | +0.69 |
@@ -991,11 +1045,20 @@ Score (0 = guessing, 1 = always right), with worked examples where the column ha
 | RecurrentGemma 9B | +0.63° | +0.13° | +0.34° | +1.00° |
 | Bamba 9B | +0.57° | +0.14° | +0.43° | +1.00° |
 | **10B and up** | | | | |
+| DeepSeek-V4-Flash (MoE) | +0.88° | +0.23° | +1.00° | +1.00° |
+| Trinity-Large (MoE) | +0.83° | +0.18° | +0.94° | +1.00° |
+| Trinity-Large (MoE), before the anneals | +0.85° | +0.18° | +0.89° | +1.00° |
 | OLMo-2 13B | +0.84° | +0.24° | +0.82° | +1.00° |
+| MiMo-V2.5 (MoE) | +0.87° | +0.25° | +0.97° | +1.00° |
+| Gemma-4 31B | +0.93° | +0.32° | +0.98° | +1.00° |
+| Kimi-K2 (MoE) | +0.88° | +0.21° | +0.96° | +1.00° |
 | OLMo-3 32B | +0.85° | +0.21° | +0.90° | +1.00° |
 | OLMo-3 32B, before mid-training | +0.83° | +0.28° | +0.92° | +1.00° |
 | GLM-4 32B | +0.86° | +0.23° | +0.96° | +1.00° |
 | Falcon-H1 34B | +0.87° | +0.24° | +0.94° | +1.00° |
+| DeepSeek-V3 (MoE) | +0.87° | +0.29° | +0.99° | +1.00° |
+| MiMo-V2.5-Pro (MoE) | +0.91° | +0.26° | +0.98° | +1.00° |
+| Nemotron-3-Ultra (MoE) | +0.88° | +0.24° | +0.90° | +1.00° |
 | Llama-3.1 70B | +0.85° | +0.32° | +0.96° | +1.00° |
 | Qwen2.5 72B | +0.87° | +0.22° | +0.99° | +1.00° |
 | Llama-3.1 405B | +0.90° | +0.21° | +0.98° | +1.00° |
@@ -1051,11 +1114,20 @@ gemma-7b,"Gemma 7B","3–10B",8.538,8.538,6000000000000.0,logprob
 gemma2-9b,"Gemma-2 9B","3–10B",9.242,9.242,8000000000000.0,logprob
 recurrentgemma-9b,"RecurrentGemma 9B","3–10B",9.629,9.629,2000000000000.0,logprob
 bamba-9b,"Bamba 9B","3–10B",9.78,9.78,3100000000000.0,logprob
+dsv4-flash-base,"DeepSeek-V4-Flash (MoE)","10B and up",284.0,13.0,32000000000000.0,logprob
+trinity-base,"Trinity-Large (MoE)","10B and up",398.0,13.0,17000000000000.0,logprob
+trinity-truebase,"Trinity-Large (MoE), before the anneals","10B and up",398.0,13.0,10000000000000.0,logprob
 olmo2-13b,"OLMo-2 13B","10B and up",13.716,13.716,5600000000000.0,logprob
+mimo-v25-base,"MiMo-V2.5 (MoE)","10B and up",310.0,15.0,48000000000000.0,logprob
+gemma4-31b-base,"Gemma-4 31B","10B and up",30.7,30.7,,logprob
+kimi-k2-base,"Kimi-K2 (MoE)","10B and up",1000.0,32.0,15500000000000.0,logprob
 olmo3-32b,"OLMo-3 32B","10B and up",32.234,32.234,5700000000000.0,logprob
 olmo3-32b-stage1,"OLMo-3 32B, before mid-training","10B and up",32.234,32.234,5500000000000.0,logprob
 glm4-32b-base,"GLM-4 32B","10B and up",32.566,32.566,15000000000000.0,logprob
 falcon-h1-34b,"Falcon-H1 34B","10B and up",33.643,33.643,18000000000000.0,logprob
+dsv3-base,"DeepSeek-V3 (MoE)","10B and up",671.0,37.0,14800000000000.0,logprob
+mimo-v25-pro-base,"MiMo-V2.5-Pro (MoE)","10B and up",1020.0,42.0,27000000000000.0,logprob
+nemotron3-ultra-550b-base,"Nemotron-3-Ultra (MoE)","10B and up",550.0,55.0,20000000000000.0,logprob
 llama3.1-70b,"Llama-3.1 70B","10B and up",70.554,70.554,15000000000000.0,logprob
 qwen2.5-72b,"Qwen2.5 72B","10B and up",72.706,72.706,18000000000000.0,logprob
 llama3.1-405b,"Llama-3.1 405B","10B and up",405.853,405.853,15600000000000.0,logprob
@@ -2533,6 +2605,120 @@ bamba-9b,grammar,ladder,,1080,,0.575,0.543,0.602,above
 bamba-9b,operators,ladder,,1080,,0.136,0.113,0.166,above
 bamba-9b,patterns,ladder,,1080,,0.430,0.399,0.459,above
 bamba-9b,facts,ladder,,768,,0.998,0.995,1.000,above
+dsv4-flash-base,lookup,0shot,0.763,1210,0.168,0.704,0.673,0.733,above
+dsv4-flash-base,lookup,fair,1.000,1210,0.168,1.000,1.000,1.000,above
+dsv4-flash-base,shortlist,0shot,0.999,960,0.040,0.999,0.997,1.000,above
+dsv4-flash-base,pairs,0shot,0.836,64,0.125,0.812,0.705,0.911,above
+dsv4-flash-base,pairs,fair,1.000,64,0.125,1.000,1.000,1.000,above
+dsv4-flash-base,noise,0shot,0.813,720,0.200,0.766,0.733,0.800,above
+dsv4-flash-base,now,0shot,0.117,300,0.292,-0.250,-0.299,-0.196,below
+dsv4-flash-base,handoffs,0shot,0.924,1200,0.312,0.890,0.869,0.909,above
+dsv4-flash-base,handoffs,fair,0.978,1200,0.312,0.967,0.954,0.979,above
+dsv4-flash-base,sets,0shot,0.981,320,0.275,0.976,0.956,0.992,above
+dsv4-flash-base,sets,fair,0.995,320,0.275,0.995,0.986,1.000,above
+dsv4-flash-base,refilled,0shot,0.776,720,0.200,0.720,0.681,0.757,above
+dsv4-flash-base,refills,0shot,0.749,600,0.200,0.686,0.639,0.729,above
+dsv4-flash-base,codevar,0shot,0.903,1200,0.267,0.866,0.844,0.889,above
+dsv4-flash-base,codevar,fair,0.919,1200,0.267,0.886,0.865,0.907,above
+dsv4-flash-base,sharedlists,0shot,0.885,600,0.200,0.856,0.825,0.887,above
+dsv4-flash-base,sharedlists,fair,0.923,600,0.200,0.904,0.877,0.929,above
+dsv4-flash-base,box-narrative,0shot,0.532,200,0.253,0.379,0.282,0.474,above
+dsv4-flash-base,box-narrative,fair,0.790,200,0.253,0.699,0.609,0.786,above
+dsv4-flash-base,box-screenplay,0shot,0.593,200,0.253,0.442,0.353,0.525,above
+dsv4-flash-base,box-screenplay,fair,0.897,200,0.253,0.858,0.794,0.914,above
+dsv4-flash-base,box-code,0shot,0.912,200,0.253,0.875,0.814,0.927,above
+dsv4-flash-base,box-code,fair,0.890,200,0.253,0.838,0.773,0.897,above
+dsv4-flash-base,box-chat,0shot,0.720,200,0.253,0.611,0.530,0.698,above
+dsv4-flash-base,box-chat,fair,0.772,200,0.253,0.680,0.594,0.763,above
+dsv4-flash-base,you-static,0shot,1.000,300,0.292,1.000,1.000,1.000,above
+dsv4-flash-base,i-moves,0shot,0.569,180,0.287,0.394,0.305,0.499,above
+dsv4-flash-base,i-moves,fair,0.783,180,0.287,0.695,0.609,0.779,above
+dsv4-flash-base,you-moves,0shot,0.471,180,0.287,0.259,0.162,0.356,above
+dsv4-flash-base,you-moves,fair,0.506,180,0.287,0.309,0.213,0.408,above
+dsv4-flash-base,you-named,0shot,0.556,180,0.287,0.376,0.271,0.468,above
+dsv4-flash-base,you-named,fair,0.694,180,0.287,0.572,0.471,0.657,above
+dsv4-flash-base,answer-self,0shot,0.488,2560,0.250,0.317,0.291,0.343,above
+dsv4-flash-base,answer-self,fair,0.675,2560,0.250,0.567,0.543,0.590,above
+dsv4-flash-base,grammar,ladder,,1080,,0.881,0.864,0.898,above
+dsv4-flash-base,operators,ladder,,1080,,0.232,0.201,0.262,above
+dsv4-flash-base,patterns,ladder,,1080,,0.997,0.993,1.000,above
+dsv4-flash-base,facts,ladder,,768,,1.000,1.000,1.000,above
+trinity-base,lookup,0shot,0.755,1210,0.168,0.694,0.666,0.723,above
+trinity-base,lookup,fair,1.000,1210,0.168,1.000,1.000,1.000,above
+trinity-base,shortlist,0shot,0.994,960,0.040,0.994,0.988,0.998,above
+trinity-base,pairs,0shot,0.859,64,0.125,0.839,0.732,0.929,above
+trinity-base,pairs,fair,1.000,64,0.125,1.000,1.000,1.000,above
+trinity-base,noise,0shot,0.830,720,0.200,0.788,0.755,0.821,above
+trinity-base,now,0shot,0.245,300,0.292,-0.065,-0.124,-0.002,below
+trinity-base,handoffs,0shot,0.915,1200,0.312,0.874,0.851,0.897,above
+trinity-base,handoffs,fair,0.964,1200,0.312,0.947,0.932,0.962,above
+trinity-base,sets,0shot,0.906,320,0.275,0.872,0.829,0.912,above
+trinity-base,sets,fair,0.936,320,0.275,0.916,0.881,0.952,above
+trinity-base,refilled,0shot,0.666,720,0.200,0.583,0.542,0.624,above
+trinity-base,refills,0shot,0.661,600,0.200,0.576,0.529,0.624,above
+trinity-base,codevar,0shot,0.839,1200,0.267,0.777,0.749,0.806,above
+trinity-base,codevar,fair,0.912,1200,0.267,0.876,0.854,0.900,above
+trinity-base,sharedlists,0shot,0.965,600,0.200,0.956,0.939,0.973,above
+trinity-base,sharedlists,fair,0.951,600,0.200,0.939,0.916,0.960,above
+trinity-base,box-narrative,0shot,0.652,200,0.253,0.516,0.432,0.606,above
+trinity-base,box-narrative,fair,0.760,200,0.253,0.663,0.579,0.741,above
+trinity-base,box-screenplay,0shot,0.777,200,0.253,0.696,0.619,0.776,above
+trinity-base,box-screenplay,fair,0.825,200,0.253,0.758,0.681,0.824,above
+trinity-base,box-code,0shot,0.785,200,0.253,0.707,0.626,0.783,above
+trinity-base,box-code,fair,0.912,200,0.253,0.877,0.820,0.928,above
+trinity-base,box-chat,0shot,0.768,200,0.253,0.686,0.606,0.763,above
+trinity-base,box-chat,fair,0.818,200,0.253,0.742,0.663,0.820,above
+trinity-base,you-static,0shot,0.990,300,0.292,0.986,0.967,1.000,above
+trinity-base,i-moves,0shot,0.423,180,0.287,0.188,0.087,0.286,above
+trinity-base,i-moves,fair,0.567,180,0.287,0.393,0.287,0.490,above
+trinity-base,you-moves,0shot,0.231,180,0.287,-0.082,-0.157,-0.001,below
+trinity-base,you-moves,fair,0.518,180,0.287,0.323,0.224,0.423,above
+trinity-base,you-named,0shot,0.394,180,0.287,0.148,0.059,0.241,above
+trinity-base,you-named,fair,0.597,180,0.287,0.432,0.330,0.524,above
+trinity-base,answer-self,0shot,0.406,2560,0.250,0.207,0.183,0.236,above
+trinity-base,answer-self,fair,0.562,2560,0.250,0.417,0.392,0.441,above
+trinity-base,grammar,ladder,,1080,,0.825,0.804,0.848,above
+trinity-base,operators,ladder,,1080,,0.180,0.157,0.216,above
+trinity-base,patterns,ladder,,1080,,0.936,0.920,0.950,above
+trinity-base,facts,ladder,,768,,1.000,1.000,1.000,above
+trinity-truebase,lookup,0shot,0.799,1210,0.168,0.752,0.725,0.780,above
+trinity-truebase,lookup,fair,0.998,1210,0.168,0.998,0.995,1.000,above
+trinity-truebase,shortlist,0shot,0.988,960,0.040,0.987,0.979,0.994,above
+trinity-truebase,pairs,0shot,0.953,64,0.125,0.946,0.893,1.000,above
+trinity-truebase,pairs,fair,0.984,64,0.125,0.982,0.946,1.000,above
+trinity-truebase,noise,0shot,0.956,720,0.200,0.944,0.925,0.962,above
+trinity-truebase,now,0shot,0.144,300,0.292,-0.209,-0.261,-0.154,below
+trinity-truebase,handoffs,0shot,0.891,1200,0.312,0.839,0.812,0.864,above
+trinity-truebase,handoffs,fair,0.930,1200,0.312,0.898,0.875,0.917,above
+trinity-truebase,sets,0shot,0.823,320,0.275,0.753,0.702,0.814,above
+trinity-truebase,sets,fair,0.838,320,0.275,0.779,0.723,0.834,above
+trinity-truebase,refilled,0shot,0.612,720,0.200,0.514,0.469,0.558,above
+trinity-truebase,refills,0shot,0.520,600,0.200,0.400,0.355,0.449,above
+trinity-truebase,codevar,0shot,0.879,1200,0.267,0.832,0.805,0.857,above
+trinity-truebase,codevar,fair,0.891,1200,0.267,0.850,0.828,0.875,above
+trinity-truebase,sharedlists,0shot,0.723,600,0.200,0.653,0.607,0.698,above
+trinity-truebase,sharedlists,fair,0.860,600,0.200,0.825,0.791,0.858,above
+trinity-truebase,box-narrative,0shot,0.477,200,0.253,0.267,0.168,0.363,above
+trinity-truebase,box-narrative,fair,0.532,200,0.253,0.358,0.258,0.451,above
+trinity-truebase,box-screenplay,0shot,0.492,200,0.253,0.302,0.204,0.397,above
+trinity-truebase,box-screenplay,fair,0.687,200,0.253,0.580,0.488,0.665,above
+trinity-truebase,box-code,0shot,0.770,200,0.253,0.682,0.597,0.756,above
+trinity-truebase,box-code,fair,0.912,200,0.253,0.873,0.816,0.929,above
+trinity-truebase,box-chat,0shot,0.655,200,0.253,0.545,0.455,0.636,above
+trinity-truebase,box-chat,fair,0.680,200,0.253,0.575,0.493,0.663,above
+trinity-truebase,you-static,0shot,0.953,300,0.292,0.931,0.894,0.964,above
+trinity-truebase,i-moves,0shot,0.406,180,0.287,0.163,0.069,0.261,above
+trinity-truebase,i-moves,fair,0.478,180,0.287,0.267,0.163,0.374,above
+trinity-truebase,you-moves,0shot,0.285,180,0.287,-0.006,-0.095,0.082,at
+trinity-truebase,you-moves,fair,0.294,180,0.287,0.010,-0.083,0.106,at
+trinity-truebase,you-named,0shot,0.394,180,0.287,0.145,0.045,0.244,above
+trinity-truebase,you-named,fair,0.378,180,0.287,0.127,0.022,0.222,above
+trinity-truebase,answer-self,0shot,0.392,2560,0.250,0.190,0.165,0.216,above
+trinity-truebase,answer-self,fair,0.529,2560,0.250,0.372,0.348,0.397,above
+trinity-truebase,grammar,ladder,,1080,,0.851,0.830,0.870,above
+trinity-truebase,operators,ladder,,1080,,0.178,0.153,0.211,above
+trinity-truebase,patterns,ladder,,1080,,0.893,0.878,0.913,above
+trinity-truebase,facts,ladder,,768,,1.000,1.000,1.000,above
 olmo2-13b,lookup,0shot,0.598,1210,0.168,0.498,0.465,0.533,above
 olmo2-13b,lookup,fair,0.992,1210,0.168,0.990,0.983,0.995,above
 olmo2-13b,shortlist,0shot,0.925,960,0.040,0.922,0.904,0.940,above
@@ -2571,6 +2757,120 @@ olmo2-13b,grammar,ladder,,1080,,0.843,0.825,0.862,above
 olmo2-13b,operators,ladder,,1080,,0.240,0.213,0.274,above
 olmo2-13b,patterns,ladder,,1080,,0.822,0.802,0.844,above
 olmo2-13b,facts,ladder,,768,,0.998,0.995,1.000,above
+mimo-v25-base,lookup,0shot,0.718,1210,0.168,0.646,0.614,0.676,above
+mimo-v25-base,lookup,fair,0.998,1210,0.168,0.998,0.995,1.000,above
+mimo-v25-base,shortlist,0shot,0.972,960,0.040,0.971,0.960,0.982,above
+mimo-v25-base,pairs,0shot,0.820,64,0.125,0.795,0.679,0.902,above
+mimo-v25-base,pairs,fair,1.000,64,0.125,1.000,1.000,1.000,above
+mimo-v25-base,noise,0shot,0.875,720,0.200,0.844,0.813,0.872,above
+mimo-v25-base,now,0shot,0.374,300,0.292,0.117,0.044,0.195,above
+mimo-v25-base,handoffs,0shot,0.946,1200,0.312,0.920,0.902,0.937,above
+mimo-v25-base,handoffs,fair,0.983,1200,0.312,0.975,0.964,0.985,above
+mimo-v25-base,sets,0shot,0.808,320,0.275,0.727,0.661,0.785,above
+mimo-v25-base,sets,fair,0.956,320,0.275,0.940,0.910,0.968,above
+mimo-v25-base,refilled,0shot,0.751,720,0.200,0.689,0.649,0.727,above
+mimo-v25-base,refills,0shot,0.649,600,0.200,0.561,0.511,0.608,above
+mimo-v25-base,codevar,0shot,0.808,1200,0.267,0.734,0.705,0.764,above
+mimo-v25-base,codevar,fair,0.912,1200,0.267,0.877,0.854,0.900,above
+mimo-v25-base,sharedlists,0shot,0.798,600,0.200,0.748,0.709,0.785,above
+mimo-v25-base,sharedlists,fair,0.767,600,0.200,0.708,0.668,0.752,above
+mimo-v25-base,box-narrative,0shot,0.365,200,0.253,0.126,0.034,0.224,above
+mimo-v25-base,box-narrative,fair,0.787,200,0.253,0.700,0.609,0.782,above
+mimo-v25-base,box-screenplay,0shot,0.707,200,0.253,0.604,0.520,0.693,above
+mimo-v25-base,box-screenplay,fair,0.902,200,0.253,0.860,0.799,0.917,above
+mimo-v25-base,box-code,0shot,0.877,200,0.253,0.829,0.762,0.892,above
+mimo-v25-base,box-code,fair,0.932,200,0.253,0.905,0.851,0.952,above
+mimo-v25-base,box-chat,0shot,0.632,200,0.253,0.509,0.421,0.596,above
+mimo-v25-base,box-chat,fair,0.802,200,0.253,0.710,0.626,0.792,above
+mimo-v25-base,you-static,0shot,0.953,300,0.292,0.931,0.893,0.963,above
+mimo-v25-base,i-moves,0shot,0.467,180,0.287,0.253,0.158,0.356,above
+mimo-v25-base,i-moves,fair,0.636,180,0.287,0.493,0.388,0.585,above
+mimo-v25-base,you-moves,0shot,0.288,180,0.287,0.003,-0.079,0.093,at
+mimo-v25-base,you-moves,fair,0.430,180,0.287,0.202,0.103,0.305,above
+mimo-v25-base,you-named,0shot,0.465,180,0.287,0.250,0.153,0.351,above
+mimo-v25-base,you-named,fair,0.600,180,0.287,0.434,0.327,0.529,above
+mimo-v25-base,answer-self,0shot,0.404,2560,0.250,0.206,0.181,0.231,above
+mimo-v25-base,answer-self,fair,0.607,2560,0.250,0.476,0.450,0.501,above
+mimo-v25-base,grammar,ladder,,1080,,0.874,0.854,0.891,above
+mimo-v25-base,operators,ladder,,1080,,0.249,0.221,0.281,above
+mimo-v25-base,patterns,ladder,,1080,,0.974,0.964,0.984,above
+mimo-v25-base,facts,ladder,,768,,1.000,1.000,1.000,above
+gemma4-31b-base,lookup,0shot,0.719,1210,0.168,0.644,0.614,0.675,above
+gemma4-31b-base,lookup,fair,1.000,1210,0.168,1.000,1.000,1.000,above
+gemma4-31b-base,shortlist,0shot,0.993,960,0.040,0.993,0.988,0.997,above
+gemma4-31b-base,pairs,0shot,0.773,64,0.125,0.741,0.625,0.848,above
+gemma4-31b-base,pairs,fair,1.000,64,0.125,1.000,1.000,1.000,above
+gemma4-31b-base,noise,0shot,0.972,720,0.200,0.964,0.950,0.977,above
+gemma4-31b-base,now,0shot,0.356,300,0.292,0.094,0.021,0.167,above
+gemma4-31b-base,handoffs,0shot,0.937,1200,0.312,0.907,0.884,0.925,above
+gemma4-31b-base,handoffs,fair,0.977,1200,0.312,0.966,0.953,0.978,above
+gemma4-31b-base,sets,0shot,0.939,320,0.275,0.916,0.882,0.951,above
+gemma4-31b-base,sets,fair,0.966,320,0.275,0.956,0.928,0.979,above
+gemma4-31b-base,refilled,0shot,0.680,720,0.200,0.600,0.558,0.641,above
+gemma4-31b-base,refills,0shot,0.756,600,0.200,0.695,0.651,0.742,above
+gemma4-31b-base,codevar,0shot,0.875,1200,0.267,0.828,0.804,0.853,above
+gemma4-31b-base,codevar,fair,0.932,1200,0.267,0.906,0.886,0.924,above
+gemma4-31b-base,sharedlists,0shot,0.799,600,0.200,0.749,0.710,0.788,above
+gemma4-31b-base,sharedlists,fair,0.910,600,0.200,0.887,0.858,0.916,above
+gemma4-31b-base,box-narrative,0shot,0.602,200,0.253,0.449,0.355,0.544,above
+gemma4-31b-base,box-narrative,fair,0.787,200,0.253,0.705,0.617,0.787,above
+gemma4-31b-base,box-screenplay,0shot,0.693,200,0.253,0.571,0.488,0.658,above
+gemma4-31b-base,box-screenplay,fair,0.887,200,0.253,0.841,0.775,0.900,above
+gemma4-31b-base,box-code,0shot,0.712,200,0.253,0.591,0.503,0.674,above
+gemma4-31b-base,box-code,fair,0.920,200,0.253,0.881,0.825,0.933,above
+gemma4-31b-base,box-chat,0shot,0.797,200,0.253,0.716,0.641,0.785,above
+gemma4-31b-base,box-chat,fair,0.897,200,0.253,0.854,0.794,0.915,above
+gemma4-31b-base,you-static,0shot,0.988,300,0.292,0.983,0.965,0.998,above
+gemma4-31b-base,i-moves,0shot,0.557,180,0.287,0.377,0.284,0.476,above
+gemma4-31b-base,i-moves,fair,0.735,180,0.287,0.628,0.533,0.716,above
+gemma4-31b-base,you-moves,0shot,0.344,180,0.287,0.083,-0.015,0.174,at
+gemma4-31b-base,you-moves,fair,0.545,180,0.287,0.361,0.264,0.460,above
+gemma4-31b-base,you-named,0shot,0.406,180,0.287,0.162,0.069,0.260,above
+gemma4-31b-base,you-named,fair,0.656,180,0.287,0.516,0.416,0.607,above
+gemma4-31b-base,answer-self,0shot,0.545,2560,0.250,0.393,0.369,0.419,above
+gemma4-31b-base,answer-self,fair,0.688,2560,0.250,0.584,0.561,0.607,above
+gemma4-31b-base,grammar,ladder,,1080,,0.928,0.914,0.943,above
+gemma4-31b-base,operators,ladder,,1080,,0.317,0.284,0.351,above
+gemma4-31b-base,patterns,ladder,,1080,,0.976,0.967,0.983,above
+gemma4-31b-base,facts,ladder,,768,,1.000,1.000,1.000,above
+kimi-k2-base,lookup,0shot,0.972,1210,0.168,0.961,0.949,0.973,above
+kimi-k2-base,lookup,fair,1.000,1210,0.168,1.000,1.000,1.000,above
+kimi-k2-base,shortlist,0shot,0.996,960,0.040,0.996,0.991,0.999,above
+kimi-k2-base,pairs,0shot,1.000,64,0.125,1.000,1.000,1.000,above
+kimi-k2-base,pairs,fair,1.000,64,0.125,1.000,1.000,1.000,above
+kimi-k2-base,noise,0shot,0.890,720,0.200,0.862,0.834,0.889,above
+kimi-k2-base,now,0shot,0.197,300,0.292,-0.141,-0.203,-0.079,below
+kimi-k2-base,handoffs,0shot,0.980,1200,0.312,0.970,0.957,0.981,above
+kimi-k2-base,handoffs,fair,0.991,1200,0.312,0.987,0.978,0.994,above
+kimi-k2-base,sets,0shot,0.997,320,0.275,0.996,0.989,1.000,above
+kimi-k2-base,sets,fair,0.978,320,0.275,0.971,0.949,0.989,above
+kimi-k2-base,refilled,0shot,0.844,720,0.200,0.805,0.769,0.839,above
+kimi-k2-base,refills,0shot,0.871,600,0.200,0.838,0.806,0.870,above
+kimi-k2-base,codevar,0shot,0.904,1200,0.267,0.866,0.843,0.889,above
+kimi-k2-base,codevar,fair,0.921,1200,0.267,0.890,0.868,0.910,above
+kimi-k2-base,sharedlists,0shot,0.938,600,0.200,0.923,0.899,0.944,above
+kimi-k2-base,sharedlists,fair,0.935,600,0.200,0.919,0.894,0.944,above
+kimi-k2-base,box-narrative,0shot,0.657,200,0.253,0.539,0.450,0.629,above
+kimi-k2-base,box-narrative,fair,0.750,200,0.253,0.659,0.569,0.741,above
+kimi-k2-base,box-screenplay,0shot,0.785,200,0.253,0.705,0.626,0.780,above
+kimi-k2-base,box-screenplay,fair,0.885,200,0.253,0.841,0.779,0.898,above
+kimi-k2-base,box-code,0shot,0.810,200,0.253,0.733,0.654,0.806,above
+kimi-k2-base,box-code,fair,0.935,200,0.253,0.909,0.859,0.952,above
+kimi-k2-base,box-chat,0shot,0.850,200,0.253,0.792,0.724,0.859,above
+kimi-k2-base,box-chat,fair,0.792,200,0.253,0.713,0.627,0.789,above
+kimi-k2-base,you-static,0shot,1.000,300,0.292,1.000,1.000,1.000,above
+kimi-k2-base,i-moves,0shot,0.336,180,0.287,0.068,-0.024,0.154,at
+kimi-k2-base,i-moves,fair,0.683,180,0.287,0.558,0.462,0.653,above
+kimi-k2-base,you-moves,0shot,0.292,180,0.287,0.010,-0.078,0.101,at
+kimi-k2-base,you-moves,fair,0.508,180,0.287,0.312,0.212,0.412,above
+kimi-k2-base,you-named,0shot,0.444,180,0.287,0.218,0.127,0.317,above
+kimi-k2-base,you-named,fair,0.658,180,0.287,0.518,0.430,0.605,above
+kimi-k2-base,answer-self,0shot,0.544,2560,0.250,0.392,0.367,0.418,above
+kimi-k2-base,answer-self,fair,0.677,2560,0.250,0.570,0.545,0.594,above
+kimi-k2-base,grammar,ladder,,1080,,0.884,0.866,0.900,above
+kimi-k2-base,operators,ladder,,1080,,0.208,0.183,0.241,above
+kimi-k2-base,patterns,ladder,,1080,,0.956,0.944,0.970,above
+kimi-k2-base,facts,ladder,,768,,1.000,1.000,1.000,above
 olmo3-32b,lookup,0shot,0.694,1210,0.168,0.620,0.588,0.652,above
 olmo3-32b,lookup,fair,1.000,1210,0.168,1.000,1.000,1.000,above
 olmo3-32b,shortlist,0shot,0.939,960,0.040,0.936,0.920,0.951,above
@@ -2723,6 +3023,120 @@ falcon-h1-34b,grammar,ladder,,1080,,0.874,0.859,0.892,above
 falcon-h1-34b,operators,ladder,,1080,,0.245,0.215,0.278,above
 falcon-h1-34b,patterns,ladder,,1080,,0.945,0.930,0.960,above
 falcon-h1-34b,facts,ladder,,768,,1.000,1.000,1.000,above
+dsv3-base,lookup,0shot,0.690,1210,0.168,0.613,0.582,0.646,above
+dsv3-base,lookup,fair,1.000,1210,0.168,1.000,1.000,1.000,above
+dsv3-base,shortlist,0shot,0.979,960,0.040,0.978,0.969,0.987,above
+dsv3-base,pairs,0shot,0.789,64,0.125,0.759,0.643,0.866,above
+dsv3-base,pairs,fair,1.000,64,0.125,1.000,1.000,1.000,above
+dsv3-base,noise,0shot,0.834,720,0.200,0.792,0.758,0.825,above
+dsv3-base,now,0shot,0.141,300,0.292,-0.216,-0.269,-0.161,below
+dsv3-base,handoffs,0shot,0.958,1200,0.312,0.939,0.923,0.954,above
+dsv3-base,handoffs,fair,0.989,1200,0.312,0.984,0.976,0.991,above
+dsv3-base,sets,0shot,0.981,320,0.275,0.975,0.952,0.993,above
+dsv3-base,sets,fair,0.969,320,0.275,0.956,0.928,0.978,above
+dsv3-base,refilled,0shot,0.849,720,0.200,0.812,0.780,0.843,above
+dsv3-base,refills,0shot,0.782,600,0.200,0.728,0.688,0.770,above
+dsv3-base,codevar,0shot,0.879,1200,0.267,0.834,0.808,0.858,above
+dsv3-base,codevar,fair,0.953,1200,0.267,0.936,0.920,0.952,above
+dsv3-base,sharedlists,0shot,0.946,600,0.200,0.932,0.908,0.956,above
+dsv3-base,sharedlists,fair,0.963,600,0.200,0.953,0.934,0.973,above
+dsv3-base,box-narrative,0shot,0.557,200,0.253,0.387,0.293,0.490,above
+dsv3-base,box-narrative,fair,0.870,200,0.253,0.821,0.752,0.882,above
+dsv3-base,box-screenplay,0shot,0.728,200,0.253,0.618,0.528,0.707,above
+dsv3-base,box-screenplay,fair,0.890,200,0.253,0.845,0.784,0.903,above
+dsv3-base,box-code,0shot,0.890,200,0.253,0.843,0.780,0.905,above
+dsv3-base,box-code,fair,0.922,200,0.253,0.890,0.838,0.942,above
+dsv3-base,box-chat,0shot,0.812,200,0.253,0.735,0.657,0.813,above
+dsv3-base,box-chat,fair,0.882,200,0.253,0.839,0.777,0.898,above
+dsv3-base,you-static,0shot,1.000,300,0.292,1.000,1.000,1.000,above
+dsv3-base,i-moves,0shot,0.355,180,0.287,0.091,-0.004,0.188,at
+dsv3-base,i-moves,fair,0.675,180,0.287,0.544,0.444,0.643,above
+dsv3-base,you-moves,0shot,0.344,180,0.287,0.079,-0.010,0.169,at
+dsv3-base,you-moves,fair,0.520,180,0.287,0.324,0.234,0.426,above
+dsv3-base,you-named,0shot,0.596,180,0.287,0.432,0.334,0.531,above
+dsv3-base,you-named,fair,0.775,180,0.287,0.686,0.600,0.764,above
+dsv3-base,answer-self,0shot,0.531,2560,0.250,0.375,0.351,0.401,above
+dsv3-base,answer-self,fair,0.647,2560,0.250,0.529,0.507,0.554,above
+dsv3-base,grammar,ladder,,1080,,0.867,0.846,0.885,above
+dsv3-base,operators,ladder,,1080,,0.289,0.256,0.320,above
+dsv3-base,patterns,ladder,,1080,,0.991,0.984,0.997,above
+dsv3-base,facts,ladder,,768,,1.000,1.000,1.000,above
+mimo-v25-pro-base,lookup,0shot,0.731,1210,0.168,0.663,0.633,0.690,above
+mimo-v25-pro-base,lookup,fair,1.000,1210,0.168,1.000,1.000,1.000,above
+mimo-v25-pro-base,shortlist,0shot,0.946,960,0.040,0.944,0.929,0.958,above
+mimo-v25-pro-base,pairs,0shot,0.969,64,0.125,0.964,0.929,0.991,above
+mimo-v25-pro-base,pairs,fair,1.000,64,0.125,1.000,1.000,1.000,above
+mimo-v25-pro-base,noise,0shot,0.841,720,0.200,0.801,0.773,0.830,above
+mimo-v25-pro-base,now,0shot,0.140,300,0.292,-0.217,-0.257,-0.171,below
+mimo-v25-pro-base,handoffs,0shot,0.943,1200,0.312,0.916,0.902,0.932,above
+mimo-v25-pro-base,handoffs,fair,0.989,1200,0.312,0.984,0.976,0.990,above
+mimo-v25-pro-base,sets,0shot,0.944,320,0.275,0.919,0.893,0.945,above
+mimo-v25-pro-base,sets,fair,0.970,320,0.275,0.959,0.937,0.980,above
+mimo-v25-pro-base,refilled,0shot,0.634,720,0.200,0.542,0.502,0.583,above
+mimo-v25-pro-base,refills,0shot,0.635,600,0.200,0.543,0.499,0.586,above
+mimo-v25-pro-base,codevar,0shot,0.822,1200,0.267,0.751,0.724,0.778,above
+mimo-v25-pro-base,codevar,fair,0.910,1200,0.267,0.874,0.853,0.893,above
+mimo-v25-pro-base,sharedlists,0shot,0.955,600,0.200,0.944,0.926,0.960,above
+mimo-v25-pro-base,sharedlists,fair,0.849,600,0.200,0.811,0.777,0.844,above
+mimo-v25-pro-base,box-narrative,0shot,0.481,200,0.253,0.290,0.202,0.373,above
+mimo-v25-pro-base,box-narrative,fair,0.896,200,0.253,0.856,0.798,0.909,above
+mimo-v25-pro-base,box-screenplay,0shot,0.771,200,0.253,0.664,0.583,0.746,above
+mimo-v25-pro-base,box-screenplay,fair,0.917,200,0.253,0.888,0.835,0.933,above
+mimo-v25-pro-base,box-code,0shot,0.877,200,0.253,0.823,0.757,0.880,above
+mimo-v25-pro-base,box-code,fair,0.946,200,0.253,0.924,0.876,0.962,above
+mimo-v25-pro-base,box-chat,0shot,0.848,200,0.253,0.785,0.717,0.849,above
+mimo-v25-pro-base,box-chat,fair,0.885,200,0.253,0.841,0.778,0.896,above
+mimo-v25-pro-base,you-static,0shot,0.995,300,0.292,0.993,0.980,1.000,above
+mimo-v25-pro-base,i-moves,0shot,0.347,180,0.287,0.080,0.003,0.163,above
+mimo-v25-pro-base,i-moves,fair,0.647,180,0.287,0.507,0.414,0.609,above
+mimo-v25-pro-base,you-moves,0shot,0.320,180,0.287,0.047,-0.024,0.122,at
+mimo-v25-pro-base,you-moves,fair,0.600,180,0.287,0.437,0.343,0.530,above
+mimo-v25-pro-base,you-named,0shot,0.375,180,0.287,0.121,0.047,0.211,above
+mimo-v25-pro-base,you-named,fair,0.812,180,0.287,0.736,0.663,0.801,above
+mimo-v25-pro-base,answer-self,0shot,0.440,2560,0.250,0.253,0.231,0.276,above
+mimo-v25-pro-base,answer-self,fair,0.711,2560,0.250,0.615,0.592,0.636,above
+mimo-v25-pro-base,grammar,ladder,,1080,,0.910,0.897,0.926,above
+mimo-v25-pro-base,operators,ladder,,1080,,0.260,0.235,0.288,above
+mimo-v25-pro-base,patterns,ladder,,1080,,0.984,0.976,0.991,above
+mimo-v25-pro-base,facts,ladder,,768,,1.000,1.000,1.000,above
+nemotron3-ultra-550b-base,lookup,0shot,0.887,1210,0.168,0.857,0.835,0.878,above
+nemotron3-ultra-550b-base,lookup,fair,1.000,1210,0.168,1.000,1.000,1.000,above
+nemotron3-ultra-550b-base,shortlist,0shot,0.996,960,0.040,0.996,0.990,0.999,above
+nemotron3-ultra-550b-base,pairs,0shot,0.992,64,0.125,0.991,0.973,1.000,above
+nemotron3-ultra-550b-base,pairs,fair,1.000,64,0.125,1.000,1.000,1.000,above
+nemotron3-ultra-550b-base,noise,0shot,0.994,720,0.200,0.992,0.985,0.998,above
+nemotron3-ultra-550b-base,now,0shot,0.551,300,0.292,0.363,0.284,0.438,above
+nemotron3-ultra-550b-base,handoffs,0shot,0.967,1200,0.312,0.951,0.934,0.965,above
+nemotron3-ultra-550b-base,handoffs,fair,0.990,1200,0.312,0.985,0.976,0.992,above
+nemotron3-ultra-550b-base,sets,0shot,0.972,320,0.275,0.964,0.942,0.985,above
+nemotron3-ultra-550b-base,sets,fair,0.997,320,0.275,0.996,0.989,1.000,above
+nemotron3-ultra-550b-base,refilled,0shot,0.825,720,0.200,0.781,0.747,0.814,above
+nemotron3-ultra-550b-base,refills,0shot,0.748,600,0.200,0.685,0.644,0.727,above
+nemotron3-ultra-550b-base,codevar,0shot,0.855,1200,0.267,0.801,0.775,0.828,above
+nemotron3-ultra-550b-base,codevar,fair,0.901,1200,0.267,0.862,0.836,0.883,above
+nemotron3-ultra-550b-base,sharedlists,0shot,0.881,600,0.200,0.851,0.819,0.881,above
+nemotron3-ultra-550b-base,sharedlists,fair,0.986,600,0.200,0.982,0.970,0.993,above
+nemotron3-ultra-550b-base,box-narrative,0shot,0.427,200,0.253,0.214,0.123,0.314,above
+nemotron3-ultra-550b-base,box-narrative,fair,0.895,200,0.253,0.849,0.777,0.910,above
+nemotron3-ultra-550b-base,box-screenplay,0shot,0.690,200,0.253,0.572,0.487,0.664,above
+nemotron3-ultra-550b-base,box-screenplay,fair,0.932,200,0.253,0.908,0.855,0.954,above
+nemotron3-ultra-550b-base,box-code,0shot,0.873,200,0.253,0.819,0.752,0.882,above
+nemotron3-ultra-550b-base,box-code,fair,0.948,200,0.253,0.926,0.881,0.966,above
+nemotron3-ultra-550b-base,box-chat,0shot,0.782,200,0.253,0.697,0.620,0.771,above
+nemotron3-ultra-550b-base,box-chat,fair,0.892,200,0.253,0.846,0.778,0.911,above
+nemotron3-ultra-550b-base,you-static,0shot,0.993,300,0.292,0.991,0.978,1.000,above
+nemotron3-ultra-550b-base,i-moves,0shot,0.427,180,0.287,0.194,0.099,0.294,above
+nemotron3-ultra-550b-base,i-moves,fair,0.756,180,0.287,0.662,0.576,0.751,above
+nemotron3-ultra-550b-base,you-moves,0shot,0.280,180,0.287,-0.012,-0.097,0.081,at
+nemotron3-ultra-550b-base,you-moves,fair,0.630,180,0.287,0.485,0.389,0.569,above
+nemotron3-ultra-550b-base,you-named,0shot,0.432,180,0.287,0.199,0.100,0.305,above
+nemotron3-ultra-550b-base,you-named,fair,0.797,180,0.287,0.717,0.644,0.790,above
+nemotron3-ultra-550b-base,answer-self,0shot,0.602,2560,0.250,0.469,0.446,0.493,above
+nemotron3-ultra-550b-base,answer-self,fair,0.719,2560,0.250,0.625,0.601,0.647,above
+nemotron3-ultra-550b-base,grammar,ladder,,1080,,0.882,0.865,0.900,above
+nemotron3-ultra-550b-base,operators,ladder,,1080,,0.238,0.208,0.273,above
+nemotron3-ultra-550b-base,patterns,ladder,,1080,,0.895,0.879,0.913,above
+nemotron3-ultra-550b-base,facts,ladder,,768,,1.000,1.000,1.000,above
 llama3.1-70b,lookup,0shot,0.539,1210,0.168,0.438,0.402,0.472,above
 llama3.1-70b,lookup,fair,0.998,1210,0.168,0.997,0.994,1.000,above
 llama3.1-70b,shortlist,0shot,0.979,960,0.040,0.978,0.969,0.988,above
