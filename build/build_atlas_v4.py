@@ -12,7 +12,8 @@ rows and columns can be re-added once the clean bench has scored them.
     (the one-time diff against the previous grid: add --old OLD_ATLAS --dropped data/DROPPED-2026-10.tsv)
 
 ZOO_DIR holds <zoo_dir>/suite/<battery>/<model>.jsonl, <zoo_dir>/riders/rows_<model>.jsonl, <zoo_dir>/zoo_tierA.tsv
-and <zoo_dir>/report/report.json.
+and <zoo_dir>/report/report.json; the vLLM-scored bases sit under <zoo_dir>/tierB/ in the same layout, listed in
+<zoo_dir>/zoo_tierB.tsv (its two check models keep their standard rows).
 """
 from __future__ import annotations
 
@@ -57,6 +58,11 @@ LABELS: dict[str, tuple[str, str]] = {      # zoo name → (label, family)
     "tsumugi-s17-a88B": ("kotodama-tsumugi · 88B tokens", "kotodama"),
     "tsumugi-s7-a5B": ("kotodama-tsumugi, seed 7 · 5B tokens", "kotodama"),
     "tsumugi-s7-a11B": ("kotodama-tsumugi, seed 7 · 11B tokens", "kotodama"),
+    "dsv3-base": ("DeepSeek-V3 (MoE)", "DeepSeek"), "dsv4-flash-base": ("DeepSeek-V4-Flash (MoE)", "DeepSeek"),
+    "kimi-k2-base": ("Kimi-K2 (MoE)", "Kimi"), "trinity-base": ("Trinity-Large (MoE)", "Trinity"),
+    "trinity-truebase": ("Trinity-Large (MoE), before the anneals", "Trinity"),
+    "nemotron3-ultra-550b-base": ("Nemotron-3-Ultra (MoE)", "Nemotron"), "mimo-v25-base": ("MiMo-V2.5 (MoE)", "MiMo"),
+    "mimo-v25-pro-base": ("MiMo-V2.5-Pro (MoE)", "MiMo"), "gemma4-31b-base": ("Gemma-4 31B", "Gemma"),
 }
 # Creator-stated pretraining tokens (model cards and papers) with the uncertainty mark the page shows.
 TOKENS: dict[str, tuple[Optional[float], str]] = {
@@ -74,7 +80,12 @@ TOKENS: dict[str, tuple[Optional[float], str]] = {
     "recurrentgemma-9b": (2e12, ""), "bamba-9b": (3.1e12, "≈"),
     "tsumugi": (110e9, ""), "tsumugi-s17-a5B": (5e9, ""), "tsumugi-s17-a11B": (11e9, ""), "tsumugi-s17-a33B": (33e9, ""),
     "tsumugi-s17-a55B": (55e9, ""), "tsumugi-s17-a88B": (88e9, ""), "tsumugi-s7-a5B": (5e9, ""), "tsumugi-s7-a11B": (11e9, ""),
+    "dsv3-base": (14.8e12, ""), "dsv4-flash-base": (32e12, ""), "kimi-k2-base": (15.5e12, ""),
+    "trinity-base": (17e12, ""), "trinity-truebase": (10e12, ""), "nemotron3-ultra-550b-base": (20e12, ""),
+    "mimo-v25-base": (48e12, "≈ text + multimodal"), "mimo-v25-pro-base": (27e12, ""), "gemma4-31b-base": (None, "—"),
 }
+VLLM_NOTE = ("Scored with vLLM across several GPUs: the same prompts, candidates and split-tie rule. On two check "
+             "models, its scores match the standard scorer's within .03.")
 BANDS = ((1e9, "under 1B"), (3e9, "1–3B"), (10e9, "3–10B"), (float("inf"), "10B and up"))
 TRAJECTORY = "kotodama-tsumugi, by training tokens"
 
@@ -358,6 +369,10 @@ def main() -> int:
     report = json.loads((a.zoo / "report" / "report.json").read_text())["models"]
     table = [ln.split("\t")[0] for ln in (a.zoo / "zoo_tierA.tsv").read_text().splitlines() if ln and not ln.startswith("#")]
     names = [n for n in table if (a.zoo / "suite" / "bp-deixis-v2" / f"{n}.jsonl").exists()]
+    tb = a.zoo / "zoo_tierB.tsv"
+    vllm = [ln.split("\t")[0] for ln in (tb.read_text().splitlines() if tb.exists() else []) if ln and not ln.startswith("#")]
+    vllm = [n for n in vllm if n not in names and (a.zoo / "tierB" / "suite" / "bp-deixis-v2" / f"{n}.jsonl").exists()]
+    names += vllm
     missing = [n for n in names if n not in LABELS or n not in TOKENS]
     if missing:
         raise SystemExit(f"no label or token entry for {missing}")
@@ -380,8 +395,8 @@ def main() -> int:
         traj = n.startswith("tsumugi-")
         rows.append({"id": n, "label": lab, "group": TRAJECTORY if traj else band(active), "family": fam,
                      "size": round(params / 1e9, 3), "active": round(active / 1e9, 3), "tokens": tok,
-                     "tokens_mark": mark, "sources": [f"zoo-sweep/{n}"]})
-        cells.update(model_cells(a.zoo, n))
+                     "tokens_mark": mark, "sources": [f"zoo-sweep/{n}"]} | ({"note": VLLM_NOTE} if n in vllm else {}))
+        cells.update(model_cells(a.zoo / "tierB" if n in vllm else a.zoo, n))
         print(f"{n}: {sum(1 for k in cells if k.startswith(n + '|'))} cells", flush=True)
 
     order = {lab: i for i, (_, lab) in enumerate(BANDS)}
