@@ -205,7 +205,7 @@ S[4]["ours"] = f"from ~4B; at 110B no longer inverted under the gauge rule ({fmt
 S[5]["ok"] = ("zero-shot: from about 7B (OLMo-2 7B, Qwen2.5 7B), and every base from 13B up; "
               "with three worked examples: from Qwen3 4B")
 S[5]["ours"] = (f"zero-shot: not reached by 110B; with three worked examples it binds at 110B ({fmt3(rel_g['dyn3'], True)}), "
-                "the smallest base measured that does")
+                "the smallest base measured that does under the +.02 rule")
 new["lead"] = (
     "Base language models learn to look things up long before they learn to track change. In the box puzzle, the "
     "median model under 1B already finds a box's declared contents above chance, and scores zero on the boxes "
@@ -215,7 +215,8 @@ new["lead"] = (
     "Zero-shot, it appears from about 7B (OLMo-2 7B, Qwen2.5 7B), and every base measured from 13B up reaches it. "
     "**kotodama-tsumugi**, a 1.4B model run as 72 effective layers, reaches stage 3 by **33B tokens**, in the range "
     "where OLMo-2 13B gets there; OLMo-2 1B needs 420–525B. Given three worked examples, it is the smallest base "
-    f"measured that tracks *you* after objects change hands ({fmt3(rel_g['dyn3'], True)}); the next is Qwen3 4B.")
+    f"measured that tracks *you* after objects change hands: {fmt3(rel_g['dyn3'], True)}, with its whole 95% interval "
+    "above the +.02 line. The next is Qwen3 4B.")
 
 # ------------------------------------------------------------------ NEW: stage-5 decomposition (endpoints, full battery)
 DEC_COLS = [("third", "third/0shot acc (self+addressee)"), ("deictic", "deictic/0shot acc (self+addressee)"),

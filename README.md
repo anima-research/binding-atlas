@@ -11,7 +11,8 @@ The grid covers 56 public base models, from 160M to 1.6T parameters, and one hum
 base models and 5 public training trajectories. The atlas also follows **kotodama-tsumugi**, a 1.4B model run as 72
 effective layers (looped depth, boundary-fitted attention residuals). kotodama-tsumugi reaches stage 3 by 33B tokens.
 OLMo-2 13B gets there in the same range, and OLMo-2 1B needs 420 to 525 billion. Given three worked examples, it is the
-smallest base measured that tracks *you* after objects change hands; the next is Qwen3 4B.
+smallest base measured that tracks *you* after objects change hands, with its whole 95% interval above the binding line
+(+.02). The next is Qwen3 4B.
 
 ## Threads
 
