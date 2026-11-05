@@ -1,11 +1,18 @@
 #!/bin/bash
 # Build the An Empty Document link card: serve the built site over local HTTP (the page fetches its runs), render the top
 # of the page in headless Chrome at 1400 wide, crop to 1400×735 and scale to 1200×630 (the title, the four figures and the headline rows: page #card mode).
-# Usage: build_empty_card.sh SITE_DIR DEST.png      Env: PY (python with Pillow), CHROME (default google-chrome), PORT
+# Usage: build_empty_card.sh SITE_DIR DEST.png      Env: PY (python with Pillow), CHROME (default google-chrome), PORT,
+#   FONT_DIR (the web fonts, served as fonts/ when SITE_DIR has none, so the card renders in the page's faces)
 set -euo pipefail
 SITE=$(cd "$1" && pwd); DEST=$2; PY=${PY:-python3}; CHROME=${CHROME:-google-chrome}; PORT=${PORT:-8772}
 W=$(mktemp -d)
-python3 -m http.server "$PORT" --bind 127.0.0.1 --directory "$SITE" > "$W/http.log" 2>&1 &
+SERVE=$SITE
+if [ ! -d "$SITE/fonts" ] && [ -n "${FONT_DIR:-}" ] && compgen -G "$FONT_DIR/*.woff2" > /dev/null; then
+  SERVE=$W/site; mkdir "$SERVE"
+  ln -s "$SITE/empty-document.html" "$SITE/empty-document-data" "$SERVE/"
+  ln -s "$(cd "$FONT_DIR" && pwd)" "$SERVE/fonts"
+fi
+python3 -m http.server "$PORT" --bind 127.0.0.1 --directory "$SERVE" > "$W/http.log" 2>&1 &
 SRV=$!
 trap 'kill $SRV 2>/dev/null || true; rm -rf "$W"' EXIT
 sleep 1

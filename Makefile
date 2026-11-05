@@ -17,6 +17,7 @@ endif
 # the build the kotodama.animalabs.ai deployment serves (config/animalabs.sha256)
 VERIFY_CONFIG := animalabs
 VERIFY_STAMP := 2026-11-05 12:25 UTC
+VERIFY_STAMP_EMPTY := 2026-11-05 23:12 UTC
 
 PAGE_ARGS = --config $(CONFIG) --stamp "$(STAMP)"
 
@@ -72,7 +73,7 @@ neurons-binding:
 # ---- An Empty Document, the zero-seed page (its runs load at run time from empty-document-data/ next to it)
 empty:
 	$(PY) page/build_empty_page.py --config $(CONFIG) --stamp "$(STAMP)" --out $(SITE)/empty-document.html
-	PY=$(PY) bash page/build_empty_card.sh $(SITE) $(SITE)/empty-document-card.png
+	PY=$(PY) FONT_DIR=$(FONT_DIR) bash page/build_empty_card.sh $(SITE) $(SITE)/empty-document-card.png
 
 empty-data:
 	$(PY) build/build_empty.py
@@ -86,7 +87,7 @@ stage:
 # ---- equivalence checks
 verify:
 	$(MAKE) --no-print-directory page CONFIG=config/$(VERIFY_CONFIG).toml SITE=out/verify STAMP="$(VERIFY_STAMP)"
-	$(MAKE) --no-print-directory empty CONFIG=config/$(VERIFY_CONFIG).toml SITE=out/verify STAMP="$(VERIFY_STAMP)"
+	$(MAKE) --no-print-directory empty CONFIG=config/$(VERIFY_CONFIG).toml SITE=out/verify STAMP="$(VERIFY_STAMP_EMPTY)"
 	@if compgen -G "$(FONT_DIR)/*.woff2" > /dev/null; then cd out/verify && sha256sum -c ../../config/$(VERIFY_CONFIG).sha256; \
 	else echo "(no web font files in FONT_DIR=$(FONT_DIR): the card renders in fallback faces, so only the page and twin are checked)"; \
 	  cd out/verify && grep -v -- '-card.png' ../../config/$(VERIFY_CONFIG).sha256 | sha256sum -c; fi
