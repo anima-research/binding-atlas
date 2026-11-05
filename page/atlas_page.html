@@ -271,8 +271,9 @@ table.levers td.cost { color: var(--muted); }
       stage is tracking <i>you</i> after objects change hands. <b>Zero-shot, it appears from about 7B, and every base
       measured from 13B up reaches it</b> (Figure 2). <b>kotodama-tsumugi</b>, a 1.4B model run as 72 effective layers,
       reaches stage 3 by <b>33B tokens</b>, in the range where OLMo-2 13B gets there; OLMo-2 1B needs 420–525B.
-      <span id="tsumugi-you">Given three worked examples, it is the smallest base measured that tracks <i>you</i>
-      after objects change hands</span>: +.038, with its whole 95% interval above the +.02 line. The next is Qwen3 4B.</p>
+      Given three worked examples, it is the smallest base measured that tracks <i>you</i> after objects change
+      hands. It reads +.038, with its whole 95% interval above the +.02 line (<a href="#tsumugi-you">the test</a>). The next is
+      Qwen3 4B.</p>
     <div class="byline"><span>kotodama · 2026</span><span>__N_BASES__ public bases in the atlas · 29 public bases and 5 public training trajectories in the figures · kotodama-tsumugi (seed 17 to 110B tokens; seed 7 to 11B)</span>
       <a href="#atlas">full atlas ↓</a><a href="binding-atlas.md">agent view (markdown)</a><a href="__THREADS_LINK__">tsumugi's neurons: Threads</a>__BACK_LINK__</div>
   </header>
@@ -301,6 +302,12 @@ table.levers td.cost { color: var(--muted); }
           and reaches +.32 for Qwen3 14B. The kotodama-tsumugi release (diamond; 1.4B at 110B tokens) reads −.014
           zero-shot and +.038 with three examples, which binds. Its second anneal reads +.022 with examples, just
           short of the line (Table 4 gives the spread between the two).</p>
+        <p class="cap" id="tsumugi-you"><b>The binding test.</b> A swap shift binds when its whole 95% interval lies
+          above +.02. The bar is a fixed convention, set before any of these models was read. Under it, kotodama-tsumugi binds with three
+          worked examples (+.038, interval +.023 to +.055). It is the only base at 3B or below that does; the next is
+          Qwen3 4B (+.055). The finding depends on the bar. With the bar at +.01 it
+          still holds. With the bar at 0, Pythia-160M and Pythia-2.8B also pass, and at +.03 kotodama-tsumugi no longer does. The
+          bench's roadmap derives the bar from each battery's own noise, registered before any model is read.</p>
       </section>
       <section class="fig" aria-labelledby="f3h">
         <div class="fh"><span class="no">Figure 3</span><h2 id="f3h">Stage cost by model size</h2></div>

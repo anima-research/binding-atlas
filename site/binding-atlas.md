@@ -1,12 +1,12 @@
 # Binding Atlas — agent view
 
-Plain-text twin of the [Binding Atlas page](binding-atlas.html). Same data, same build. Built 2026-11-05 08:25 UTC: 65 rows (models + one human), 24 columns, 2,447 cells, 1,905,952 scored items.
+Plain-text twin of the [Binding Atlas page](binding-atlas.html). Same data, same build. Built 2026-11-05 11:56 UTC: 65 rows (models + one human), 24 columns, 2,447 cells, 1,905,952 scored items.
 
 ## Summary
 
 This atlas scores 64 models and checkpoints, plus one human reader, on 24 tests of tracking who *I* and *you* refer to. "Example items per column" quotes the exact prompts that the models were given.
 
-Base language models learn to look things up long before they learn to track change. In the box puzzle, the median model under 1B already finds a box's declared contents above chance, and scores zero on the boxes changed by an operation. With worked examples, updating climbs steadily with size, to .77 for the 70B models and above .8 for most of the largest. The referent of *you* follows five ordered stages. Every base of 0.6B parameters or more trained on trillions of tokens reaches the first three, except Bamba 9B. The fifth stage is tracking *you* after objects change hands. Zero-shot, it appears from about 7B (OLMo-2 7B, Qwen2.5 7B), and every base measured from 13B up reaches it. **kotodama-tsumugi**, a 1.4B model run as 72 effective layers, reaches stage 3 by **33B tokens**, in the range where OLMo-2 13B gets there; OLMo-2 1B needs 420–525B. Given three worked examples, it is the smallest base measured that tracks *you* after objects change hands: +.038, with its whole 95% interval above the +.02 line. The next is Qwen3 4B.
+Base language models learn to look things up long before they learn to track change. In the box puzzle, the median model under 1B already finds a box's declared contents above chance, and scores zero on the boxes changed by an operation. With worked examples, updating climbs steadily with size, to .77 for the 70B models and above .8 for most of the largest. The referent of *you* follows five ordered stages. Every base of 0.6B parameters or more trained on trillions of tokens reaches the first three, except Bamba 9B. The fifth stage is tracking *you* after objects change hands. Zero-shot, it appears from about 7B (OLMo-2 7B, Qwen2.5 7B), and every base measured from 13B up reaches it. **kotodama-tsumugi**, a 1.4B model run as 72 effective layers, reaches stage 3 by **33B tokens**, in the range where OLMo-2 13B gets there; OLMo-2 1B needs 420–525B. Given three worked examples, it is the smallest base measured that tracks *you* after objects change hands. It reads +.038, with its whole 95% interval above the +.02 line. The next is Qwen3 4B.
 
 Swap shift = mean[p(gold | original) − p(gold | speaker swapped)] over the candidates. Above +.02, a pronoun binds: its answer moves with the speaker. Below −.02, it inverts: it resolves to the speaker.
 
@@ -58,6 +58,8 @@ Swap shift = mean[p(gold | original) − p(gold | speaker swapped)] over the can
 | kotodama-tsumugi 1.4B @ 110B tokens (release) | 1.42 | 110B | −.014 | +.038 |
 
 Zero-shot, no model up to 4B binds, and four of the small Qwen models invert. At 7B, OLMo-2 7B (+.055) and Qwen2.5 7B (+.047) bind; Qwen3 8B and Gemma-2 9B do not yet. From 13B up, every base binds: all 19 measured, here and in the full atlas, from OLMo-2 13B to DeepSeek-V4 Pro at 1.6T. The largest readings are DeepSeek-V3 (+.216), DeepSeek-V4 Flash (+.177) and MiMo-V2.5 Pro (+.162). Static *you* reads +.27 to +.89 across these 19. With three worked examples, binding starts at Qwen3 4B (+.055) and reaches +.32 for Qwen3 14B. The kotodama-tsumugi release reads −.014 zero-shot and +.038 with three examples, which binds; its second anneal reads +.022 with examples, just short of the line.
+
+**The binding test.** A swap shift binds when its whole 95% interval lies above +.02. The bar is a fixed convention, set before any of these models was read. Under it, kotodama-tsumugi binds with three worked examples (+.038, interval +.023 to +.055). It is the only base at 3B or below that does; the next is Qwen3 4B (+.055). The finding depends on the bar. With the bar at +.01 it still holds. With the bar at 0, Pythia-160M and Pythia-2.8B also pass, and at +.03 kotodama-tsumugi no longer does. The bench's roadmap derives the bar from each battery's own noise, registered before any model is read.
 
 ### Training tokens until each stage appears (the range spans the checkpoints that bracket the stage)
 
