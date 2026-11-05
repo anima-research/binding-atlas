@@ -264,7 +264,7 @@ table.levers td.cost { color: var(--muted); }
       refer to, and whether a model learns a new rule from examples. Click any cell in the <a href="#atlas">full atlas</a> to read
       the exact prompt that the model was given.</p>
     <p class="claim">Base language models learn to look things up long before they learn to track change. In the
-      box puzzle (Table 5), the median model under 1B already finds a box's declared contents, and scores zero on the
+      box puzzle (Table 4), the median model under 1B already finds a box's declared contents, and scores zero on the
       boxes changed by an operation. With worked examples, updating climbs steadily with size, to .77 for the 70B
       models and above .8 for most of the largest. The referent of <i>you</i> follows five ordered stages. Every base
       of 0.6B parameters or more trained on trillions of tokens reaches the first three, except Bamba 9B. The fifth
@@ -284,7 +284,7 @@ table.levers td.cost { color: var(--muted); }
       <div class="fh"><span class="no">Figure 1</span><h2 id="f1h">The staircase</h2></div>
       <div class="stairs" id="stairs"></div>
       <p class="cap"><b>The stages appear in the same order in every trajectory measured</b>: OLMo-2 1B, 7B and 13B;
-        SmolLM3 3B; Pythia 410M to 6.9B; kotodama-tsumugi (Part III). Each stage is read with a speaker swap, and the
+        SmolLM3 3B; Pythia 410M to 6.9B; kotodama-tsumugi (Part II). Each stage is read with a speaker swap, and the
         hatched stage is where most bases stop. <a href="./">Who Is You?</a> explains the stages and the swap.</p>
     </section>
 
@@ -301,7 +301,7 @@ table.levers td.cost { color: var(--muted); }
           reads +.27 to +.89 across these 19. With three worked examples (hollow), binding starts at Qwen3 4B (+.055)
           and reaches +.32 for Qwen3 14B. The kotodama-tsumugi release (diamond; 1.4B at 110B tokens) reads −.014
           zero-shot and +.038 with three examples, which binds. Its second anneal reads +.022 with examples, just
-          short of the line (Table 4 gives the spread between the two).</p>
+          short of the line (Table 3 gives the spread between the two).</p>
         <p class="cap" id="tsumugi-you"><b>The binding test.</b> A swap shift binds when its whole 95% interval lies
           above +.02. The bar is a fixed convention, set before any of these models was read. Under it, kotodama-tsumugi binds with three
           worked examples (+.038, interval +.023 to +.055). It is the only base at 3B or below that does; the next is
@@ -376,24 +376,13 @@ table.levers td.cost { color: var(--muted); }
 
   <div class="gridwrap" id="gridwrap"><table class="atlas" id="grid"></table></div>
 
-  <div class="part"><span class="no">Part II</span><h2>The levers</h2></div>
-  <div class="paper">
-    <section class="fig" aria-labelledby="t2h">
-      <div class="fh"><span class="no">Table 2</span><h2 id="t2h">Levers in the kotodama stack</h2></div>
-      <div class="tblwrap"><table class="levers" id="levers"></table></div>
-      <p class="cap">Each lever measured on 1.4B-parameter arms trained for 4B tokens on one data order; one seed per arm
-        except the fitted boundaries (three seeds). Set binding and attribution are capacity probes from the battery.
-        kotodama-tsumugi (Part III) combines the three positive levers in one model.</p>
-    </section>
-  </div>
-
-  <div class="part"><span class="no">Part III</span><h2><span class="kanji">言霊 紬</span> kotodama-tsumugi</h2>
+  <div class="part"><span class="no">Part II</span><h2><span class="kanji">言霊 紬</span> kotodama-tsumugi</h2>
     <p class="gloss">言霊 kotodama, word-spirit: language as a thing with a life of its own. 紬 tsumugi, spun thread: words woven into more than the sum of their parts. Every neuron of this model, the circuits behind these probes on items with no worked examples, and which parts of them hold when the format changes: <a href="__THREADS_LINK__">Threads</a>.</p></div>
   <div class="paper">
     <p class="cap" style="max-width:none">A 1.42B-parameter model with a looped core, run as 72 effective layers. Its
       trunk trains at a constant learning rate to 100B tokens, and annealed reads are cooldown branches forked from its
       checkpoints; the release is the 110B branch from the 100B fork. The architecture and training run are described
-      in <a href="./">Who Is You?</a>, and Table 4 gives the spread between two anneals.</p>
+      in <a href="./">Who Is You?</a>, and Table 3 gives the spread between two anneals.</p>
     <section class="fig" aria-labelledby="f4h">
       <div class="fh"><span class="no">Figure 4</span><h2 id="f4h">The staircase in one run</h2></div>
       <div id="moontraj"></div>
@@ -402,7 +391,7 @@ table.levers td.cost { color: var(--muted); }
         Static <i>I</i> starts to bind at 3.75B tokens and levels off at +.16 to +.25 from about 40B. Static
         <i>you</i> first dips below zero, the stage where the model treats <i>you</i> as <i>me</i>. It first binds at
         33B tokens in an annealed read (+.065) and at 40B on the trunk itself (+.068), and reaches +.192 at the 110B
-        release. The second anneal from the same fork reads +.127 (Table 4 gives the anneal-to-anneal spread).
+        release. The second anneal from the same fork reads +.127 (Table 3 gives the anneal-to-anneal spread).
         On seed 17, dynamic <i>you</i> (0-shot) sits just below zero from about 4B (−.015 to −.034) and never binds. At 110B the
         two anneals read −.014 and −.012, not inverted under the gauge rule. The markers along the top show where
         OLMo-2 reaches stage 3 at 13B, 7B and 1B parameters.</p>
@@ -421,7 +410,7 @@ table.levers td.cost { color: var(--muted); }
         (1.13e10 FLOPs per token, about 1.3× the 1–2B bases).</p>
     </section>
     <section class="fig" aria-labelledby="t3h">
-      <div class="fh"><span class="no">Table 3</span><h2 id="t3h">The headline tests across the annealed reads</h2></div>
+      <div class="fh"><span class="no">Table 2</span><h2 id="t3h">The headline tests across the annealed reads</h2></div>
       <div class="tblwrap"><table class="levers" id="moonbat"></table></div>
       <p class="cap"><b>kotodama-tsumugi's checkpoints on the grid's headline tests.</b> Each test is read as the grid reads
         it. Columns with worked examples use them, the others are read cold, and the rule-learning rows are AUC over
@@ -432,7 +421,7 @@ table.levers td.cost { color: var(--muted); }
         (seed 7 forms lookup and set binding earlier) and agree within .05 on all ten rows at 11B.</p>
     </section>
     <section class="fig" aria-labelledby="t4h">
-      <div class="fh"><span class="no">Table 4</span><h2 id="t4h">The release against its trajectory and its class</h2></div>
+      <div class="fh"><span class="no">Table 3</span><h2 id="t4h">The release against its trajectory and its class</h2></div>
       <div class="tblwrap"><table class="levers" id="reltab"></table></div>
       <p class="cap">The table has three kinds of column. The stage gauges are swap shifts, and a shift above +.02
         counts as binding. The capacity columns follow arXiv 2609.30634. K50 is how many name–task pairs fit in context
@@ -448,7 +437,7 @@ table.levers td.cost { color: var(--muted); }
         size is read from it.</p>
     </section>
     <section class="fig" aria-labelledby="t5h">
-      <div class="fh"><span class="no">Table 5</span><h2 id="t5h">Object tracking: lookup early, updating later</h2></div>
+      <div class="fh"><span class="no">Table 4</span><h2 id="t5h">Object tracking: lookup early, updating later</h2></div>
       <div class="tblwrap"><table class="levers" id="riders"></table></div>
       <p class="cap"><b>The box puzzle, split by what the query needs</b> (κ: 0 is guessing, 1 is always right).
         Boxes go through swaps, moves and refills, written as code, prose, a script or chat, and one box is queried. On
@@ -627,7 +616,7 @@ const dia = (x, y, r = 6) => `<path d="M${x} ${y - r}L${x + r} ${y}L${x} ${y + r
   for (const b of document.querySelectorAll("#f5x button")) b.addEventListener("click", () => { st.x = b.dataset.k === "flops" ? "flops" : "tok"; draw(); });
   draw();
 })();
-// Table 3: kotodama-tsumugi's battery across the annealed reads
+// Table 2: kotodama-tsumugi's battery across the annealed reads
 (() => {
   const T = G.tsumugi.battery;
   let h = `<thead><tr><th>Probe</th>${T.cols.map(c => `<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>`;
@@ -645,23 +634,20 @@ const pend = v => v == null ? `<span title="not yet scored on this checkpoint">p
   for (const r of D.rows) h += `<tr${r.ours ? ' style="font-weight:700"' : ""}><td>${esc(r.m)}</td><td class="cost">${esc(r.tok)}</td>${D.cols.map(c => `<td class="cost">${pend(r[c.k])}</td>`).join("")}</tr>`;
   document.getElementById("decomp").innerHTML = h + `</tbody>`;
 })();
-// Table 4: the release against its trajectory and class
+// Table 3: the release against its trajectory and class
 (() => {
   const T = G.release;
   let h = `<thead><tr><th>Probe</th>${T.cols.map(c => `<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>`;
   for (const [name, vals, signed] of T.rows) h += `<tr><td>${esc(name)}</td>${vals.map((v, i) => `<td class="cost"${T.cols[i].includes("release") ? ' style="font-weight:700;color:var(--fg)"' : ""}>${v == null ? "—" : signed ? f3(v) : v >= 1 ? v.toFixed(1) : v.toFixed(3).replace(/^0/, "")}</td>`).join("")}</tr>`;
   document.getElementById("reltab").innerHTML = h + `</tbody>`;
 })();
-// Table 5: riders, lookup vs update, by size
+// Table 4: riders, lookup vs update, by size
 (() => {
   const T = G.riders;
   let h = `<thead><tr><th>Models</th>${T.cols.map(c => `<th>${esc(c.name)}</th>`).join("")}</tr></thead><tbody>`;
   for (const r of T.rows) h += `<tr${r.ours ? ' style="font-weight:700"' : ""}><td${r.models ? ` title="${esc(r.models.join(", "))}"` : ""}>${esc(r.m)}</td>${T.cols.map(c => `<td class="cost">${r[c.k] == null ? "—" : f3(r[c.k])}</td>`).join("")}</tr>`;
   document.getElementById("riders").innerHTML = h + `</tbody>`;
 })();
-// Table 2: levers
-document.getElementById("levers").innerHTML = `<thead><tr><th>Lever</th><th>Effect</th><th>Result</th><th>Cost</th></tr></thead><tbody>` +
-  G.levers.map(l => `<tr><td>${esc(l.lever)}</td><td class="eff">${esc(l.eff)}</td><td>${esc(l.res)}</td><td class="cost">${esc(l.cost)}</td></tr>`).join("") + `</tbody>`;
 })();
 </script>
 <script type="application/json" id="atlas-data">__ATLAS_DATA__</script>
