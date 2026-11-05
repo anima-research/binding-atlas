@@ -83,7 +83,7 @@ h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(30px, 5.5
 .tiles { display: grid; grid-template-columns: repeat(var(--cols, 64), 9px); gap: 2px; min-width: 0; }
 .tile { width: 9px; height: 9px; border-radius: 2px; border: 0; padding: 0; cursor: pointer; position: relative; }
 .tile::after { content: ""; position: absolute; inset: -2px; }
-.tile.withheld { outline: 1px dashed var(--plate-muted); outline-offset: -1px; }
+.tile.withheld, .sw.omit { background: #000 !important; box-shadow: inset 0 0 0 1px var(--plate-line); }
 .tile:hover { outline: 1.5px solid var(--plate-muted); outline-offset: 1px; }
 .tile:focus-visible, .tile[aria-current="true"] { outline: 2px solid var(--plate-fg); outline-offset: 1px; z-index: 1; }
 .reader { background: var(--plate2); border-radius: 10px; padding: 16px 18px 18px; display: grid; gap: 10px; min-width: 0; }
@@ -138,6 +138,7 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: s
       <span><i class="sw c-x"></i>synthetic instruction data</span>
       <span><i class="sw c-h"></i>human-written Q&amp;A (not counted)</span>
       <span><i class="sw c-p"></i>ordinary text</span>
+      <span><i class="sw omit"></i>omitted for content</span>
     </div>
     <div class="controls" role="group" aria-label="Order of squares">
       <span>Order squares</span>
@@ -157,22 +158,21 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: s
     </section>
   </div>
   <section class="notes">
+    <h3>What this shows</h3>
+    <p>Given nothing to continue, a base model writes whatever its training made most typical. These runs show that
+    default for each model: its prior over documents, before any prompt shapes it.</p>
     <h3>How the runs were made</h3>
     <p>Every model got its own start-of-document token and nothing else. Sampling was plain: temperature 1, no top-k
     or top-p, no repetition penalty, 256 new tokens, stopping early only at the end-of-text token. The classes and
-    the predictions were registered before any run was drawn.</p>
+    the predictions were registered before any run was drawn. Contact details are redacted, and the
+    <span id="omitted"></span> runs omitted for content appear as black squares.</p>
     <h3>How the runs were classified</h3>
     <p>A language model (<span id="coder"></span>) classified every run, with the writing model's name hidden. It gave
     each run one class and quoted the words behind it, and the panel under the grid underlines that quote. Before any
     result was read, <span id="hand"></span> runs were classified by hand, also with names hidden, and the two
     classifications were compared. They agreed on <span id="agree"></span> of those runs about whether a run is
-    assistant-era. Across all five classes, Cohen's κ was <span id="kappa"></span>.</p>
-    <h3>What the colours do not say</h3>
-    <p>This is what each model writes by default, from nothing. It is not everything a model can be prompted to write.
-    The class “synthetic instruction data” describes a text's form, not its author. Human-written questions and answers,
+    assistant-era. Across all five classes, Cohen's κ was <span id="kappa"></span>. Human-written questions and answers,
     such as forum threads and exam banks, appear in grey and do not count as assistant-era.</p>
-    <h3>What was screened out</h3>
-    <p id="screen"></p>
   </section>
 </div>
 <footer><div class="wrap">
@@ -219,9 +219,9 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: s
         tiles.setAttribute("role", "group");
         tiles.setAttribute("aria-label", m.label + ": " + m.assistant_era + " of " + m.n + " runs assistant-era");
         tileOrder(m).forEach(function (i) {
-          var r = m.runs[i], b = el("button", "tile c-" + r.c + (r.t === null ? " withheld" : ""));
+          var r = m.runs[i], b = el("button", r.t === null ? "tile withheld" : "tile c-" + r.c);
           b.type = "button"; b.dataset.m = mi; b.dataset.i = i;
-          b.setAttribute("aria-label", m.label + " run " + (i + 1) + ": " + KIND[r.c] + (r.t === null ? ", text withheld" : ""));
+          b.setAttribute("aria-label", m.label + " run " + (i + 1) + ": " + (r.t === null ? "omitted for content" : KIND[r.c]));
           if (sel && sel.m === mi && sel.i === i) b.setAttribute("aria-current", "true");
           tiles.appendChild(b);
         });
@@ -239,12 +239,12 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: s
     if (t) t.setAttribute("aria-current", "true");
     var meta = document.getElementById("r-meta"); meta.textContent = "";
     meta.appendChild(el("strong", null, m.label)); meta.appendChild(el("span", null, "run " + (i + 1) + " of " + m.n));
-    meta.appendChild(el("span", "pill c-" + r.c, KIND[r.c]));
+    if (r.t !== null) meta.appendChild(el("span", "pill c-" + r.c, KIND[r.c]));
     meta.appendChild(el("span", null, r.eos ? "ended on its own" : "ran to 256 tokens"));
     var pre = document.getElementById("r-text"); pre.textContent = "";
     pre.appendChild(el("span", "start", "[start of document]"));
     if (r.t === null) {
-      pre.appendChild(document.createTextNode({slur: " (text withheld: it contains a slur)", safety: " (text withheld: a sexual term appears near a term about minors)", uncoded: " (text withheld: it came back unclassified)"}[r.w] || " (text withheld)"));
+      pre.appendChild(document.createTextNode(" (omitted for content)"));
     } else if (r.m) {
       pre.appendChild(document.createTextNode(r.t.slice(0, r.m[0])));
       pre.appendChild(el("mark", "c-" + r.c, r.t.slice(r.m[0], r.m[1])));
@@ -285,12 +285,7 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: s
     document.getElementById("agree").textContent = (100 * v.agree_assistant_era).toFixed(1) + "%";
     document.getElementById("kappa").textContent = v.kappa5.toFixed(2);
     var s = D.screen;
-    document.getElementById("screen").textContent = "Every run shown was screened first. Email addresses, phone numbers, links, " +
-      "@handles, street addresses and strings that look like file paths or machine IDs are redacted (" + s.redactions +
-      " redactions). Swearing and adult talk stay, because base models write them. " + (s.withheld_slur + s.withheld_safety + s.uncoded) +
-      " of " + s.runs + " runs are withheld: " + s.withheld_slur + " with a slur, " + s.withheld_safety +
-      " where a sexual term appears near a term about minors (a deliberately broad net), and " + s.uncoded +
-      " that came back unclassified. A withheld run keeps its square, outlined, and its class.";
+    document.getElementById("omitted").textContent = String(s.withheld_slur + s.withheld_safety + s.uncoded);
   }
   ledger.addEventListener("click", function (e) { var t = e.target.closest(".tile"); if (t) show(+t.dataset.m, +t.dataset.i, true); });
   ledger.addEventListener("keydown", function (e) {
@@ -301,8 +296,8 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: s
   ledger.addEventListener("mouseover", function (e) {
     var t = e.target.closest(".tile"); if (!t) { tip.hidden = true; return; }
     var m = D.models[+t.dataset.m], r = m.runs[+t.dataset.i];
-    var body = r.t === null ? "(text withheld)" : (r.m ? r.t.slice(Math.max(0, r.m[0] - 40), r.m[1] + 60) : r.t.slice(0, 110)).replace(/\s+/g, " ").trim() + "…";
-    tip.textContent = ""; tip.appendChild(el("b", null, m.label + " · run " + (+t.dataset.i + 1) + " · " + KIND[r.c]));
+    var body = r.t === null ? "(omitted for content)" : (r.m ? r.t.slice(Math.max(0, r.m[0] - 40), r.m[1] + 60) : r.t.slice(0, 110)).replace(/\s+/g, " ").trim() + "…";
+    tip.textContent = ""; tip.appendChild(el("b", null, m.label + " · run " + (+t.dataset.i + 1) + (r.t === null ? "" : " · " + KIND[r.c])));
     tip.appendChild(document.createTextNode(body)); tip.hidden = false;
   });
   ledger.addEventListener("mousemove", function (e) {
