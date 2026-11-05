@@ -26,7 +26,7 @@
    "ex": "Carol has the onion. … Jack: you're holding the ___",
    "ok": "every base ≥ 0.6B trained on trillions of tokens",
    "olmo1b": "~420B tokens",
-   "ours": "by 33B tokens annealed (trunk: 40B); +.235 at 110B"
+   "ours": "by 33B tokens annealed (trunk: 40B); +.192 at 110B"
   },
   {
    "n": 4,
@@ -35,7 +35,7 @@
    "ex": "Erin gives Paul her cup. … Paul: now you're holding the ___",
    "ok": "where almost every base stops",
    "olmo1b": "from ~63B, still there at 4T",
-   "ours": "from ~4B; no longer inverted at 110B under the gauge rule (−.047 at 11B → −.021)"
+   "ours": "from ~4B; no longer inverted at 110B under the gauge rule (−.027 at 11B → −.014)"
   },
   {
    "n": 5,
@@ -55,229 +55,229 @@
     "p": 1.5,
     "tok": "4T",
     "fam": "OLMo",
-    "z": -0.047,
-    "t": -0.023
+    "z": -0.029,
+    "t": -0.024
    },
    {
     "m": "SmolLM2 1.7B",
     "p": 1.7,
     "tok": "11T",
     "fam": "other",
-    "z": -0.047,
-    "t": 0.007
+    "z": 0.01,
+    "t": 0.006
    },
    {
     "m": "SmolLM3 3B",
     "p": 3.1,
     "tok": "11T",
     "fam": "other",
-    "z": -0.036,
-    "t": -0.002
+    "z": -0.01,
+    "t": 0.027
    },
    {
     "m": "Qwen3 0.6B",
     "p": 0.6,
     "tok": "36T",
     "fam": "Qwen3",
-    "z": -0.06,
-    "t": -0.003
+    "z": -0.058,
+    "t": 0.0
    },
    {
     "m": "Qwen3 1.7B",
     "p": 1.7,
     "tok": "36T",
     "fam": "Qwen3",
-    "z": -0.089,
-    "t": 0.011
+    "z": -0.054,
+    "t": 0.026
    },
    {
     "m": "Qwen3 4B",
     "p": 4.0,
     "tok": "36T",
     "fam": "Qwen3",
-    "z": -0.068,
-    "t": 0.035
+    "z": -0.029,
+    "t": 0.055
    },
    {
     "m": "Qwen3 8B",
     "p": 8.2,
     "tok": "36T",
     "fam": "Qwen3",
-    "z": -0.079,
-    "t": 0.043
+    "z": 0.022,
+    "t": 0.08
    },
    {
     "m": "Qwen3 14B",
     "p": 14.8,
     "tok": "36T",
     "fam": "Qwen3",
-    "z": 0.022,
-    "t": 0.242
+    "z": 0.121,
+    "t": 0.321
    },
    {
     "m": "Qwen2.5 0.5B",
     "p": 0.5,
     "tok": "18T",
     "fam": "Qwen2.5",
-    "z": -0.083,
-    "t": -0.013
+    "z": -0.052,
+    "t": 0.012
    },
    {
     "m": "Qwen2.5 1.5B",
     "p": 1.5,
     "tok": "18T",
     "fam": "Qwen2.5",
-    "z": -0.085,
-    "t": -0.03
+    "z": -0.074,
+    "t": -0.036
    },
    {
     "m": "Qwen2.5 3B",
     "p": 3.1,
     "tok": "18T",
     "fam": "Qwen2.5",
-    "z": -0.088,
-    "t": -0.017
+    "z": -0.022,
+    "t": -0.006
    },
    {
     "m": "Qwen2.5 7B",
     "p": 7.6,
     "tok": "18T",
     "fam": "Qwen2.5",
-    "z": -0.004,
-    "t": 0.061
+    "z": 0.047,
+    "t": 0.073
    },
    {
     "m": "Qwen2.5 14B",
     "p": 14.7,
     "tok": "18T",
     "fam": "Qwen2.5",
-    "z": 0.011,
-    "t": 0.189
+    "z": 0.093,
+    "t": 0.295
    },
    {
     "m": "OLMo-2 7B",
     "p": 7.3,
     "tok": "4T",
     "fam": "OLMo",
-    "z": -0.023,
-    "t": -0.027
+    "z": 0.055,
+    "t": -0.015
    },
    {
     "m": "OLMo-2 13B",
     "p": 13.7,
     "tok": "5T",
     "fam": "OLMo",
-    "z": -0.014,
-    "t": -0.01
+    "z": 0.07,
+    "t": -0.016
    },
    {
     "m": "Gemma-2 9B",
     "p": 9.2,
     "tok": "8T",
     "fam": "other",
-    "z": -0.042,
-    "t": 0.009
+    "z": 0.017,
+    "t": 0.034
    },
    {
     "m": "Qwen3 30B-A3B",
     "p": 30.5,
     "tok": "36T",
     "fam": "Qwen3",
-    "z": 0.026,
-    "t": 0.041
+    "z": 0.084,
+    "t": 0.079
    },
    {
     "m": "GLM-4 32B",
     "p": 32,
     "tok": "15T",
     "fam": "other",
-    "z": 0.029,
-    "t": 0.013
+    "z": 0.106,
+    "t": 0.032
    },
    {
     "m": "OLMo-3 32B",
     "p": 32,
     "tok": "6T",
     "fam": "OLMo",
-    "z": -0.062,
-    "t": 0.047
+    "z": 0.051,
+    "t": 0.087
    },
    {
     "m": "Llama-3.1 70B",
     "p": 70.6,
     "tok": "15T",
     "fam": "Llama",
-    "z": 0.023,
-    "t": 0.04
+    "z": 0.108,
+    "t": 0.064
    },
    {
     "m": "Qwen2.5 72B",
     "p": 72.7,
     "tok": "18T",
     "fam": "Qwen2.5",
-    "z": 0.033,
-    "t": 0.039
+    "z": 0.121,
+    "t": 0.046
    },
    {
     "m": "Llama-3.1 405B",
     "p": 405,
     "tok": "15T",
     "fam": "Llama",
-    "z": 0.054,
-    "t": 0.145
+    "z": 0.129,
+    "t": 0.169
    },
    {
     "m": "Nemotron-3 Ultra",
     "p": 550,
     "tok": "—",
     "fam": "other",
-    "z": 0.014,
-    "t": 0.068
+    "z": 0.089,
+    "t": 0.119
    },
    {
     "m": "DeepSeek-V3",
     "p": 671,
     "tok": "15T",
     "fam": "DeepSeek",
-    "z": 0.067,
-    "t": 0.065
+    "z": 0.216,
+    "t": 0.102
    },
    {
     "m": "Kimi-K2",
     "p": 1040,
     "tok": "15T",
     "fam": "other",
-    "z": 0.045,
-    "t": 0.07
+    "z": 0.155,
+    "t": 0.117
    }
   ],
   "unsized": [
    {
     "m": "DeepSeek-V4 Flash",
-    "z": 0.102,
-    "t": 0.083
+    "z": 0.177,
+    "t": 0.13
    },
    {
     "m": "DeepSeek-V4 Pro",
-    "z": 0.004,
-    "t": 0.032
+    "z": 0.066,
+    "t": 0.051
    },
    {
     "m": "Trinity-Large (base)",
-    "z": 0.0,
-    "t": 0.11
+    "z": 0.091,
+    "t": 0.16
    },
    {
     "m": "MiMo-V2.5 Pro (base)",
-    "z": 0.036,
-    "t": 0.083
+    "z": 0.162,
+    "t": 0.184
    }
   ],
   "ours": {
    "m": "kotodama-tsumugi 1.4B @ 110B tokens (release)",
    "p": 1.42,
-   "z": -0.021,
-   "t": 0.018
+   "z": -0.014,
+   "t": 0.038
   }
  },
  "cost": {
@@ -314,8 +314,8 @@
     "pts": [
      {
       "m": "OLMo-2 1B",
-      "lo": 294.0,
-      "hi": 420.0
+      "lo": 420.0,
+      "hi": 525.0
      },
      {
       "m": "OLMo-2 7B",
@@ -399,7 +399,7 @@
    "cost": "costs code and structure binding"
   }
  ],
- "lead": "Base language models acquire the referent of *you* in five ordered stages. Every base of 0.6B parameters or more trained on trillions of tokens reaches the first three. The fifth stage is tracking *you* after objects change hands. **No public model up to 8B reaches it zero-shot** (with no worked examples), at any token count measured up to 36T, and every one of them has a negative swap shift. From 14B to 1T parameters, stage 5 is weak and nearly flat. In these models, parameter count and depth grow together. **kotodama-tsumugi** separates the two. It is a 1.4B model run as 72 effective layers (looped depth, boundary-fitted attention residuals). It reaches stage 3 by **33B tokens** (annealed; on the constant-LR trunk by 40B). That is the token cost of OLMo-2 13B, against about 420B for OLMo-2 1B. At 110B tokens its zero-shot stage-5 reading (−.021) is not inverted under the gauge rule. Every 1–2B public base whose static *you* binds inverts, except Llama-3.2-1B. In a check of 20 bases, kotodama-tsumugi (.335) follows a hand-off told in the third person better than every Pythia model up to 6.9B (.275 to .299) and Llama-3.2-1B (.304). Most bases up to 1.5B barely follow one: 7 of those 10 score .26 to .34, against about .29 by chance. For every model of this size, that hand-off is the open step toward stage 5.",
+ "lead": "Base language models acquire the referent of *you* in five ordered stages. Every base of 0.6B parameters or more trained on trillions of tokens reaches the first three. The fifth stage is tracking *you* after objects change hands. **No public model up to 8B reaches it zero-shot** (with no worked examples), at any token count measured up to 36T, and every one of them has a negative swap shift. From 14B to 1T parameters, stage 5 is weak and nearly flat. In these models, parameter count and depth grow together. **kotodama-tsumugi** separates the two. It is a 1.4B model run as 72 effective layers (looped depth, boundary-fitted attention residuals). It reaches stage 3 by **33B tokens** (annealed; on the constant-LR trunk by 40B). That is the token cost of OLMo-2 13B, against about 420B for OLMo-2 1B. At 110B tokens its zero-shot stage-5 reading (−.014) is not inverted under the gauge rule. Every 1–2B public base whose static *you* binds inverts, except Llama-3.2-1B. In a check of 20 bases, kotodama-tsumugi (.335) follows a hand-off told in the third person better than every Pythia model up to 6.9B (.275 to .299) and Llama-3.2-1B (.304). Most bases up to 1.5B barely follow one: 7 of those 10 score .26 to .34, against about .29 by chance. For every model of this size, that hand-off is the open step toward stage 5.",
  "tsumugi": {
   "_note": "kotodama-tsumugi s17 trunk (constant LR, to 100B) and cooldown branches (annealed), stage gauges = P2 speaker swap (static I, static you) and dynamic swap (addressee, 0-shot / 3-shot). Seed 7 = the seed replicate to 11B. Values from the synthesis table.",
   "traj": {
@@ -407,214 +407,214 @@
     {
      "tok": 1.0,
      "kind": "constant",
-     "I": 0.004,
-     "you": -0.003,
-     "dyn0": -0.004,
+     "I": 0.003,
+     "you": -0.002,
+     "dyn0": -0.003,
      "dyn3": -0.003
     },
     {
      "tok": 2.0,
      "kind": "constant",
-     "I": 0.001,
-     "you": -0.003,
-     "dyn0": -0.004,
-     "dyn3": 0.002
+     "I": -0.0,
+     "you": -0.002,
+     "dyn0": -0.001,
+     "dyn3": 0.016
     },
     {
      "tok": 3.0,
      "kind": "constant",
      "I": 0.007,
-     "you": -0.008,
-     "dyn0": -0.005,
-     "dyn3": -0.018
+     "you": -0.007,
+     "dyn0": 0.004,
+     "dyn3": 0.01
     },
     {
      "tok": 3.75,
      "kind": "constant",
-     "I": 0.035,
+     "I": 0.031,
      "you": -0.02,
-     "dyn0": -0.025,
-     "dyn3": -0.013
+     "dyn0": -0.019,
+     "dyn3": 0.01
     },
     {
      "tok": 10.0,
      "kind": "constant",
-     "I": 0.075,
-     "you": -0.013,
-     "dyn0": -0.042,
-     "dyn3": -0.015
+     "I": 0.066,
+     "you": -0.01,
+     "dyn0": -0.034,
+     "dyn3": -0.003
     },
     {
      "tok": 20.0,
      "kind": "constant",
-     "I": 0.133,
-     "you": -0.005,
-     "dyn0": -0.036,
-     "dyn3": -0.008
+     "I": 0.114,
+     "you": -0.001,
+     "dyn0": -0.026,
+     "dyn3": 0.019
     },
     {
      "tok": 30.0,
      "kind": "constant",
-     "I": 0.137,
-     "you": 0.017,
-     "dyn0": -0.03,
-     "dyn3": -0.008
+     "I": 0.129,
+     "you": 0.019,
+     "dyn0": -0.015,
+     "dyn3": 0.045
     },
     {
      "tok": 40.0,
      "kind": "constant",
-     "I": 0.182,
-     "you": 0.077,
-     "dyn0": -0.025,
-     "dyn3": 0.011
+     "I": 0.158,
+     "you": 0.068,
+     "dyn0": -0.018,
+     "dyn3": 0.024
     },
     {
      "tok": 50.0,
      "kind": "constant",
-     "I": 0.309,
-     "you": 0.04,
-     "dyn0": -0.029,
-     "dyn3": 0.006
+     "I": 0.25,
+     "you": 0.031,
+     "dyn0": -0.024,
+     "dyn3": 0.023
     },
     {
      "tok": 60.0,
      "kind": "constant",
-     "I": 0.256,
-     "you": 0.072,
-     "dyn0": -0.025,
-     "dyn3": 0.031
+     "I": 0.191,
+     "you": 0.058,
+     "dyn0": -0.015,
+     "dyn3": 0.069
     },
     {
      "tok": 80.0,
      "kind": "constant",
-     "I": 0.213,
-     "you": 0.084,
-     "dyn0": -0.032,
-     "dyn3": 0.022
+     "I": 0.185,
+     "you": 0.074,
+     "dyn0": -0.026,
+     "dyn3": 0.035
     },
     {
      "tok": 100.0,
      "kind": "constant",
-     "I": 0.223,
-     "you": 0.105,
-     "dyn0": -0.018,
-     "dyn3": 0.005
+     "I": 0.169,
+     "you": 0.08,
+     "dyn0": -0.027,
+     "dyn3": 0.016
     },
     {
      "tok": 5.0,
      "kind": "annealed",
-     "I": 0.039,
-     "you": -0.024,
-     "dyn0": -0.023,
-     "dyn3": -0.012
+     "I": 0.031,
+     "you": -0.021,
+     "dyn0": -0.022,
+     "dyn3": -0.013
     },
     {
      "tok": 11.0,
      "kind": "annealed",
-     "I": 0.077,
+     "I": 0.071,
      "you": -0.023,
-     "dyn0": -0.047,
-     "dyn3": -0.015
+     "dyn0": -0.027,
+     "dyn3": 0.002
     },
     {
      "tok": 33.0,
      "kind": "annealed",
-     "I": 0.243,
-     "you": 0.073,
-     "dyn0": -0.022,
-     "dyn3": -0.004
+     "I": 0.221,
+     "you": 0.065,
+     "dyn0": -0.018,
+     "dyn3": 0.01
     },
     {
      "tok": 55.0,
      "kind": "annealed",
-     "I": 0.263,
-     "you": 0.138,
-     "dyn0": -0.029,
-     "dyn3": 0.016
+     "I": 0.228,
+     "you": 0.122,
+     "dyn0": -0.028,
+     "dyn3": 0.03
     },
     {
      "tok": 88.0,
      "kind": "annealed",
-     "I": 0.191,
-     "you": 0.206,
-     "dyn0": -0.02,
-     "dyn3": 0.01
+     "I": 0.156,
+     "you": 0.181,
+     "dyn0": -0.016,
+     "dyn3": 0.021
     },
     {
      "tok": 110.0,
      "kind": "annealed",
      "note": "release",
-     "I": 0.246,
-     "you": 0.235,
-     "dyn0": -0.021,
-     "dyn3": 0.018
+     "I": 0.178,
+     "you": 0.192,
+     "dyn0": -0.014,
+     "dyn3": 0.038
     },
     {
      "tok": 110.0,
      "kind": "annealed",
      "note": "second anneal from the same 100B fork",
-     "I": 0.225,
-     "you": 0.142,
-     "dyn0": -0.016,
-     "dyn3": 0.012
+     "I": 0.195,
+     "you": 0.127,
+     "dyn0": -0.012,
+     "dyn3": 0.022
     }
    ],
    "s7": [
     {
      "tok": 5.0,
      "kind": "annealed",
-     "I": 0.027,
-     "you": -0.008,
-     "dyn0": -0.017,
-     "dyn3": -0.015
+     "I": 0.021,
+     "you": -0.007,
+     "dyn0": -0.01,
+     "dyn3": 0.002
     },
     {
      "tok": 11.0,
      "kind": "annealed",
-     "I": 0.111,
-     "you": -0.009,
-     "dyn0": -0.043,
-     "dyn3": 0.004
+     "I": 0.102,
+     "you": -0.01,
+     "dyn0": -0.031,
+     "dyn3": 0.027
     },
     {
      "tok": 1.0,
      "kind": "constant",
      "I": 0.004,
-     "you": -0.006,
-     "dyn0": -0.004,
-     "dyn3": -0.003
+     "you": -0.005,
+     "dyn0": -0.003,
+     "dyn3": -0.002
     },
     {
      "tok": 2.0,
      "kind": "constant",
      "I": 0.004,
      "you": -0.004,
-     "dyn0": -0.011,
-     "dyn3": 0.002
+     "dyn0": -0.006,
+     "dyn3": 0.012
     },
     {
      "tok": 3.0,
      "kind": "constant",
      "I": 0.007,
-     "you": -0.004,
-     "dyn0": -0.018,
-     "dyn3": 0.012
+     "you": -0.005,
+     "dyn0": -0.009,
+     "dyn3": 0.021
     },
     {
      "tok": 3.75,
      "kind": "constant",
-     "I": 0.011,
-     "you": -0.006,
-     "dyn0": -0.034,
-     "dyn3": 0.001
+     "I": 0.007,
+     "you": -0.007,
+     "dyn0": -0.026,
+     "dyn3": 0.029
     },
     {
      "tok": 10.0,
      "kind": "constant",
-     "I": 0.099,
-     "you": -0.006,
-     "dyn0": -0.048,
-     "dyn3": -0.001
+     "I": 0.095,
+     "you": -0.008,
+     "dyn0": -0.057,
+     "dyn3": 0.014
     }
    ]
   },
@@ -819,170 +819,170 @@
     "p": 1.41,
     "tok": "134B",
     "ours": false,
-    "third": 0.289,
-    "deictic": 0.28,
-    "named_transfer": 0.25,
-    "vocative": 0.242
+    "third": 0.283,
+    "deictic": 0.3,
+    "named_transfer": 0.281,
+    "vocative": 0.267
    },
    {
     "m": "kotodama-tsumugi · 33B",
     "p": 1.42,
     "tok": "33B",
     "ours": true,
-    "third": 0.31,
-    "deictic": 0.297,
-    "named_transfer": 0.299,
-    "vocative": 0.296
+    "third": 0.319,
+    "deictic": 0.269,
+    "named_transfer": 0.328,
+    "vocative": 0.25
    },
    {
     "m": "kotodama-tsumugi · 55B",
     "p": 1.42,
     "tok": "55B",
     "ours": true,
-    "third": 0.303,
-    "deictic": 0.293,
-    "named_transfer": 0.292,
-    "vocative": 0.282
+    "third": 0.314,
+    "deictic": 0.286,
+    "named_transfer": 0.297,
+    "vocative": 0.283
    },
    {
     "m": "kotodama-tsumugi · 88B",
     "p": 1.42,
     "tok": "88B",
     "ours": true,
-    "third": 0.314,
-    "deictic": 0.276,
-    "named_transfer": 0.319,
-    "vocative": 0.272
+    "third": 0.331,
+    "deictic": 0.322,
+    "named_transfer": 0.317,
+    "vocative": 0.269
    },
    {
     "m": "kotodama-tsumugi · 110B, second anneal",
     "p": 1.42,
     "tok": "110B",
     "ours": true,
-    "third": 0.328,
-    "deictic": 0.3,
-    "named_transfer": 0.34,
-    "vocative": 0.293
+    "third": 0.375,
+    "deictic": 0.331,
+    "named_transfer": 0.364,
+    "vocative": 0.3
    },
    {
     "m": "kotodama-tsumugi · 110B, release",
     "p": 1.42,
     "tok": "110B",
     "ours": true,
-    "third": 0.335,
-    "deictic": 0.285,
-    "named_transfer": 0.343,
-    "vocative": 0.292
+    "third": 0.336,
+    "deictic": 0.303,
+    "named_transfer": 0.336,
+    "vocative": 0.286
    },
    {
     "m": "OLMo-2 1B",
     "p": 1.48,
     "tok": "4T",
     "ours": false,
-    "third": 0.31,
-    "deictic": 0.318,
-    "named_transfer": 0.333,
-    "vocative": 0.31
+    "third": 0.3,
+    "deictic": 0.278,
+    "named_transfer": 0.3,
+    "vocative": 0.258
    },
    {
     "m": "SmolLM2 1.7B",
     "p": 1.71,
     "tok": "11T",
     "ours": false,
-    "third": 0.45,
-    "deictic": 0.304,
-    "named_transfer": 0.343,
-    "vocative": 0.276
+    "third": 0.4,
+    "deictic": 0.3,
+    "named_transfer": 0.294,
+    "vocative": 0.303
    },
    {
     "m": "Qwen3 1.7B",
     "p": 1.72,
     "tok": "36T",
     "ours": false,
-    "third": 0.502,
-    "deictic": 0.344,
-    "named_transfer": 0.264,
-    "vocative": 0.326
+    "third": 0.481,
+    "deictic": 0.358,
+    "named_transfer": 0.267,
+    "vocative": 0.272
    },
    {
     "m": "Qwen3 4B",
     "p": 4.02,
     "tok": "36T",
     "ours": false,
-    "third": 0.669,
-    "deictic": 0.393,
-    "named_transfer": 0.404,
-    "vocative": 0.354
+    "third": 0.575,
+    "deictic": 0.367,
+    "named_transfer": 0.417,
+    "vocative": 0.35
    },
    {
     "m": "Qwen2.5 7B",
     "p": 7.62,
     "tok": "18T",
     "ours": false,
-    "third": 0.572,
-    "deictic": 0.4,
-    "named_transfer": 0.519,
-    "vocative": 0.385
+    "third": 0.533,
+    "deictic": 0.458,
+    "named_transfer": 0.497,
+    "vocative": 0.411
    },
    {
     "m": "Llama-3.1 8B",
     "p": 8.03,
     "tok": "15T",
     "ours": false,
-    "third": 0.589,
-    "deictic": 0.286,
-    "named_transfer": 0.44,
-    "vocative": 0.246
+    "third": 0.572,
+    "deictic": 0.419,
+    "named_transfer": 0.486,
+    "vocative": 0.372
    },
    {
     "m": "Qwen3 8B",
     "p": 8.19,
     "tok": "36T",
     "ours": false,
-    "third": 0.709,
-    "deictic": 0.384,
-    "named_transfer": 0.439,
-    "vocative": 0.332
+    "third": 0.575,
+    "deictic": 0.414,
+    "named_transfer": 0.45,
+    "vocative": 0.411
    },
    {
     "m": "Qwen2.5 14B",
     "p": 14.77,
     "tok": "18T",
     "ours": false,
-    "third": 0.729,
-    "deictic": 0.35,
-    "named_transfer": 0.541,
-    "vocative": 0.311
+    "third": 0.7,
+    "deictic": 0.442,
+    "named_transfer": 0.661,
+    "vocative": 0.439
    },
    {
     "m": "Qwen3 14B",
     "p": 14.77,
     "tok": "36T",
     "ours": false,
-    "third": 0.675,
-    "deictic": 0.396,
-    "named_transfer": 0.537,
-    "vocative": 0.358
+    "third": 0.694,
+    "deictic": 0.467,
+    "named_transfer": 0.661,
+    "vocative": 0.431
    },
    {
     "m": "Qwen3 30B-A3B",
     "p": 30.53,
     "tok": "36T",
     "ours": false,
-    "third": 0.588,
-    "deictic": 0.347,
-    "named_transfer": 0.534,
-    "vocative": 0.296
+    "third": 0.583,
+    "deictic": 0.428,
+    "named_transfer": 0.578,
+    "vocative": 0.397
    },
    {
     "m": "Llama-3.1 70B",
     "p": 70.6,
     "tok": "15T",
     "ours": false,
-    "third": 0.797,
-    "deictic": 0.358,
-    "named_transfer": 0.633,
-    "vocative": 0.328
+    "third": 0.794,
+    "deictic": 0.558,
+    "named_transfer": 0.853,
+    "vocative": 0.483
    }
   ]
  },
@@ -1096,56 +1096,56 @@
    [
     "static I (swap shift)",
     [
-     0.243,
-     0.263,
-     0.191,
-     0.225,
-     0.246,
-     0.355,
-     0.378,
-     0.606
+     0.221,
+     0.228,
+     0.156,
+     0.195,
+     0.178,
+     0.312,
+     0.363,
+     0.595
     ],
     true
    ],
    [
     "static you (swap shift)",
     [
-     0.073,
-     0.138,
-     0.206,
-     0.142,
-     0.235,
-     0.137,
-     0.197,
-     0.123
+     0.065,
+     0.122,
+     0.181,
+     0.127,
+     0.192,
+     0.114,
+     0.207,
+     0.137
     ],
     true
    ],
    [
     "dynamic you, 0-shot (swap shift)",
     [
-     -0.022,
-     -0.029,
-     -0.02,
+     -0.018,
+     -0.028,
      -0.016,
-     -0.021,
-     -0.082,
-     -0.047,
-     -0.089
+     -0.012,
+     -0.014,
+     -0.04,
+     0.01,
+     -0.054
     ],
     true
    ],
    [
     "dynamic you, 3-shot (swap shift)",
     [
-     -0.004,
-     0.016,
      0.01,
-     0.012,
-     0.018,
-     -0.016,
-     0.007,
-     0.011
+     0.03,
+     0.021,
+     0.022,
+     0.038,
+     -0.018,
+     0.006,
+     0.026
     ],
     true
    ],
@@ -1180,12 +1180,12 @@
    [
     "deixis v2, deictic, 0-shot (acc)",
     [
-     0.311,
-     0.307,
+     0.27,
+     0.302,
+     0.319,
+     0.354,
      0.314,
-     0.331,
-     0.339,
-     0.344,
+     0.32,
      null,
      null
     ],
@@ -1194,12 +1194,12 @@
    [
     "deixis v2, third person, 0-shot (acc)",
     [
-     0.368,
-     0.373,
-     0.392,
-     0.42,
-     0.416,
-     0.411,
+     0.418,
+     0.404,
+     0.446,
+     0.467,
+     0.441,
+     0.461,
      null,
      null
     ],
@@ -1219,31 +1219,31 @@
       "ck": "trunk-1.0B",
       "tok": 1.0,
       "kind": "trunk",
-      "I": 0.0035,
-      "you": -0.0025,
+      "I": 0.003,
+      "you": -0.0019,
       "flops": 1.13e+19
      },
      {
       "ck": "trunk-2.0B",
       "tok": 2.0,
       "kind": "trunk",
-      "I": 0.0014,
-      "you": -0.0026,
+      "I": -0.0002,
+      "you": -0.0022,
       "flops": 2.26e+19
      },
      {
       "ck": "trunk-3.0B",
       "tok": 3.0,
       "kind": "trunk",
-      "I": 0.0073,
-      "you": -0.008,
+      "I": 0.0068,
+      "you": -0.0071,
       "flops": 3.39e+19
      },
      {
       "ck": "trunk-3.75B",
       "tok": 3.75,
       "kind": "trunk",
-      "I": 0.0353,
+      "I": 0.0308,
       "you": -0.0201,
       "flops": 4.2375e+19
      },
@@ -1251,8 +1251,8 @@
       "ck": "anneal-5B",
       "tok": 5.0,
       "kind": "annealed",
-      "I": 0.039,
-      "you": -0.0236,
+      "I": 0.0314,
+      "you": -0.021,
       "flops": 5.65e+19
      },
      {
@@ -1261,15 +1261,15 @@
       "kind": "trunk",
       "avg9": 56.056,
       "ubpb": 0.939,
-      "I": 0.0754,
-      "you": -0.0127,
+      "I": 0.0662,
+      "you": -0.0104,
       "flops": 1.13e+20
      },
      {
       "ck": "anneal-11B",
       "tok": 11.0,
       "kind": "annealed",
-      "I": 0.0775,
+      "I": 0.0712,
       "you": -0.0232,
       "flops": 1.243e+20
      },
@@ -1279,8 +1279,8 @@
       "kind": "trunk",
       "avg9": 57.708,
       "ubpb": 0.8983,
-      "I": 0.1327,
-      "you": -0.005,
+      "I": 0.1143,
+      "you": -0.0014,
       "flops": 2.26e+20
      },
      {
@@ -1289,8 +1289,8 @@
       "kind": "trunk",
       "avg9": 59.112,
       "ubpb": 0.889,
-      "I": 0.1369,
-      "you": 0.0174,
+      "I": 0.1292,
+      "you": 0.0186,
       "flops": 3.39e+20
      },
      {
@@ -1299,8 +1299,8 @@
       "kind": "annealed",
       "avg9": 61.257,
       "ubpb": 0.8194,
-      "I": 0.2431,
-      "you": 0.0732,
+      "I": 0.2211,
+      "you": 0.0651,
       "flops": 3.729e+20
      },
      {
@@ -1309,8 +1309,8 @@
       "kind": "trunk",
       "avg9": 59.512,
       "ubpb": 0.8951,
-      "I": 0.1825,
-      "you": 0.077,
+      "I": 0.1576,
+      "you": 0.0679,
       "flops": 4.52e+20
      },
      {
@@ -1319,8 +1319,8 @@
       "kind": "trunk",
       "avg9": 59.868,
       "ubpb": 0.8774,
-      "I": 0.3095,
-      "you": 0.0399,
+      "I": 0.2503,
+      "you": 0.0309,
       "flops": 5.65e+20
      },
      {
@@ -1329,8 +1329,8 @@
       "kind": "annealed",
       "avg9": 62.033,
       "ubpb": 0.8008,
-      "I": 0.2627,
-      "you": 0.1382,
+      "I": 0.2282,
+      "you": 0.1217,
       "flops": 6.215e+20
      },
      {
@@ -1339,8 +1339,8 @@
       "kind": "trunk",
       "avg9": 59.354,
       "ubpb": 0.8839,
-      "I": 0.256,
-      "you": 0.0725,
+      "I": 0.1905,
+      "you": 0.0577,
       "flops": 6.78e+20
      },
      {
@@ -1357,8 +1357,8 @@
       "kind": "trunk",
       "avg9": 59.984,
       "ubpb": 0.8682,
-      "I": 0.2128,
-      "you": 0.0839,
+      "I": 0.1848,
+      "you": 0.0742,
       "flops": 9.04e+20
      },
      {
@@ -1367,8 +1367,8 @@
       "kind": "annealed",
       "avg9": 63.882,
       "ubpb": 0.7744,
-      "I": 0.1911,
-      "you": 0.2058,
+      "I": 0.1557,
+      "you": 0.1809,
       "flops": 9.944e+20
      },
      {
@@ -1385,8 +1385,8 @@
       "kind": "trunk",
       "avg9": 60.216,
       "ubpb": 0.8653,
-      "I": 0.223,
-      "you": 0.1048,
+      "I": 0.169,
+      "you": 0.0804,
       "flops": 1.13e+21
      },
      {
@@ -1395,8 +1395,8 @@
       "kind": "annealed",
       "avg9": 64.149,
       "ubpb": 0.7683,
-      "I": 0.2457,
-      "you": 0.235,
+      "I": 0.1778,
+      "you": 0.1918,
       "flops": 1.243e+21,
       "note": "release"
      }
@@ -1411,16 +1411,16 @@
       "ck": "2B tokens",
       "tok": 2.0,
       "kind": "base",
-      "I": 0.0024,
-      "you": 0.0009,
+      "I": 0.0028,
+      "you": 0.0008,
       "flops": 1.6919999999999998e+19
      },
      {
       "ck": "10B tokens",
       "tok": 10.0,
       "kind": "base",
-      "I": 0.0112,
-      "you": -0.0079,
+      "I": 0.011,
+      "you": -0.0072,
       "flops": 8.459999999999998e+19
      },
      {
@@ -1451,8 +1451,8 @@
       "ck": "34B tokens",
       "tok": 34.0,
       "kind": "base",
-      "I": 0.0387,
-      "you": -0.0214,
+      "I": 0.0356,
+      "you": -0.0229,
       "flops": 2.8763999999999997e+20
      },
      {
@@ -1491,8 +1491,8 @@
       "ck": "134B tokens",
       "tok": 134.0,
       "kind": "base",
-      "I": 0.1847,
-      "you": -0.0017,
+      "I": 0.1596,
+      "you": -0.0039,
       "flops": 1.1336399999999999e+21
      },
      {
@@ -1507,8 +1507,8 @@
       "ck": "main/final",
       "tok": 299.9,
       "kind": "base",
-      "I": 0.2366,
-      "you": 0.0119,
+      "I": 0.2211,
+      "you": 0.008,
       "flops": 2.5371539999999997e+21
      }
     ]
@@ -1523,15 +1523,15 @@
       "tok": 1.0,
       "kind": "base",
       "I": -0.0001,
-      "you": 0.0001,
+      "you": -0.0002,
       "flops": 8.879999999999998e+18
      },
      {
       "ck": "21B tokens",
       "tok": 21.0,
       "kind": "base",
-      "I": 0.0119,
-      "you": -0.0079,
+      "I": 0.0102,
+      "you": -0.0053,
       "flops": 1.8647999999999997e+20
      },
      {
@@ -1554,8 +1554,8 @@
       "ck": "63B tokens",
       "tok": 63.0,
       "kind": "base",
-      "I": 0.155,
-      "you": -0.0198,
+      "I": 0.1409,
+      "you": -0.0189,
       "flops": 5.594399999999999e+20
      },
      {
@@ -1570,8 +1570,8 @@
       "ck": "105B tokens",
       "tok": 105.0,
       "kind": "base",
-      "I": 0.1613,
-      "you": -0.0048,
+      "I": 0.1409,
+      "you": -0.0067,
       "flops": 9.323999999999997e+20
      },
      {
@@ -1586,88 +1586,88 @@
       "ck": "210B tokens",
       "tok": 210.0,
       "kind": "base",
-      "I": 0.2337,
-      "you": -0.0062,
+      "I": 0.2164,
+      "you": -0.0093,
       "flops": 1.8647999999999995e+21
      },
      {
       "ck": "294B tokens",
       "tok": 294.0,
       "kind": "base",
-      "I": 0.2814,
-      "you": -0.0088,
+      "I": 0.2447,
+      "you": -0.0063,
       "flops": 2.6107199999999995e+21
      },
      {
       "ck": "420B tokens",
       "tok": 420.0,
       "kind": "base",
-      "I": 0.3495,
-      "you": 0.0351,
+      "I": 0.3042,
+      "you": 0.0288,
       "flops": 3.729599999999999e+21
      },
      {
       "ck": "525B tokens",
       "tok": 525.0,
       "kind": "base",
-      "I": 0.3278,
-      "you": 0.0552,
+      "I": 0.28,
+      "you": 0.0416,
       "flops": 4.661999999999999e+21
      },
      {
       "ck": "755B tokens",
       "tok": 755.0,
       "kind": "base",
-      "I": 0.307,
-      "you": 0.0805,
+      "I": 0.2704,
+      "you": 0.0717,
       "flops": 6.704399999999998e+21
      },
      {
       "ck": "1049B tokens",
       "tok": 1049.0,
       "kind": "base",
-      "I": 0.3342,
-      "you": 0.0976,
+      "I": 0.3013,
+      "you": 0.0834,
       "flops": 9.315119999999998e+21
      },
      {
       "ck": "1510B tokens",
       "tok": 1510.0,
       "kind": "base",
-      "I": 0.3238,
-      "you": 0.1326,
+      "I": 0.2974,
+      "you": 0.1191,
       "flops": 1.3408799999999997e+22
      },
      {
       "ck": "2098B tokens",
       "tok": 2098.0,
       "kind": "base",
-      "I": 0.3452,
-      "you": 0.1047,
+      "I": 0.2969,
+      "you": 0.0992,
       "flops": 1.8630239999999997e+22
      },
      {
       "ck": "2999B tokens",
       "tok": 2999.0,
       "kind": "base",
-      "I": 0.4576,
-      "you": 0.2117,
+      "I": 0.4034,
+      "you": 0.1796,
       "flops": 2.6631119999999995e+22
      },
      {
       "ck": "3503B tokens",
       "tok": 3503.0,
       "kind": "base",
-      "I": 0.3753,
-      "you": 0.179,
+      "I": 0.324,
+      "you": 0.1632,
       "flops": 3.1106639999999995e+22
      },
      {
       "ck": "4001B tokens",
       "tok": 4001.0,
       "kind": "base",
-      "I": 0.3932,
-      "you": 0.1616,
+      "I": 0.369,
+      "you": 0.1552,
       "flops": 3.5528879999999992e+22
      },
      {
@@ -1682,8 +1682,8 @@
       "ck": "main/final",
       "tok": 4050.0,
       "kind": "base",
-      "I": 0.3553,
-      "you": 0.1365,
+      "I": 0.3124,
+      "you": 0.1142,
       "flops": 3.5963999999999993e+22
      }
     ]
@@ -1721,8 +1721,8 @@
       "ck": "main/final",
       "tok": 3050.0,
       "kind": "base",
-      "I": 0.1862,
-      "you": 0.076,
+      "I": 0.1766,
+      "you": 0.0757,
       "flops": 2.3424e+22
      }
     ]
@@ -1736,72 +1736,72 @@
       "ck": "262B tokens",
       "tok": 262.0,
       "kind": "base",
-      "I": 0.1374,
-      "you": -0.0302,
+      "I": 0.1217,
+      "you": -0.0323,
       "flops": 2.68812e+21
      },
      {
       "ck": "525B tokens",
       "tok": 525.0,
       "kind": "base",
-      "I": 0.1486,
-      "you": -0.0011,
+      "I": 0.1221,
+      "you": 0.0011,
       "flops": 5.3865e+21
      },
      {
       "ck": "1050B tokens",
       "tok": 1050.0,
       "kind": "base",
-      "I": 0.2047,
-      "you": 0.0042,
+      "I": 0.1679,
+      "you": 0.0059,
       "flops": 1.0773e+22
      },
      {
       "ck": "2100B tokens",
       "tok": 2100.0,
       "kind": "base",
-      "I": 0.2137,
-      "you": 0.0119,
+      "I": 0.1875,
+      "you": 0.0128,
       "flops": 2.1546e+22
      },
      {
       "ck": "4200B tokens",
       "tok": 4200.0,
       "kind": "base",
-      "I": 0.2357,
-      "you": 0.024,
+      "I": 0.2147,
+      "you": 0.0236,
       "flops": 4.3092e+22
      },
      {
       "ck": "6300B tokens",
       "tok": 6300.0,
       "kind": "base",
-      "I": 0.3008,
-      "you": 0.0822,
+      "I": 0.2831,
+      "you": 0.0692,
       "flops": 6.4638e+22
      },
      {
       "ck": "8400B tokens",
       "tok": 8400.0,
       "kind": "base",
-      "I": 0.3318,
-      "you": 0.0836,
+      "I": 0.3171,
+      "you": 0.0895,
       "flops": 8.6184e+22
      },
      {
       "ck": "10500B tokens",
       "tok": 10500.0,
       "kind": "base",
-      "I": 0.3492,
-      "you": 0.1213,
+      "I": 0.3242,
+      "you": 0.1225,
       "flops": 1.0773e+23
      },
      {
       "ck": "11000B tokens",
       "tok": 11000.0,
       "kind": "base",
-      "I": 0.3779,
-      "you": 0.1972,
+      "I": 0.3627,
+      "you": 0.2074,
       "flops": 1.1286e+23
      },
      {
