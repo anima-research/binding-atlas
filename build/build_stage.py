@@ -142,7 +142,7 @@ for row in new["cost"]["rows"]:
         if q["m"] == "kotodama-tsumugi" and row["stage"].startswith("5"):
             q["lo"], q["hi"], q["note"] = 110, None, "not reached by 110B"
         if q["m"] == "OLMo-2 1B" and row["stage"].startswith("3"):
-            q["lo"], q["hi"] = bracket("OLMo-2-0425-1B", "294B tokens", "420B tokens", "static you shift", "fig3 OLMo-2-1B stage 3")
+            q["lo"], q["hi"] = bracket("OLMo-2-0425-1B", "420B tokens", "525B tokens", "static you shift", "fig3 OLMo-2-1B stage 3")
         if q["m"] == "OLMo-2 1B" and row["stage"].startswith("1"):
             q["lo"], q["hi"] = bracket("OLMo-2-0425-1B", "21B tokens", "63B tokens", "static I shift", "fig3 OLMo-2-1B stage 1")
         if q["m"] == "OLMo-2 7B" and row["stage"].startswith("1"):
