@@ -208,8 +208,8 @@ S[5]["ours"] = (f"zero-shot: not reached by 110B; with three worked examples it 
                 "the smallest base measured that does")
 new["lead"] = (
     "Base language models learn to look things up long before they learn to track change. In the box puzzle, the "
-    "median model under 1B already finds a box's declared contents above chance, and scores zero on the boxes that "
-    "an operation changed. With worked examples, updating climbs steadily with size, to .77 for the 70B models and "
+    "median model under 1B already finds a box's declared contents above chance, and scores zero on the boxes "
+    "changed by an operation. With worked examples, updating climbs steadily with size, to .77 for the 70B models and "
     "above .8 for most of the largest. The referent of *you* follows five ordered stages. Every base of 0.6B parameters or more trained "
     "on trillions of tokens reaches the first three, except Bamba 9B. The fifth stage is tracking *you* after objects change hands. "
     "Zero-shot, it appears from about 7B (OLMo-2 7B, Qwen2.5 7B), and every base measured from 13B up reaches it. "

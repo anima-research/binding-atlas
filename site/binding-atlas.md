@@ -1,12 +1,12 @@
 # Binding Atlas — agent view
 
-Plain-text twin of the [Binding Atlas page](binding-atlas.html). Same data, same build. Built 2026-11-05 08:07 UTC: 65 rows (models + one human), 24 columns, 2,447 cells, 1,905,952 scored items.
+Plain-text twin of the [Binding Atlas page](binding-atlas.html). Same data, same build. Built 2026-11-05 08:16 UTC: 65 rows (models + one human), 24 columns, 2,447 cells, 1,905,952 scored items.
 
 ## Summary
 
 This atlas scores 64 models and checkpoints, plus one human reader, on 24 tests of tracking who *I* and *you* refer to. "Example items per column" quotes the exact prompts that the models were given.
 
-Base language models learn to look things up long before they learn to track change. In the box puzzle, the median model under 1B already finds a box's declared contents above chance, and scores zero on the boxes that an operation changed. With worked examples, updating climbs steadily with size, to .77 for the 70B models and above .8 for most of the largest. The referent of *you* follows five ordered stages. Every base of 0.6B parameters or more trained on trillions of tokens reaches the first three, except Bamba 9B. The fifth stage is tracking *you* after objects change hands. Zero-shot, it appears from about 7B (OLMo-2 7B, Qwen2.5 7B), and every base measured from 13B up reaches it. **kotodama-tsumugi**, a 1.4B model run as 72 effective layers, reaches stage 3 by **33B tokens**, in the range where OLMo-2 13B gets there; OLMo-2 1B needs 420–525B. Given three worked examples, it is the smallest base measured that tracks *you* after objects change hands (+.038); the next is Qwen3 4B.
+Base language models learn to look things up long before they learn to track change. In the box puzzle, the median model under 1B already finds a box's declared contents above chance, and scores zero on the boxes changed by an operation. With worked examples, updating climbs steadily with size, to .77 for the 70B models and above .8 for most of the largest. The referent of *you* follows five ordered stages. Every base of 0.6B parameters or more trained on trillions of tokens reaches the first three, except Bamba 9B. The fifth stage is tracking *you* after objects change hands. Zero-shot, it appears from about 7B (OLMo-2 7B, Qwen2.5 7B), and every base measured from 13B up reaches it. **kotodama-tsumugi**, a 1.4B model run as 72 effective layers, reaches stage 3 by **33B tokens**, in the range where OLMo-2 13B gets there; OLMo-2 1B needs 420–525B. Given three worked examples, it is the smallest base measured that tracks *you* after objects change hands (+.038); the next is Qwen3 4B.
 
 Swap shift = mean[p(gold | original) − p(gold | speaker swapped)] over the candidates. Above +.02, a pronoun binds: its answer moves with the speaker. Below −.02, it inverts: it resolves to the speaker.
 
@@ -57,7 +57,7 @@ Swap shift = mean[p(gold | original) − p(gold | speaker swapped)] over the can
 | DeepSeek-V4 Pro | 1600 | ≥32T | +.066 | +.051 |
 | kotodama-tsumugi 1.4B @ 110B tokens (release) | 1.42 | 110B | −.014 | +.038 |
 
-Zero-shot, no model up to 4B binds, and four of the small Qwen models invert. At 7B, OLMo-2 7B (+.055) and Qwen2.5 7B (+.047) bind; Qwen3 8B and Gemma-2 9B do not yet. From 13B up, every base binds: all 19 measured, here and in the full atlas, from OLMo-2 13B to DeepSeek-V4 Pro at 1.6T. The largest readings are DeepSeek-V3 (+.216), DeepSeek-V4 Flash (+.177) and MiMo-V2.5 Pro (+.162), and static *you* reads +.27 to +.89 across these 19. With three worked examples, binding starts at Qwen3 4B (+.055) and reaches +.32 for Qwen3 14B. The kotodama-tsumugi release reads −.014 zero-shot and +.038 with three examples, which binds; its second anneal reads +.022 with examples, just short of the line.
+Zero-shot, no model up to 4B binds, and four of the small Qwen models invert. At 7B, OLMo-2 7B (+.055) and Qwen2.5 7B (+.047) bind; Qwen3 8B and Gemma-2 9B do not yet. From 13B up, every base binds: all 19 measured, here and in the full atlas, from OLMo-2 13B to DeepSeek-V4 Pro at 1.6T. The largest readings are DeepSeek-V3 (+.216), DeepSeek-V4 Flash (+.177) and MiMo-V2.5 Pro (+.162). Static *you* reads +.27 to +.89 across these 19. With three worked examples, binding starts at Qwen3 4B (+.055) and reaches +.32 for Qwen3 14B. The kotodama-tsumugi release reads −.014 zero-shot and +.038 with three examples, which binds; its second anneal reads +.022 with examples, just short of the line.
 
 ### Training tokens until each stage appears (the range spans the checkpoints that bracket the stage)
 
@@ -100,7 +100,7 @@ Each dynamic-*you* gauge item is rewritten along one axis: **transfer, narrated*
 | Qwen3 30B-A3B | 36T | .583 | .428 | .578 | .397 |
 | Llama-3.1 70B | 15T | .794 | .558 | .853 | .483 |
 
-The rewrites show three layers. (1) The first is possession transfer itself. The 1.4–1.5B models sit near chance even when the scene is narrated (.28–.38): kotodama-tsumugi through 110B, Pythia-1.4B, OLMo-2 1B at 4T. SmolLM2 1.7B at 11T (.40) and Qwen3 1.7B at 36T (.48) lift off chance; from 4B the narrated version is easy (.53–.79). (2) The transfer as a speech act is the mid-size wall: models from 4B to 30B stay at .37–.47 when it is spoken, and Llama-3.1 70B reaches .56. Narrating only the hand-off recovers part of that gap for every model from 4B up, and all of it for Llama-3.1 70B. (3) Naming the addressee does not help: the vocative variant is never more than .01 above the spoken one, and below it for every model from 4B up.
+The rewrites show three layers. (1) The first is possession transfer itself. The 1.4–1.5B models sit near chance (.28–.38) even when the scene is narrated. These are Pythia-1.4B, OLMo-2 1B at 4T, and kotodama-tsumugi at every checkpoint through 110B tokens. SmolLM2 1.7B at 11T (.40) and Qwen3 1.7B at 36T (.48) lift off chance; from 4B the narrated version is easy (.53–.79). (2) The transfer as a speech act is the mid-size wall. Models from 4B to 30B stay at .37–.47 when it is spoken, and Llama-3.1 70B reaches .56. Narrating only the hand-off recovers part of that gap for every model from 4B up, and all of it for Llama-3.1 70B. (3) Naming the addressee does not help: the vocative variant is never more than .01 above the spoken one, and below it for every model from 4B up.
 
 ## Part II · The levers
 
@@ -173,7 +173,7 @@ For reference, OLMo-2 reaches stage 3 at about 42B tokens (OLMo-2 13B), 210B tok
 | Pattern completion (AUC) | +.458 | +.402 | +.475 | +.438 | +.507 | +.553 | +.426 | +.434 |
 | Known facts (control) (AUC) | +.640 | +.713 | +.892 | +.892 | +.925 | +.948 | +.651 | +.765 |
 
-The values are the grid's own cells, read as the grid reads them: with worked examples where the column has them, cold otherwise, and the rule-learning rows as AUC over the example ladder. Lookup rises from .69 at 5B tokens to .99 by 55B, level with the 7–9B bases (.97 to 1.00). The update tests (many refills, variable chains, shared lists) stay at chance through 33B and lift from 55B on (.04 to .22). Static *you* climbs from .08 at 5B to .49 at the release. Pattern completion reaches .55, second of 12 models at 1–2B parameters. The two seeds differ at 5B (seed 7 forms lookup and set binding earlier) and agree within .05 on all ten rows at 11B.
+The values are the grid's own cells. Each test is read as the grid reads it. Columns with worked examples use them, the others are read cold, and the rule-learning rows are AUC over the example ladder. Lookup rises from .69 at 5B tokens to .99 by 55B, level with the 7–9B bases (.97 to 1.00). The update tests (many refills, variable chains, shared lists) stay at chance through 33B and lift from 55B on (.04 to .22). Static *you* climbs from .08 at 5B to .49 at the release. Pattern completion reaches .55, second of 12 models at 1–2B parameters. The two seeds differ at 5B (seed 7 forms lookup and set binding earlier) and agree within .05 on all ten rows at 11B.
 
 ### The release against its trajectory and its class
 
@@ -188,7 +188,7 @@ The values are the grid's own cells, read as the grid reads them: with worked ex
 | deixis v2, deictic, 0-shot (acc) | .270 | .302 | .319 | .354 | .314 | .320 | — | — |
 | deixis v2, third person, 0-shot (acc) | .418 | .404 | .446 | .467 | .441 | .461 | — | — |
 
-The two 110B columns are two anneals from the same fork with the same training loss. Their spread (static *you* .127 vs .192, dynamic *you* with examples .022 vs .038, K50 4.6 vs 5.1, and .025 bits/byte on held-out text) is the measured anneal-to-anneal variance, and every single-anneal number here carries it. A second initialization seed (seed 7, same data order) was trained to 11B. Capacity (K50, after arXiv 2609.30634) is how many name–task pairs fit in context before recall falls halfway to chance. On this harness it tracks recipe and tokens more than parameters, so no parameter-equivalent size is read from it.
+The two 110B columns are two anneals from the same fork with the same training loss. Their spread is the measured anneal-to-anneal variance. It is .127 vs .192 on static *you* and .022 vs .038 on dynamic *you* with examples. K50 reads 4.6 vs 5.1, and held-out text differs by .025 bits/byte. Every single-anneal number here carries it. A second initialization seed (seed 7, same data order) was trained to 11B. Capacity (K50, after arXiv 2609.30634) is how many name–task pairs fit in context before recall falls halfway to chance. On this harness it tracks recipe and tokens more than parameters, so no parameter-equivalent size is read from it.
 
 ### Object tracking: lookup early, updating later (the box puzzle; κ, mean over code, prose, script and chat)
 
@@ -204,14 +204,14 @@ The two 110B columns are two anneals from the same fork with the same training l
 | kotodama-tsumugi 1.4B · release | +.436 | +.121 | +.611 | −.044 |
 | kotodama-tsumugi 1.4B · second anneal | +.481 | +.088 | +.486 | +.001 |
 
-On *lookup* items, the queried box ends with the contents it was declared with; on *update* items, an operation changed it. Each public row is the median model of its size band. Lookup is above chance at every size. The median model updates at chance below 2B. With worked examples, updating climbs with size, from .20 at 2–5B and .40 at 7–10B to .77 at 70B and .87 from 284B up. A few small models update early, each with examples: Qwen3 4B (.43), Falcon-H1 3B (.37) and Falcon-H1 1.5B-Deep (.28). kotodama-tsumugi's lookup with examples (.61) is second of 12 models at 1–2B, behind Llama-3.2 1B (.83); like most models its size, it does not yet update (−.04). One model's cell averages 272 lookup or 328 update items (68 or 82 per format), about ±.08 at 95%.
+On *lookup* items, the queried box ends with its declared contents; on *update* items, an operation changed it. Each public row is the median model of its size band. Lookup is above chance at every size. The median model updates at chance below 2B. With worked examples, updating climbs with size, from .20 at 2–5B and .40 at 7–10B to .77 at 70B and .87 from 284B up. A few small models update early, each with examples: Qwen3 4B (.43), Falcon-H1 3B (.37) and Falcon-H1 1.5B-Deep (.28). kotodama-tsumugi's lookup with examples (.61) is second of 12 models at 1–2B, behind Llama-3.2 1B (.83); like most models its size, it does not yet update (−.04). One model's cell averages 272 lookup or 328 update items (68 or 82 per format), about ±.08 at 95%.
 
 ## How to read the full atlas
 
 - **A cell** = one model (row) on one test (column) under one condition. `score` averages, over items, (credit − chance)/(1 − chance), with `chance` = 1/#candidates. `credit` is 1 when the gold is the model's top-ranked candidate, and an exact tie between candidates splits the credit evenly. 0 = guessing, 1 = always right, below 0 = reliably wrong. `lo`, `hi` = the bootstrap 95% interval (1,000 resamples of items).
 - **State:** `above` when the interval is above 0, and `at` when it includes 0. `below` means the interval is below 0: the model picks a wrong answer more often than guessing would.
 - **Conditions:** `fair` = four solved items first, balanced so that no answer can be copied from them (the reading); `0shot` = the item alone (the floor). Columns without worked examples (lookups in lists, box refills, the static gauges) have a `0shot` reading only. The rule-learning columns are read across their difficulty ladder (`ladder`: the mean chance-normalized accuracy over the ladder's rungs, clipped at 0 and 1).
-- **Wording controls:** a query that says *now* implies that something moved, and the largest models read that implication: after a scene where nothing moves, 'Now X is holding the' leads them to answer as if something had. Every query here uses one lead per test, the same whether or not anything moved ('Right now X is holding the', 'So Box G contains the'), so the wording never signals a change.
+- **Wording controls:** the word *now* in a query implies that something moved. The largest models read that implication. After a scene where nothing moves, 'Now X is holding the' leads them to answer as if something had. Every query here uses one lead per test, whether or not anything moved: 'Right now X is holding the', 'So Box G contains the'. The wording therefore never signals a change.
 - **Groups:** columns are grouped by what the questions look like. Each column is scored and read on its own.
 - **Models:** every base model is scored by log-probability over the candidate set, with one scorer and one set of batteries. The **Human** row is one person reading items cold, with typed answers.
 - **Parsing:** sections are `##` headings outside code fences (prompts inside code fences can contain lines that start with `#`). Two CSV blocks at the end: `rows` (id → label, group, size, tokens) and `cells` (every number).
@@ -260,7 +260,7 @@ Each prompt ends right before the scored word. `candidates` = the closed set a l
 
 Several people each keep an object; name one person's object.
 
-**0-shot example** (`attr-v2_2-first_000`) — candidates: battery, banana, rope · gold: **banana**
+**0-shot example** (`attr-v2_2-first_000`) — candidates: `battery, banana, rope` · gold: **`banana`**
 
 ```text
 A battery lies on the shelf. Joe carries the banana. Susan carries the rope. So Joe carries the
@@ -270,7 +270,7 @@ A battery lies on the shelf. Joe carries the banana. Susan carries the rope. So 
 
 A list pairs one to four names with tasks; name one person's task.
 
-**0-shot example** (`cap1|K1|D0|s0|t0|lines|q0`) — candidates: laundry, dishes, garden, cooking, shopping, painting, windows, trash, mail, dog, car, plants, bills, lunch, dinner, breakfast, garage, kitchen, roof, fence, pool, lawn, taxes, report, budget · gold: **shopping**
+**0-shot example** (`cap1|K1|D0|s0|t0|lines|q0`) — candidates: `laundry, dishes, garden, cooking, shopping, painting, windows, trash, mail, dog, car, plants, bills, lunch, dinner, breakfast, garage, kitchen, roof, fence, pool, lawn, taxes, report, budget` · gold: **`shopping`**
 
 ```text
 Tyler: shopping
@@ -281,7 +281,7 @@ The task for Tyler is:
 
 Some people hold two objects and some one; name what a one-object person holds.
 
-**0-shot example** (`setbind-v4_1-joint-0_000_prose`) — candidates: switch, boot, marble, notebook, whistle, basket, drum, lantern · gold: **lantern**
+**0-shot example** (`setbind-v4_1-joint-0_000_prose`) — candidates: `switch, boot, marble, notebook, whistle, basket, drum, lantern` · gold: **`lantern`**
 
 ```text
 Hannah has the switch and the boot. Olivia has the marble and the notebook. Nina has the whistle. A basket lies on the shelf. A drum lies on the shelf. Roy has the lantern. So Roy has the
@@ -291,7 +291,7 @@ Hannah has the switch and the boot. Olivia has the marble and the notebook. Nina
 
 Boxes are filled, unrelated events follow; name what one box holds.
 
-**0-shot example** (`formupdate-v3|K2|U1|prose|b00|A`) — candidates: hammer, sock, marble, ball, button · gold: **hammer**
+**0-shot example** (`formupdate-v3|K2|U1|prose|b00|A`) — candidates: `hammer, sock, marble, ball, button` · gold: **`hammer`**
 
 ```text
 The drawer holds the hammer. The tin holds the ball. Then the kettle is switched on. Then the lights are switched off. So the drawer holds the
@@ -301,7 +301,7 @@ The drawer holds the hammer. The tin holds the ball. Then the kettle is switched
 
 A scene says who holds what; nothing moves. Then: 'Right now X is holding the'.
 
-**0-shot example** (`jl0000-third-orig`) — candidates: photo, onion, marble · gold: **onion**
+**0-shot example** (`jl0000-third-orig`) — candidates: `photo, onion, marble` · gold: **`onion`**
 
 ```text
 A chat between Jack and Carol. Carol has the onion, Jack has the photo, and the marble is on the table.
@@ -314,7 +314,7 @@ Right now Carol is holding the
 
 Objects pass between people in a short story; name who has an object at the end.
 
-**0-shot example** (`dialogue-v3_3-1-holder_000`) — candidates: Beth, Greg, Jerry · gold: **Jerry**
+**0-shot example** (`dialogue-v3_3-1-holder_000`) — candidates: `Beth, Greg, Jerry` · gold: **`Jerry`**
 
 ```text
 Beth, Greg and Jerry are sitting at a table. Beth has the whistle. Greg has the hammer. Jerry has the needle. Beth hands the whistle to Jerry. Now the whistle is with
@@ -324,7 +324,7 @@ Beth, Greg and Jerry are sitting at a table. Beth has the whistle. Greg has the 
 
 Each person starts with a set of objects, then two gives; name the set one person ends with.
 
-**0-shot example** (`setbind-v4_1-joint-2_000_prose`) — candidates: lamp, battery, potato, letter, bulb, sock, envelope, pencil · gold: **envelope**
+**0-shot example** (`setbind-v4_1-joint-2_000_prose`) — candidates: `lamp, battery, potato, letter, bulb, sock, envelope, pencil` · gold: **`envelope`**
 
 ```text
 A lamp lies on the shelf. Susan has the battery. A potato lies on the shelf. James has the letter and the bulb. Bruce has the sock and the envelope. Jack has the pencil. Jack gives the pencil to Susan. Bruce gives the envelope to Jack. So now Jack has the
@@ -334,7 +334,7 @@ A lamp lies on the shelf. Susan has the battery. A potato lies on the shelf. Jam
 
 A box is emptied and refilled; name its new contents.
 
-**0-shot example** (`formupdate-v3|K2|U1|prose|b00|C`) — candidates: hammer, sock, marble, ball, button · gold: **button**
+**0-shot example** (`formupdate-v3|K2|U1|prose|b00|C`) — candidates: `hammer, sock, marble, ball, button` · gold: **`button`**
 
 ```text
 The drawer holds the hammer. The tin holds the ball. Then the drawer is emptied and the button is put in it. Then the lights are switched off. So the drawer holds the
@@ -344,7 +344,7 @@ The drawer holds the hammer. The tin holds the ball. Then the drawer is emptied 
 
 Boxes are emptied and refilled again and again; name one box's latest contents.
 
-**0-shot example** (`fluid-v2-rebind|N1|RN|prose|s0|t0`) — candidates: stone, brush, button, ball, fork · gold: **button**
+**0-shot example** (`fluid-v2-rebind|N1|RN|prose|s0|t0`) — candidates: `stone, brush, button, ball, fork` · gold: **`button`**
 
 ```text
 The tin holds the fork. The crate holds the ball. The bag holds the hat. The drawer holds the brush. Then the drawer is emptied and the button is put in it. Then the bag is emptied and the stone is put in it. In the end, the drawer holds the
@@ -354,7 +354,7 @@ The tin holds the fork. The crate holds the ball. The bag holds the hat. The dra
 
 Python variables are assigned, copied and reassigned; name what one prints.
 
-**0-shot example** (`codevar_0-1_000`) — candidates: mirror, bulb, bowl, bolt · gold: **bolt**
+**0-shot example** (`codevar_0-1_000`) — candidates: `mirror, bulb, bowl, bolt` · gold: **`bolt`**
 
 ```text
 b = "mirror"
@@ -368,7 +368,7 @@ print(b)  # output:
 
 Two names point at one Python list that is changed, rebound or copied; name what a print shows.
 
-**0-shot example** (`codevarmut-v1_1-mutate_000`) — candidates: bolt, spoon, straw, mirror, lantern · gold: **lantern**
+**0-shot example** (`codevarmut-v1_1-mutate_000`) — candidates: `bolt, spoon, straw, mirror, lantern` · gold: **`lantern`**
 
 ```text
 # python
@@ -385,7 +385,7 @@ print(d[-1])  # output:
 
 Boxes are swapped, moved and refilled, written as plain sentences; name one box's contents.
 
-**0-shot example** (`n2m0_131|narrative|0shot`) — candidates: fork, tape · gold: **fork**
+**0-shot example** (`n2m0_131|narrative|0shot`) — candidates: `fork, tape` · gold: **`fork`**
 
 ```text
 Box F contains the fork. Box G contains the tape. So Box F contains the
@@ -395,7 +395,7 @@ Box F contains the fork. Box G contains the tape. So Box F contains the
 
 Boxes are swapped, moved and refilled, written as a two-speaker script; name one box's contents.
 
-**0-shot example** (`n2m0_131|screenplay|0shot`) — candidates: fork, tape · gold: **fork**
+**0-shot example** (`n2m0_131|screenplay|0shot`) — candidates: `fork, tape` · gold: **`fork`**
 
 ```text
 SAM: Box F contains the fork. Box G contains the tape.
@@ -406,7 +406,7 @@ RIVER: So Box F contains the
 
 Boxes are swapped, moved and refilled, written as a Python dictionary; name one box's contents.
 
-**0-shot example** (`n2m0_131|code|0shot`) — candidates: fork, tape · gold: **fork**
+**0-shot example** (`n2m0_131|code|0shot`) — candidates: `fork, tape` · gold: **`fork`**
 
 ```text
 state = {"F": "fork", "G": "tape"}
@@ -417,7 +417,7 @@ print(state["F"])  #
 
 Boxes are swapped, moved and refilled, written as chat turns; name one box's contents.
 
-**0-shot example** (`n2m0_131|chat|0shot`) — candidates: fork, tape · gold: **fork**
+**0-shot example** (`n2m0_131|chat|0shot`) — candidates: `fork, tape` · gold: **`fork`**
 
 ```text
 <|im_start|>user
@@ -430,7 +430,7 @@ So Box F contains the
 
 A narrator says who holds what; then a speaker says 'right now you're holding the'. Name the listener's object.
 
-**0-shot example** (`jl0000-addressee-orig`) — candidates: photo, onion, marble · gold: **onion**
+**0-shot example** (`jl0000-addressee-orig`) — candidates: `photo, onion, marble` · gold: **`onion`**
 
 ```text
 A chat between Jack and Carol. Carol has the onion, Jack has the photo, and the marble is on the table.
@@ -443,7 +443,7 @@ Jack: Right now you're holding the
 
 Two people hand objects over only through I / my / you lines; a speaker says 'right now I'm holding the'.
 
-**0-shot example** (`deixis-v5_2-1-self_000_deictic`) — candidates: sock, bowl, hat · gold: **hat**
+**0-shot example** (`deixis-v5_2-1-self_000_deictic`) — candidates: `sock, bowl, hat` · gold: **`hat`**
 
 ```text
 A chat between Molly and Julia.
@@ -458,7 +458,7 @@ Julia: Right now I'm holding the
 
 Two people hand objects over only through I / my / you lines; a speaker says 'right now you're holding the'. Name the listener's object.
 
-**0-shot example** (`deixis-v5_2-1-addressee_000_deictic`) — candidates: chain, hammer, drum · gold: **drum**
+**0-shot example** (`deixis-v5_2-1-addressee_000_deictic`) — candidates: `chain, hammer, drum` · gold: **`drum`**
 
 ```text
 A chat between Linda and Julia.
@@ -473,7 +473,7 @@ Linda: Right now you're holding the
 
 Three people talk and hand objects over; the line naming the listener asks what they are holding.
 
-**0-shot example** (`deixis-v5_3-1-addressee_000_deictic`) — candidates: wallet, bolt, boot · gold: **bolt**
+**0-shot example** (`deixis-v5_3-1-addressee_000_deictic`) — candidates: `wallet, bolt, boot` · gold: **`bolt`**
 
 ```text
 A chat between Susan, Olivia and Martha.
@@ -488,7 +488,7 @@ Olivia: Martha, right now you're holding the
 
 A speaker must answer with 'me', 'you' or a name, from where they stand in the conversation.
 
-**0-shot example** (`answer-v4_1-novoc_000_qa`) — candidates: me, you, Henry, Lily · gold: **me**
+**0-shot example** (`answer-v4_1-novoc_000_qa`) — candidates: `me, you, Henry, Lily` · gold: **`me`**
 
 ```text
 A chat between Henry, Jill, Lily and Simon.
@@ -505,7 +505,7 @@ Jill: I think it's with
 
 Examples show an invented word ending; apply it to a new invented word.
 
-**0-shot example** (`fluid-v1-morph|suffix|n8|s0|t0`) — candidates: fo, di, fa, bi, ta · gold: **bi**
+**0-shot example** (`fluid-v1-morph|suffix|n8|s0|t0`) — candidates: `fo, di, fa, bi, ta` · gold: **`bi`**
 
 ```text
 Word → plural:
@@ -524,7 +524,7 @@ fa fo → fa fo
 
 Example equations define invented symbols; solve a new equation.
 
-**0-shot example** (`fluid-v2-algebra|k1|d1|s0|t0`) — candidates: vap, viv, ker, piv, reb, sab · gold: **piv**
+**0-shot example** (`fluid-v2-algebra|k1|d1|s0|t0`) — candidates: `vap, viv, ker, piv, reb, sab` · gold: **`piv`**
 
 ```text
 Equations:
@@ -538,7 +538,7 @@ piv ⊙ viv =
 
 Example lines repeat or mirror a pattern of nonsense words; continue a new line. A copy rule alone scores .26 here.
 
-**0-shot example** (`fluid-v1-seqind|m2|g0|s0|t0`) — candidates: raz, vir, gaz, sab, mir, bif · gold: **gaz**
+**0-shot example** (`fluid-v1-seqind|m2|g0|s0|t0`) — candidates: `raz, vir, gaz, sab, mir, bif` · gold: **`gaz`**
 
 ```text
 Sequences:
@@ -552,7 +552,7 @@ bif raz vir gaz sab sab
 
 Real facts in the same examples-then-question layout; this column separates the layout from the learning.
 
-**0-shot example** (`cryst-v1|capital|shots6|s0|t0`) — candidates: Copenhagen, Washington, Warsaw, Brussels, Berlin, Paris · gold: **Brussels**
+**0-shot example** (`cryst-v1|capital|shots6|s0|t0`) — candidates: `Copenhagen, Washington, Warsaw, Brussels, Berlin, Paris` · gold: **`Brussels`**
 
 ```text
 Country → capital:

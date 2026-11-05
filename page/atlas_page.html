@@ -265,7 +265,7 @@ table.levers td.cost { color: var(--muted); }
       the exact prompt that the model was given.</p>
     <p class="claim">Base language models learn to look things up long before they learn to track change. In the
       box puzzle (Table 5), the median model under 1B already finds a box's declared contents, and scores zero on the
-      boxes that an operation changed. With worked examples, updating climbs steadily with size, to .77 for the 70B
+      boxes changed by an operation. With worked examples, updating climbs steadily with size, to .77 for the 70B
       models and above .8 for most of the largest. The referent of <i>you</i> follows five ordered stages. Every base
       of 0.6B parameters or more trained on trillions of tokens reaches the first three, except Bamba 9B. The fifth
       stage is tracking <i>you</i> after objects change hands. <b>Zero-shot, it appears from about 7B, and every base
@@ -296,7 +296,7 @@ table.levers td.cost { color: var(--muted); }
           speaker. Zero-shot (filled), no model up to 4B binds, and four of the small Qwen models invert. At 7B,
           OLMo-2 7B (+.055) and Qwen2.5 7B (+.047) bind; Qwen3 8B and Gemma-2 9B do not yet. From 13B up, every base
           binds: all 19 measured, here and in the full atlas, from OLMo-2 13B to DeepSeek-V4 Pro at 1.6T. The largest
-          readings are DeepSeek-V3 (+.216), DeepSeek-V4 Flash (+.177) and MiMo-V2.5 Pro (+.162), and static <i>you</i>
+          readings are DeepSeek-V3 (+.216), DeepSeek-V4 Flash (+.177) and MiMo-V2.5 Pro (+.162). Static <i>you</i>
           reads +.27 to +.89 across these 19. With three worked examples (hollow), binding starts at Qwen3 4B (+.055)
           and reaches +.32 for Qwen3 14B. The kotodama-tsumugi release (diamond; 1.4B at 110B tokens) reads −.014
           zero-shot and +.038 with three examples, which binds. Its second anneal reads +.022 with examples, just
@@ -307,8 +307,8 @@ table.levers td.cost { color: var(--muted); }
         <div id="cost"></div>
         <p class="cap"><b>Training tokens until each stage appears, for one data recipe (OLMo-2) at three sizes.</b>
           Stage 1 costs about the same at 1B, 7B and 13B (17–63B tokens). Stage 3 takes at least ten times fewer
-          tokens at 13B (17–42B) than at 1B (420–525B). Zero-shot stage 5 appears at 7B and 13B, between the last
-          early checkpoint measured and the 4–5T endpoint, and not at all at 1B up to 4T. kotodama-tsumugi, at 1.4B
+          tokens at 13B (17–42B) than at 1B (420–525B). At 7B and 13B, zero-shot stage 5 appears somewhere between
+          the last early checkpoint measured and the 4–5T endpoint. At 1B it never appears, up to 4T. kotodama-tsumugi, at 1.4B
           parameters, reaches stage 1 between 3B and 3.75B tokens and stage 3 between 30B and 33B: the 13B model's
           token cost at a tenth of its size.</p>
       </section>
@@ -321,10 +321,11 @@ table.levers td.cost { color: var(--muted); }
         and addressee queries pooled; chance ≈ .29; about ±.024 per cell). <i>Narrated</i> removes deixis from the
         whole scene. <i>Spoken</i> is the gauge item itself. <i>Spoken, transfer narrated</i> keeps the chat but
         states the hand-off as a stage direction. <i>Spoken + vocative</i> names the addressee in the query. Three
-        layers show. (1) <b>Possession transfer itself.</b> The 1.4–1.5B models sit near chance even when the scene is
-        narrated (.28–.38): kotodama-tsumugi through 110B, Pythia-1.4B, OLMo-2 1B at 4T. SmolLM2 1.7B at 11T (.40)
+        layers show. (1) <b>Possession transfer itself.</b> The 1.4–1.5B models sit near chance (.28–.38) even when the
+        scene is narrated. These are Pythia-1.4B, OLMo-2 1B at 4T, and kotodama-tsumugi at every checkpoint through
+        110B tokens. SmolLM2 1.7B at 11T (.40)
         and Qwen3 1.7B at 36T (.48) lift off chance; from 4B the narrated version is easy (.53–.79). (2) <b>The
-        transfer as a speech act</b> (“here, take my cup”) is the mid-size wall: models from 4B to 30B stay at .37–.47
+        transfer as a speech act</b> (“here, take my cup”) is the mid-size wall. Models from 4B to 30B stay at .37–.47
         when it is spoken, and Llama-3.1 70B reaches .56. Narrating only the hand-off recovers part of that gap for
         every model from 4B up, and all of it for Llama-3.1 70B. (3) <b>Naming the addressee does not help</b>: the
         vocative variant is never more than .01 above the spoken one, and below it for every model from 4B up.</p>
@@ -395,7 +396,7 @@ table.levers td.cost { color: var(--muted); }
         <i>you</i> first dips below zero, the stage where the model treats <i>you</i> as <i>me</i>. It first binds at
         33B tokens in an annealed read (+.065) and at 40B on the trunk itself (+.068), and reaches +.192 at the 110B
         release. The second anneal from the same fork reads +.127 (Table 4 gives the anneal-to-anneal spread).
-        On seed 17, dynamic <i>you</i> (0-shot) sits just below zero from about 4B (−.015 to −.034) and never binds; at 110B the
+        On seed 17, dynamic <i>you</i> (0-shot) sits just below zero from about 4B (−.015 to −.034) and never binds. At 110B the
         two anneals read −.014 and −.012, not inverted under the gauge rule. The markers along the top show where
         OLMo-2 reaches stage 3 at 13B, 7B and 1B parameters.</p>
     </section>
@@ -415,9 +416,9 @@ table.levers td.cost { color: var(--muted); }
     <section class="fig" aria-labelledby="t3h">
       <div class="fh"><span class="no">Table 3</span><h2 id="t3h">The headline tests across the annealed reads</h2></div>
       <div class="tblwrap"><table class="levers" id="moonbat"></table></div>
-      <p class="cap"><b>kotodama-tsumugi's checkpoints on the grid's headline tests</b>, read as the grid reads them:
-        with worked examples where the column has them, cold otherwise, and the rule-learning rows as AUC over the
-        example ladder. The values are the grid's own cells. Lookup rises from .69 at 5B tokens to .99 by 55B, level
+      <p class="cap"><b>kotodama-tsumugi's checkpoints on the grid's headline tests.</b> Each test is read as the grid reads
+        it. Columns with worked examples use them, the others are read cold, and the rule-learning rows are AUC over
+        the example ladder. The values are the grid's own cells. Lookup rises from .69 at 5B tokens to .99 by 55B, level
         with the 7–9B bases (.97 to 1.00). The update tests (many refills, variable chains, shared lists) stay at
         chance through 33B and lift from 55B on (.04 to .22). Static <i>you</i> climbs from .08 at 5B to .49 at the
         release. Pattern completion reaches .55, second of 12 models at 1–2B parameters. The two seeds differ at 5B
@@ -431,9 +432,9 @@ table.levers td.cost { color: var(--muted); }
         before recall falls halfway to chance. Each capacity trial is rendered four ways (a list or inline, two query
         leads), and K50 is read over all four. The last capacity row is the recall of one binding across 256 tokens
         of filler. The deixis-v2 columns are accuracies (chance ≈ .33). The two 110B columns are two anneals
-        from the same fork with the same training loss. The spread between them (static <i>you</i> .127 vs .192, dynamic
-        <i>you</i> with examples .022 vs .038, K50 4.6 vs 5.1, and .025 bits/byte on held-out text) is the measured
-        anneal-to-anneal variance. Every
+        from the same fork with the same training loss. The spread between them is the measured anneal-to-anneal variance.
+        It is .127 vs .192 on static <i>you</i> and .022 vs .038 on dynamic <i>you</i> with examples. K50 reads 4.6 vs
+        5.1, and held-out text differs by .025 bits/byte. Every
         single-anneal number on this page carries that spread, so a difference between neighbouring checkpoints on
         one axis is not a trend. A second initialization seed (seed 7, same data order) was trained to 11B. deixis v2 has no SmolLM2 or Qwen3 grid. Capacity tracks recipe and
         tokens more than parameters on this harness (Pythia is flat from 160M to 6.9B), so no parameter-equivalent
@@ -444,7 +445,7 @@ table.levers td.cost { color: var(--muted); }
       <div class="tblwrap"><table class="levers" id="riders"></table></div>
       <p class="cap"><b>The box puzzle, split by what the query needs</b> (κ: 0 is guessing, 1 is always right).
         Boxes go through swaps, moves and refills, written as code, prose, a script or chat, and one box is queried. On
-        <i>lookup</i> items, the queried box ends with the contents it was declared with; on <i>update</i> items, an
+        <i>lookup</i> items, the queried box ends with its declared contents; on <i>update</i> items, an
         operation changed it. Each cell averages the four formats, and each public row is the median model of its size
         band (hover for the list). Lookup is above chance at every size. The median model updates at chance below 2B.
         With worked examples, updating climbs with size, from .20 at 2–5B and .40 at 7–10B to .77 at 70B and .87 from
@@ -466,10 +467,10 @@ table.levers td.cost { color: var(--muted); }
           them. That is the reading. <b>Cold</b> shows the item alone, with no solved items: the floor.
           Columns with no worked-example version (lookups in lists, box refills, the static gauges) have a Cold
           reading only.</li>
-        <li><b>Wording controls.</b> A query that says <i>now</i> implies that something moved, and the largest models
-          read that implication: after a scene where nothing moves, "Now X is holding the" leads them to answer as if
-          something had. Every query here uses one lead per test, the same whether or not anything moved ("Right now X
-          is holding the", "So Box G contains the"), so the wording never signals a change.</li>
+        <li><b>Wording controls.</b> The word <i>now</i> in a query implies that something moved, and the largest
+          models read that implication. After a scene where nothing moves, "Now X is holding the" leads them to answer
+          as if something had. Every query here uses one lead per test, whether or not anything moved: "Right now X is
+          holding the", "So Box G contains the". The wording therefore never signals a change.</li>
         <li><b>Each model</b> is scored by the log-probability that it gives each candidate answer. The human row read
           each item cold, once, without options.</li>
         <li><b>Columns are grouped</b> by what the questions look like. Each column is its own test, and a collapsed group

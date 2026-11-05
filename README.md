@@ -179,8 +179,8 @@ config before serving it under another domain. The card carries the canonical UR
   (kotodama-tsumugi: `trunk-<tokens>` on the constant-LR trunk, `anneal-<tokens>` for cooldown branches,
   `anneal-110B-release` for the released checkpoint, `s7-…` for the seed-7 replicate). `build/subset_synthesis.py`
   cuts it from the full table, given a local map from the table's checkpoint ids to the public ones.
-- `data/inputs/riders_split.json` holds each model's box-puzzle score on lookup and update items, per format and
-  condition, which the object-tracking table reads.
+- `data/inputs/riders_split.json` holds each model's score on the lookup and update items of the box puzzle, per format
+  and condition. The object-tracking table is built from it.
 - `data/built/stage.json` holds the curated front-section layout (figure model lists, stage texts); `make stage`
   re-reads every number in it from the synthesis rows, the grid (`data/built/atlas.json`) and the riders split.
 

@@ -130,7 +130,7 @@ def main() -> None:
     P("Zero-shot, no model up to 4B binds, and four of the small Qwen models invert. At 7B, OLMo-2 7B (+.055) and "
       "Qwen2.5 7B (+.047) bind; Qwen3 8B and Gemma-2 9B do not yet. From 13B up, every base binds: all 19 measured, "
       "here and in the full atlas, from OLMo-2 13B to DeepSeek-V4 Pro at 1.6T. The largest readings are DeepSeek-V3 "
-      "(+.216), DeepSeek-V4 Flash (+.177) and MiMo-V2.5 Pro (+.162), and static *you* reads +.27 to +.89 across these "
+      "(+.216), DeepSeek-V4 Flash (+.177) and MiMo-V2.5 Pro (+.162). Static *you* reads +.27 to +.89 across these "
       "19. With three worked examples, binding starts at Qwen3 4B (+.055) and reaches +.32 for Qwen3 14B. The "
       "kotodama-tsumugi release reads −.014 zero-shot and +.038 with three examples, which binds; its second anneal "
       "reads +.022 with examples, just short of the line.")
@@ -156,9 +156,10 @@ def main() -> None:
         P(f"| {r['m']} | {r['tok']} | " + " | ".join(pend(r[c['k']]) for c in dec["cols"]) + " |")
     P("")
     P("The rewrites show three layers. (1) The first is possession transfer itself. The 1.4–1.5B models sit near "
-      "chance even when the scene is narrated (.28–.38): kotodama-tsumugi through 110B, Pythia-1.4B, OLMo-2 1B at 4T. "
+      "chance (.28–.38) even when the scene is narrated. These are Pythia-1.4B, OLMo-2 1B at 4T, and "
+      "kotodama-tsumugi at every checkpoint through 110B tokens. "
       "SmolLM2 1.7B at 11T (.40) and Qwen3 1.7B at 36T (.48) lift off chance; from 4B the narrated version is easy "
-      "(.53–.79). (2) The transfer as a speech act is the mid-size wall: models from 4B to 30B stay at .37–.47 when it "
+      "(.53–.79). (2) The transfer as a speech act is the mid-size wall. Models from 4B to 30B stay at .37–.47 when it "
       "is spoken, and Llama-3.1 70B reaches .56. Narrating only the hand-off recovers part of that gap for every model "
       "from 4B up, and all of it for Llama-3.1 70B. (3) Naming the addressee does not help: the vocative variant is "
       "never more than .01 above the spoken one, and below it for every model from 4B up.")
@@ -201,8 +202,8 @@ def main() -> None:
         for name, vals in g["rows"]:
             P(f"| {name} | " + " | ".join(f3(v) for v in vals) + " |")
     P("")
-    P("The values are the grid's own cells, read as the grid reads them: with worked examples where the column has them, "
-      "cold otherwise, and the rule-learning rows as AUC over the example ladder. Lookup rises from .69 at 5B tokens to "
+    P("The values are the grid's own cells. Each test is read as the grid reads it. Columns with worked examples use "
+      "them, the others are read cold, and the rule-learning rows are AUC over the example ladder. Lookup rises from .69 at 5B tokens to "
       ".99 by 55B, level with the 7–9B bases (.97 to 1.00). The update tests (many refills, variable chains, shared "
       "lists) stay at chance through 33B and lift from 55B on (.04 to .22). Static *you* climbs from .08 at 5B to .49 "
       "at the release. Pattern completion reaches .55, second of 12 models at 1–2B parameters. The two seeds differ at "
@@ -216,10 +217,10 @@ def main() -> None:
     for name, vals, signed in rel["rows"]:
         P(f"| {name} | " + " | ".join("—" if v is None else f3(v) if signed else (f"{v:.1f}" if v >= 1 else f"{v:.3f}".lstrip("0")) for v in vals) + " |")
     P("")
-    P("The two 110B columns are two anneals from the same fork with the same training loss. Their spread (static *you* "
-      ".127 vs .192, dynamic *you* with examples .022 vs .038, K50 4.6 vs 5.1, and .025 bits/byte on held-out text) is "
-      "the measured anneal-to-anneal variance, "
-      "and every single-anneal number here carries it. A second initialization seed (seed 7, same data order) was "
+    P("The two 110B columns are two anneals from the same fork with the same training loss. Their spread is "
+      "the measured anneal-to-anneal variance. It is .127 vs .192 on static *you* and .022 vs .038 on dynamic *you* "
+      "with examples. K50 reads 4.6 vs 5.1, and held-out text differs by .025 bits/byte. "
+      "Every single-anneal number here carries it. A second initialization seed (seed 7, same data order) was "
       "trained to 11B. Capacity (K50, after arXiv 2609.30634) is how many name–task pairs fit in context before recall "
       "falls halfway to chance. On this harness it tracks recipe and tokens more than parameters, so no "
       "parameter-equivalent size is read from it.")
@@ -232,7 +233,7 @@ def main() -> None:
     for r in rid["rows"]:
         P(f"| {r['m']} | " + " | ".join("—" if r[c['k']] is None else f3(r[c['k']]) for c in rid["cols"]) + " |")
     P("")
-    P("On *lookup* items, the queried box ends with the contents it was declared with; on *update* items, an "
+    P("On *lookup* items, the queried box ends with its declared contents; on *update* items, an "
       "operation changed it. Each public row is the median model of its size band. Lookup is above chance at every "
       "size. The median model updates at chance below 2B. With worked examples, updating climbs with size, from .20 "
       "at 2–5B and .40 at 7–10B to .77 at 70B and .87 from 284B up. A few small models update early, each with "
@@ -253,10 +254,10 @@ def main() -> None:
       "reading); `0shot` = the item alone (the floor). Columns without worked examples (lookups in lists, box refills, the "
       "static gauges) have a `0shot` reading only. The rule-learning columns are read across their difficulty ladder "
       "(`ladder`: the mean chance-normalized accuracy over the ladder's rungs, clipped at 0 and 1).")
-    P("- **Wording controls:** a query that says *now* implies that something moved, and the largest models read that "
-      "implication: after a scene where nothing moves, 'Now X is holding the' leads them to answer as if something "
-      "had. Every query here uses one lead per test, the same whether or not anything moved ('Right now X is holding "
-      "the', 'So Box G contains the'), so the wording never signals a change.")
+    P("- **Wording controls:** the word *now* in a query implies that something moved. The largest models read that "
+      "implication. After a scene where nothing moves, 'Now X is holding the' leads them to answer as if something had. "
+      "Every query here uses one lead per test, whether or not anything moved: 'Right now X is holding the', 'So Box G "
+      "contains the'. The wording therefore never signals a change.")
     P("- **Groups:** columns are grouped by what the questions look like. Each column is scored and read on its own.")
     P("- **Models:** every base model is scored by log-probability over the candidate set, with one scorer and one set "
       "of batteries. The **Human** row is one person reading items cold, with typed answers.")
@@ -301,15 +302,15 @@ def main() -> None:
         P(md_text(c["what"]))
         P("")
         gold = ", ".join(e["gold_set"]) if e.get("gold_set") else e["gold"]
-        P(f"**0-shot example** (`{e['item_id']}`) — candidates: {', '.join(x.strip() for x in e['candidates'])} · "
-          f"gold: **{gold.strip()}**")
+        P(f"**0-shot example** (`{e['item_id']}`) — candidates: `{', '.join(x.strip() for x in e['candidates'])}` · "
+          f"gold: **`{gold.strip()}`**")
         P("")
         P(fence(e["prompt"]))
         P("")
         if e.get("free"):
             fr = e["free"]
-            P(f"**Shortcut-free example** — candidates: {', '.join(x.strip() for x in fr['candidates'])} · gold: "
-              f"**{fr['gold'].strip()}**")
+            P(f"**Shortcut-free example** — candidates: `{', '.join(x.strip() for x in fr['candidates'])}` · gold: "
+              f"**`{fr['gold'].strip()}`**")
             P("")
             P(fence(fr["prompt"]))
             P("")
@@ -321,7 +322,7 @@ def main() -> None:
             P("")
         for k, x in enumerate(e.get("pool", [])[:N_POOL], 1):
             g = ", ".join(x["gold_set"]) if x.get("gold_set") else x["gold"]
-            P(f"**More item {k}** — candidates: {', '.join(y.strip() for y in x['candidates'])} · gold: **{g.strip()}**")
+            P(f"**More item {k}** — candidates: `{', '.join(y.strip() for y in x['candidates'])}` · gold: **`{g.strip()}`**")
             P("")
             P(fence(x["prompt"]))
             P("")
