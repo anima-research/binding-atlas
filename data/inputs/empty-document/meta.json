@@ -1,0 +1,143 @@
+{
+ "models": {
+  "tsumugi": {
+   "label": "kotodama-tsumugi 1.4B",
+   "year": "2026"
+  },
+  "gpt2-xl": {
+   "label": "GPT-2 XL",
+   "year": "2019"
+  },
+  "pythia-160m": {
+   "label": "Pythia 160M",
+   "year": "2023"
+  },
+  "pythia-1.4b": {
+   "label": "Pythia 1.4B",
+   "year": "2023"
+  },
+  "pythia-2.8b": {
+   "label": "Pythia 2.8B",
+   "year": "2023"
+  },
+  "pythia-6.9b": {
+   "label": "Pythia 6.9B",
+   "year": "2023"
+  },
+  "olmo1-1b": {
+   "label": "OLMo 1B (0724)",
+   "year": "2024"
+  },
+  "olmo2-1b": {
+   "label": "OLMo 2 1B",
+   "year": "2025"
+  },
+  "olmo2-7b": {
+   "label": "OLMo 2 7B",
+   "year": "2024"
+  },
+  "olmo3-7b": {
+   "label": "OLMo 3 7B",
+   "year": "2025"
+  },
+  "olmo3-32b": {
+   "label": "OLMo 3 32B",
+   "year": "2025"
+  },
+  "smollm2-360m": {
+   "label": "SmolLM2 360M",
+   "year": "2024"
+  },
+  "smollm2-1.7b": {
+   "label": "SmolLM2 1.7B",
+   "year": "2024"
+  },
+  "smollm3-3b": {
+   "label": "SmolLM3 3B",
+   "year": "2025"
+  },
+  "qwen2.5-0.5b": {
+   "label": "Qwen2.5 0.5B",
+   "year": "2024"
+  },
+  "qwen2.5-1.5b": {
+   "label": "Qwen2.5 1.5B",
+   "year": "2024"
+  },
+  "qwen2.5-3b": {
+   "label": "Qwen2.5 3B",
+   "year": "2024"
+  },
+  "qwen2.5-7b": {
+   "label": "Qwen2.5 7B",
+   "year": "2024"
+  },
+  "qwen3-0.6b": {
+   "label": "Qwen3 0.6B Base",
+   "year": "2025"
+  },
+  "qwen3-1.7b": {
+   "label": "Qwen3 1.7B Base",
+   "year": "2025"
+  },
+  "qwen3-4b": {
+   "label": "Qwen3 4B Base",
+   "year": "2025"
+  },
+  "qwen3-8b": {
+   "label": "Qwen3 8B Base",
+   "year": "2025"
+  },
+  "qwen3-30b-a3b": {
+   "label": "Qwen3 30B-A3B Base",
+   "year": "2025"
+  },
+  "llama3.2-1b": {
+   "label": "Llama 3.2 1B",
+   "year": "2024"
+  },
+  "llama3.2-3b": {
+   "label": "Llama 3.2 3B",
+   "year": "2024"
+  },
+  "llama3.1-8b": {
+   "label": "Llama 3.1 8B",
+   "year": "2024"
+  },
+  "gemma2-2b": {
+   "label": "Gemma 2 2B",
+   "year": "2024"
+  },
+  "gemma3-4b": {
+   "label": "Gemma 3 4B",
+   "year": "2025"
+  },
+  "falcon3-3b": {
+   "label": "Falcon3 3B Base",
+   "year": "2024"
+  },
+  "falcon-h1-1.5b": {
+   "label": "Falcon-H1 1.5B Base",
+   "year": "2025"
+  }
+ },
+ "anchors": [
+  "gpt2-xl",
+  "pythia-160m",
+  "pythia-1.4b",
+  "pythia-2.8b",
+  "pythia-6.9b"
+ ],
+ "hero": "tsumugi",
+ "validation": {
+  "hand_runs": 300,
+  "agree_assistant_era": 0.987,
+  "kappa5": 0.913
+ },
+ "sampling": {
+  "runs": 128,
+  "new_tokens": 256,
+  "temperature": 1.0
+ },
+ "coder": "Claude Sonnet 5.5"
+}

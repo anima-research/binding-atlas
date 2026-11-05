@@ -42,6 +42,27 @@ make neurons-binding                       # data/inputs/binding/*.jsonl -> data
 `build/build_neurons.py` writes everything in `data/built/neurons/` except `binding.json`, from the compendium build (its
 inputs are named in its docstring).
 
+## An Empty Document
+
+A third page, `empty-document.html`, shows what 30 base models write from nothing. Each model got only the token that
+starts a document and wrote 256 tokens from it, 128 times. A language model classified every run with the writing
+model's name hidden: chat transcript, assistant voice, synthetic instruction data, human-written questions and
+answers, or ordinary text. Before any result was read, 300 runs were classified by hand, also with names hidden. The
+two classifications agree on 98.7% of runs about whether a run is assistant-era, and Cohen's κ is 0.91 across the
+five classes. kotodama-tsumugi writes no assistant-era run in 128. Neither do the five models trained before
+ChatGPT, nor 6 of the 24 modern bases.
+
+The runs are screened before they reach this repository. Email addresses, phone numbers, links, @handles, street
+addresses and anything the public-content guard (`build/forbidden.py`) matches are redacted. Runs with a slur, runs
+where a sexual term appears near a term about minors, and runs left unclassified are withheld, and the page counts
+them. The page loads its runs at run time from `empty-document-data/runs.json`, a copy of
+`data/built/empty-document.json`:
+
+```bash
+make empty-data                            # data/inputs/empty-document -> data/built/empty-document.json
+make empty                                 # page + data dir + link card into site/ (CONFIG= and SITE= as for make page)
+```
+
 ## Take it yourself
 
 A third page, `/take`, lets people answer the same items that the models are scored on. With enough readers, the

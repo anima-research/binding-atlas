@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>An Empty Document</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="typeface" content="__FONT_META__">
+<meta name="description" content="Thirty base language models, each given nothing but the start of a document, 128 times. Many modern ones write chatbot transcripts and machine-made training data; kotodama-tsumugi and the models trained before ChatGPT do not.">
+<link rel="canonical" href="__CANONICAL_URL__">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="__SITE_NAME__">
+<meta property="og:title" content="An Empty Document">
+<meta property="og:description" content="Thirty base models write from nothing, 128 times each. Some write chatbot transcripts; kotodama-tsumugi writes the web.">
+<meta property="og:url" content="__CANONICAL_URL__">
+<meta property="og:image" content="__CARD_URL__">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="An Empty Document">
+<meta name="twitter:image" content="__CARD_URL__">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+__FONT_FACES__
+/* Two grounds: the plate (always dark: the runs glow on it) and the page (paper in light, ink in dark).
+   Colour carries meaning only: ice = chat transcript, ember = assistant voice, violet = synthetic instruction data;
+   steel = human-written Q&A (not counted); the plate's line colour = ordinary text. */
+:root {
+  --bg: #f4f5f6; --surface: #ffffff; --fg: #0b0c0e; --fg2: #3d4652; --muted: #5d6672; --line: #d5d9de; --chip: #eceef1;
+  --plate: #08090b; --plate2: #111317; --plate-fg: #eef0f2; --plate-muted: #8c95a0; --plate-line: #262a31;
+  --steel: #59616b; --ice: #64c9ff; --ember: #ff5a36; --violet: #b48cff; --ice-ink: #0b6fa4; --ember-ink: #c23a17;
+  --tile: #20242b;
+  --f-display: __FONT__"Courier Prime", "Courier New", ui-monospace, monospace;
+  --f-body: __FONT__"Courier Prime", "Courier New", ui-monospace, monospace;
+  --f-mono: "Courier Prime", __FONT__"Courier New", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0b0c0e; --surface: #111317; --fg: #eef0f2; --fg2: #b9c1cb; --muted: #8c95a0; --line: #262a31; --chip: #15181c;
+  --ice-ink: #64c9ff; --ember-ink: #ff7a5c; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0b0c0e; --surface: #111317; --fg: #eef0f2; --fg2: #b9c1cb; --muted: #8c95a0; --line: #262a31; --chip: #15181c;
+  --ice-ink: #64c9ff; --ember-ink: #ff7a5c; color-scheme: dark }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html.card .lede, html.card .controls, html.card #reader, html.card section.notes, html.card footer, html.card header.top .kicker { display: none !important; }
+html.card header.top { padding-block: 34px 6px; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 15px; line-height: 1.55; }
+a { color: var(--ice-ink); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px));
+        padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+header.top { padding-block: 44px 20px; display: grid; gap: 12px; }
+header.top .kicker { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(30px, 5.5vw, 52px); line-height: 1.05; margin: 0;
+     text-wrap: balance; }
+.lede { margin: 0; max-width: 68ch; color: var(--fg2); font-size: 16px; }
+.figures { display: flex; flex-wrap: wrap; gap: 10px 28px; margin-top: 6px; }
+.figures div { display: grid; gap: 2px; }
+.figures b { font-size: 26px; font-variant-numeric: tabular-nums; }
+.figures span { font-size: 12px; color: var(--muted); max-width: 26ch; }
+.plate { background: var(--plate); color: var(--plate-fg); border-radius: 12px; padding: 20px 20px 22px;
+         display: grid; gap: 18px; margin-block: 14px 22px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--plate-muted); }
+.legend span { display: inline-flex; align-items: center; gap: 7px; }
+.sw { width: 11px; height: 11px; border-radius: 2px; display: inline-block; background: var(--tile); }
+.c-s { background: var(--ice) !important; } .c-v { background: var(--ember) !important; } .c-x { background: var(--violet) !important; }
+.c-h { background: var(--steel) !important; } .c-p { background: var(--tile); }
+.controls { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: 13px; color: var(--plate-muted); }
+.controls button { font: inherit; font-size: 13px; color: var(--plate-muted); background: transparent;
+                   border: 1px solid var(--plate-line); border-radius: 999px; padding: 3px 11px; cursor: pointer; }
+.controls button[aria-pressed="true"] { color: var(--plate); background: var(--plate-fg); border-color: var(--plate-fg); }
+#ledger { display: grid; gap: 22px; }
+.group { display: grid; gap: 7px; }
+.group h2 { margin: 0; font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--plate-muted);
+            border-bottom: 1px solid var(--plate-line); padding-bottom: 6px; display: flex; justify-content: space-between;
+            gap: 12px; flex-wrap: wrap; }
+.group h2 small { font-weight: 400; letter-spacing: 0; text-transform: none; }
+.row { display: grid; grid-template-columns: 220px 1fr 66px; gap: 14px; align-items: center; }
+.row .name { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .name small { color: var(--plate-muted); margin-left: 6px; font-variant-numeric: tabular-nums; }
+.row.hero .name { font-weight: 700; }
+.row .count { font-size: 13px; text-align: right; color: var(--plate-muted); font-variant-numeric: tabular-nums; }
+.row .count b { color: var(--plate-fg); font-weight: 700; }
+.tiles { display: grid; grid-template-columns: repeat(var(--cols, 64), 9px); gap: 2px; min-width: 0; }
+.tile { width: 9px; height: 9px; border-radius: 2px; border: 0; padding: 0; cursor: pointer; position: relative; }
+.tile::after { content: ""; position: absolute; inset: -2px; }
+.tile.withheld { outline: 1px dashed var(--plate-muted); outline-offset: -1px; }
+.tile:hover { outline: 1.5px solid var(--plate-muted); outline-offset: 1px; }
+.tile:focus-visible, .tile[aria-current="true"] { outline: 2px solid var(--plate-fg); outline-offset: 1px; z-index: 1; }
+.reader { background: var(--plate2); border-radius: 10px; padding: 16px 18px 18px; display: grid; gap: 10px; min-width: 0; }
+.reader .meta { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; font-size: 13px; color: var(--plate-muted); }
+.reader .meta strong { font-size: 15px; color: var(--plate-fg); }
+.pill { font-size: 12px; padding: 1px 9px; border-radius: 999px; color: var(--plate); }
+.reader pre { margin: 0; font-family: var(--f-mono); font-size: 13px; line-height: 1.6; white-space: pre-wrap; word-break: break-word;
+              max-height: 22em; overflow: auto; color: var(--plate-fg); }
+.reader pre .start { color: var(--plate-muted); }
+.reader pre mark { background: transparent; color: inherit; border-bottom: 2px solid var(--ember); }
+.reader pre mark.c-s { border-bottom-color: var(--ice); background: transparent !important; }
+.reader pre mark.c-v { border-bottom-color: var(--ember); background: transparent !important; }
+.reader pre mark.c-x { border-bottom-color: var(--violet); background: transparent !important; }
+.reader pre mark.c-h { border-bottom-color: var(--steel); background: transparent !important; }
+.reader .nav { display: flex; gap: 8px; flex-wrap: wrap; }
+.reader .nav button { font: inherit; font-size: 13px; background: var(--plate); color: var(--plate-fg);
+                      border: 1px solid var(--plate-line); border-radius: 6px; padding: 4px 10px; cursor: pointer; }
+.reader .nav button:focus-visible, .controls button:focus-visible { outline: 2px solid var(--plate-fg); outline-offset: 2px; }
+section.notes { display: grid; gap: 10px; max-width: 76ch; padding-block: 6px 26px; color: var(--fg2); font-size: 14px; }
+section.notes h3 { margin: 6px 0 0; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+section.notes p { margin: 0; }
+footer { border-top: 1px solid var(--line); padding-block: 16px 30px; font-size: 13px; color: var(--muted); }
+footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: space-between; }
+.tip { position: fixed; pointer-events: none; z-index: 20; max-width: 320px; background: var(--plate-fg); color: var(--plate);
+       font-family: var(--f-mono); font-size: 12px; line-height: 1.45; padding: 7px 9px; border-radius: 6px; white-space: pre-wrap;
+       word-break: break-word; }
+.tip b { display: block; margin-bottom: 2px; }
+.loading { color: var(--plate-muted); font-size: 13px; }
+@media (max-width: 1060px) { .tiles { --cols: 32; } }
+@media (max-width: 640px) {
+  .row { grid-template-columns: 1fr auto; gap: 4px 10px; }
+  .row .tiles { grid-column: 1 / -1; grid-row: 2; }
+  .tiles { grid-template-columns: repeat(32, 8px); } .tile { width: 8px; height: 8px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="kicker">__BACK_LINK__</div>
+    <h1>An Empty Document</h1>
+    <p class="lede">Each base model got only the token that starts a document, and wrote 256 tokens from it, 128 times.
+    Every square below is one of those runs. A coloured square marks a run that reads as a chatbot transcript, as an
+    assistant speaking, or as training data written by one language model for another.</p>
+    <div class="figures" id="figures"></div>
+  </header>
+  <div class="plate">
+    <div class="legend" aria-label="Legend">
+      <span><i class="sw c-s"></i>chat transcript (User: … Assistant:)</span>
+      <span><i class="sw c-v"></i>assistant voice (“Certainly! Here are…”)</span>
+      <span><i class="sw c-x"></i>synthetic instruction data</span>
+      <span><i class="sw c-h"></i>human-written Q&amp;A (not counted)</span>
+      <span><i class="sw c-p"></i>ordinary text</span>
+    </div>
+    <div class="controls" role="group" aria-label="Order of squares">
+      <span>Order squares</span>
+      <button type="button" id="ord-sorted" aria-pressed="true">by kind</button>
+      <button type="button" id="ord-raw" aria-pressed="false">as sampled</button>
+    </div>
+    <div id="ledger"><p class="loading">Loading the runs…</p></div>
+    <section class="reader" id="reader" aria-live="polite">
+      <div class="meta" id="r-meta"></div>
+      <pre id="r-text"></pre>
+      <div class="nav">
+        <button type="button" id="r-prev">← previous run</button>
+        <button type="button" id="r-next">next run →</button>
+        <button type="button" id="r-lit">next coloured run in this row</button>
+        <button type="button" id="r-hero">a kotodama-tsumugi run</button>
+      </div>
+    </section>
+  </div>
+  <section class="notes">
+    <h3>How the runs were made</h3>
+    <p>Every model got its own start-of-document token and nothing else. Sampling was plain: temperature 1, no top-k
+    or top-p, no repetition penalty, 256 new tokens, stopping early only at the end-of-text token. The classes and
+    the predictions were registered before any run was drawn.</p>
+    <h3>How the runs were classified</h3>
+    <p>A language model (<span id="coder"></span>) classified every run, with the writing model's name hidden. It gave
+    each run one class and quoted the words behind it, and the panel under the grid underlines that quote. Before any
+    result was read, <span id="hand"></span> runs were classified by hand, also with names hidden, and the two
+    classifications were compared. They agreed on <span id="agree"></span> of those runs about whether a run is
+    assistant-era. Across all five classes, Cohen's κ was <span id="kappa"></span>.</p>
+    <h3>What the colours do not say</h3>
+    <p>This is what each model writes by default, from nothing. It is not everything a model can be prompted to write.
+    The class “synthetic instruction data” describes a text's form, not its author. Human-written questions and answers,
+    such as forum threads and exam banks, appear in grey and do not count as assistant-era.</p>
+    <h3>What was screened out</h3>
+    <p id="screen"></p>
+  </section>
+</div>
+<footer><div class="wrap">
+  <span>Companion pages: <a href="./">Who Is You?</a>, the write-up · <a href="__ATLAS_LINK__">Binding Atlas</a>, every model against every referent-binding test · <a href="__THREADS_LINK__">Threads</a>, inside kotodama-tsumugi.</span>
+  <span class="num" id="stamp">build __STAMP__</span>
+</div></footer>
+<div class="tip" id="tip" hidden></div>
+<script>
+(function () {
+  "use strict";
+  var KIND = { s: "chat transcript", v: "assistant voice", x: "synthetic instruction data", h: "human-written Q&A", p: "ordinary text" };
+  var RANK = { s: 0, v: 1, x: 2, h: 3, p: 4 };
+  var GROUPS = {
+    hero: ["kotodama-tsumugi", "trained from scratch on a corpus curated to avoid assistant and synthetic text"],
+    anchors: ["Trained on pre-ChatGPT text", "GPT-2 (WebText, 2019) and Pythia (the Pile, 2020)"],
+    modern: ["Modern base models", "fewest coloured runs first"]
+  };
+  var D = null, order = "sorted", sel = null;
+  var ledger = document.getElementById("ledger"), tip = document.getElementById("tip");
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function lit(c) { return c === "s" || c === "v" || c === "x"; }
+  function tileOrder(m) {
+    var idx = m.runs.map(function (_, i) { return i; });
+    if (order === "sorted") idx.sort(function (a, b) { return RANK[m.runs[a].c] - RANK[m.runs[b].c] || a - b; });
+    return idx;
+  }
+  var CARD = location.hash === "#card";   /* the link card: the headline rows only (page/build_empty_card.sh) */
+  if (CARD) document.documentElement.classList.add("card");
+  function cardGroups() {
+    return D.groups.map(function (g) {
+      var ms = g.id === "anchors" ? [g.models[0], g.models[g.models.length - 1]] : g.id === "modern" ? g.models.slice(-4) : g.models;
+      return { id: g.id, models: ms };
+    });
+  }
+  function render() {
+    ledger.textContent = "";
+    (CARD ? cardGroups() : D.groups).forEach(function (g) {
+      var sec = el("section", "group"), h = el("h2", null, GROUPS[g.id][0]);
+      h.appendChild(el("small", null, GROUPS[g.id][1])); sec.appendChild(h);
+      g.models.forEach(function (mi) {
+        var m = D.models[mi], row = el("div", "row" + (m.hero ? " hero" : ""));
+        var nm = el("div", "name", m.label); nm.appendChild(el("small", null, m.year));
+        var tiles = el("div", "tiles");
+        tiles.setAttribute("role", "group");
+        tiles.setAttribute("aria-label", m.label + ": " + m.assistant_era + " of " + m.n + " runs assistant-era");
+        tileOrder(m).forEach(function (i) {
+          var r = m.runs[i], b = el("button", "tile c-" + r.c + (r.t === null ? " withheld" : ""));
+          b.type = "button"; b.dataset.m = mi; b.dataset.i = i;
+          b.setAttribute("aria-label", m.label + " run " + (i + 1) + ": " + KIND[r.c] + (r.t === null ? ", text withheld" : ""));
+          if (sel && sel.m === mi && sel.i === i) b.setAttribute("aria-current", "true");
+          tiles.appendChild(b);
+        });
+        var ct = el("div", "count"); ct.appendChild(el("b", null, String(m.assistant_era))); ct.appendChild(document.createTextNode("/" + m.n));
+        row.appendChild(nm); row.appendChild(tiles); row.appendChild(ct); sec.appendChild(row);
+      });
+      ledger.appendChild(sec);
+    });
+  }
+  function show(mi, i, scroll) {
+    var m = D.models[mi], r = m.runs[i];
+    sel = { m: mi, i: i };
+    Array.prototype.forEach.call(ledger.querySelectorAll('.tile[aria-current="true"]'), function (t) { t.removeAttribute("aria-current"); });
+    var t = ledger.querySelector('.tile[data-m="' + mi + '"][data-i="' + i + '"]');
+    if (t) t.setAttribute("aria-current", "true");
+    var meta = document.getElementById("r-meta"); meta.textContent = "";
+    meta.appendChild(el("strong", null, m.label)); meta.appendChild(el("span", null, "run " + (i + 1) + " of " + m.n));
+    meta.appendChild(el("span", "pill c-" + r.c, KIND[r.c]));
+    meta.appendChild(el("span", null, r.eos ? "ended on its own" : "ran to 256 tokens"));
+    var pre = document.getElementById("r-text"); pre.textContent = "";
+    pre.appendChild(el("span", "start", "[start of document]"));
+    if (r.t === null) {
+      pre.appendChild(document.createTextNode({slur: " (text withheld: it contains a slur)", safety: " (text withheld: a sexual term appears near a term about minors)", uncoded: " (text withheld: it came back unclassified)"}[r.w] || " (text withheld)"));
+    } else if (r.m) {
+      pre.appendChild(document.createTextNode(r.t.slice(0, r.m[0])));
+      pre.appendChild(el("mark", "c-" + r.c, r.t.slice(r.m[0], r.m[1])));
+      pre.appendChild(document.createTextNode(r.t.slice(r.m[1])));
+    } else {
+      pre.appendChild(document.createTextNode(r.t));
+    }
+    pre.scrollTop = 0;
+    if (scroll) document.getElementById("reader").scrollIntoView({ block: "nearest" });
+  }
+  function step(d) {
+    if (!sel) return;
+    var o = tileOrder(D.models[sel.m]), p = o.indexOf(sel.i);
+    show(sel.m, o[(p + d + o.length) % o.length], false);
+  }
+  function setOrder(o) {
+    order = o;
+    document.getElementById("ord-sorted").setAttribute("aria-pressed", String(o === "sorted"));
+    document.getElementById("ord-raw").setAttribute("aria-pressed", String(o === "raw"));
+    render();
+  }
+  function fill() {
+    var hero = D.models.filter(function (m) { return m.hero; })[0];
+    var anchors = D.groups.filter(function (g) { return g.id === "anchors"; })[0].models.map(function (i) { return D.models[i]; });
+    var modern = D.groups.filter(function (g) { return g.id === "modern"; })[0].models.map(function (i) { return D.models[i]; });
+    var clean = modern.filter(function (m) { return m.assistant_era === 0; }).length;
+    var top = modern[modern.length - 1];
+    var fig = document.getElementById("figures");
+    [[hero.assistant_era + " of " + hero.n, "kotodama-tsumugi runs that are assistant-era"],
+     [anchors.reduce(function (s, m) { return s + m.assistant_era; }, 0) + " of " + anchors.reduce(function (s, m) { return s + m.n; }, 0), "for the five models trained before ChatGPT"],
+     [clean + " of " + modern.length, "modern base models with none"],
+     [top.assistant_era + " of " + top.n, "for " + top.label + ", the most"]].forEach(function (f) {
+      var d = el("div"); d.appendChild(el("b", null, f[0])); d.appendChild(el("span", null, f[1])); fig.appendChild(d);
+    });
+    var v = D.meta.validation;
+    document.getElementById("coder").textContent = D.meta.coder;
+    document.getElementById("hand").textContent = String(v.hand_runs);
+    document.getElementById("agree").textContent = (100 * v.agree_assistant_era).toFixed(1) + "%";
+    document.getElementById("kappa").textContent = v.kappa5.toFixed(2);
+    var s = D.screen;
+    document.getElementById("screen").textContent = "Every run shown was screened first. Email addresses, phone numbers, links, " +
+      "@handles, street addresses and strings that look like file paths or machine IDs are redacted (" + s.redactions +
+      " redactions). Swearing and adult talk stay, because base models write them. " + (s.withheld_slur + s.withheld_safety + s.uncoded) +
+      " of " + s.runs + " runs are withheld: " + s.withheld_slur + " with a slur, " + s.withheld_safety +
+      " where a sexual term appears near a term about minors (a deliberately broad net), and " + s.uncoded +
+      " that came back unclassified. A withheld run keeps its square, outlined, and its class.";
+  }
+  ledger.addEventListener("click", function (e) { var t = e.target.closest(".tile"); if (t) show(+t.dataset.m, +t.dataset.i, true); });
+  ledger.addEventListener("keydown", function (e) {
+    var t = e.target.closest(".tile"); if (!t) return;
+    var n = e.key === "ArrowRight" ? t.nextElementSibling : e.key === "ArrowLeft" ? t.previousElementSibling : null;
+    if (n) { e.preventDefault(); n.focus(); show(+n.dataset.m, +n.dataset.i, false); }
+  });
+  ledger.addEventListener("mouseover", function (e) {
+    var t = e.target.closest(".tile"); if (!t) { tip.hidden = true; return; }
+    var m = D.models[+t.dataset.m], r = m.runs[+t.dataset.i];
+    var body = r.t === null ? "(text withheld)" : (r.m ? r.t.slice(Math.max(0, r.m[0] - 40), r.m[1] + 60) : r.t.slice(0, 110)).replace(/\s+/g, " ").trim() + "…";
+    tip.textContent = ""; tip.appendChild(el("b", null, m.label + " · run " + (+t.dataset.i + 1) + " · " + KIND[r.c]));
+    tip.appendChild(document.createTextNode(body)); tip.hidden = false;
+  });
+  ledger.addEventListener("mousemove", function (e) {
+    if (tip.hidden) return;
+    var x = e.clientX + 14, y = e.clientY + 16, w = tip.offsetWidth, h = tip.offsetHeight;
+    if (x + w > window.innerWidth - 8) x = e.clientX - w - 14;
+    if (y + h > window.innerHeight - 8) y = e.clientY - h - 16;
+    tip.style.left = x + "px"; tip.style.top = y + "px";
+  });
+  ledger.addEventListener("mouseleave", function () { tip.hidden = true; });
+  document.getElementById("r-prev").addEventListener("click", function () { step(-1); });
+  document.getElementById("r-next").addEventListener("click", function () { step(1); });
+  document.getElementById("r-lit").addEventListener("click", function () {
+    if (!sel) return;
+    var m = D.models[sel.m];
+    for (var k = 1; k <= m.n; k++) { var j = (sel.i + k) % m.n; if (lit(m.runs[j].c)) { show(sel.m, j, false); return; } }
+  });
+  document.getElementById("r-hero").addEventListener("click", function () {
+    var mi = D.models.findIndex(function (m) { return m.hero; });
+    var shown = D.models[mi].runs.map(function (r, i) { return r.t === null ? -1 : i; }).filter(function (i) { return i >= 0; });
+    show(mi, shown[Math.floor(Math.random() * shown.length)], false);
+  });
+  document.getElementById("ord-sorted").addEventListener("click", function () { setOrder("sorted"); });
+  document.getElementById("ord-raw").addEventListener("click", function () { setOrder("raw"); });
+  fetch("empty-document-data/runs.json").then(function (r) {
+    if (!r.ok) throw new Error(r.status); return r.json();
+  }).then(function (d) {
+    D = d; fill(); render();
+    if (CARD) return;
+    var start = D.groups.filter(function (g) { return g.id === "modern"; })[0].models.slice(-1)[0];
+    var first = D.models[start].runs.findIndex(function (r) { return lit(r.c) && r.t !== null; });
+    show(start, first < 0 ? 0 : first, false);
+  }).catch(function (err) {
+    ledger.textContent = ""; ledger.appendChild(el("p", "loading", "The runs could not be loaded (" + err.message + "). Reload the page to try again."));
+  });
+})();
+</script>
+</body>
+</html>

@@ -20,7 +20,7 @@ VERIFY_STAMP := 2026-11-05 12:25 UTC
 
 PAGE_ARGS = --config $(CONFIG) --stamp "$(STAMP)"
 
-.PHONY: help atlas4 atlas4-check gates page html md card neurons neurons-binding data stage verify guard stage-check data-check check clean
+.PHONY: help atlas4 atlas4-check gates page html md card neurons neurons-binding empty empty-data data stage verify guard stage-check data-check check clean
 
 help:
 	@echo "make page   [CONFIG=config/x.toml] [SITE=dir] [STAMP='YYYY-MM-DD HH:MM UTC']  data/built -> site/"
@@ -30,6 +30,8 @@ help:
 	@echo "make stage  refresh every synthesis-derived value in data/built/stage.json (no grids needed)"
 	@echo "make neurons [CONFIG=...] [SITE=dir]  Threads (the neuron page) + its data dir (data/built/neurons -> site/)"
 	@echo "make neurons-binding   data/inputs/binding -> data/built/neurons/binding.json"
+	@echo "make empty [CONFIG=...] [SITE=dir]  An Empty Document (zero-seed runs) + its data dir (data/built -> site/)"
+	@echo "make empty-data  data/inputs/empty-document -> data/built/empty-document.json"
 	@echo "make verify       rebuild the kotodama.animalabs.ai deployment into out/verify and check its sha256"
 	@echo "make guard        scan every tracked file for internal names (build/forbidden.py)"
 	@echo "make stage-check  rebuild stage.json into out/ and compare with data/built/"
@@ -67,6 +69,14 @@ neurons:
 neurons-binding:
 	$(PY) build/build_binding.py
 
+# ---- An Empty Document, the zero-seed page (its runs load at run time from empty-document-data/ next to it)
+empty:
+	$(PY) page/build_empty_page.py --config $(CONFIG) --stamp "$(STAMP)" --out $(SITE)/empty-document.html
+	PY=$(PY) bash page/build_empty_card.sh $(SITE) $(SITE)/empty-document-card.png
+
+empty-data:
+	$(PY) build/build_empty.py
+
 # ---- data: raw inputs -> data/built
 data: stage atlas4
 
@@ -76,9 +86,10 @@ stage:
 # ---- equivalence checks
 verify:
 	$(MAKE) --no-print-directory page CONFIG=config/$(VERIFY_CONFIG).toml SITE=out/verify STAMP="$(VERIFY_STAMP)"
+	$(MAKE) --no-print-directory empty CONFIG=config/$(VERIFY_CONFIG).toml SITE=out/verify STAMP="$(VERIFY_STAMP)"
 	@if compgen -G "$(FONT_DIR)/*.woff2" > /dev/null; then cd out/verify && sha256sum -c ../../config/$(VERIFY_CONFIG).sha256; \
 	else echo "(no web font files in FONT_DIR=$(FONT_DIR): the card renders in fallback faces, so only the page and twin are checked)"; \
-	  cd out/verify && grep -v binding-atlas-card.png ../../config/$(VERIFY_CONFIG).sha256 | sha256sum -c; fi
+	  cd out/verify && grep -v -- '-card.png' ../../config/$(VERIFY_CONFIG).sha256 | sha256sum -c; fi
 
 guard:
 	$(PY) build/forbidden.py
