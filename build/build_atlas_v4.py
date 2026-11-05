@@ -59,6 +59,7 @@ LABELS: dict[str, tuple[str, str]] = {      # zoo name → (label, family)
     "tsumugi-s7-a5B": ("kotodama-tsumugi, seed 7 · 5B tokens", "kotodama"),
     "tsumugi-s7-a11B": ("kotodama-tsumugi, seed 7 · 11B tokens", "kotodama"),
     "dsv3-base": ("DeepSeek-V3 (MoE)", "DeepSeek"), "dsv4-flash-base": ("DeepSeek-V4-Flash (MoE)", "DeepSeek"),
+    "dsv4-pro-base": ("DeepSeek-V4-Pro (MoE)", "DeepSeek"),
     "kimi-k2-base": ("Kimi-K2 (MoE)", "Kimi"), "trinity-base": ("Trinity-Large (MoE)", "Trinity"),
     "trinity-truebase": ("Trinity-Large (MoE), before the anneals", "Trinity"),
     "nemotron3-ultra-550b-base": ("Nemotron-3-Ultra (MoE)", "Nemotron"), "mimo-v25-base": ("MiMo-V2.5 (MoE)", "MiMo"),
@@ -80,14 +81,14 @@ TOKENS: dict[str, tuple[Optional[float], str]] = {
     "recurrentgemma-9b": (2e12, ""), "bamba-9b": (3.1e12, "≈"), "nemotron-h-8b": (15e12, ""),
     "tsumugi": (110e9, ""), "tsumugi-s17-a5B": (5e9, ""), "tsumugi-s17-a11B": (11e9, ""), "tsumugi-s17-a33B": (33e9, ""),
     "tsumugi-s17-a55B": (55e9, ""), "tsumugi-s17-a88B": (88e9, ""), "tsumugi-s7-a5B": (5e9, ""), "tsumugi-s7-a11B": (11e9, ""),
-    "dsv3-base": (14.8e12, ""), "dsv4-flash-base": (32e12, ""), "kimi-k2-base": (15.5e12, ""),
+    "dsv3-base": (14.8e12, ""), "dsv4-flash-base": (32e12, "≥"), "dsv4-pro-base": (32e12, "≥"), "kimi-k2-base": (15.5e12, ""),
     "trinity-base": (17e12, ""), "trinity-truebase": (10e12, ""), "nemotron3-ultra-550b-base": (20e12, ""),
     "mimo-v25-base": (48e12, "≈ text + multimodal"), "mimo-v25-pro-base": (27e12, ""), "gemma4-31b-base": (None, "—"),
 }
 # Creator-stated total parameters for the vLLM-scored bases (model cards and reports); their weight files also hold
 # extra prediction heads and quantization scales.
 CREATOR_SIZE: dict[str, float] = {
-    "dsv3-base": 671e9, "dsv4-flash-base": 284e9, "kimi-k2-base": 1e12, "trinity-base": 398e9,
+    "dsv3-base": 671e9, "dsv4-flash-base": 284e9, "dsv4-pro-base": 1.6e12, "kimi-k2-base": 1e12, "trinity-base": 398e9,
     "trinity-truebase": 398e9, "nemotron3-ultra-550b-base": 550e9, "mimo-v25-base": 310e9,
     "mimo-v25-pro-base": 1.02e12, "gemma4-31b-base": 30.7e9,
 }
@@ -167,9 +168,8 @@ COLS: list[Col] = [
         old=("sb-k1",)),
     Col("noise", G_STILL, "Lookup past noise", "Boxes are filled, unrelated events follow; name what one box holds.",
         "formupdate-v3", lambda r: r["condition"] == "A", conds=(COND_FLOOR,)),
-    Col("now", G_STILL, "Who holds it now", "A scene says who holds what; nothing moves. Then: 'Now X is holding the'.",
-        "joinlite-v1", lambda r: r["qkind"] == "third" and r["arm"] == "orig", conds=(COND_FLOOR,),
-        flag="The query opens with 'Now', which implies a change: the largest models answer as if something moved."),
+    Col("now", G_STILL, "Who holds it now", "A scene says who holds what; nothing moves. Then: 'Right now X is "
+        "holding the'.", "joinlite-v1", lambda r: r["qkind"] == "third" and r["arm"] == "orig", conds=(COND_FLOOR,)),
     Col("handoffs", G_STORY, "Hand-offs in a story", "Objects pass between people in a short story; name who has an "
         "object at the end.", "bp-profile", bp("dialogue"), headline=True, old=("dialogue",)),
     Col("sets", G_STORY, "Sets after hand-offs", "Each person starts with a set of objects, then two gives; name the "
@@ -289,9 +289,21 @@ def examples(prompts: Path) -> dict[str, dict[str, Any]]:
     from binding_bench.bindprobes.grid import build_payload_item
     from binding_bench.bindprobes.items import load_items
 
-    P = prompts
-    bp_files = {"bp-profile": P / "bindprobes-items" / "items.jsonl", "bp-v3.2": P / "bindprobes-v3.2" / "items.jsonl",
-                "bp-deixis-v2": P / "bindprobes-deixis-v2-full" / "items.jsonl"}
+    import hashlib
+
+    from binding_bench.binding.batteries import BATTERIES
+
+    def pinned(name: str) -> Path:
+        """The battery's current file under the prompts dir, refused unless its bytes match the pin."""
+        b = BATTERIES[name]
+        f = prompts / b.file
+        if not f.exists():
+            raise SystemExit(f"examples: {name} has no file at {f}")
+        if hashlib.sha256(f.read_bytes()).hexdigest() != b.sha256:
+            raise SystemExit(f"examples: {f} does not match the {name} pin")
+        return f
+
+    bp_files = {k: pinned(k) for k in ("bp-profile", "bp-v3.2", "bp-deixis-v2")}
     out: dict[str, dict[str, Any]] = {}
     item_cache: dict[str, list[Any]] = {}
     for c in COLS:
@@ -312,7 +324,7 @@ def examples(prompts: Path) -> dict[str, dict[str, Any]]:
             out[c.id] = {"prompt": job.prompt, "gold": rider_gold(job), "candidates": [x.strip() for x in job.candidates],
                          "gold_set": None, "item_id": job.id}
         else:
-            f = P / f"{c.battery}.jsonl"
+            f = pinned(c.battery)
             for line in f.open():
                 r = json.loads(line)
                 if c.keep(r):

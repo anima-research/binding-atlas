@@ -1,9 +1,10 @@
 """Refresh every synthesis-derived value in the Binding Atlas front-section data (data/built/stage.json).
 
 Usage: python build/build_stage.py [--base data/built/stage.json] [--out data/built/stage.json] [--ledger-dir out/ledgers]
-The base holds the curated parts (figure layout, stage texts, model lists, the battery path); this script re-reads
-every number from the synthesis table through facts.py (the trajectory, Figure 2 and 3 values, the stage texts that
-quote numbers, the lead, and the decomposition, riders, release and run tables) and writes the result. Rebuilding
+The base holds the curated parts (figure layout, stage texts, model lists); this script re-reads every number from
+the synthesis table through facts.py (the trajectory, Figure 2 and 3 values, the stage texts that quote numbers, the
+lead, and the decomposition, release and run tables), the headline-test table from the grid (data/built/atlas.json)
+and the object-tracking table from data/inputs/riders_split.json, and writes the result. Rebuilding
 from an up-to-date base reproduces it exactly (`make stage-check`).
 The ledger directory gets a ledger of every synthesis row behind a number written, and a log of the base values
 that moved by more than .0015. Values a checkpoint does not have are written as null and render as "pending".
@@ -78,13 +79,41 @@ for label, m, ck in olmo_onset:
     r = F.row(m, ck, "static you shift", tag=f"fig4 OLMo stage-3 onset {label}")
     olmo_stage3.append({"m": label, "tok": int(r["tokens_B"])})
 
+GRID = json.loads((REPO / "data" / "built" / "atlas.json").read_text())
+BAT_CKS = [("s17 · 5B", "tsumugi-s17-a5B"), ("s17 · 11B", "tsumugi-s17-a11B"), ("s17 · 33B", "tsumugi-s17-a33B"),
+           ("s17 · 55B", "tsumugi-s17-a55B"), ("s17 · 88B", "tsumugi-s17-a88B"), ("110B · release", "tsumugi"),
+           ("s7 · 5B", "tsumugi-s7-a5B"), ("s7 · 11B", "tsumugi-s7-a11B")]
+
+
+def battery_from_grid() -> dict[str, Any]:
+    """Table 3: the grid's headline columns plus the known-facts control at each kotodama-tsumugi checkpoint in the
+    grid, each read as the grid reads it: with examples where the column has them, else cold, and the rule-learning
+    columns as ladder AUC. Values are the grid's own cell scores."""
+    cols = [c for c in GRID["cols"] if c["headline"] or c["id"] == "facts"]
+    groups: list[dict[str, Any]] = []
+    for c in cols:
+        cond = "fair" if "fair" in c["conds"] else c["conds"][0]        # the column's own reading, as in the grid
+        vals = []
+        for _, rid in BAT_CKS:
+            cell = GRID["cells"].get(f"{rid}|{c['id']}|{cond}|all")
+            if cell is None:
+                raise SystemExit(f"battery: no grid cell {rid}|{c['id']}|{cond}")
+            vals.append(round(float(cell["score"]), 3))
+        name = c["label"] + {"fair": "", "0shot": " (cold)", "ladder": " (AUC)"}[cond]
+        if groups and groups[-1]["name"] == c["group_short"]:
+            groups[-1]["rows"].append([name, vals])
+        else:
+            groups.append({"name": c["group_short"], "rows": [[name, vals]]})
+    return {"cols": [lab for lab, _ in BAT_CKS], "groups": groups, "signed": True}
+
+
 ts = {
     "_note": ("kotodama-tsumugi s17 trunk (constant LR, to 100B) and cooldown branches (annealed), stage gauges = P2 "
               "speaker swap (static I, static you) and dynamic swap (addressee, 0-shot / 3-shot). Seed 7 = the "
               "seed replicate to 11B. Values from the synthesis table."),
     "traj": {"s17": s17, "s7": s7},
     "olmo_stage3": olmo_stage3,
-    "battery": st["tsumugi"]["battery"],         # curated in the base: the earlier battery path, 5B–33B
+    "battery": battery_from_grid(),
     "desc": ("A 1.42B-parameter model with a looped core, run as 72 effective layers. Its trunk trains at a constant "
              "learning rate to 100B tokens. Annealed reads are cooldown branches forked from its checkpoints "
              "(cosine decay to zero over about 10% of the tokens so far). The release is the 110B branch from the 100B "
@@ -140,7 +169,13 @@ for row in new["cost"]["rows"]:
         if q["m"] == "kotodama-tsumugi" and row["stage"].startswith("3"):
             q["lo"], q["hi"] = bracket(T, "trunk-30B", "anneal-33B", "static you shift", "fig3 tsumugi stage 3")
         if q["m"] == "kotodama-tsumugi" and row["stage"].startswith("5"):
-            q["lo"], q["hi"], q["note"] = 110, None, "not reached by 110B"
+            q["lo"], q["hi"], q["note"] = 110, None, "0-shot not reached by 110B; with three examples it binds at 110B"
+        if q["m"] == "OLMo-2 7B" and row["stage"].startswith("5"):
+            q["lo"], q["hi"] = bracket("OLMo-2-1124-7B", "210B tokens", "3896B tokens", "dyn-you 0shot shift", "fig3 OLMo-2-7B stage 5")
+            q.pop("note", None)
+        if q["m"] == "OLMo-2 13B" and row["stage"].startswith("5"):
+            q["lo"], q["hi"] = bracket("OLMo-2-1124-13B", "42B tokens", "5000B tokens", "dyn-you 0shot shift", "fig3 OLMo-2-13B stage 5")
+            q.pop("note", None)
         if q["m"] == "OLMo-2 1B" and row["stage"].startswith("3"):
             q["lo"], q["hi"] = bracket("OLMo-2-0425-1B", "420B tokens", "525B tokens", "static you shift", "fig3 OLMo-2-1B stage 3")
         if q["m"] == "OLMo-2 1B" and row["stage"].startswith("1"):
@@ -163,27 +198,24 @@ you_rel = F.get(T, REL, "static you shift", tag="stage3 tsumugi static you relea
 pyth28 = F.row("Pythia-2.8B", "main/final (via step300B branch)", "static you shift", tag="stage3 Pythia-2.8B static you (does not bind)")
 S[1]["ours"] = "~3–3.75B tokens"
 S[2]["ours"] = "transient, ~4–20B"
-S[3]["ok"] = "every base ≥ 0.6B trained on trillions of tokens"
-S[3]["olmo1b"] = "~420B tokens"
+S[3]["ok"] = "every base ≥ 0.6B trained on trillions of tokens, except Bamba 9B"
+S[3]["olmo1b"] = "420–525B tokens"
 S[3]["ours"] = f"by 33B tokens annealed (trunk: 40B); {fmt3(you_rel, True)} at 110B"
-S[4]["ours"] = f"from ~4B; no longer inverted at 110B under the gauge rule ({fmt3(dyn11)} at 11B → {fmt3(rel_g['dyn0'])})"
-S[5]["ok"] = ("zero-shot: reached by no public base ≤ 8B at any token count measured; weak and nearly flat from 14B to 1T; "
-              "open whether more tokens reach it")
-S[5]["ours"] = "not reached by 110B"
+S[4]["ours"] = f"from ~4B; at 110B no longer inverted under the gauge rule ({fmt3(dyn11)} at 11B → {fmt3(rel_g['dyn0'])})"
+S[5]["ok"] = ("zero-shot: from about 7B (OLMo-2 7B, Qwen2.5 7B), and every base from 13B up; "
+              "with three worked examples: from Qwen3 4B")
+S[5]["ours"] = (f"zero-shot: not reached by 110B; with three worked examples it binds at 110B ({fmt3(rel_g['dyn3'], True)}), "
+                "the smallest base measured that does")
 new["lead"] = (
-    "Base language models acquire the referent of *you* in five ordered stages. Every base of 0.6B parameters or more "
-    "trained on trillions of tokens reaches the first three. The fifth stage is tracking *you* after objects change "
-    "hands. **No public model up to 8B reaches it zero-shot** (with no worked examples), at any token count measured "
-    "up to 36T, and every one of them has a negative swap shift. From 14B to 1T parameters, stage 5 is weak and "
-    "nearly flat. In these models, parameter count and depth grow together. **kotodama-tsumugi** separates the two. "
-    "It is a 1.4B model run as 72 effective layers (looped depth, boundary-fitted attention residuals). It reaches "
-    "stage 3 by **33B tokens** (annealed; on the constant-LR trunk by 40B). That is the token cost of OLMo-2 13B, "
-    "against about 420B for OLMo-2 1B. At 110B tokens its zero-shot stage-5 reading "
-    f"({fmt3(rel_g['dyn0'])}) is not inverted under the gauge rule. Every 1–2B public base whose static *you* binds "
-    "inverts, except Llama-3.2-1B. In a check of 20 bases, kotodama-tsumugi (.335) follows a hand-off told in the "
-    "third person better than every Pythia model up to 6.9B (.275 to .299) and Llama-3.2-1B (.304). Most bases up "
-    "to 1.5B barely follow one: 7 of those 10 score .26 to .34, against about .29 "
-    "by chance. For every model of this size, that hand-off is the open step toward stage 5.")
+    "Base language models learn to look things up long before they learn to track change. In the box puzzle, the "
+    "median model under 1B already finds a box's declared contents above chance, and scores zero on the boxes that "
+    "an operation changed. With worked examples, updating climbs steadily with size, to .77 for the 70B models and "
+    "above .8 for most of the largest. The referent of *you* follows five ordered stages. Every base of 0.6B parameters or more trained "
+    "on trillions of tokens reaches the first three, except Bamba 9B. The fifth stage is tracking *you* after objects change hands. "
+    "Zero-shot, it appears from about 7B (OLMo-2 7B, Qwen2.5 7B), and every base measured from 13B up reaches it. "
+    "**kotodama-tsumugi**, a 1.4B model run as 72 effective layers, reaches stage 3 by **33B tokens**, in the range "
+    "where OLMo-2 13B gets there; OLMo-2 1B needs 420–525B. Given three worked examples, it is the smallest base "
+    f"measured that tracks *you* after objects change hands ({fmt3(rel_g['dyn3'], True)}); the next is Qwen3 4B.")
 
 # ------------------------------------------------------------------ NEW: stage-5 decomposition (endpoints, full battery)
 DEC_COLS = [("third", "third/0shot acc (self+addressee)"), ("deictic", "deictic/0shot acc (self+addressee)"),
@@ -220,26 +252,50 @@ new["decomp"] = {
     "rows": dec_rows,
 }
 
-# ------------------------------------------------------------------ NEW: riders v2 (cross-model harness, language)
-RID = [("0shot", "riders-v2 language/0shot acc"), ("fixed3", "riders-v2 language/fixed3 acc"),
-       ("fair1", "riders-v2 language/fair1 acc"), ("fair3", "riders-v2 language/fair3 acc"),
-       ("fair6", "riders-v2 language/fair6 acc")]
-RID_ROWS = [("Pythia-1.4B · 134B", "Pythia-1.4B", "134B tokens", False),
-            ("OLMo-2 1B · 4T", "OLMo-2-0425-1B", "4001B tokens", False),
-            ("SmolLM2 1.7B · 10.5T", "SmolLM2-1.7B", "10500B tokens", False),
-            ("kotodama-tsumugi · 11B", T, "anneal-11B", True), ("kotodama-tsumugi · 33B", T, "anneal-33B", True),
-            ("kotodama-tsumugi · 55B", T, "anneal-55B", True),
-            ("kotodama-tsumugi · 110B, second anneal", T, AN1, True),
-            ("kotodama-tsumugi · 110B, release", T, REL, True)]
-rid_rows = []
-for label, model, ck, ours in RID_ROWS:
-    vals = {k: try_get(model, ck, met, f"riders {label} {k}") for k, met in RID}
-    rid_rows.append({"m": label, "ours": ours, **vals})
+# ------------------------------------------------------------------ riders: lookup vs update, by size (Table 5)
+RS = json.loads((REPO / "data" / "inputs" / "riders_split.json").read_text())["models"]
+RS_REGS = ("code", "narrative", "screenplay", "chat")
+RS_COLS = [("l0", "0shot", "lookup", "lookup, cold"), ("u0", "0shot", "update", "update, cold"),
+           ("lf", "fair", "lookup", "lookup, with examples"), ("uf", "fair", "update", "update, with examples")]
+RS_BANDS = [(0, 1, "under 1B"), (1, 2, "1–2B"), (2, 5, "2–5B"), (5, 12, "7–10B"), (12, 40, "13–34B"),
+            (40, 100, "70–72B"), (100, 1e9, "284B–1.6T")]
+RS_SKIP = {"olmo3-32b-stage1", "trinity-truebase"}      # earlier checkpoints of a model already in the table
+SIZE = {r["id"]: r["size"] for r in GRID["rows"] if r.get("size")}
+
+
+def rs_pooled(model: str, cond: str, kind: str) -> float:
+    vals = [RS[model][f"{reg}|{cond}|{kind}"][0] for reg in RS_REGS]
+    if any(v is None for v in vals):
+        raise SystemExit(f"riders split: {model} lacks {cond}/{kind} in a register")
+    return sum(vals) / len(vals)
+
+
+def median(xs: list[float]) -> float:
+    ys = sorted(xs)
+    n = len(ys)
+    return ys[n // 2] if n % 2 else (ys[n // 2 - 1] + ys[n // 2]) / 2
+
+
+rs_rows = []
+public = [m for m in RS if not m.startswith("tsumugi") and m not in RS_SKIP]
+unsized = [m for m in public if m not in SIZE]
+if unsized:
+    raise SystemExit(f"riders split: no grid size for {unsized}")
+for lo, hi, name in RS_BANDS:
+    ms = [m for m in public if lo <= SIZE[m] < hi]
+    if not ms:
+        raise SystemExit(f"riders split: empty band {name}")
+    rs_rows.append({"m": f"{name} ({len(ms)} models)", "ours": False, "models": sorted(ms),
+                    **{k: r3(median([rs_pooled(m, c, kind) for m in ms])) for k, c, kind, _ in RS_COLS}})
+for label, rid in (("kotodama-tsumugi 1.4B · release", "tsumugi"),
+                   ("kotodama-tsumugi 1.4B · second anneal", "tsumugi-anneal-110B-second")):
+    rs_rows.append({"m": label, "ours": True, **{k: r3(rs_pooled(rid, c, kind)) for k, c, kind, _ in RS_COLS}})
 new["riders"] = {
-    "_note": ("riders v2, cross-model score_prompts harness; language = narrative + screenplay, 400 items per cell "
-              "(SE ≈ .024); chance .25. fixed3 = the same three exemplars for every item; fairK = K exemplars drawn "
-              "per item, sharing none of its letters or objects."),
-    "cols": [k for k, _ in RID], "rows": rid_rows, "chance": 0.25,
+    "_note": ("riders ladder, the box puzzle in four registers (code, narrative, screenplay, chat), items with 1-4 "
+              "operations. Lookup = the queried box ends with its declared contents; update = an operation changed "
+              "it. kappa, mean over the four registers; public rows = the median model of each size band (total "
+              "parameters). One model's cell: 68 lookup or 82 update items per register, 272 or 328 in all, about ±.08 at 95%."),
+    "cols": [{"k": k, "name": nm} for k, _, _, nm in RS_COLS], "rows": rs_rows, "signed": True,
 }
 
 # ------------------------------------------------------------------ NEW: the release against its trajectory and class

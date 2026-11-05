@@ -1,15 +1,17 @@
 # Binding Atlas
 
-Base language models learn who *you* is in five stages. No public model up to 8B reaches the last one zero-shot, at
-any token count measured, and from 14B to 1T parameters it stays weak. The Binding Atlas scores every base model with
-one scorer on one set of tests, chance-normalized. Each column shows a verbatim example prompt, and a plain-text
-Markdown twin carries the same data as CSV.
+Base language models learn to look things up long before they learn to track change. Even under 1B, the median model
+scores above chance at looking up a stated value. Models get steadily better at applying an update as they grow, and only the
+largest do it reliably. Who *you* refers to is learned in five ordered stages. The last stage is tracking *you*
+after objects change hands. Zero-shot, it appears from about 7B, and every base from 13B up reaches it. The Binding Atlas scores every base model with one
+scorer on one set of tests, chance-normalized. Each column shows a verbatim example prompt, and a plain-text Markdown
+twin carries the same data as CSV.
 
-The grid covers 45 public base models and one human reader. The figures cover 30 public base models and 5 public
-training trajectories. The atlas also follows **kotodama-tsumugi**, a 1.4B model run as 72 effective layers (looped depth,
-boundary-fitted attention residuals). kotodama-tsumugi reaches stage 3 by 33B tokens, about what OLMo-2 13B needs,
-where OLMo-2 1B needs about 420B. At 110B tokens its zero-shot dynamic *you* is not inverted (−.021), where most
-1–2B bases invert, and it follows a narrated hand-off better than every Pythia model up to 6.9B.
+The grid covers 56 public base models, from 160M to 1.6T parameters, and one human reader. The figures cover 29 public
+base models and 5 public training trajectories. The atlas also follows **kotodama-tsumugi**, a 1.4B model run as 72
+effective layers (looped depth, boundary-fitted attention residuals). kotodama-tsumugi reaches stage 3 by 33B tokens.
+OLMo-2 13B gets there in the same range, and OLMo-2 1B needs 420 to 525 billion. Given three worked examples, it is the
+smallest base measured that tracks *you* after objects change hands; the next is Qwen3 4B.
 
 ## Threads
 
@@ -177,8 +179,10 @@ config before serving it under another domain. The card carries the canonical UR
   (kotodama-tsumugi: `trunk-<tokens>` on the constant-LR trunk, `anneal-<tokens>` for cooldown branches,
   `anneal-110B-release` for the released checkpoint, `s7-…` for the seed-7 replicate). `build/subset_synthesis.py`
   cuts it from the full table, given a local map from the table's checkpoint ids to the public ones.
-- `data/built/stage.json` holds the curated front-section layout (figure model lists, stage texts, the battery path);
-  `make stage` re-reads every number in it from the synthesis rows.
+- `data/inputs/riders_split.json` holds each model's box-puzzle score on lookup and update items, per format and
+  condition, which the object-tracking table reads.
+- `data/built/stage.json` holds the curated front-section layout (figure model lists, stage texts); `make stage`
+  re-reads every number in it from the synthesis rows, the grid (`data/built/atlas.json`) and the riders split.
 
 ## Credits
 

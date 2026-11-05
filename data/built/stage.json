@@ -24,8 +24,8 @@
    "name": "static you binds",
    "gloss": "\"you\" resolves to the addressee, when ownership is simply stated.",
    "ex": "Carol has the onion. … Jack: you're holding the ___",
-   "ok": "every base ≥ 0.6B trained on trillions of tokens",
-   "olmo1b": "~420B tokens",
+   "ok": "every base ≥ 0.6B trained on trillions of tokens, except Bamba 9B",
+   "olmo1b": "420–525B tokens",
    "ours": "by 33B tokens annealed (trunk: 40B); +.192 at 110B"
   },
   {
@@ -33,18 +33,18 @@
    "name": "you = me, again",
    "gloss": "once objects change hands in the scene, \"you\" collapses back onto the speaker.",
    "ex": "Erin gives Paul her cup. … Paul: now you're holding the ___",
-   "ok": "where almost every base stops",
+   "ok": "where every base up to 4B stops",
    "olmo1b": "from ~63B, still there at 4T",
-   "ours": "from ~4B; no longer inverted at 110B under the gauge rule (−.027 at 11B → −.014)"
+   "ours": "from ~4B; at 110B no longer inverted under the gauge rule (−.027 at 11B → −.014)"
   },
   {
    "n": 5,
    "name": "dynamic you binds",
    "gloss": "\"you\" tracked through transfers. In-context first (3-shot), zero-shot last.",
    "ex": "same scene, answered correctly without examples",
-   "ok": "zero-shot: reached by no public base ≤ 8B at any token count measured; weak and nearly flat from 14B to 1T; open whether more tokens reach it",
+   "ok": "zero-shot: from about 7B (OLMo-2 7B, Qwen2.5 7B), and every base from 13B up; with three worked examples: from Qwen3 4B",
    "olmo1b": "never (flat to 4T)",
-   "ours": "not reached by 110B"
+   "ours": "zero-shot: not reached by 110B; with three worked examples it binds at 110B (+.038), the smallest base measured that does"
   }
  ],
  "threshold": {
@@ -229,7 +229,7 @@
    {
     "m": "Nemotron-3 Ultra",
     "p": 550,
-    "tok": "—",
+    "tok": "20T",
     "fam": "other",
     "z": 0.089,
     "t": 0.119
@@ -249,30 +249,41 @@
     "fam": "other",
     "z": 0.155,
     "t": 0.117
-   }
-  ],
-  "unsized": [
+   },
    {
     "m": "DeepSeek-V4 Flash",
+    "p": 284,
+    "tok": "≥32T",
     "z": 0.177,
-    "t": 0.13
+    "t": 0.13,
+    "fam": "DeepSeek"
    },
    {
     "m": "DeepSeek-V4 Pro",
+    "p": 1600,
+    "tok": "≥32T",
     "z": 0.066,
-    "t": 0.051
+    "t": 0.051,
+    "fam": "DeepSeek"
    },
    {
     "m": "Trinity-Large (base)",
+    "p": 398,
+    "tok": "17T",
     "z": 0.091,
-    "t": 0.16
+    "t": 0.16,
+    "fam": "other"
    },
    {
     "m": "MiMo-V2.5 Pro (base)",
+    "p": 1020,
+    "tok": "27T",
     "z": 0.162,
-    "t": 0.184
+    "t": 0.184,
+    "fam": "other"
    }
   ],
+  "unsized": [],
   "ours": {
    "m": "kotodama-tsumugi 1.4B @ 110B tokens (release)",
    "p": 1.42,
@@ -346,22 +357,20 @@
      },
      {
       "m": "OLMo-2 7B",
-      "lo": 3900,
-      "hi": null,
-      "note": "recovering, not crossed by 3.9T"
+      "lo": 210.0,
+      "hi": 3896.0
      },
      {
       "m": "OLMo-2 13B",
-      "lo": 2600,
-      "hi": null,
-      "note": "at threshold (touches + at 2.6T)"
+      "lo": 42.0,
+      "hi": 5000.0
      },
      {
       "m": "kotodama-tsumugi",
       "lo": 110,
       "hi": null,
       "ours": true,
-      "note": "not reached by 110B"
+      "note": "0-shot not reached by 110B; with three examples it binds at 110B"
      }
     ]
    }
@@ -399,7 +408,7 @@
    "cost": "costs code and structure binding"
   }
  ],
- "lead": "Base language models acquire the referent of *you* in five ordered stages. Every base of 0.6B parameters or more trained on trillions of tokens reaches the first three. The fifth stage is tracking *you* after objects change hands. **No public model up to 8B reaches it zero-shot** (with no worked examples), at any token count measured up to 36T, and every one of them has a negative swap shift. From 14B to 1T parameters, stage 5 is weak and nearly flat. In these models, parameter count and depth grow together. **kotodama-tsumugi** separates the two. It is a 1.4B model run as 72 effective layers (looped depth, boundary-fitted attention residuals). It reaches stage 3 by **33B tokens** (annealed; on the constant-LR trunk by 40B). That is the token cost of OLMo-2 13B, against about 420B for OLMo-2 1B. At 110B tokens its zero-shot stage-5 reading (−.014) is not inverted under the gauge rule. Every 1–2B public base whose static *you* binds inverts, except Llama-3.2-1B. In a check of 20 bases, kotodama-tsumugi (.335) follows a hand-off told in the third person better than every Pythia model up to 6.9B (.275 to .299) and Llama-3.2-1B (.304). Most bases up to 1.5B barely follow one: 7 of those 10 score .26 to .34, against about .29 by chance. For every model of this size, that hand-off is the open step toward stage 5.",
+ "lead": "Base language models learn to look things up long before they learn to track change. In the box puzzle, the median model under 1B already finds a box's declared contents above chance, and scores zero on the boxes that an operation changed. With worked examples, updating climbs steadily with size, to .77 for the 70B models and above .8 for most of the largest. The referent of *you* follows five ordered stages. Every base of 0.6B parameters or more trained on trillions of tokens reaches the first three, except Bamba 9B. The fifth stage is tracking *you* after objects change hands. Zero-shot, it appears from about 7B (OLMo-2 7B, Qwen2.5 7B), and every base measured from 13B up reaches it. **kotodama-tsumugi**, a 1.4B model run as 72 effective layers, reaches stage 3 by **33B tokens**, in the range where OLMo-2 13B gets there; OLMo-2 1B needs 420–525B. Given three worked examples, it is the smallest base measured that tracks *you* after objects change hands (+.038); the next is Qwen3 4B.",
  "tsumugi": {
   "_note": "kotodama-tsumugi s17 trunk (constant LR, to 100B) and cooldown branches (annealed), stage gauges = P2 speaker swap (static I, static you) and dynamic swap (addressee, 0-shot / 3-shot). Seed 7 = the seed replicate to 11B. Values from the synthesis table.",
   "traj": {
@@ -637,154 +646,170 @@
     "s17 · 5B",
     "s17 · 11B",
     "s17 · 33B",
-    "s7 · 5B",
-    "s7 · 11B",
     "s17 · 55B",
     "s17 · 88B",
-    "110B · release"
+    "110B · release",
+    "s7 · 5B",
+    "s7 · 11B"
    ],
    "groups": [
     {
-     "name": "who holds what",
+     "name": "Nothing moves",
      "rows": [
       [
-       "set binding, one object (chance .125)",
+       "Simple lookup",
        [
-        0.422,
-        0.492,
-        0.469,
-        0.453,
-        0.484,
-        0.516,
-        0.547,
-        0.562
-       ]
-      ],
-      [
-       "set binding, 2–3 objects",
-       [
-        0.555,
-        0.697,
-        0.682,
-        0.596,
-        0.633,
-        0.758,
-        0.744,
-        0.729
-       ]
-      ],
-      [
-       "attribution",
-       [
-        0.713,
-        0.904,
-        0.94,
-        0.826,
-        0.915,
-        0.976,
-        0.976,
-        0.986
-       ]
-      ],
-      [
-       "aliased Python lists (chance .20)",
-       [
-        0.207,
-        0.223,
-        0.21,
-        0.228,
-        0.24,
-        0.263,
-        0.318,
-        0.317
-       ]
-      ],
-      [
-       "dialogue tracking",
-       [
-        0.49,
-        0.534,
-        0.514,
-        0.517,
-        0.551,
-        0.632,
-        0.638,
-        0.618
+        0.692,
+        0.897,
+        0.941,
+        0.977,
+        0.988,
+        0.987,
+        0.811,
+        0.906
        ]
       ]
      ]
     },
     {
-     "name": "who you is",
+     "name": "Moves: story",
      "rows": [
       [
-       "deixis v2, owner query",
+       "Hand-offs in a story",
        [
-        0.311,
-        0.411,
-        0.422,
-        0.306,
-        0.367,
-        0.372,
-        0.422,
-        0.383
-       ]
-      ],
-      [
-       "deixis v2, self (P2)",
-       [
-        0.244,
-        0.361,
-        0.361,
-        0.239,
-        0.283,
-        0.306,
-        0.306,
-        0.344
-       ]
-      ],
-      [
-       "deixis v2, addressee (P2)",
-       [
-        0.25,
-        0.306,
-        0.333,
-        0.228,
+        0.26,
+        0.282,
+        0.281,
+        0.363,
+        0.385,
+        0.399,
         0.278,
-        0.328,
-        0.283,
-        0.311
+        0.329
        ]
       ],
       [
-       "reply adjacency, no vocative (chance .33)",
+       "Sets after hand-offs",
        [
-        0.453,
-        0.4,
-        0.445,
-        0.384,
-        0.299,
+        0.297,
         0.461,
-        0.427,
-        0.411
+        0.496,
+        0.488,
+        0.552,
+        0.547,
+        0.407,
+        0.454
        ]
       ],
       [
-       "deixis-lite (0-shot)",
+       "Many refills (cold)",
        [
-        0.43,
-        0.433,
-        0.431,
-        0.421,
-        0.435,
+        -0.003,
+        -0.013,
+        0.013,
+        0.09,
+        0.224,
+        0.137,
+        -0.035,
+        0.026
+       ]
+      ]
+     ]
+    },
+    {
+     "name": "Moves: code",
+     "rows": [
+      [
+       "Variable chains",
+       [
+        -0.018,
+        -0.028,
+        0.013,
+        0.067,
+        0.128,
+        0.042,
+        -0.047,
+        0.007
+       ]
+      ],
+      [
+       "Shared lists",
+       [
+        0.013,
+        0.034,
+        0.013,
+        0.084,
+        0.155,
+        0.149,
+        0.041,
+        0.057
+       ]
+      ]
+     ]
+    },
+    {
+     "name": "I and you",
+     "rows": [
+      [
+       "'You', nothing moves (cold)",
+       [
+        0.077,
+        0.05,
+        0.333,
+        0.327,
+        0.403,
+        0.492,
+        0.036,
+        0.084
+       ]
+      ],
+      [
+       "'You', after hand-offs",
+       [
+        0.007,
+        -0.017,
+        0.105,
+        0.023,
+        0.106,
+        0.036,
+        -0.035,
+        0.013
+       ]
+      ]
+     ]
+    },
+    {
+     "name": "New rules",
+     "rows": [
+      [
+       "Pattern completion (AUC)",
+       [
         0.458,
+        0.402,
         0.475,
-        0.502
+        0.438,
+        0.507,
+        0.553,
+        0.426,
+        0.434
+       ]
+      ],
+      [
+       "Known facts (control) (AUC)",
+       [
+        0.64,
+        0.713,
+        0.892,
+        0.892,
+        0.925,
+        0.948,
+        0.651,
+        0.765
        ]
       ]
      ]
     }
-   ]
+   ],
+   "signed": true
   },
   "desc": "A 1.42B-parameter model with a looped core, run as 72 effective layers. Its trunk trains at a constant learning rate to 100B tokens. Annealed reads are cooldown branches forked from its checkpoints (cosine decay to zero over about 10% of the tokens so far). The release is the 110B branch from the 100B fork. The architecture and training run are described in Who Is You?, the companion write-up, and the release table below gives the spread between two anneals."
  },
@@ -987,89 +1012,168 @@
   ]
  },
  "riders": {
-  "_note": "riders v2, cross-model score_prompts harness; language = narrative + screenplay, 400 items per cell (SE ≈ .024); chance .25. fixed3 = the same three exemplars for every item; fairK = K exemplars drawn per item, sharing none of its letters or objects.",
+  "_note": "riders ladder, the box puzzle in four registers (code, narrative, screenplay, chat), items with 1-4 operations. Lookup = the queried box ends with its declared contents; update = an operation changed it. kappa, mean over the four registers; public rows = the median model of each size band (total parameters). One model's cell: 68 lookup or 82 update items per register, 272 or 328 in all, about ±.08 at 95%.",
   "cols": [
-   "0shot",
-   "fixed3",
-   "fair1",
-   "fair3",
-   "fair6"
+   {
+    "k": "l0",
+    "name": "lookup, cold"
+   },
+   {
+    "k": "u0",
+    "name": "update, cold"
+   },
+   {
+    "k": "lf",
+    "name": "lookup, with examples"
+   },
+   {
+    "k": "uf",
+    "name": "update, with examples"
+   }
   ],
   "rows": [
    {
-    "m": "Pythia-1.4B · 134B",
+    "m": "under 1B (5 models)",
     "ours": false,
-    "0shot": 0.362,
-    "fixed3": 0.415,
-    "fair1": 0.385,
-    "fair3": 0.44,
-    "fair6": 0.417
+    "models": [
+     "falcon-h1-0.5b",
+     "pythia-160m",
+     "qwen2.5-0.5b",
+     "qwen3-0.6b",
+     "smollm2-360m"
+    ],
+    "l0": 0.401,
+    "u0": 0.001,
+    "lf": 0.394,
+    "uf": -0.001
    },
    {
-    "m": "OLMo-2 1B · 4T",
+    "m": "1–2B (11 models)",
     "ours": false,
-    "0shot": 0.385,
-    "fixed3": 0.275,
-    "fair1": 0.375,
-    "fair3": 0.383,
-    "fair6": 0.453
+    "models": [
+     "falcon-h1-1.5b",
+     "falcon-h1-1.5b-deep",
+     "gpt2-xl",
+     "llama3.2-1b",
+     "olmo1-1b",
+     "olmo2-1b",
+     "pythia-1.4b",
+     "pythia-1b",
+     "qwen2.5-1.5b",
+     "qwen3-1.7b",
+     "smollm2-1.7b"
+    ],
+    "l0": 0.406,
+    "u0": 0.064,
+    "lf": 0.486,
+    "uf": 0.058
    },
    {
-    "m": "SmolLM2 1.7B · 10.5T",
+    "m": "2–5B (8 models)",
     "ours": false,
-    "0shot": 0.398,
-    "fixed3": 0.398,
-    "fair1": 0.472,
-    "fair3": 0.432,
-    "fair6": 0.505
+    "models": [
+     "falcon-h1-3b",
+     "falcon3-3b",
+     "gemma-2b",
+     "gemma2-2b",
+     "pythia-2.8b",
+     "pythia-2.8b-deduped",
+     "qwen2.5-3b",
+     "qwen3-4b"
+    ],
+    "l0": 0.542,
+    "u0": 0.129,
+    "lf": 0.708,
+    "uf": 0.204
    },
    {
-    "m": "kotodama-tsumugi · 11B",
-    "ours": true,
-    "0shot": 0.427,
-    "fixed3": 0.375,
-    "fair1": 0.443,
-    "fair3": 0.49,
-    "fair6": 0.495
+    "m": "7–10B (13 models)",
+    "ours": false,
+    "models": [
+     "bamba-9b",
+     "falcon-h1-7b",
+     "falcon-mamba-7b",
+     "falcon3-7b",
+     "gemma-7b",
+     "gemma2-9b",
+     "llama3-8b",
+     "llama3.1-8b",
+     "nemotron-h-8b",
+     "olmo2-7b",
+     "pythia-6.9b",
+     "qwen2.5-7b",
+     "recurrentgemma-9b"
+    ],
+    "l0": 0.549,
+    "u0": 0.212,
+    "lf": 0.597,
+    "uf": 0.4
    },
    {
-    "m": "kotodama-tsumugi · 33B",
-    "ours": true,
-    "0shot": 0.455,
-    "fixed3": 0.325,
-    "fair1": 0.45,
-    "fair3": 0.485,
-    "fair6": 0.53
+    "m": "13–34B (6 models)",
+    "ours": false,
+    "models": [
+     "falcon-h1-34b",
+     "gemma4-31b-base",
+     "glm4-32b-base",
+     "olmo2-13b",
+     "olmo3-32b",
+     "qwen3-30b-a3b"
+    ],
+    "l0": 0.665,
+    "u0": 0.52,
+    "lf": 0.762,
+    "uf": 0.571
    },
    {
-    "m": "kotodama-tsumugi · 55B",
-    "ours": true,
-    "0shot": 0.49,
-    "fixed3": 0.278,
-    "fair1": 0.455,
-    "fair3": 0.453,
-    "fair6": 0.51
+    "m": "70–72B (2 models)",
+    "ours": false,
+    "models": [
+     "llama3.1-70b",
+     "qwen2.5-72b"
+    ],
+    "l0": 0.62,
+    "u0": 0.592,
+    "lf": 0.825,
+    "uf": 0.769
    },
    {
-    "m": "kotodama-tsumugi · 110B, second anneal",
-    "ours": true,
-    "0shot": 0.47,
-    "fixed3": 0.338,
-    "fair1": 0.448,
-    "fair3": 0.393,
-    "fair6": 0.438
+    "m": "284B–1.6T (9 models)",
+    "ours": false,
+    "models": [
+     "dsv3-base",
+     "dsv4-flash-base",
+     "dsv4-pro-base",
+     "kimi-k2-base",
+     "llama3.1-405b",
+     "mimo-v25-base",
+     "mimo-v25-pro-base",
+     "nemotron3-ultra-550b-base",
+     "trinity-base"
+    ],
+    "l0": 0.719,
+    "u0": 0.721,
+    "lf": 0.811,
+    "uf": 0.87
    },
    {
-    "m": "kotodama-tsumugi · 110B, release",
+    "m": "kotodama-tsumugi 1.4B · release",
     "ours": true,
-    "0shot": 0.482,
-    "fixed3": 0.263,
-    "fair1": 0.472,
-    "fair3": 0.388,
-    "fair6": 0.438
+    "l0": 0.436,
+    "u0": 0.121,
+    "lf": 0.611,
+    "uf": -0.044
+   },
+   {
+    "m": "kotodama-tsumugi 1.4B · second anneal",
+    "ours": true,
+    "l0": 0.481,
+    "u0": 0.088,
+    "lf": 0.486,
+    "uf": 0.001
    }
   ],
-  "chance": 0.25
+  "signed": true
  },
  "release": {
   "cols": [
@@ -1152,28 +1256,28 @@
    [
     "binding capacity K50 (chance .04)",
     [
-     3.258,
-     3.472,
-     4.201,
+     3.364,
+     4.07,
+     5.417,
+     4.621,
+     5.083,
      3.819,
-     4.771,
-     6.555,
-     18.7,
-     44.094
+     10.226,
+     33.129
     ],
     false
    ],
    [
     "one binding past 256 filler tokens",
     [
-     0.863,
-     0.983,
-     0.892,
-     0.921,
-     0.908,
-     0.829,
-     0.771,
-     0.958
+     0.852,
+     0.988,
+     0.927,
+     0.912,
+     0.906,
+     0.738,
+     0.819,
+     0.942
     ],
     false
    ],

@@ -1,0 +1,4295 @@
+{
+"_source": "riders ladder (riders-v1 grid, standard renderers) on the current pins, rows_<model>.jsonl from the Atlas zoo runs; split by binding_bench.shortcuts.riders_probes: lookup = the queried box ends with its declared contents, update = an operation changed it; m = 1-4 pooled; kappa per item's own candidate count, exact ties split. Value = [kappa, n items].",
+"models": {
+"bamba-9b": {
+"code|0shot|lookup": [
+-0.05670662762922415,
+68
+],
+"code|0shot|update": [
+0.08818949531236876,
+82
+],
+"code|fair|lookup": [
+-0.05670662762922415,
+68
+],
+"code|fair|update": [
+-0.001363322112309315,
+82
+],
+"narrative|0shot|lookup": [
+-0.09444615004455359,
+68
+],
+"narrative|0shot|update": [
+0.023060173548966542,
+82
+],
+"narrative|fair|lookup": [
+-0.15105543366754776,
+68
+],
+"narrative|fair|update": [
+-0.025786817773585137,
+82
+],
+"screenplay|0shot|lookup": [
+-0.16992519487521243,
+68
+],
+"screenplay|0shot|update": [
+-0.050210313434860994,
+82
+],
+"screenplay|fair|lookup": [
+-0.09444615004455359,
+68
+],
+"screenplay|fair|update": [
+-0.025786817773585137,
+82
+],
+"chat|0shot|lookup": [
+-0.18879495608287716,
+68
+],
+"chat|0shot|update": [
+0.03934250398981712,
+82
+],
+"chat|fair|lookup": [
+-0.09444615004455359,
+68
+],
+"chat|fair|update": [
+0.07190716487151819,
+82
+]
+},
+"dsv3-base": {
+"code|0shot|lookup": [
+0.7735628655080233,
+68
+],
+"code|0shot|update": [
+0.8100394781900767,
+82
+],
+"code|fair|lookup": [
+0.8679116715463471,
+68
+],
+"code|fair|update": [
+0.9185883477957472,
+82
+],
+"narrative|0shot|lookup": [
+0.6603442982620351,
+68
+],
+"narrative|0shot|update": [
+0.7150592172851152,
+82
+],
+"narrative|fair|lookup": [
+0.7546931043003587,
+68
+],
+"narrative|fair|update": [
+0.8697413564731956,
+82
+],
+"screenplay|0shot|lookup": [
+0.6697791788658675,
+68
+],
+"screenplay|0shot|update": [
+0.6580710607421383,
+82
+],
+"screenplay|fair|lookup": [
+0.7735628655080233,
+68
+],
+"screenplay|fair|update": [
+0.8941648521344714,
+82
+],
+"chat|0shot|lookup": [
+0.7735628655080233,
+68
+],
+"chat|0shot|update": [
+0.7150592172851152,
+82
+],
+"chat|fair|lookup": [
+0.7829977461118558,
+68
+],
+"chat|fair|update": [
+0.8263218086309273,
+82
+]
+},
+"dsv4-flash-base": {
+"code|0shot|lookup": [
+0.8207372685271852,
+68
+],
+"code|0shot|update": [
+0.8697413564731956,
+82
+],
+"code|fair|lookup": [
+0.764127984904191,
+68
+],
+"code|fair|update": [
+0.8453178608119197,
+82
+],
+"narrative|0shot|lookup": [
+0.6477644574569253,
+68
+],
+"narrative|0shot|update": [
+0.8046120347097933,
+82
+],
+"narrative|fair|lookup": [
+0.8113023879233527,
+68
+],
+"narrative|fair|update": [
+0.8208943651506438,
+82
+],
+"screenplay|0shot|lookup": [
+0.3489932383355673,
+68
+],
+"screenplay|0shot|update": [
+0.6255063998604371,
+82
+],
+"screenplay|fair|lookup": [
+0.8113023879233527,
+68
+],
+"screenplay|fair|update": [
+0.853459026032345,
+82
+],
+"chat|0shot|lookup": [
+0.5471257310160468,
+68
+],
+"chat|0shot|update": [
+0.6987768868442648,
+82
+],
+"chat|fair|lookup": [
+0.7169535818850292,
+68
+],
+"chat|fair|update": [
+0.6906357216238395,
+82
+]
+},
+"dsv4-pro-base": {
+"code|0shot|lookup": [
+0.8207372685271852,
+68
+],
+"code|0shot|update": [
+0.796470869489368,
+82
+],
+"code|fair|lookup": [
+0.8490419103386823,
+68
+],
+"code|fair|update": [
+0.8860236869140461,
+82
+],
+"narrative|0shot|lookup": [
+0.6226047758467057,
+68
+],
+"narrative|0shot|update": [
+0.7313415477259658,
+82
+],
+"narrative|fair|lookup": [
+0.7924326267156881,
+68
+],
+"narrative|fair|update": [
+0.8697413564731956,
+82
+],
+"screenplay|0shot|lookup": [
+0.6226047758467057,
+68
+],
+"screenplay|0shot|update": [
+0.6987768868442648,
+82
+],
+"screenplay|fair|lookup": [
+0.7924326267156881,
+68
+],
+"screenplay|fair|update": [
+0.8860236869140461,
+82
+],
+"chat|0shot|lookup": [
+0.7735628655080233,
+68
+],
+"chat|0shot|update": [
+0.796470869489368,
+82
+],
+"chat|fair|lookup": [
+0.7735628655080233,
+68
+],
+"chat|fair|update": [
+0.8371766955914944,
+82
+]
+},
+"falcon-h1-0.5b": {
+"code|0shot|lookup": [
+0.12255610384359064,
+68
+],
+"code|0shot|update": [
+0.10447182575321934,
+82
+],
+"code|fair|lookup": [
+0.7829977461118558,
+68
+],
+"code|fair|update": [
+-0.001363322112309315,
+82
+],
+"narrative|0shot|lookup": [
+0.3301234771279026,
+68
+],
+"narrative|0shot|update": [
+0.2184481388391732,
+82
+],
+"narrative|fair|lookup": [
+0.13199098444742302,
+68
+],
+"narrative|fair|update": [
+0.03120133876939183,
+82
+],
+"screenplay|0shot|lookup": [
+0.5565606116198791,
+68
+],
+"screenplay|0shot|update": [
+0.16960114751662156,
+82
+],
+"screenplay|fair|lookup": [
+0.3678629995432319,
+68
+],
+"screenplay|fair|update": [
+0.0637659996510929,
+82
+],
+"chat|0shot|lookup": [
+0.5943001340352086,
+68
+],
+"chat|0shot|update": [
+0.16145998229619626,
+82
+],
+"chat|fair|lookup": [
+0.1886002680704172,
+68
+],
+"chat|fair|update": [
+0.0637659996510929,
+82
+]
+},
+"falcon-h1-1.5b-deep": {
+"code|0shot|lookup": [
+0.45277692497772315,
+68
+],
+"code|0shot|update": [
+0.0637659996510929,
+82
+],
+"code|fair|lookup": [
+0.8113023879233527,
+68
+],
+"code|fair|update": [
+0.6092240694195865,
+82
+],
+"narrative|0shot|lookup": [
+0.6226047758467057,
+68
+],
+"narrative|0shot|update": [
+0.23473046928002375,
+82
+],
+"narrative|fair|lookup": [
+0.33955835773173487,
+68
+],
+"narrative|fair|update": [
+0.1451776518553457,
+82
+],
+"screenplay|0shot|lookup": [
+0.5754303728275438,
+68
+],
+"screenplay|0shot|update": [
+0.20216580839832268,
+82
+],
+"screenplay|fair|lookup": [
+0.4056025219585614,
+68
+],
+"screenplay|fair|update": [
+0.1370364866349204,
+82
+],
+"chat|0shot|lookup": [
+0.6886489400735322,
+68
+],
+"chat|0shot|update": [
+0.3324244519251271,
+82
+],
+"chat|fair|lookup": [
+0.45277692497772315,
+68
+],
+"chat|fair|update": [
+0.23473046928002375,
+82
+]
+},
+"falcon-h1-1.5b": {
+"code|0shot|lookup": [
+0.5943001340352086,
+68
+],
+"code|0shot|update": [
+0.03934250398981712,
+82
+],
+"code|fair|lookup": [
+0.8867814327540117,
+68
+],
+"code|fair|update": [
+0.29985979104342597,
+82
+],
+"narrative|0shot|lookup": [
+0.20747002927808184,
+68
+],
+"narrative|0shot|update": [
+0.15331881707577097,
+82
+],
+"narrative|fair|lookup": [
+0.13199098444742302,
+68
+],
+"narrative|fair|update": [
+0.2672951301617249,
+82
+],
+"screenplay|0shot|lookup": [
+0.2829490741087407,
+68
+],
+"screenplay|0shot|update": [
+0.16960114751662156,
+82
+],
+"screenplay|fair|lookup": [
+0.15086074565508775,
+68
+],
+"screenplay|fair|update": [
+0.20216580839832268,
+82
+],
+"chat|0shot|lookup": [
+0.5471257310160468,
+68
+],
+"chat|0shot|update": [
+0.0637659996510929,
+82
+],
+"chat|fair|lookup": [
+0.20747002927808184,
+68
+],
+"chat|fair|update": [
+0.1207541561940699,
+82
+]
+},
+"falcon-h1-34b": {
+"code|0shot|lookup": [
+0.8490419103386823,
+68
+],
+"code|0shot|update": [
+0.31614212148427656,
+82
+],
+"code|fair|lookup": [
+0.8490419103386823,
+68
+],
+"code|fair|update": [
+0.853459026032345,
+82
+],
+"narrative|0shot|lookup": [
+0.7358233430926939,
+68
+],
+"narrative|0shot|update": [
+0.6336475650808624,
+82
+],
+"narrative|fair|lookup": [
+0.7735628655080233,
+68
+],
+"narrative|fair|update": [
+0.8046120347097933,
+82
+],
+"screenplay|0shot|lookup": [
+0.6792140594696998,
+68
+],
+"screenplay|0shot|update": [
+0.6255063998604371,
+82
+],
+"screenplay|fair|lookup": [
+0.8301721491310176,
+68
+],
+"screenplay|fair|update": [
+0.8046120347097933,
+82
+],
+"chat|0shot|lookup": [
+0.7169535818850292,
+68
+],
+"chat|0shot|update": [
+0.6580710607421383,
+82
+],
+"chat|fair|lookup": [
+0.7735628655080233,
+68
+],
+"chat|fair|update": [
+0.796470869489368,
+82
+]
+},
+"falcon-h1-3b": {
+"code|0shot|lookup": [
+0.5093862086007174,
+68
+],
+"code|0shot|update": [
+0.10447182575321934,
+82
+],
+"code|fair|lookup": [
+0.7924326267156881,
+68
+],
+"code|fair|update": [
+0.41383610412938,
+82
+],
+"narrative|0shot|lookup": [
+0.6603442982620351,
+68
+],
+"narrative|0shot|update": [
+0.1370364866349204,
+82
+],
+"narrative|fair|lookup": [
+0.5848652534313763,
+68
+],
+"narrative|fair|update": [
+0.3649891128068283,
+82
+],
+"screenplay|0shot|lookup": [
+0.7075187012811969,
+68
+],
+"screenplay|0shot|update": [
+0.1207541561940699,
+82
+],
+"screenplay|fair|lookup": [
+0.7169535818850292,
+68
+],
+"screenplay|fair|update": [
+0.3324244519251271,
+82
+],
+"chat|0shot|lookup": [
+0.7169535818850292,
+68
+],
+"chat|0shot|update": [
+0.18588347795747212,
+82
+],
+"chat|fair|lookup": [
+0.7735628655080233,
+68
+],
+"chat|fair|update": [
+0.356847947586403,
+82
+]
+},
+"falcon-h1-7b": {
+"code|0shot|lookup": [
+0.7546931043003587,
+68
+],
+"code|0shot|update": [
+0.07190716487151819,
+82
+],
+"code|fair|lookup": [
+0.7924326267156881,
+68
+],
+"code|fair|update": [
+0.7069180520646899,
+82
+],
+"narrative|0shot|lookup": [
+0.39616764135472904,
+68
+],
+"narrative|0shot|update": [
+0.32428328670470186,
+82
+],
+"narrative|fair|lookup": [
+0.6037350146390409,
+68
+],
+"narrative|fair|update": [
+0.31614212148427656,
+82
+],
+"screenplay|0shot|lookup": [
+0.6320396564505381,
+68
+],
+"screenplay|0shot|update": [
+0.3649891128068283,
+82
+],
+"screenplay|fair|lookup": [
+0.6226047758467057,
+68
+],
+"screenplay|fair|update": [
+0.5440947476561844,
+82
+],
+"chat|0shot|lookup": [
+0.4150374025623937,
+68
+],
+"chat|0shot|update": [
+0.38127144324767887,
+82
+],
+"chat|fair|lookup": [
+0.5471257310160468,
+68
+],
+"chat|fair|update": [
+0.4301184345702304,
+82
+]
+},
+"falcon-mamba-7b": {
+"code|0shot|lookup": [
+0.34427579803365105,
+68
+],
+"code|0shot|update": [
+0.017632730068682996,
+82
+],
+"code|fair|lookup": [
+0.6059364867799352,
+68
+],
+"code|fair|update": [
+0.17231486925676337,
+82
+],
+"narrative|0shot|lookup": [
+0.2552734243374991,
+68
+],
+"narrative|0shot|update": [
+0.11519102662677924,
+82
+],
+"narrative|fair|lookup": [
+0.6304671763498991,
+68
+],
+"narrative|fair|update": [
+0.08644495990799189,
+82
+],
+"screenplay|0shot|lookup": [
+0.3873617527911521,
+68
+],
+"screenplay|0shot|update": [
+0.09051554251820454,
+82
+],
+"screenplay|fair|lookup": [
+0.5471257310160468,
+68
+],
+"screenplay|fair|update": [
+0.06566560486919218,
+82
+],
+"chat|0shot|lookup": [
+0.5823492852703543,
+68
+],
+"chat|0shot|update": [
+0.04205622572995885,
+82
+],
+"chat|fair|lookup": [
+0.6043640066792965,
+68
+],
+"chat|fair|update": [
+0.016818613546640465,
+82
+]
+},
+"falcon3-3b": {
+"code|0shot|lookup": [
+0.2829490741087407,
+68
+],
+"code|0shot|update": [
+0.023060173548966542,
+82
+],
+"code|fair|lookup": [
+0.8207372685271852,
+68
+],
+"code|fair|update": [
+0.2917186258230007,
+82
+],
+"narrative|0shot|lookup": [
+0.2546444322972437,
+68
+],
+"narrative|0shot|update": [
+0.23473046928002375,
+82
+],
+"narrative|fair|lookup": [
+0.20747002927808184,
+68
+],
+"narrative|fair|update": [
+0.3487067823659777,
+82
+],
+"screenplay|0shot|lookup": [
+0.264079312901076,
+68
+],
+"screenplay|0shot|update": [
+0.2510127997208743,
+82
+],
+"screenplay|fair|lookup": [
+0.33955835773173487,
+68
+],
+"screenplay|fair|update": [
+0.3649891128068283,
+82
+],
+"chat|0shot|lookup": [
+0.4339071637700585,
+68
+],
+"chat|0shot|update": [
+0.2591539649412996,
+82
+],
+"chat|fair|lookup": [
+0.5282559698083821,
+68
+],
+"chat|fair|update": [
+0.4301184345702304,
+82
+]
+},
+"falcon3-7b": {
+"code|0shot|lookup": [
+0.4905164473930526,
+68
+],
+"code|0shot|update": [
+0.07190716487151819,
+82
+],
+"code|fair|lookup": [
+0.7735628655080233,
+68
+],
+"code|fair|update": [
+0.6092240694195865,
+82
+],
+"narrative|0shot|lookup": [
+0.4339071637700585,
+68
+],
+"narrative|0shot|update": [
+0.23473046928002375,
+82
+],
+"narrative|fair|lookup": [
+0.4905164473930526,
+68
+],
+"narrative|fair|update": [
+0.38127144324767887,
+82
+],
+"screenplay|0shot|lookup": [
+0.5093862086007174,
+68
+],
+"screenplay|0shot|update": [
+0.20216580839832268,
+82
+],
+"screenplay|fair|lookup": [
+0.6226047758467057,
+68
+],
+"screenplay|fair|update": [
+0.31614212148427656,
+82
+],
+"chat|0shot|lookup": [
+0.8490419103386823,
+68
+],
+"chat|0shot|update": [
+0.18588347795747212,
+82
+],
+"chat|fair|lookup": [
+0.5659954922237115,
+68
+],
+"chat|fair|update": [
+0.3894126084681041,
+82
+]
+},
+"gemma-2b": {
+"code|0shot|lookup": [
+0.4905164473930526,
+68
+],
+"code|0shot|update": [
+0.03120133876939183,
+82
+],
+"code|fair|lookup": [
+0.8113023879233527,
+68
+],
+"code|fair|update": [
+0.014919008328541258,
+82
+],
+"narrative|0shot|lookup": [
+0.264079312901076,
+68
+],
+"narrative|0shot|update": [
+-0.001363322112309315,
+82
+],
+"narrative|fair|lookup": [
+0.47164668618538796,
+68
+],
+"narrative|fair|update": [
+-0.017645652553159887,
+82
+],
+"screenplay|0shot|lookup": [
+0.5093862086007174,
+68
+],
+"screenplay|0shot|update": [
+0.09633066053279404,
+82
+],
+"screenplay|fair|lookup": [
+0.6005900544377635,
+68
+],
+"screenplay|fair|update": [
+0.023060173548966542,
+82
+],
+"chat|0shot|lookup": [
+0.48108156678922026,
+68
+],
+"chat|0shot|update": [
+0.1207541561940699,
+82
+],
+"chat|fair|lookup": [
+0.7924326267156881,
+68
+],
+"chat|fair|update": [
+0.03934250398981712,
+82
+]
+},
+"gemma-7b": {
+"code|0shot|lookup": [
+0.8679116715463471,
+68
+],
+"code|0shot|update": [
+0.13296590402470776,
+82
+],
+"code|fair|lookup": [
+0.8056414595610535,
+68
+],
+"code|fair|update": [
+0.40786591630106805,
+82
+],
+"narrative|0shot|lookup": [
+0.3527671905771002,
+68
+],
+"narrative|0shot|update": [
+0.21763402231713075,
+82
+],
+"narrative|fair|lookup": [
+0.4150374025623937,
+68
+],
+"narrative|fair|update": [
+0.34843541019196345,
+82
+],
+"screenplay|0shot|lookup": [
+0.06437434011995782,
+68
+],
+"screenplay|0shot|update": [
+0.29904567452138353,
+82
+],
+"screenplay|fair|lookup": [
+0.4700742060847491,
+68
+],
+"screenplay|fair|update": [
+0.3913122136862033,
+82
+],
+"chat|0shot|lookup": [
+0.2139396616921383,
+68
+],
+"chat|0shot|update": [
+0.19999483100620927,
+82
+],
+"chat|fair|lookup": [
+0.3725804398451481,
+68
+],
+"chat|fair|update": [
+0.45318506936143543,
+82
+]
+},
+"gemma2-2b": {
+"code|0shot|lookup": [
+0.8679116715463471,
+68
+],
+"code|0shot|update": [
+-0.07463380909613682,
+82
+],
+"code|fair|lookup": [
+0.8490419103386823,
+68
+],
+"code|fair|update": [
+0.2184481388391732,
+82
+],
+"narrative|0shot|lookup": [
+0.33955835773173487,
+68
+],
+"narrative|0shot|update": [
+0.1370364866349204,
+82
+],
+"narrative|fair|lookup": [
+0.5565606116198791,
+68
+],
+"narrative|fair|update": [
+0.15060509533562924,
+82
+],
+"screenplay|0shot|lookup": [
+0.4307622035687811,
+68
+],
+"screenplay|0shot|update": [
+0.19131092143775566,
+82
+],
+"screenplay|fair|lookup": [
+0.6414745370543704,
+68
+],
+"screenplay|fair|update": [
+0.1370364866349204,
+82
+],
+"chat|0shot|lookup": [
+0.4905164473930526,
+68
+],
+"chat|0shot|update": [
+0.22658930405959848,
+82
+],
+"chat|fair|lookup": [
+0.7515481440990812,
+68
+],
+"chat|fair|update": [
+0.08004833009194347,
+82
+]
+},
+"gemma2-9b": {
+"code|0shot|lookup": [
+0.9339558357731734,
+68
+],
+"code|0shot|update": [
+-0.017645652553159887,
+82
+],
+"code|fair|lookup": [
+0.7924326267156881,
+68
+],
+"code|fair|update": [
+0.592941738978736,
+82
+],
+"narrative|0shot|lookup": [
+0.20747002927808184,
+68
+],
+"narrative|0shot|update": [
+0.3378518954054108,
+82
+],
+"narrative|fair|lookup": [
+0.6320396564505381,
+68
+],
+"narrative|fair|update": [
+0.31614212148427656,
+82
+],
+"screenplay|0shot|lookup": [
+0.5030962881981623,
+68
+],
+"screenplay|0shot|update": [
+0.20216580839832268,
+82
+],
+"screenplay|fair|lookup": [
+0.7263884624888616,
+68
+],
+"screenplay|fair|update": [
+0.356847947586403,
+82
+],
+"chat|0shot|lookup": [
+0.7138086216837518,
+68
+],
+"chat|0shot|update": [
+0.22658930405959848,
+82
+],
+"chat|fair|lookup": [
+0.7546931043003587,
+68
+],
+"chat|fair|update": [
+0.356847947586403,
+82
+]
+},
+"gemma4-31b-base": {
+"code|0shot|lookup": [
+0.8490419103386823,
+68
+],
+"code|0shot|update": [
+0.19131092143775566,
+82
+],
+"code|fair|lookup": [
+0.7735628655080233,
+68
+],
+"code|fair|update": [
+0.9348706782365978,
+82
+],
+"narrative|0shot|lookup": [
+0.6194598156454283,
+68
+],
+"narrative|0shot|update": [
+0.7069180520646899,
+82
+],
+"narrative|fair|lookup": [
+0.8113023879233527,
+68
+],
+"narrative|fair|update": [
+0.6824945564034142,
+82
+],
+"screenplay|0shot|lookup": [
+0.5093862086007174,
+68
+],
+"screenplay|0shot|update": [
+0.7313415477259658,
+82
+],
+"screenplay|fair|lookup": [
+0.8113023879233527,
+68
+],
+"screenplay|fair|update": [
+0.7069180520646899,
+82
+],
+"chat|0shot|lookup": [
+0.7452582236965264,
+68
+],
+"chat|0shot|update": [
+0.6824945564034142,
+82
+],
+"chat|fair|lookup": [
+0.8773465521501793,
+68
+],
+"chat|fair|update": [
+0.8697413564731956,
+82
+]
+},
+"glm4-32b-base": {
+"code|0shot|lookup": [
+0.8584767909425145,
+68
+],
+"code|0shot|update": [
+0.45454193023150624,
+82
+],
+"code|fair|lookup": [
+0.8301721491310176,
+68
+],
+"code|fair|update": [
+0.818180643410502,
+82
+],
+"narrative|0shot|lookup": [
+0.4999513279968851,
+68
+],
+"narrative|0shot|update": [
+0.649929895521713,
+82
+],
+"narrative|fair|lookup": [
+0.764127984904191,
+68
+],
+"narrative|fair|update": [
+0.6010829041991612,
+82
+],
+"screenplay|0shot|lookup": [
+0.5943001340352086,
+68
+],
+"screenplay|0shot|update": [
+0.5440947476561844,
+82
+],
+"screenplay|fair|lookup": [
+0.8113023879233527,
+68
+],
+"screenplay|fair|update": [
+0.6010829041991612,
+82
+],
+"chat|0shot|lookup": [
+0.6414745370543704,
+68
+],
+"chat|0shot|update": [
+0.5115300867744833,
+82
+],
+"chat|fair|lookup": [
+0.8773465521501793,
+68
+],
+"chat|fair|update": [
+0.592941738978736,
+82
+]
+},
+"gpt2-xl": {
+"code|0shot|lookup": [
+-0.07557638883688887,
+68
+],
+"code|0shot|update": [
+0.16960114751662156,
+82
+],
+"code|fair|lookup": [
+0.1886002680704172,
+68
+],
+"code|fair|update": [
+0.10447182575321934,
+82
+],
+"narrative|0shot|lookup": [
+0.1886002680704172,
+68
+],
+"narrative|0shot|update": [
+-0.050210313434860994,
+82
+],
+"narrative|fair|lookup": [
+0.05651193961676415,
+68
+],
+"narrative|fair|update": [
+0.0067778431081159714,
+82
+],
+"screenplay|0shot|lookup": [
+0.2452095516934113,
+68
+],
+"screenplay|0shot|update": [
+-0.025786817773585137,
+82
+],
+"screenplay|fair|lookup": [
+0.16973050686275248,
+68
+],
+"screenplay|fair|update": [
+-0.025786817773585137,
+82
+],
+"chat|0shot|lookup": [
+0.2452095516934113,
+68
+],
+"chat|0shot|update": [
+0.03934250398981712,
+82
+],
+"chat|fair|lookup": [
+0.09425146203209359,
+68
+],
+"chat|fair|update": [
+-0.050210313434860994,
+82
+]
+},
+"kimi-k2-base": {
+"code|0shot|lookup": [
+0.8773465521501793,
+68
+],
+"code|0shot|update": [
+0.5196712519949086,
+82
+],
+"code|fair|lookup": [
+0.8679116715463471,
+68
+],
+"code|fair|update": [
+0.9267295130161725,
+82
+],
+"narrative|0shot|lookup": [
+0.7735628655080233,
+68
+],
+"narrative|0shot|update": [
+0.7557650433872416,
+82
+],
+"narrative|fair|lookup": [
+0.7546931043003587,
+68
+],
+"narrative|fair|update": [
+0.8941648521344714,
+82
+],
+"screenplay|0shot|lookup": [
+0.7735628655080233,
+68
+],
+"screenplay|0shot|update": [
+0.649929895521713,
+82
+],
+"screenplay|fair|lookup": [
+0.7735628655080233,
+68
+],
+"screenplay|fair|update": [
+0.8371766955914944,
+82
+],
+"chat|0shot|lookup": [
+0.7546931043003587,
+68
+],
+"chat|0shot|update": [
+0.8371766955914944,
+82
+],
+"chat|fair|lookup": [
+0.7169535818850292,
+68
+],
+"chat|fair|update": [
+0.8371766955914944,
+82
+]
+},
+"llama3-8b": {
+"code|0shot|lookup": [
+0.8584767909425145,
+68
+],
+"code|0shot|update": [
+0.11804043445392809,
+82
+],
+"code|fair|lookup": [
+0.7546931043003587,
+68
+],
+"code|fair|update": [
+0.31614212148427656,
+82
+],
+"narrative|0shot|lookup": [
+0.5471257310160468,
+68
+],
+"narrative|0shot|update": [
+0.4056949389089547,
+82
+],
+"narrative|fair|lookup": [
+0.47164668618538796,
+68
+],
+"narrative|fair|update": [
+0.5115300867744833,
+82
+],
+"screenplay|0shot|lookup": [
+0.4905164473930526,
+68
+],
+"screenplay|0shot|update": [
+0.4056949389089547,
+82
+],
+"screenplay|fair|lookup": [
+0.4905164473930526,
+68
+],
+"screenplay|fair|update": [
+0.4301184345702304,
+82
+],
+"chat|0shot|lookup": [
+0.45277692497772315,
+68
+],
+"chat|0shot|update": [
+0.3975537736885294,
+82
+],
+"chat|fair|lookup": [
+0.6131698952428732,
+68
+],
+"chat|fair|update": [
+0.560377078097035,
+82
+]
+},
+"llama3.1-405b": {
+"code|0shot|lookup": [
+0.8301721491310176,
+68
+],
+"code|0shot|update": [
+0.6010829041991612,
+82
+],
+"code|fair|lookup": [
+0.8584767909425145,
+68
+],
+"code|fair|update": [
+0.7476238781668164,
+82
+],
+"narrative|0shot|lookup": [
+0.5943001340352086,
+68
+],
+"narrative|0shot|update": [
+0.8453178608119197,
+82
+],
+"narrative|fair|lookup": [
+0.8113023879233527,
+68
+],
+"narrative|fair|update": [
+0.8371766955914944,
+82
+],
+"screenplay|0shot|lookup": [
+0.5282559698083821,
+68
+],
+"screenplay|0shot|update": [
+0.6824945564034142,
+82
+],
+"screenplay|fair|lookup": [
+0.8773465521501793,
+68
+],
+"screenplay|fair|update": [
+0.853459026032345,
+82
+],
+"chat|0shot|lookup": [
+0.7735628655080233,
+68
+],
+"chat|0shot|update": [
+0.7557650433872416,
+82
+],
+"chat|fair|lookup": [
+0.9056511939616765,
+68
+],
+"chat|fair|update": [
+0.853459026032345,
+82
+]
+},
+"llama3.1-70b": {
+"code|0shot|lookup": [
+0.8490419103386823,
+68
+],
+"code|0shot|update": [
+0.37313027802725357,
+82
+],
+"code|fair|lookup": [
+0.8301721491310176,
+68
+],
+"code|fair|update": [
+0.8697413564731956,
+82
+],
+"narrative|0shot|lookup": [
+0.3112537159202379,
+68
+],
+"narrative|0shot|update": [
+0.7801885390485174,
+82
+],
+"narrative|fair|lookup": [
+0.8113023879233527,
+68
+],
+"narrative|fair|update": [
+0.7883297042689427,
+82
+],
+"screenplay|0shot|lookup": [
+0.3112537159202379,
+68
+],
+"screenplay|0shot|update": [
+0.649929895521713,
+82
+],
+"screenplay|fair|lookup": [
+0.8490419103386823,
+68
+],
+"screenplay|fair|update": [
+0.7720473738280922,
+82
+],
+"chat|0shot|lookup": [
+0.47793660658794285,
+68
+],
+"chat|0shot|update": [
+0.5522359128766097,
+82
+],
+"chat|fair|lookup": [
+0.8301721491310176,
+68
+],
+"chat|fair|update": [
+0.7232003825055405,
+82
+]
+},
+"llama3.1-8b": {
+"code|0shot|lookup": [
+0.8490419103386823,
+68
+],
+"code|0shot|update": [
+0.08004833009194347,
+82
+],
+"code|fair|lookup": [
+0.764127984904191,
+68
+],
+"code|fair|update": [
+0.4301184345702304,
+82
+],
+"narrative|0shot|lookup": [
+0.5471257310160468,
+68
+],
+"narrative|0shot|update": [
+0.45454193023150624,
+82
+],
+"narrative|fair|lookup": [
+0.5565606116198791,
+68
+],
+"narrative|fair|update": [
+0.4789654258927821,
+82
+],
+"screenplay|0shot|lookup": [
+0.4999513279968851,
+68
+],
+"screenplay|0shot|update": [
+0.356847947586403,
+82
+],
+"screenplay|fair|lookup": [
+0.5188210892045497,
+68
+],
+"screenplay|fair|update": [
+0.46268309545193154,
+82
+],
+"chat|0shot|lookup": [
+0.44334204437389085,
+68
+],
+"chat|0shot|update": [
+0.4382595997906557,
+82
+],
+"chat|fair|lookup": [
+0.5848652534313763,
+68
+],
+"chat|fair|update": [
+0.5440947476561844,
+82
+]
+},
+"llama3.2-1b": {
+"code|0shot|lookup": [
+0.7452582236965264,
+68
+],
+"code|0shot|update": [
+-0.042069148214435706,
+82
+],
+"code|fair|lookup": [
+0.8301721491310176,
+68
+],
+"code|fair|update": [
+0.11261299097364462,
+82
+],
+"narrative|0shot|lookup": [
+0.6980838206773644,
+68
+],
+"narrative|0shot|update": [
+0.08004833009194347,
+82
+],
+"narrative|fair|lookup": [
+0.7075187012811969,
+68
+],
+"narrative|fair|update": [
+-0.033927982994010425,
+82
+],
+"screenplay|0shot|lookup": [
+0.7546931043003587,
+68
+],
+"screenplay|0shot|update": [
+0.10175810401307751,
+82
+],
+"screenplay|fair|lookup": [
+0.8773465521501793,
+68
+],
+"screenplay|fair|update": [
+-0.1316219656391138,
+82
+],
+"chat|0shot|lookup": [
+0.764127984904191,
+68
+],
+"chat|0shot|update": [
+-0.001363322112309315,
+82
+],
+"chat|fair|lookup": [
+0.9056511939616765,
+68
+],
+"chat|fair|update": [
+-0.1560454613003896,
+82
+]
+},
+"mimo-v25-base": {
+"code|0shot|lookup": [
+0.8207372685271852,
+68
+],
+"code|0shot|update": [
+0.7720473738280922,
+82
+],
+"code|fair|lookup": [
+0.8301721491310176,
+68
+],
+"code|fair|update": [
+0.8941648521344714,
+82
+],
+"narrative|0shot|lookup": [
+0.38673276075089674,
+68
+],
+"narrative|0shot|update": [
+0.7801885390485174,
+82
+],
+"narrative|fair|lookup": [
+0.8396070297348499,
+68
+],
+"narrative|fair|update": [
+0.7313415477259658,
+82
+],
+"screenplay|0shot|lookup": [
+0.5754303728275438,
+68
+],
+"screenplay|0shot|update": [
+0.7069180520646899,
+82
+],
+"screenplay|fair|lookup": [
+0.8490419103386823,
+68
+],
+"screenplay|fair|update": [
+0.8100394781900767,
+82
+],
+"chat|0shot|lookup": [
+0.4150374025623937,
+68
+],
+"chat|0shot|update": [
+0.5196712519949086,
+82
+],
+"chat|fair|lookup": [
+0.764127984904191,
+68
+],
+"chat|fair|update": [
+0.8290355303710691,
+82
+]
+},
+"mimo-v25-pro-base": {
+"code|0shot|lookup": [
+0.8018675073195205,
+68
+],
+"code|0shot|update": [
+0.7204866607653986,
+82
+],
+"code|fair|lookup": [
+0.9213759949680637,
+68
+],
+"code|fair|update": [
+0.9158746260556053,
+82
+],
+"narrative|0shot|lookup": [
+0.7546931043003587,
+68
+],
+"narrative|0shot|update": [
+0.8046120347097933,
+82
+],
+"narrative|fair|lookup": [
+0.8726291118482632,
+68
+],
+"narrative|fair|update": [
+0.9023060173548967,
+82
+],
+"screenplay|0shot|lookup": [
+0.7279609425895004,
+68
+],
+"screenplay|0shot|update": [
+0.7367689912062492,
+82
+],
+"screenplay|fair|lookup": [
+0.8914988730559278,
+68
+],
+"screenplay|fair|update": [
+0.8995922956147547,
+82
+],
+"chat|0shot|lookup": [
+0.7452582236965264,
+68
+],
+"chat|0shot|update": [
+0.6797808346632724,
+82
+],
+"chat|fair|lookup": [
+0.8348895894329338,
+68
+],
+"chat|fair|update": [
+0.8073257564499351,
+82
+]
+},
+"nemotron-h-8b": {
+"code|0shot|lookup": [
+0.8867814327540117,
+68
+],
+"code|0shot|update": [
+0.10447182575321934,
+82
+],
+"code|fair|lookup": [
+0.7546931043003587,
+68
+],
+"code|fair|update": [
+0.3405656171455524,
+82
+],
+"narrative|0shot|lookup": [
+0.2546444322972437,
+68
+],
+"narrative|0shot|update": [
+0.3975537736885294,
+82
+],
+"narrative|fair|lookup": [
+0.48108156678922026,
+68
+],
+"narrative|fair|update": [
+0.2103069736187479,
+82
+],
+"screenplay|0shot|lookup": [
+0.38673276075089674,
+68
+],
+"screenplay|0shot|update": [
+0.503388921554058,
+82
+],
+"screenplay|fair|lookup": [
+0.5188210892045497,
+68
+],
+"screenplay|fair|update": [
+0.17774231273704683,
+82
+],
+"chat|0shot|lookup": [
+0.5471257310160468,
+68
+],
+"chat|0shot|update": [
+0.32428328670470186,
+82
+],
+"chat|fair|lookup": [
+0.4905164473930526,
+68
+],
+"chat|fair|update": [
+0.2754362953821502,
+82
+]
+},
+"nemotron3-ultra-550b-base": {
+"code|0shot|lookup": [
+0.8301721491310176,
+68
+],
+"code|0shot|update": [
+0.6906357216238395,
+82
+],
+"code|fair|lookup": [
+0.9245209551693411,
+68
+],
+"code|fair|update": [
+0.8860236869140461,
+82
+],
+"narrative|0shot|lookup": [
+0.7546931043003587,
+68
+],
+"narrative|0shot|update": [
+0.7232003825055405,
+82
+],
+"narrative|fair|lookup": [
+0.896216313357844,
+68
+],
+"narrative|fair|update": [
+0.8941648521344714,
+82
+],
+"screenplay|0shot|lookup": [
+0.6886489400735322,
+68
+],
+"screenplay|0shot|update": [
+0.6010829041991612,
+82
+],
+"screenplay|fair|lookup": [
+0.8867814327540117,
+68
+],
+"screenplay|fair|update": [
+0.9267295130161725,
+82
+],
+"chat|0shot|lookup": [
+0.7735628655080233,
+68
+],
+"chat|0shot|update": [
+0.7069180520646899,
+82
+],
+"chat|fair|lookup": [
+0.8396070297348499,
+68
+],
+"chat|fair|update": [
+0.8778825216936209,
+82
+]
+},
+"olmo1-1b": {
+"code|0shot|lookup": [
+0.47164668618538796,
+68
+],
+"code|0shot|update": [
+0.0067778431081159714,
+82
+],
+"code|fair|lookup": [
+0.4056025219585614,
+68
+],
+"code|fair|update": [
+-0.009504487332734601,
+82
+],
+"narrative|0shot|lookup": [
+0.32068859652407017,
+68
+],
+"narrative|0shot|update": [
+0.1207541561940699,
+82
+],
+"narrative|fair|lookup": [
+0.4150374025623937,
+68
+],
+"narrative|fair|update": [
+-0.0827749743165621,
+82
+],
+"screenplay|0shot|lookup": [
+0.2829490741087407,
+68
+],
+"screenplay|0shot|update": [
+0.09633066053279404,
+82
+],
+"screenplay|fair|lookup": [
+0.4999513279968851,
+68
+],
+"screenplay|fair|update": [
+-0.14790429607996433,
+82
+],
+"chat|0shot|lookup": [
+0.38673276075089674,
+68
+],
+"chat|0shot|update": [
+0.03120133876939183,
+82
+],
+"chat|fair|lookup": [
+0.6226047758467057,
+68
+],
+"chat|fair|update": [
+-0.1723277917412402,
+82
+]
+},
+"olmo2-13b": {
+"code|0shot|lookup": [
+0.9245209551693411,
+68
+],
+"code|0shot|update": [
+-0.025786817773585137,
+82
+],
+"code|fair|lookup": [
+0.6603442982620351,
+68
+],
+"code|fair|update": [
+0.3324244519251271,
+82
+],
+"narrative|0shot|lookup": [
+0.5471257310160468,
+68
+],
+"narrative|0shot|update": [
+0.29985979104342597,
+82
+],
+"narrative|fair|lookup": [
+0.2829490741087407,
+68
+],
+"narrative|fair|update": [
+0.5766594085378856,
+82
+],
+"screenplay|0shot|lookup": [
+0.4150374025623937,
+68
+],
+"screenplay|0shot|update": [
+0.3487067823659777,
+82
+],
+"screenplay|fair|lookup": [
+0.1886002680704172,
+68
+],
+"screenplay|fair|update": [
+0.4301184345702304,
+82
+],
+"chat|0shot|lookup": [
+0.5282559698083821,
+68
+],
+"chat|0shot|update": [
+0.2510127997208743,
+82
+],
+"chat|fair|lookup": [
+0.20747002927808184,
+68
+],
+"chat|fair|update": [
+0.46268309545193154,
+82
+]
+},
+"olmo2-1b": {
+"code|0shot|lookup": [
+0.11312122323975832,
+68
+],
+"code|0shot|update": [
+0.08818949531236876,
+82
+],
+"code|fair|lookup": [
+0.6603442982620351,
+68
+],
+"code|fair|update": [
+0.023060173548966542,
+82
+],
+"narrative|0shot|lookup": [
+0.35842811893939963,
+68
+],
+"narrative|0shot|update": [
+0.16145998229619626,
+82
+],
+"narrative|fair|lookup": [
+0.22633979048574657,
+68
+],
+"narrative|fair|update": [
+0.23473046928002375,
+82
+],
+"screenplay|0shot|lookup": [
+0.38673276075089674,
+68
+],
+"screenplay|0shot|update": [
+0.17774231273704683,
+82
+],
+"screenplay|fair|lookup": [
+0.35842811893939963,
+68
+],
+"screenplay|fair|update": [
+0.16960114751662156,
+82
+],
+"chat|0shot|lookup": [
+0.4905164473930526,
+68
+],
+"chat|0shot|update": [
+0.07190716487151819,
+82
+],
+"chat|fair|lookup": [
+0.2452095516934113,
+68
+],
+"chat|fair|update": [
+-0.017645652553159887,
+82
+]
+},
+"olmo2-7b": {
+"code|0shot|lookup": [
+0.6603442982620351,
+68
+],
+"code|0shot|update": [
+0.03934250398981712,
+82
+],
+"code|fair|lookup": [
+0.6792140594696998,
+68
+],
+"code|fair|update": [
+0.20216580839832268,
+82
+],
+"narrative|0shot|lookup": [
+0.44334204437389085,
+68
+],
+"narrative|0shot|update": [
+0.30800095626385127,
+82
+],
+"narrative|fair|lookup": [
+0.2923839547125731,
+68
+],
+"narrative|fair|update": [
+0.38127144324767887,
+82
+],
+"screenplay|0shot|lookup": [
+0.39616764135472904,
+68
+],
+"screenplay|0shot|update": [
+0.4219772693498051,
+82
+],
+"screenplay|fair|lookup": [
+0.20747002927808184,
+68
+],
+"screenplay|fair|update": [
+0.2835774606025755,
+82
+],
+"chat|0shot|lookup": [
+0.39616764135472904,
+68
+],
+"chat|0shot|update": [
+0.38127144324767887,
+82
+],
+"chat|fair|lookup": [
+0.1886002680704172,
+68
+],
+"chat|fair|update": [
+0.2835774606025755,
+82
+]
+},
+"olmo3-32b-stage1": {
+"code|0shot|lookup": [
+0.8490419103386823,
+68
+],
+"code|0shot|update": [
+0.19402464317789742,
+82
+],
+"code|fair|lookup": [
+0.6980838206773644,
+68
+],
+"code|fair|update": [
+0.6987768868442648,
+82
+],
+"narrative|0shot|lookup": [
+0.4905164473930526,
+68
+],
+"narrative|0shot|update": [
+0.3324244519251271,
+82
+],
+"narrative|fair|lookup": [
+0.5754303728275438,
+68
+],
+"narrative|fair|update": [
+0.5115300867744833,
+82
+],
+"screenplay|0shot|lookup": [
+0.6320396564505381,
+68
+],
+"screenplay|0shot|update": [
+0.4952477563336327,
+82
+],
+"screenplay|fair|lookup": [
+0.5848652534313763,
+68
+],
+"screenplay|fair|update": [
+0.41383610412938,
+82
+],
+"chat|0shot|lookup": [
+0.6320396564505381,
+68
+],
+"chat|0shot|update": [
+0.38127144324767887,
+82
+],
+"chat|fair|lookup": [
+0.6131698952428732,
+68
+],
+"chat|fair|update": [
+0.4382595997906557,
+82
+]
+},
+"olmo3-32b": {
+"code|0shot|lookup": [
+0.8490419103386823,
+68
+],
+"code|0shot|update": [
+0.3487067823659777,
+82
+],
+"code|fair|lookup": [
+0.7735628655080233,
+68
+],
+"code|fair|update": [
+0.6906357216238395,
+82
+],
+"narrative|0shot|lookup": [
+0.5471257310160468,
+68
+],
+"narrative|0shot|update": [
+0.5440947476561844,
+82
+],
+"narrative|fair|lookup": [
+0.5471257310160468,
+68
+],
+"narrative|fair|update": [
+0.3405656171455524,
+82
+],
+"screenplay|0shot|lookup": [
+0.4905164473930526,
+68
+],
+"screenplay|0shot|update": [
+0.5115300867744833,
+82
+],
+"screenplay|fair|lookup": [
+0.6131698952428732,
+68
+],
+"screenplay|fair|update": [
+0.41383610412938,
+82
+],
+"chat|0shot|lookup": [
+0.5943001340352086,
+68
+],
+"chat|0shot|update": [
+0.592941738978736,
+82
+],
+"chat|fair|lookup": [
+0.5565606116198791,
+68
+],
+"chat|fair|update": [
+0.5115300867744833,
+82
+]
+},
+"pythia-1.4b": {
+"code|0shot|lookup": [
+0.2452095516934113,
+68
+],
+"code|0shot|update": [
+0.03934250398981712,
+82
+],
+"code|fair|lookup": [
+0.38673276075089674,
+68
+],
+"code|fair|update": [
+0.0637659996510929,
+82
+],
+"narrative|0shot|lookup": [
+0.4622118055815556,
+68
+],
+"narrative|0shot|update": [
+-0.10719846997783793,
+82
+],
+"narrative|fair|lookup": [
+0.5376908504122143,
+68
+],
+"narrative|fair|update": [
+-0.05835147865528628,
+82
+],
+"screenplay|0shot|lookup": [
+0.264079312901076,
+68
+],
+"screenplay|0shot|update": [
+-0.050210313434860994,
+82
+],
+"screenplay|fair|lookup": [
+0.5376908504122143,
+68
+],
+"screenplay|fair|update": [
+-0.10719846997783793,
+82
+],
+"chat|0shot|lookup": [
+0.3772978801470643,
+68
+],
+"chat|0shot|update": [
+-0.001363322112309315,
+82
+],
+"chat|fair|lookup": [
+0.5188210892045497,
+68
+],
+"chat|fair|update": [
+-0.13976313085953906,
+82
+]
+},
+"pythia-160m": {
+"code|0shot|lookup": [
+-0.05145005129280328,
+68
+],
+"code|0shot|update": [
+0.047431979272334904,
+82
+],
+"code|fair|lookup": [
+0.00448531228705997,
+68
+],
+"code|fair|update": [
+-0.01993293230556506,
+82
+],
+"narrative|0shot|lookup": [
+0.001969344126038017,
+68
+],
+"narrative|0shot|update": [
+0.013096938017303257,
+82
+],
+"narrative|fair|lookup": [
+0.0494582431653276,
+68
+],
+"narrative|fair|update": [
+-0.02388721255548593,
+82
+],
+"screenplay|0shot|lookup": [
+0.01863763319280853,
+68
+],
+"screenplay|0shot|update": [
+-0.025340992059133306,
+82
+],
+"screenplay|fair|lookup": [
+0.06376781208113996,
+68
+],
+"screenplay|fair|update": [
+-0.05897175791017583,
+82
+],
+"chat|0shot|lookup": [
+0.11815315956180222,
+68
+],
+"chat|0shot|update": [
+-0.04598466101092597,
+82
+],
+"chat|fair|lookup": [
+0.06711494829535673,
+68
+],
+"chat|fair|update": [
+0.016198334291750955,
+82
+]
+},
+"pythia-1b": {
+"code|0shot|lookup": [
+0.06594682022059647,
+68
+],
+"code|0shot|update": [
+0.07190716487151819,
+82
+],
+"code|fair|lookup": [
+0.5188210892045497,
+68
+],
+"code|fair|update": [
+-0.009504487332734601,
+82
+],
+"narrative|0shot|lookup": [
+0.13199098444742302,
+68
+],
+"narrative|0shot|update": [
+0.014919008328541258,
+82
+],
+"narrative|fair|lookup": [
+0.1980351486742495,
+68
+],
+"narrative|fair|update": [
+-0.07463380909613682,
+82
+],
+"screenplay|0shot|lookup": [
+0.35842811893939963,
+68
+],
+"screenplay|0shot|update": [
+-0.017645652553159887,
+82
+],
+"screenplay|fair|lookup": [
+0.1791653874665848,
+68
+],
+"screenplay|fair|update": [
+-0.025786817773585137,
+82
+],
+"chat|0shot|lookup": [
+0.3489932383355673,
+68
+],
+"chat|0shot|update": [
+-0.025786817773585137,
+82
+],
+"chat|fair|lookup": [
+0.21690490988191424,
+68
+],
+"chat|fair|update": [
+-0.1316219656391138,
+82
+]
+},
+"pythia-2.8b-deduped": {
+"code|0shot|lookup": [
+0.5188210892045497,
+68
+],
+"code|0shot|update": [
+0.08818949531236876,
+82
+],
+"code|fair|lookup": [
+0.6886489400735322,
+68
+],
+"code|fair|update": [
+-0.025786817773585137,
+82
+],
+"narrative|0shot|lookup": [
+0.48108156678922026,
+68
+],
+"narrative|0shot|update": [
+0.16145998229619626,
+82
+],
+"narrative|fair|lookup": [
+0.7546931043003587,
+68
+],
+"narrative|fair|update": [
+-0.10719846997783793,
+82
+],
+"screenplay|0shot|lookup": [
+0.5093862086007174,
+68
+],
+"screenplay|0shot|update": [
+0.08818949531236876,
+82
+],
+"screenplay|fair|lookup": [
+0.7169535818850292,
+68
+],
+"screenplay|fair|update": [
+-0.1316219656391138,
+82
+],
+"chat|0shot|lookup": [
+0.6980838206773644,
+68
+],
+"chat|0shot|update": [
+0.0637659996510929,
+82
+],
+"chat|fair|lookup": [
+0.8490419103386823,
+68
+],
+"chat|fair|update": [
+-0.06649264387571154,
+82
+]
+},
+"pythia-2.8b": {
+"code|0shot|lookup": [
+0.5943001340352086,
+68
+],
+"code|0shot|update": [
+0.08818949531236876,
+82
+],
+"code|fair|lookup": [
+0.7169535818850292,
+68
+],
+"code|fair|update": [
+0.014919008328541258,
+82
+],
+"narrative|0shot|lookup": [
+0.4150374025623937,
+68
+],
+"narrative|0shot|update": [
+0.08004833009194347,
+82
+],
+"narrative|fair|lookup": [
+0.7546931043003587,
+68
+],
+"narrative|fair|update": [
+-0.13976313085953906,
+82
+],
+"screenplay|0shot|lookup": [
+0.35842811893939963,
+68
+],
+"screenplay|0shot|update": [
+0.08818949531236876,
+82
+],
+"screenplay|fair|lookup": [
+0.7263884624888616,
+68
+],
+"screenplay|fair|update": [
+-0.1316219656391138,
+82
+],
+"chat|0shot|lookup": [
+0.6037350146390409,
+68
+],
+"chat|0shot|update": [
+0.03934250398981712,
+82
+],
+"chat|fair|lookup": [
+0.7546931043003587,
+68
+],
+"chat|fair|update": [
+-0.09091613953698739,
+82
+]
+},
+"pythia-6.9b": {
+"code|0shot|lookup": [
+0.38673276075089674,
+68
+],
+"code|0shot|update": [
+-0.05835147865528628,
+82
+],
+"code|fair|lookup": [
+0.6037350146390409,
+68
+],
+"code|fair|update": [
+0.03934250398981712,
+82
+],
+"narrative|0shot|lookup": [
+0.4339071637700585,
+68
+],
+"narrative|0shot|update": [
+-0.09091613953698739,
+82
+],
+"narrative|fair|lookup": [
+0.7263884624888616,
+68
+],
+"narrative|fair|update": [
+-0.19675128740251605,
+82
+],
+"screenplay|0shot|lookup": [
+0.6792140594696998,
+68
+],
+"screenplay|0shot|update": [
+-0.1234808004186885,
+82
+],
+"screenplay|fair|lookup": [
+0.8018675073195205,
+68
+],
+"screenplay|fair|update": [
+-0.2293159482842171,
+82
+],
+"chat|0shot|lookup": [
+0.6980838206773644,
+68
+],
+"chat|0shot|update": [
+-0.1316219656391138,
+82
+],
+"chat|fair|lookup": [
+0.6603442982620351,
+68
+],
+"chat|fair|update": [
+-0.13976313085953906,
+82
+]
+},
+"qwen2.5-0.5b": {
+"code|0shot|lookup": [
+0.037642178409099426,
+68
+],
+"code|0shot|update": [
+0.04748366921024233,
+82
+],
+"code|fair|lookup": [
+0.5565606116198791,
+68
+],
+"code|fair|update": [
+0.014919008328541258,
+82
+],
+"narrative|0shot|lookup": [
+0.47164668618538796,
+68
+],
+"narrative|0shot|update": [
+-0.05835147865528628,
+82
+],
+"narrative|fair|lookup": [
+0.6414745370543704,
+68
+],
+"narrative|fair|update": [
+-0.09091613953698739,
+82
+],
+"screenplay|0shot|lookup": [
+0.5093862086007174,
+68
+],
+"screenplay|0shot|update": [
+-0.025786817773585137,
+82
+],
+"screenplay|fair|lookup": [
+0.8490419103386823,
+68
+],
+"screenplay|fair|update": [
+-0.1831826787018072,
+82
+],
+"chat|0shot|lookup": [
+0.6226047758467057,
+68
+],
+"chat|0shot|update": [
+0.03934250398981712,
+82
+],
+"chat|fair|lookup": [
+0.8113023879233527,
+68
+],
+"chat|fair|update": [
+-0.1316219656391138,
+82
+]
+},
+"qwen2.5-1.5b": {
+"code|0shot|lookup": [
+0.8867814327540117,
+68
+],
+"code|0shot|update": [
+0.023060173548966542,
+82
+],
+"code|fair|lookup": [
+0.7546931043003587,
+68
+],
+"code|fair|update": [
+0.2917186258230007,
+82
+],
+"narrative|0shot|lookup": [
+0.20747002927808184,
+68
+],
+"narrative|0shot|update": [
+0.16960114751662156,
+82
+],
+"narrative|fair|lookup": [
+0.3112537159202379,
+68
+],
+"narrative|fair|update": [
+0.24287163450044905,
+82
+],
+"screenplay|0shot|lookup": [
+0.4056025219585614,
+68
+],
+"screenplay|0shot|update": [
+0.08818949531236876,
+82
+],
+"screenplay|fair|lookup": [
+0.35528315873812216,
+68
+],
+"screenplay|fair|update": [
+0.2184481388391732,
+82
+],
+"chat|0shot|lookup": [
+0.35842811893939963,
+68
+],
+"chat|0shot|update": [
+0.18588347795747212,
+82
+],
+"chat|fair|lookup": [
+0.5943001340352086,
+68
+],
+"chat|fair|update": [
+0.2184481388391732,
+82
+]
+},
+"qwen2.5-3b": {
+"code|0shot|lookup": [
+0.8301721491310176,
+68
+],
+"code|0shot|update": [
+-0.033927982994010425,
+82
+],
+"code|fair|lookup": [
+0.7546931043003587,
+68
+],
+"code|fair|update": [
+0.1207541561940699,
+82
+],
+"narrative|0shot|lookup": [
+0.47164668618538796,
+68
+],
+"narrative|0shot|update": [
+0.36770283454696995,
+82
+],
+"narrative|fair|lookup": [
+0.7263884624888616,
+68
+],
+"narrative|fair|update": [
+0.3405656171455524,
+82
+],
+"screenplay|0shot|lookup": [
+0.44334204437389085,
+68
+],
+"screenplay|0shot|update": [
+0.31614212148427656,
+82
+],
+"screenplay|fair|lookup": [
+0.7075187012811969,
+68
+],
+"screenplay|fair|update": [
+0.2917186258230007,
+82
+],
+"chat|0shot|lookup": [
+0.48108156678922026,
+68
+],
+"chat|0shot|update": [
+0.23473046928002375,
+82
+],
+"chat|fair|lookup": [
+0.7546931043003587,
+68
+],
+"chat|fair|update": [
+0.2917186258230007,
+82
+]
+},
+"qwen2.5-72b": {
+"code|0shot|lookup": [
+0.8113023879233527,
+68
+],
+"code|0shot|update": [
+0.2917186258230007,
+82
+],
+"code|fair|lookup": [
+0.8301721491310176,
+68
+],
+"code|fair|update": [
+0.6824945564034142,
+82
+],
+"narrative|0shot|lookup": [
+0.7546931043003587,
+68
+],
+"narrative|0shot|update": [
+0.7476238781668164,
+82
+],
+"narrative|fair|lookup": [
+0.8679116715463471,
+68
+],
+"narrative|fair|update": [
+0.8697413564731956,
+82
+],
+"screenplay|0shot|lookup": [
+0.6792140594696998,
+68
+],
+"screenplay|0shot|update": [
+0.6743533911829889,
+82
+],
+"screenplay|fair|lookup": [
+0.8301721491310176,
+68
+],
+"screenplay|fair|update": [
+0.818180643410502,
+82
+],
+"chat|0shot|lookup": [
+0.764127984904191,
+68
+],
+"chat|0shot|update": [
+0.6662122259625636,
+82
+],
+"chat|fair|lookup": [
+0.7546931043003587,
+68
+],
+"chat|fair|update": [
+0.6255063998604371,
+82
+]
+},
+"qwen2.5-7b": {
+"code|0shot|lookup": [
+0.7546931043003587,
+68
+],
+"code|0shot|update": [
+0.1207541561940699,
+82
+],
+"code|fair|lookup": [
+0.7735628655080233,
+68
+],
+"code|fair|update": [
+0.5522359128766097,
+82
+],
+"narrative|0shot|lookup": [
+0.6697791788658675,
+68
+],
+"narrative|0shot|update": [
+0.41383610412938,
+82
+],
+"narrative|fair|lookup": [
+0.742113263495249,
+68
+],
+"narrative|fair|update": [
+0.3649891128068283,
+82
+],
+"screenplay|0shot|lookup": [
+0.6792140594696998,
+68
+],
+"screenplay|0shot|update": [
+0.22658930405959848,
+82
+],
+"screenplay|fair|lookup": [
+0.7452582236965264,
+68
+],
+"screenplay|fair|update": [
+0.31614212148427656,
+82
+],
+"chat|0shot|lookup": [
+0.8113023879233527,
+68
+],
+"chat|0shot|update": [
+0.15331881707577097,
+82
+],
+"chat|fair|lookup": [
+0.7735628655080233,
+68
+],
+"chat|fair|update": [
+0.37313027802725357,
+82
+]
+},
+"qwen3-0.6b": {
+"code|0shot|lookup": [
+0.48108156678922026,
+68
+],
+"code|0shot|update": [
+-0.033927982994010425,
+82
+],
+"code|fair|lookup": [
+0.7452582236965264,
+68
+],
+"code|fair|update": [
+0.0067778431081159714,
+82
+],
+"narrative|0shot|lookup": [
+0.3301234771279026,
+68
+],
+"narrative|0shot|update": [
+0.014919008328541258,
+82
+],
+"narrative|fair|lookup": [
+0.3489932383355673,
+68
+],
+"narrative|fair|update": [
+0.05562483443066762,
+82
+],
+"screenplay|0shot|lookup": [
+0.44334204437389085,
+68
+],
+"screenplay|0shot|update": [
+-0.09091613953698739,
+82
+],
+"screenplay|fair|lookup": [
+0.45277692497772315,
+68
+],
+"screenplay|fair|update": [
+-0.017645652553159887,
+82
+],
+"chat|0shot|lookup": [
+0.4244722831662262,
+68
+],
+"chat|0shot|update": [
+-0.009504487332734601,
+82
+],
+"chat|fair|lookup": [
+0.4622118055815556,
+68
+],
+"chat|fair|update": [
+-0.050210313434860994,
+82
+]
+},
+"qwen3-1.7b": {
+"code|0shot|lookup": [
+0.6980838206773644,
+68
+],
+"code|0shot|update": [
+-0.025786817773585137,
+82
+],
+"code|fair|lookup": [
+0.7924326267156881,
+68
+],
+"code|fair|update": [
+0.18588347795747212,
+82
+],
+"narrative|0shot|lookup": [
+0.8396070297348499,
+68
+],
+"narrative|0shot|update": [
+-0.06649264387571154,
+82
+],
+"narrative|fair|lookup": [
+0.5282559698083821,
+68
+],
+"narrative|fair|update": [
+0.2103069736187479,
+82
+],
+"screenplay|0shot|lookup": [
+0.8113023879233527,
+68
+],
+"screenplay|0shot|update": [
+0.0637659996510929,
+82
+],
+"screenplay|fair|lookup": [
+0.48108156678922026,
+68
+],
+"screenplay|fair|update": [
+0.1451776518553457,
+82
+],
+"chat|0shot|lookup": [
+0.7735628655080233,
+68
+],
+"chat|0shot|update": [
+0.11261299097364462,
+82
+],
+"chat|fair|lookup": [
+0.4905164473930526,
+68
+],
+"chat|fair|update": [
+0.08818949531236876,
+82
+]
+},
+"qwen3-30b-a3b": {
+"code|0shot|lookup": [
+0.8207372685271852,
+68
+],
+"code|0shot|update": [
+0.2835774606025755,
+82
+],
+"code|fair|lookup": [
+0.8207372685271852,
+68
+],
+"code|fair|update": [
+0.6824945564034142,
+82
+],
+"narrative|0shot|lookup": [
+0.6980838206773644,
+68
+],
+"narrative|0shot|update": [
+0.2672951301617249,
+82
+],
+"narrative|fair|lookup": [
+0.6980838206773644,
+68
+],
+"narrative|fair|update": [
+0.3541342258462612,
+82
+],
+"screenplay|0shot|lookup": [
+0.6414745370543704,
+68
+],
+"screenplay|0shot|update": [
+0.23473046928002375,
+82
+],
+"screenplay|fair|lookup": [
+0.7169535818850292,
+68
+],
+"screenplay|fair|update": [
+0.31342839974413483,
+82
+],
+"chat|0shot|lookup": [
+0.7735628655080233,
+68
+],
+"chat|0shot|update": [
+0.2591539649412996,
+82
+],
+"chat|fair|lookup": [
+0.6320396564505381,
+68
+],
+"chat|fair|update": [
+0.3894126084681041,
+82
+]
+},
+"qwen3-4b": {
+"code|0shot|lookup": [
+0.8490419103386823,
+68
+],
+"code|0shot|update": [
+0.22658930405959848,
+82
+],
+"code|fair|lookup": [
+0.7735628655080233,
+68
+],
+"code|fair|update": [
+0.5522359128766097,
+82
+],
+"narrative|0shot|lookup": [
+0.5848652534313763,
+68
+],
+"narrative|0shot|update": [
+0.3894126084681041,
+82
+],
+"narrative|fair|lookup": [
+0.47164668618538796,
+68
+],
+"narrative|fair|update": [
+0.37313027802725357,
+82
+],
+"screenplay|0shot|lookup": [
+0.5376908504122143,
+68
+],
+"screenplay|0shot|update": [
+0.22658930405959848,
+82
+],
+"screenplay|fair|lookup": [
+0.45277692497772315,
+68
+],
+"screenplay|fair|update": [
+0.31614212148427656,
+82
+],
+"chat|0shot|lookup": [
+0.5439807708147694,
+68
+],
+"chat|0shot|update": [
+0.2917186258230007,
+82
+],
+"chat|fair|lookup": [
+0.4622118055815556,
+68
+],
+"chat|fair|update": [
+0.47082426067235683,
+82
+]
+},
+"recurrentgemma-9b": {
+"code|0shot|lookup": [
+0.4150374025623937,
+68
+],
+"code|0shot|update": [
+-0.07463380909613682,
+82
+],
+"code|fair|lookup": [
+0.4307622035687811,
+68
+],
+"code|fair|update": [
+-0.13976313085953906,
+82
+],
+"narrative|0shot|lookup": [
+0.11312122323975832,
+68
+],
+"narrative|0shot|update": [
+0.014919008328541258,
+82
+],
+"narrative|fair|lookup": [
+0.2829490741087407,
+68
+],
+"narrative|fair|update": [
+-0.05835147865528628,
+82
+],
+"screenplay|0shot|lookup": [
+0.21690490988191424,
+68
+],
+"screenplay|0shot|update": [
+-0.017645652553159887,
+82
+],
+"screenplay|fair|lookup": [
+0.5471257310160468,
+68
+],
+"screenplay|fair|update": [
+-0.20489245262294128,
+82
+],
+"chat|0shot|lookup": [
+0.2546444322972437,
+68
+],
+"chat|0shot|update": [
+-0.001363322112309315,
+82
+],
+"chat|fair|lookup": [
+0.5565606116198791,
+68
+],
+"chat|fair|update": [
+-0.1560454613003896,
+82
+]
+},
+"smollm2-1.7b": {
+"code|0shot|lookup": [
+0.5565606116198791,
+68
+],
+"code|0shot|update": [
+0.03934250398981712,
+82
+],
+"code|fair|lookup": [
+0.7263884624888616,
+68
+],
+"code|fair|update": [
+0.08818949531236876,
+82
+],
+"narrative|0shot|lookup": [
+0.32068859652407017,
+68
+],
+"narrative|0shot|update": [
+0.2103069736187479,
+82
+],
+"narrative|fair|lookup": [
+0.4056025219585614,
+68
+],
+"narrative|fair|update": [
+0.1451776518553457,
+82
+],
+"screenplay|0shot|lookup": [
+0.32068859652407017,
+68
+],
+"screenplay|0shot|update": [
+0.2510127997208743,
+82
+],
+"screenplay|fair|lookup": [
+0.5754303728275438,
+68
+],
+"screenplay|fair|update": [
+0.08818949531236876,
+82
+],
+"chat|0shot|lookup": [
+0.4244722831662262,
+68
+],
+"chat|0shot|update": [
+0.014919008328541258,
+82
+],
+"chat|fair|lookup": [
+-0.018967105213894737,
+68
+],
+"chat|fair|update": [
+-0.09091613953698739,
+82
+]
+},
+"smollm2-360m": {
+"code|0shot|lookup": [
+0.08481658142826119,
+68
+],
+"code|0shot|update": [
+-0.025786817773585137,
+82
+],
+"code|fair|lookup": [
+0.6226047758467057,
+68
+],
+"code|fair|update": [
+0.04748366921024233,
+82
+],
+"narrative|0shot|lookup": [
+0.2923839547125731,
+68
+],
+"narrative|0shot|update": [
+0.014919008328541258,
+82
+],
+"narrative|fair|lookup": [
+0.1886002680704172,
+68
+],
+"narrative|fair|update": [
+-0.001363322112309315,
+82
+],
+"screenplay|0shot|lookup": [
+0.31754363632279275,
+68
+],
+"screenplay|0shot|update": [
+0.03120133876939183,
+82
+],
+"screenplay|fair|lookup": [
+0.32068859652407017,
+68
+],
+"screenplay|fair|update": [
+-0.009504487332734601,
+82
+],
+"chat|0shot|lookup": [
+0.4150374025623937,
+68
+],
+"chat|0shot|update": [
+0.03934250398981712,
+82
+],
+"chat|fair|lookup": [
+0.44334204437389085,
+68
+],
+"chat|fair|update": [
+0.05562483443066762,
+82
+]
+},
+"trinity-base": {
+"code|0shot|lookup": [
+0.896216313357844,
+68
+],
+"code|0shot|update": [
+0.38127144324767887,
+82
+],
+"code|fair|lookup": [
+0.8113023879233527,
+68
+],
+"code|fair|update": [
+0.8697413564731956,
+82
+],
+"narrative|0shot|lookup": [
+0.7075187012811969,
+68
+],
+"narrative|0shot|update": [
+0.649929895521713,
+82
+],
+"narrative|fair|lookup": [
+0.8301721491310176,
+68
+],
+"narrative|fair|update": [
+0.6336475650808624,
+82
+],
+"screenplay|0shot|lookup": [
+0.6886489400735322,
+68
+],
+"screenplay|0shot|update": [
+0.5685182433174603,
+82
+],
+"screenplay|fair|lookup": [
+0.8396070297348499,
+68
+],
+"screenplay|fair|update": [
+0.5848005737583107,
+82
+],
+"chat|0shot|lookup": [
+0.7829977461118558,
+68
+],
+"chat|0shot|update": [
+0.31614212148427656,
+82
+],
+"chat|fair|lookup": [
+0.764127984904191,
+68
+],
+"chat|fair|update": [
+0.6987768868442648,
+82
+]
+},
+"trinity-truebase": {
+"code|0shot|lookup": [
+0.8773465521501793,
+68
+],
+"code|0shot|update": [
+0.356847947586403,
+82
+],
+"code|fair|lookup": [
+0.7735628655080233,
+68
+],
+"code|fair|update": [
+0.9023060173548967,
+82
+],
+"narrative|0shot|lookup": [
+0.3301234771279026,
+68
+],
+"narrative|0shot|update": [
+0.5359535824357591,
+82
+],
+"narrative|fair|lookup": [
+0.5282559698083821,
+68
+],
+"narrative|fair|update": [
+0.446400765011081,
+82
+],
+"screenplay|0shot|lookup": [
+0.1791653874665848,
+68
+],
+"screenplay|0shot|update": [
+0.5848005737583107,
+82
+],
+"screenplay|fair|lookup": [
+0.6131698952428732,
+68
+],
+"screenplay|fair|update": [
+0.5440947476561844,
+82
+],
+"chat|0shot|lookup": [
+0.4905164473930526,
+68
+],
+"chat|0shot|update": [
+0.592941738978736,
+82
+],
+"chat|fair|lookup": [
+0.5471257310160468,
+68
+],
+"chat|fair|update": [
+0.6255063998604371,
+82
+]
+},
+"tsumugi-anneal-110B-second": {
+"code|0shot|lookup": [
+0.35842811893939963,
+68
+],
+"code|0shot|update": [
+0.08818949531236876,
+82
+],
+"code|fair|lookup": [
+0.8207372685271852,
+68
+],
+"code|fair|update": [
+-0.033927982994010425,
+82
+],
+"narrative|0shot|lookup": [
+0.48108156678922026,
+68
+],
+"narrative|0shot|update": [
+0.05562483443066762,
+82
+],
+"narrative|fair|lookup": [
+0.3301234771279026,
+68
+],
+"narrative|fair|update": [
+-0.033927982994010425,
+82
+],
+"screenplay|0shot|lookup": [
+0.5471257310160468,
+68
+],
+"screenplay|0shot|update": [
+0.07190716487151819,
+82
+],
+"screenplay|fair|lookup": [
+0.32068859652407017,
+68
+],
+"screenplay|fair|update": [
+0.04748366921024233,
+82
+],
+"chat|0shot|lookup": [
+0.5376908504122143,
+68
+],
+"chat|0shot|update": [
+0.1370364866349204,
+82
+],
+"chat|fair|lookup": [
+0.47164668618538796,
+68
+],
+"chat|fair|update": [
+0.023060173548966542,
+82
+]
+},
+"tsumugi-s17-a11B": {
+"code|0shot|lookup": [
+0.037642178409099426,
+68
+],
+"code|0shot|update": [
+-0.033927982994010425,
+82
+],
+"code|fair|lookup": [
+0.6037350146390409,
+68
+],
+"code|fair|update": [
+0.0067778431081159714,
+82
+],
+"narrative|0shot|lookup": [
+0.4150374025623937,
+68
+],
+"narrative|0shot|update": [
+-0.009504487332734601,
+82
+],
+"narrative|fair|lookup": [
+0.7358233430926939,
+68
+],
+"narrative|fair|update": [
+-0.1641866265208149,
+82
+],
+"screenplay|0shot|lookup": [
+0.6414745370543704,
+68
+],
+"screenplay|0shot|update": [
+-0.05835147865528628,
+82
+],
+"screenplay|fair|lookup": [
+0.7829977461118558,
+68
+],
+"screenplay|fair|update": [
+-0.11533963519826321,
+82
+],
+"chat|0shot|lookup": [
+0.4244722831662262,
+68
+],
+"chat|0shot|update": [
+0.04748366921024233,
+82
+],
+"chat|fair|lookup": [
+0.6886489400735322,
+68
+],
+"chat|fair|update": [
+-0.1234808004186885,
+82
+]
+},
+"tsumugi-s17-a33B": {
+"code|0shot|lookup": [
+0.264079312901076,
+68
+],
+"code|0shot|update": [
+0.1207541561940699,
+82
+],
+"code|fair|lookup": [
+0.8301721491310176,
+68
+],
+"code|fair|update": [
+-0.042069148214435706,
+82
+],
+"narrative|0shot|lookup": [
+0.5754303728275438,
+68
+],
+"narrative|0shot|update": [
+0.03934250398981712,
+82
+],
+"narrative|fair|lookup": [
+0.5754303728275438,
+68
+],
+"narrative|fair|update": [
+-0.13976313085953906,
+82
+],
+"screenplay|0shot|lookup": [
+0.6980838206773644,
+68
+],
+"screenplay|0shot|update": [
+-0.009504487332734601,
+82
+],
+"screenplay|fair|lookup": [
+0.5282559698083821,
+68
+],
+"screenplay|fair|update": [
+-0.09905730475741267,
+82
+],
+"chat|0shot|lookup": [
+0.5565606116198791,
+68
+],
+"chat|0shot|update": [
+-0.06649264387571154,
+82
+],
+"chat|fair|lookup": [
+0.6037350146390409,
+68
+],
+"chat|fair|update": [
+-0.13976313085953906,
+82
+]
+},
+"tsumugi-s17-a55B": {
+"code|0shot|lookup": [
+0.32068859652407017,
+68
+],
+"code|0shot|update": [
+0.08004833009194347,
+82
+],
+"code|fair|lookup": [
+0.8396070297348499,
+68
+],
+"code|fair|update": [
+0.0067778431081159714,
+82
+],
+"narrative|0shot|lookup": [
+0.5754303728275438,
+68
+],
+"narrative|0shot|update": [
+0.04748366921024233,
+82
+],
+"narrative|fair|lookup": [
+0.6320396564505381,
+68
+],
+"narrative|fair|update": [
+-0.1641866265208149,
+82
+],
+"screenplay|0shot|lookup": [
+0.7169535818850292,
+68
+],
+"screenplay|0shot|update": [
+0.1370364866349204,
+82
+],
+"screenplay|fair|lookup": [
+0.6131698952428732,
+68
+],
+"screenplay|fair|update": [
+-0.09905730475741267,
+82
+],
+"chat|0shot|lookup": [
+0.6320396564505381,
+68
+],
+"chat|0shot|update": [
+0.08004833009194347,
+82
+],
+"chat|fair|lookup": [
+0.7546931043003587,
+68
+],
+"chat|fair|update": [
+-0.09091613953698739,
+82
+]
+},
+"tsumugi-s17-a5B": {
+"code|0shot|lookup": [
+0.037642178409099426,
+68
+],
+"code|0shot|update": [
+0.023060173548966542,
+82
+],
+"code|fair|lookup": [
+0.3112537159202379,
+68
+],
+"code|fair|update": [
+0.03934250398981712,
+82
+],
+"narrative|0shot|lookup": [
+0.2829490741087407,
+68
+],
+"narrative|0shot|update": [
+0.0067778431081159714,
+82
+],
+"narrative|fair|lookup": [
+0.12255610384359064,
+68
+],
+"narrative|fair|update": [
+-0.09905730475741267,
+82
+],
+"screenplay|0shot|lookup": [
+0.2923839547125731,
+68
+],
+"screenplay|0shot|update": [
+-0.042069148214435706,
+82
+],
+"screenplay|fair|lookup": [
+0.23577467108957897,
+68
+],
+"screenplay|fair|update": [
+-0.033927982994010425,
+82
+],
+"chat|0shot|lookup": [
+0.2546444322972437,
+68
+],
+"chat|0shot|update": [
+-0.050210313434860994,
+82
+],
+"chat|fair|lookup": [
+0.4307622035687811,
+68
+],
+"chat|fair|update": [
+-0.042069148214435706,
+82
+]
+},
+"tsumugi-s17-a88B": {
+"code|0shot|lookup": [
+0.3772978801470643,
+68
+],
+"code|0shot|update": [
+0.10447182575321934,
+82
+],
+"code|fair|lookup": [
+0.8301721491310176,
+68
+],
+"code|fair|update": [
+0.0067778431081159714,
+82
+],
+"narrative|0shot|lookup": [
+0.4622118055815556,
+68
+],
+"narrative|0shot|update": [
+0.10447182575321934,
+82
+],
+"narrative|fair|lookup": [
+0.5093862086007174,
+68
+],
+"narrative|fair|update": [
+-0.05835147865528628,
+82
+],
+"screenplay|0shot|lookup": [
+0.6037350146390409,
+68
+],
+"screenplay|0shot|update": [
+0.09361693879265223,
+82
+],
+"screenplay|fair|lookup": [
+0.4905164473930526,
+68
+],
+"screenplay|fair|update": [
+-0.001363322112309315,
+82
+],
+"chat|0shot|lookup": [
+0.5628505320224341,
+68
+],
+"chat|0shot|update": [
+0.08004833009194347,
+82
+],
+"chat|fair|lookup": [
+0.5093862086007174,
+68
+],
+"chat|fair|update": [
+-0.10719846997783793,
+82
+]
+},
+"tsumugi-s7-a11B": {
+"code|0shot|lookup": [
+0.14142586505125535,
+68
+],
+"code|0shot|update": [
+0.1207541561940699,
+82
+],
+"code|fair|lookup": [
+0.6980838206773644,
+68
+],
+"code|fair|update": [
+-0.05835147865528628,
+82
+],
+"narrative|0shot|lookup": [
+0.6603442982620351,
+68
+],
+"narrative|0shot|update": [
+-0.10719846997783793,
+82
+],
+"narrative|fair|lookup": [
+0.7075187012811969,
+68
+],
+"narrative|fair|update": [
+-0.22117478306379182,
+82
+],
+"screenplay|0shot|lookup": [
+0.7452582236965264,
+68
+],
+"screenplay|0shot|update": [
+-0.06649264387571154,
+82
+],
+"screenplay|fair|lookup": [
+0.6980838206773644,
+68
+],
+"screenplay|fair|update": [
+-0.22117478306379182,
+82
+],
+"chat|0shot|lookup": [
+0.7829977461118558,
+68
+],
+"chat|0shot|update": [
+-0.11533963519826321,
+82
+],
+"chat|fair|lookup": [
+0.764127984904191,
+68
+],
+"chat|fair|update": [
+-0.23745711350464238,
+82
+]
+},
+"tsumugi-s7-a5B": {
+"code|0shot|lookup": [
+0.018772417201434705,
+68
+],
+"code|0shot|update": [
+0.1207541561940699,
+82
+],
+"code|fair|lookup": [
+0.4244722831662262,
+68
+],
+"code|fair|update": [
+-0.06920636561585335,
+82
+],
+"narrative|0shot|lookup": [
+0.2452095516934113,
+68
+],
+"narrative|0shot|update": [
+-0.050210313434860994,
+82
+],
+"narrative|fair|lookup": [
+0.38673276075089674,
+68
+],
+"narrative|fair|update": [
+-0.11533963519826321,
+82
+],
+"screenplay|0shot|lookup": [
+0.5282559698083821,
+68
+],
+"screenplay|0shot|update": [
+-0.0827749743165621,
+82
+],
+"screenplay|fair|lookup": [
+0.5188210892045497,
+68
+],
+"screenplay|fair|update": [
+-0.18861012218209075,
+82
+],
+"chat|0shot|lookup": [
+0.5376908504122143,
+68
+],
+"chat|0shot|update": [
+-0.042069148214435706,
+82
+],
+"chat|fair|lookup": [
+0.6414745370543704,
+68
+],
+"chat|fair|update": [
+-0.22117478306379182,
+82
+]
+},
+"tsumugi": {
+"code|0shot|lookup": [
+0.264079312901076,
+68
+],
+"code|0shot|update": [
+0.08004833009194347,
+82
+],
+"code|fair|lookup": [
+0.8679116715463471,
+68
+],
+"code|fair|update": [
+-0.05835147865528628,
+82
+],
+"narrative|0shot|lookup": [
+0.4056025219585614,
+68
+],
+"narrative|0shot|update": [
+0.1207541561940699,
+82
+],
+"narrative|fair|lookup": [
+0.4622118055815556,
+68
+],
+"narrative|fair|update": [
+-0.001363322112309315,
+82
+],
+"screenplay|0shot|lookup": [
+0.6414745370543704,
+68
+],
+"screenplay|0shot|update": [
+0.1207541561940699,
+82
+],
+"screenplay|fair|lookup": [
+0.5093862086007174,
+68
+],
+"screenplay|fair|update": [
+-0.009504487332734601,
+82
+],
+"chat|0shot|lookup": [
+0.4339071637700585,
+68
+],
+"chat|0shot|update": [
+0.16145998229619626,
+82
+],
+"chat|fair|lookup": [
+0.6037350146390409,
+68
+],
+"chat|fair|update": [
+-0.10719846997783793,
+82
+]
+}
+}
+}

@@ -115,8 +115,8 @@ def main() -> None:
     for st in stage["stages"]:
         P(f"| {st['n']} | {st['name']} | {st['gloss']} | `{st['ex']}` | {st['ok']} | {st['olmo1b']} | {st['ours']} |")
     P("")
-    P("### Dynamic *you* at each model's final checkpoint (OLMo-2 1B: its 4T pre-anneal checkpoint; not reached zero-shot at "
-      "or below 8B; weak above 14B)")
+    P("### Dynamic *you* at each model's final checkpoint (OLMo-2 1B: its 4T pre-anneal checkpoint; zero-shot from about "
+      "7B, every base from 13B up)")
     P("")
     P("| model | parameters (B) | training tokens | 0-shot | 3-shot |")
     P("|---|---|---|---|---|")
@@ -127,13 +127,13 @@ def main() -> None:
     o = stage["threshold"]["ours"]
     P(f"| {o['m']} | {o['p']} | 110B | {f3(o['z'])} | {f3(o['t'])} |")
     P("")
-    P("No model at or below 8B binds zero-shot dynamic *you* at any token count measured (to 36T). The same holds with "
-      "each chat rewritten as a scene, for all 8 models tested at or below 8B (the highest is Qwen2.5-7B, +.010). So the "
-      "result does not come from the chat format. In these models depth grows with size, so the table leaves two "
-      "routes open for small models: more tokens, and more depth at a fixed size. No model at or below 8B has been "
-      "trained far enough to rule out the first. From 14B to 1T parameters, stage 5 is weak and nearly flat. Ten of the 11 bases "
-      "with a public size read +.01 to +.07 zero-shot. Static *you* reads +.27 to +.82 in the seven of them where it "
-      "was measured.")
+    P("Zero-shot, no model up to 4B binds, and four of the small Qwen models invert. At 7B, OLMo-2 7B (+.055) and "
+      "Qwen2.5 7B (+.047) bind; Qwen3 8B and Gemma-2 9B do not yet. From 13B up, every base binds: all 19 measured, "
+      "here and in the full atlas, from OLMo-2 13B to DeepSeek-V4 Pro at 1.6T. The largest readings are DeepSeek-V3 "
+      "(+.216), DeepSeek-V4 Flash (+.177) and MiMo-V2.5 Pro (+.162), and static *you* reads +.27 to +.89 across these "
+      "19. With three worked examples, binding starts at Qwen3 4B (+.055) and reaches +.32 for Qwen3 14B. The "
+      "kotodama-tsumugi release reads −.014 zero-shot and +.038 with three examples, which binds; its second anneal "
+      "reads +.022 with examples, just short of the line.")
     P("")
     P("### Training tokens until each stage appears (the range spans the checkpoints that bracket the stage)")
     P("")
@@ -155,12 +155,13 @@ def main() -> None:
     for r in dec["rows"]:
         P(f"| {r['m']} | {r['tok']} | " + " | ".join(pend(r[c['k']]) for c in dec["cols"]) + " |")
     P("")
-    P("The rewrites show three layers. (1) The first is possession transfer itself. Every 1.4–1.5B model is at or near "
-      "chance even when the transfer is narrated (kotodama-tsumugi through 110B, Pythia-1.4B, OLMo-2 1B at 4T). "
-      "SmolLM2 1.7B at 11T and Qwen3 1.7B at 36T lift off chance, and from 4B the narrated transfer is easy. (2) The "
-      "transfer as a speech act is the mid-size wall. Models from 4B to 70B that pass the narrated version stay at "
-      ".29–.41 when the transfer is spoken. Narrating only the hand-off recovers part of the gap. (3) Naming the "
-      "addressee does not help: the vocative variant is at or below the spoken one for every public model.")
+    P("The rewrites show three layers. (1) The first is possession transfer itself. The 1.4–1.5B models sit near "
+      "chance even when the scene is narrated (.28–.38): kotodama-tsumugi through 110B, Pythia-1.4B, OLMo-2 1B at 4T. "
+      "SmolLM2 1.7B at 11T (.40) and Qwen3 1.7B at 36T (.48) lift off chance; from 4B the narrated version is easy "
+      "(.53–.79). (2) The transfer as a speech act is the mid-size wall: models from 4B to 30B stay at .37–.47 when it "
+      "is spoken, and Llama-3.1 70B reaches .56. Narrating only the hand-off recovers part of that gap for every model "
+      "from 4B up, and all of it for Llama-3.1 70B. (3) Naming the addressee does not help: the vocative variant is "
+      "never more than .01 above the spoken one, and below it for every model from 4B up.")
     P("")
     P("## Part II · The levers")
     P("")
@@ -190,7 +191,7 @@ def main() -> None:
     P("")
     P("For reference, OLMo-2 reaches stage 3 at about " + ", ".join(f"{o['tok']}B tokens ({o['m']})" for o in stage["tsumugi"]["olmo_stage3"]) + ".")
     P("")
-    P("### Binding battery across the annealed reads (accuracy)")
+    P("### The grid's headline tests across kotodama-tsumugi's checkpoints")
     P("")
     bat = stage["tsumugi"]["battery"]
     P("| probe | " + " | ".join(bat["cols"]) + " |")
@@ -198,15 +199,14 @@ def main() -> None:
     for g in bat["groups"]:
         P(f"| *{g['name']}* |" + " |" * len(bat["cols"]))
         for name, vals in g["rows"]:
-            P(f"| {name} | " + " | ".join(f"{v:.3f}".lstrip("0") for v in vals) + " |")
+            P(f"| {name} | " + " | ".join(f3(v) for v in vals) + " |")
     P("")
-    P("By the release, attribution reads .986, level with the 7–8B bases under the same balanced examples (.981 to "
-      "1.00). Scored with one harness (the kotodama binding suite). Each item gets four worked examples, balanced so that none "
-      "of them shows the item's own answer pattern; deixis-lite has no such condition and is read zero-shot. The "
-      "bookkeeping probes rise with tokens: attribution from .71 to .99, set binding and dialogue tracking by .13 to .17. "
-      "Aliased Python lists stays at chance through 33B and lifts only after 55B. The perspective probes stay within .15 "
-      "of their 5B level. The two seeds differ at 5B (seed 7 forms set binding earlier) and agree within .05 on seven "
-      "of the ten rows at 11B.")
+    P("The values are the grid's own cells, read as the grid reads them: with worked examples where the column has them, "
+      "cold otherwise, and the rule-learning rows as AUC over the example ladder. Lookup rises from .69 at 5B tokens to "
+      ".99 by 55B, level with the 7–9B bases (.97 to 1.00). The update tests (many refills, variable chains, shared "
+      "lists) stay at chance through 33B and lift from 55B on (.04 to .22). Static *you* climbs from .08 at 5B to .49 "
+      "at the release. Pattern completion reaches .55, second of 12 models at 1–2B parameters. The two seeds differ at "
+      "5B (seed 7 forms lookup and set binding earlier) and agree within .05 on all ten rows at 11B.")
     P("")
     rel = stage["release"]
     P("### The release against its trajectory and its class")
@@ -217,28 +217,29 @@ def main() -> None:
         P(f"| {name} | " + " | ".join("—" if v is None else f3(v) if signed else (f"{v:.1f}" if v >= 1 else f"{v:.3f}".lstrip("0")) for v in vals) + " |")
     P("")
     P("The two 110B columns are two anneals from the same fork with the same training loss. Their spread (static *you* "
-      ".142 vs .235, K50 3.8 vs 4.8, and .025 bits/byte on held-out text) is the measured anneal-to-anneal variance, "
+      ".127 vs .192, dynamic *you* with examples .022 vs .038, K50 4.6 vs 5.1, and .025 bits/byte on held-out text) is "
+      "the measured anneal-to-anneal variance, "
       "and every single-anneal number here carries it. A second initialization seed (seed 7, same data order) was "
       "trained to 11B. Capacity (K50, after arXiv 2609.30634) is how many name–task pairs fit in context before recall "
       "falls halfway to chance. On this harness it tracks recipe and tokens more than parameters, so no "
       "parameter-equivalent size is read from it.")
     P("")
     rid = stage["riders"]
-    P("### Object tracking with fixed vs fair exemplars (riders v2, prose; accuracy, chance .25)")
+    P("### Object tracking: lookup early, updating later (the box puzzle; κ, mean over code, prose, script and chat)")
     P("")
-    P("| model · tokens | " + " | ".join(rid["cols"]) + " |")
+    P("| models | " + " | ".join(c["name"] for c in rid["cols"]) + " |")
     P("|---|" + "---|" * len(rid["cols"]))
     for r in rid["rows"]:
-        P(f"| {r['m']} | " + " | ".join("pending" if r[c] is None else f"{r[c]:.3f}".lstrip("0") for c in rid["cols"]) + " |")
+        P(f"| {r['m']} | " + " | ".join("—" if r[c['k']] is None else f3(r[c['k']]) for c in rid["cols"]) + " |")
     P("")
-    P("Zero-shot, the annealed kotodama-tsumugi checkpoints from 33B on (.455–.490) sit above every public checkpoint "
-      "measured on this harness (best: SmolLM2 1.7B at 8.4T, .420). The zero-shot column pools narrative and screenplay "
-      "prose, and the public pool is three 1–2B models. fixed3 = the same three exemplars for every item; fairK = K "
-      "exemplars drawn per item. Fixed exemplars push accuracy well below zero-shot (a setup artifact). The penalty is "
-      "not specific to these models. On a lighter riders slice, fixed exemplars lower prose accuracy for most of an "
-      "eight-model panel (chat 8 of 8, screenplay 6 of 8, narrative 5 of 8) and raise code accuracy for all eight. Fair "
-      "exemplars help every public model here and kotodama-tsumugi through 55B. The two 110B anneals score highest "
-      "zero-shot (fair6: second anneal −.03, release −.045).")
+    P("On *lookup* items, the queried box ends with the contents it was declared with; on *update* items, an "
+      "operation changed it. Each public row is the median model of its size band. Lookup is above chance at every "
+      "size. The median model updates at chance below 2B. With worked examples, updating climbs with size, from .20 "
+      "at 2–5B and .40 at 7–10B to .77 at 70B and .87 from 284B up. A few small models update early, each with "
+      "examples: Qwen3 4B (.43), Falcon-H1 3B (.37) and Falcon-H1 1.5B-Deep (.28). kotodama-tsumugi's lookup with "
+      "examples (.61) is second of 12 models at 1–2B, behind Llama-3.2 1B (.83); like most models its size, it does "
+      "not yet update (−.04). One model's cell averages 272 lookup or 328 update items (68 or 82 per format), about "
+      "±.08 at 95%.")
     P("")
     P("## How to read the full atlas")
     P("")
@@ -252,6 +253,10 @@ def main() -> None:
       "reading); `0shot` = the item alone (the floor). Columns without worked examples (lookups in lists, box refills, the "
       "static gauges) have a `0shot` reading only. The rule-learning columns are read across their difficulty ladder "
       "(`ladder`: the mean chance-normalized accuracy over the ladder's rungs, clipped at 0 and 1).")
+    P("- **Wording controls:** a query that says *now* implies that something moved, and the largest models read that "
+      "implication: after a scene where nothing moves, 'Now X is holding the' leads them to answer as if something "
+      "had. Every query here uses one lead per test, the same whether or not anything moved ('Right now X is holding "
+      "the', 'So Box G contains the'), so the wording never signals a change.")
     P("- **Groups:** columns are grouped by what the questions look like. Each column is scored and read on its own.")
     P("- **Models:** every base model is scored by log-probability over the candidate set, with one scorer and one set "
       "of batteries. The **Human** row is one person reading items cold, with typed answers.")

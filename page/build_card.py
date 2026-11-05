@@ -28,10 +28,10 @@ FACES = "".join(f'@font-face {{ font-family: "{_cfg.font_family}"; src: url("fon
 FAM = f'"{_cfg.font_family}", ' if _cfg.font_family else ""
 G = json.loads(_args.stage.read_text())["threshold"]
 W, H, L, R, T, B = 560, 440, 20, 16, 12, 46
-x0, x1, y0, y1 = math.log10(0.4), math.log10(1500), -0.1, 0.26
+x0, x1, y0, y1 = math.log10(0.4), math.log10(2500), -0.1, 0.36
 X = lambda p: L + (math.log10(p) - x0) / (x1 - x0) * (W - L - R)
 Y = lambda v: T + (y1 - v) / (y1 - y0) * (H - T - B)
-INK, BG, MUTED, LINE, BAND = "#0b0c0e", "#ffffff", "#5a626d", "#d5d9de", "#f1f3f5"
+INK, BG, MUTED, LINE = "#0b0c0e", "#ffffff", "#5a626d", "#d5d9de"
 
 
 def sq(x: float, y: float, fill: bool, r: float = 5) -> str:
@@ -40,7 +40,6 @@ def sq(x: float, y: float, fill: bool, r: float = 5) -> str:
 
 
 s = [f'<svg viewBox="0 0 {W} {H}" width="{W}" height="{H}" xmlns="http://www.w3.org/2000/svg">']
-s.append(f'<rect x="{X(8.2):.1f}" y="{T}" width="{X(14.8) - X(8.2):.1f}" height="{H - T - B}" fill="{BAND}"/>')
 for t, lab in ((1, "1B"), (10, "10B"), (100, "100B"), (1000, "1T")):
     s.append(f'<line x1="{X(t):.1f}" x2="{X(t):.1f}" y1="{T}" y2="{H - B}" stroke="{LINE}"/>'
              f'<text x="{X(t):.1f}" y="{H - B + 22}" text-anchor="middle" class="t">{lab}</text>')
@@ -51,7 +50,6 @@ for m in G["models"]:
     x = X(m["p"])
     s.append(f'<line x1="{x:.1f}" x2="{x:.1f}" y1="{Y(m["z"]):.1f}" y2="{Y(m["t"]):.1f}" stroke="{LINE}" stroke-width="1.2"/>')
     s.append(sq(x, Y(m["t"]), False) + sq(x, Y(m["z"]), True))
-s.append(f'<text x="{(X(8.2) + X(14.8)) / 2:.1f}" y="{H - B + 40}" text-anchor="middle" class="t">8–14B</text>')
 s.append(f'<text x="{W - R}" y="{H - B + 40}" text-anchor="end" class="t">parameters (log)</text></svg>')
 chart = "".join(s)
 
@@ -71,12 +69,12 @@ p {{ font-size: 22px; line-height: 1.38; margin: 0; }}
 .t {{ font-family: {FAM}"Courier Prime", monospace; font-size: 14px; fill: {MUTED}; }}
 </style></head><body>
 <div class="l"><div class="eb">kotodama · referent binding</div><h1>Binding Atlas</h1>
-<p>Base models learn who <i>you</i> is in five stages. The last one, tracking <i>you</i> as objects change hands, is
-never reached zero-shot up to 8B, at any token count measured, and stays weak from 14B to 1T.</p>
+<p>Base models look things up long before they track change. Tracking <i>you</i> after objects change hands
+appears zero-shot from about 7B, and every base from 13B up does it.</p>
 <div class="cr">Led by Luxia, with Anima Labs<br>built with Claude</div>
 <div class="u">{CARD_TEXT}</div></div>
 <div class="r">{chart}<div class="k"><span><b style="background:{INK}"></b>zero-shot</span><span><b></b>3-shot</span>
-<span>30 public bases</span></div></div>
+<span>{len(G['models'])} public bases</span></div></div>
 </body></html>'''
 _args.out.parent.mkdir(parents=True, exist_ok=True)
 _args.out.write_text(html)
