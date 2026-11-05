@@ -376,38 +376,6 @@
    }
   ]
  },
- "levers": [
-  {
-   "lever": "Depth (52 vs 28 layers, same params)",
-   "eff": "+",
-   "res": "set-binding .70 vs .41; attribution .83 vs .69",
-   "cost": "≈ same loss, −22% throughput"
-  },
-  {
-   "lever": "Looped depth (shared middle block)",
-   "eff": "+",
-   "res": "matches the deep model at 56–80% of the unique params",
-   "cost": "loss flat when the loop sits inside one fitted block"
-  },
-  {
-   "lever": "Data-fitted AttnRes boundaries",
-   "eff": "+",
-   "res": "a 28-layer model reaches 52-layer set-binding in 2 of 3 seeds (.67/.66 vs .41–.44)",
-   "cost": "no measured cost"
-  },
-  {
-   "lever": "Attention residuals at all",
-   "eff": "+",
-   "res": "stage 1 arrives 1.5–2× sooner; needed for the depth effect",
-   "cost": "−20% throughput"
-  },
-  {
-   "lever": "Dialogue-heavy early data (13–40%)",
-   "eff": "0 / −",
-   "res": "no binding gain at any dose or window; 25% delays stage 1 ~2.3×",
-   "cost": "costs code and structure binding"
-  }
- ],
  "lead": "Base language models learn to look things up long before they learn to track change. In the box puzzle, the median model under 1B already finds a box's declared contents above chance, and scores zero on the boxes changed by an operation. With worked examples, updating climbs steadily with size, to .77 for the 70B models and above .8 for most of the largest. The referent of *you* follows five ordered stages. Every base of 0.6B parameters or more trained on trillions of tokens reaches the first three, except Bamba 9B. The fifth stage is tracking *you* after objects change hands. Zero-shot, it appears from about 7B (OLMo-2 7B, Qwen2.5 7B), and every base measured from 13B up reaches it. **kotodama-tsumugi**, a 1.4B model run as 72 effective layers, reaches stage 3 by **33B tokens**, in the range where OLMo-2 13B gets there; OLMo-2 1B needs 420–525B. Given three worked examples, it is the smallest base measured that tracks *you* after objects change hands. It reads +.038, with its whole 95% interval above the +.02 line. The next is Qwen3 4B.",
  "tsumugi": {
   "_note": "kotodama-tsumugi s17 trunk (constant LR, to 100B) and cooldown branches (annealed), stage gauges = P2 speaker swap (static I, static you) and dynamic swap (addressee, 0-shot / 3-shot). Seed 7 = the seed replicate to 11B. Values from the synthesis table.",

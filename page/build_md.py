@@ -3,7 +3,7 @@
 Usage: python page/build_md.py --atlas data/built/atlas.json --stage data/built/stage.json --swap data/built/swap.json
                                --out site/binding-atlas.md [--config config/default.toml] [--stamp "YYYY-MM-DD HH:MM UTC"]
                                [--swap-prompts swap-prompts.jsonl]   (optional: prints one example speaker-swap pair)
-Sections: summary · Parts I–III · how to read · glossary · columns (+ verbatim example prompts per column) · rows ·
+Sections: summary · Parts I–II · how to read · glossary · columns (+ verbatim example prompts per column) · rows ·
 tables by group · rows and every cell as CSV.
 Refuses to write if the output contains an internal hostname / path (same law as build_page.py).
 """
@@ -171,17 +171,7 @@ def main() -> None:
       "from 4B up, and all of it for Llama-3.1 70B. (3) Naming the addressee does not help: the vocative variant is "
       "never more than .01 above the spoken one, and below it for every model from 4B up.")
     P("")
-    P("## Part II · The levers")
-    P("")
-    P("Each lever measured on 1.4B-parameter arms trained for 4B tokens on one data order; one seed per arm except the "
-      "fitted boundaries (three seeds). kotodama-tsumugi (Part III) combines the three positive levers in one model.")
-    P("")
-    P("| lever | effect | result | cost |")
-    P("|---|---|---|---|")
-    for l in stage["levers"]:
-        P(f"| {l['lever']} | {l['eff']} | {l['res']} | {l['cost']} |")
-    P("")
-    P("## Part III · kotodama-tsumugi")
+    P("## Part II · kotodama-tsumugi")
     P("")
     P(stage["tsumugi"]["desc"])
     P("")

@@ -1,6 +1,6 @@
 # Binding Atlas — agent view
 
-Plain-text twin of the [Binding Atlas page](binding-atlas.html). Same data, same build. Built 2026-11-05 11:56 UTC: 65 rows (models + one human), 24 columns, 2,447 cells, 1,905,952 scored items.
+Plain-text twin of the [Binding Atlas page](binding-atlas.html). Same data, same build. Built 2026-11-05 12:25 UTC: 65 rows (models + one human), 24 columns, 2,447 cells, 1,905,952 scored items.
 
 ## Summary
 
@@ -104,19 +104,7 @@ Each dynamic-*you* gauge item is rewritten along one axis: **transfer, narrated*
 
 The rewrites show three layers. (1) The first is possession transfer itself. The 1.4–1.5B models sit near chance (.28–.38) even when the scene is narrated. These are Pythia-1.4B, OLMo-2 1B at 4T, and kotodama-tsumugi at every checkpoint through 110B tokens. SmolLM2 1.7B at 11T (.40) and Qwen3 1.7B at 36T (.48) lift off chance; from 4B the narrated version is easy (.53–.79). (2) The transfer as a speech act is the mid-size wall. Models from 4B to 30B stay at .37–.47 when it is spoken, and Llama-3.1 70B reaches .56. Narrating only the hand-off recovers part of that gap for every model from 4B up, and all of it for Llama-3.1 70B. (3) Naming the addressee does not help: the vocative variant is never more than .01 above the spoken one, and below it for every model from 4B up.
 
-## Part II · The levers
-
-Each lever measured on 1.4B-parameter arms trained for 4B tokens on one data order; one seed per arm except the fitted boundaries (three seeds). kotodama-tsumugi (Part III) combines the three positive levers in one model.
-
-| lever | effect | result | cost |
-|---|---|---|---|
-| Depth (52 vs 28 layers, same params) | + | set-binding .70 vs .41; attribution .83 vs .69 | ≈ same loss, −22% throughput |
-| Looped depth (shared middle block) | + | matches the deep model at 56–80% of the unique params | loss flat when the loop sits inside one fitted block |
-| Data-fitted AttnRes boundaries | + | a 28-layer model reaches 52-layer set-binding in 2 of 3 seeds (.67/.66 vs .41–.44) | no measured cost |
-| Attention residuals at all | + | stage 1 arrives 1.5–2× sooner; needed for the depth effect | −20% throughput |
-| Dialogue-heavy early data (13–40%) | 0 / − | no binding gain at any dose or window; 25% delays stage 1 ~2.3× | costs code and structure binding |
-
-## Part III · kotodama-tsumugi
+## Part II · kotodama-tsumugi
 
 A 1.42B-parameter model with a looped core, run as 72 effective layers. Its trunk trains at a constant learning rate to 100B tokens. Annealed reads are cooldown branches forked from its checkpoints (cosine decay to zero over about 10% of the tokens so far). The release is the 110B branch from the 100B fork. The architecture and training run are described in Who Is You?, the companion write-up, and the release table below gives the spread between two anneals.
 
