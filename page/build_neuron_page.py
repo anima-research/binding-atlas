@@ -59,7 +59,10 @@ ICL_FORMATS = {
     "int": lambda v: str(int(v)) if float(v) == int(v) else f"not an integer: {v}",
     "intc": lambda v: f"{int(v):,}" if float(v) == int(v) else f"not an integer: {v}",
     "pct0": lambda v: f"{round(v * 100)}%",
+    "pct1": lambda v: f"{v * 100:.1f}%",
     "pctile1": lambda v: f"{v:.1f}",
+    # a percentile (0–100) as the number of 1,000 random draws that lie above it
+    "of1000": lambda v: f"{round(1000 - v * 10):,}",
     "id": str,
     "pts": lambda v: str(abs(round(v * 100))),
     "sig2": lambda v: f"{float(f'{v:.2g}'):g}",

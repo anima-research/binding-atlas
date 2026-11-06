@@ -51,7 +51,9 @@ closeness array that `neurons-graph` reads is not tracked: copy `closeness-f16.n
 `data/inputs/threads-graph/closeness.sha256`, which pins both.
 
 `build/build_neurons.py` writes everything in `data/built/neurons/` except `binding.json`, `icl.json`, `graph.json` and `closeness.bin`, from the compendium build (its
-inputs are named in its docstring).
+inputs are named in its docstring). The map summary and the hand-validated neurons' names are set in that script, and
+the build checks the summary's counts against the clusters. With `--patch data/built/neurons`, the script applies them
+to the tracked `neurons.json` without the compendium build.
 
 ## The announcement
 

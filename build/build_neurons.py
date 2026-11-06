@@ -14,8 +14,15 @@ Inputs (all from the compendium build; paths are arguments, nothing machine-spec
   --weights <file>  the weight-space layouts (optional; a JSON sibling adds the PCA statistics)
   --binding <file>  the mean binding attribution per family, shape (72, 4096)
   --sets <file>     the causal supporter / interferer sets
+  --compendium <file>  optional: the hand-validated neuron compendium (its `neurons`, each with an `id` and a full
+                    `name`); the map build stores those names cut short, and the page shows them whole
+
+The page's map summary (SUMMARY) and a few display names (KNOWN_NAMES, NAME_TAGS) are set here, and every count the
+summary states is checked against the built clusters and categories (`check_summary`). `--patch <dir>` re-applies
+them to an existing <dir>/neurons.json, without the map inputs.
 
   python build/build_neurons.py --map-v1 <d1> --map-v2 <d2> --weights <w> --binding <b> --sets <s> --out <dir>
+  python build/build_neurons.py --patch data/built/neurons --compendium <file>
 """
 from __future__ import annotations
 
@@ -36,6 +43,87 @@ WEIGHT_LAYOUTS = {"write_centered_umap": "weights-write", "write_raw_pca": "weig
                   "read_centered_umap": "weights-read"}
 N_POS, F = 72, 4096
 N = N_POS * F
+
+#: The map summary the page shows: the taxonomy's summary in plain words. `check_summary` refuses the build when a
+#: count here differs from the clusters and categories.
+SUMMARY = (
+    "When neurons are grouped by the meaning of the passages that make them fire, genre and register stand out. "
+    "Legal, biomedical, patent, math, scripture, old-book, web-spam and sports text each get their own groups at every "
+    "depth: early layers detect pieces of a genre's terms, late layers pick its words. Genre and register hold 15% of "
+    "neurons. Our first map, which grouped neurons by the words they fire on, missed this. Its function-word and "
+    "connective families are still here and still the clearest. A neuron is read three ways (the passages it fires on, "
+    "the words its output promotes, and what it writes when steered), and for time and discourse neurons those "
+    "readings agree strongly for 43% and 37%. The meaning map adds four things the word map lacked: one clear "
+    "narration group of 1,069 neurons (gestures and actions between lines of dialogue), separate groups for saying and "
+    "for asking, groups for addressing someone and for confrontation, and a small family for text that refers to "
+    "itself or to other texts (33% agree strongly). Moods and archetypes are thin: devotional and scriptural text is "
+    "real, one weak group covers feelings, and there is no dread, quest, tenderness or trickster group. Part of the "
+    "map is noise. 6% of neurons sit in 24 groups held together only by one shared output direction, mostly British "
+    "spellings; 9% are unassigned, 9% detect pieces of words and 3% respond to numbers or encoded text. 26 groups have "
+    "three neurons or fewer. Across the map, the three readings agree strongly for 15% of neurons."
+)
+NARRATION_GROUP = 342                       # the clearest narration group (fiction gesture beats), whose size SUMMARY states
+#: Hand-validated neurons whose compendium name carries a steering note; the page's lead says once that some of
+#: these neurons are detectors rather than levers.
+KNOWN_NAMES = {"N975": "commentary-on-the-text detector"}
+#: Method tags that a draft group name carries and the page drops.
+NAME_TAGS = (" (jlens)",)
+
+
+def _pct(n: float) -> str:
+    return f"{round(100 * n)}%"
+
+
+def check_summary(manifest: dict) -> None:
+    """Every count SUMMARY states equals the one computed from the manifest's clusters and categories."""
+    n = manifest["n"]
+    fams, cats, clusters = manifest["families"], manifest["categories"], manifest["clusters"]
+    fam_n = [sum(c["n"] for c in cats if c["family"] == f) for f in range(len(fams))]
+    fam_high = [sum(c["n"] * c["high"] for c in cats if c["family"] == f) / max(1, fam_n[f]) for f in range(len(fams))]
+    cat_n = {c["name"]: c["n"] for c in cats}
+    cat_i = {c["name"]: i for i, c in enumerate(cats)}
+    fi = {name: i for i, name in enumerate(fams)}
+    lens = [c for c in clusters if c["cat"] == cat_i["Artefact: shared lens direction"]]
+    want = {
+        "genre share": f"Genre and register hold {_pct(fam_n[fi['Genre & register']] / n)} of",
+        "time / discourse agreement": f"agree strongly for {_pct(fam_high[fi['Time, number & measurement']])} and "
+                                      f"{_pct(fam_high[fi['Discourse & reasoning']])}",
+        "narration group": f"narration group of {clusters[NARRATION_GROUP]['size']:,} neurons",
+        "meta-layer agreement": f"other texts ({_pct(fam_high[fi['Meta-layer: text about text']])} agree strongly)",
+        "lens artefacts": f"{_pct(sum(c['size'] for c in lens) / n)} of neurons sit in {len(lens)} groups",
+        "unassigned": f"{_pct(cat_n['Unassigned / mixed'] / n)} are unassigned",
+        "subword": f"{_pct(cat_n['Subword & name-fragment detectors'] / n)} detect pieces of words",
+        "numeric": f"{_pct(cat_n['Numeric data & encoded blobs'] / n)} respond to numbers",
+        "tiny groups": f"{sum(1 for c in clusters if c['size'] <= 3)} groups have three neurons or fewer",
+        "high overall": f"agree strongly for {_pct(sum(c['size'] for c in clusters if c['agree'] == 'high') / n)} of neurons.",
+    }
+    wrong = [f"{k}: expected {v!r}" for k, v in want.items() if v not in manifest["summary"]]
+    if wrong:
+        raise SystemExit("REFUSING: the map summary disagrees with the clusters:\n  " + "\n  ".join(wrong))
+
+
+def apply_page_text(manifest: dict, compendium: dict | None) -> None:
+    """The page's summary and display names: SUMMARY, full hand-validated names from the compendium (KNOWN_NAMES
+    over them), and group names without NAME_TAGS. Checks the summary's counts."""
+    manifest["summary"] = SUMMARY
+    if compendium is not None:
+        full = {e["id"]: e["name"] for e in compendium["neurons"]}
+        for k in manifest["known"]:
+            if k["id"] not in full:
+                raise SystemExit(f"REFUSING: hand-validated neuron {k['id']} is not in the compendium")
+            if not full[k["id"]].startswith(k["name"].rstrip()):
+                raise SystemExit(f"REFUSING: {k['id']}: the compendium name {full[k['id']]!r} does not extend {k['name']!r}")
+            k["name"] = full[k["id"]]
+    for k in manifest["known"]:
+        k["name"] = KNOWN_NAMES.get(k["id"].split(" ")[-1], k["name"])
+    for c in manifest["clusters"]:
+        for tag in NAME_TAGS:
+            c["name"] = c["name"].replace(tag, "")
+    check_summary(manifest)
+
+
+def write_manifest(path: Path, manifest: dict) -> None:
+    path.write_text(json.dumps(manifest, ensure_ascii=False, separators=(",", ":")))
 
 
 def read_map(path: Path) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -97,13 +185,28 @@ def depth_layout(cl: np.ndarray, cluster_order: list[int], mx: np.ndarray, my: n
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--map-v1", type=Path, required=True)
-    ap.add_argument("--map-v2", type=Path, required=True)
+    ap.add_argument("--map-v1", type=Path)
+    ap.add_argument("--map-v2", type=Path)
     ap.add_argument("--weights", type=Path, default=None)
-    ap.add_argument("--binding", type=Path, required=True)
-    ap.add_argument("--sets", type=Path, required=True)
-    ap.add_argument("--out", type=Path, required=True)
+    ap.add_argument("--binding", type=Path)
+    ap.add_argument("--sets", type=Path)
+    ap.add_argument("--out", type=Path)
+    ap.add_argument("--compendium", type=Path, default=None)
+    ap.add_argument("--patch", type=Path, default=None, help="a directory whose neurons.json gets the page text again")
     a = ap.parse_args()
+    compendium = json.loads(a.compendium.read_text()) if a.compendium else None
+    if a.patch:
+        path = a.patch / "neurons.json"
+        if not path.exists():
+            raise SystemExit(f"{path}: not found")
+        manifest = json.loads(path.read_text())
+        apply_page_text(manifest, compendium)
+        write_manifest(path, manifest)
+        print(f"patched {path}: summary, {len(manifest['known'])} hand-validated names, group names", file=sys.stderr)
+        return
+    missing = [f"--{k.replace('_', '-')}" for k in ("map_v1", "map_v2", "binding", "sets", "out") if getattr(a, k) is None]
+    if missing:
+        ap.error(f"a full build needs {', '.join(missing)} (or --patch <dir>)")
     a.out.mkdir(parents=True, exist_ok=True)
 
     tax = json.loads((a.map_v1 / "taxonomy.json").read_text())
@@ -195,7 +298,8 @@ def main() -> None:
         "known": [{"id": k["id"], "i": k["L"] * F + k["n"], "name": k["name"], "cluster": k["cluster"],
                    "with": k["shares_cluster_with"]} for k in known],
     }
-    (a.out / "neurons.json").write_text(json.dumps(manifest, ensure_ascii=False, separators=(",", ":")))
+    apply_page_text(manifest, compendium)
+    write_manifest(a.out / "neurons.json", manifest)
     print(f"wrote {a.out}: {len(layouts)} layouts {sorted(layouts)}; {len(labels)} labels; neurons.bin {len(blob)/1e6:.2f} MB",
           file=sys.stderr)
 

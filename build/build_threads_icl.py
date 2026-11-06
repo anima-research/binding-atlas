@@ -48,6 +48,9 @@ LOOP_ARMS = ("pass1", "pass2", "outside")
 LOOP_KS = (24, 60, 120)
 LOOP_K_SHOWN = 60
 MATCHED_M = 32
+#: The swap-shift bar: a model passes a speaker-swap test when the whole 95% interval of its swap shift is above it.
+#: It is a fixed convention, set before any model was scored; the page quotes it beside the static-you readings.
+PASS_BAR = 0.02
 NUM = r"([+-]?\d+\.\d+)"
 
 
@@ -393,6 +396,7 @@ def build(inp: Path) -> dict:
                    "random sets are 32 times larger, with equal or greater next-token damage.",
         "sets": {**{k: ids(v) for k, v in lists.items()}, "random_rule": ids(shown), "random_dyn": ids(shown_dyn)},
         "hero": hero, "loop": loop_out, "dyn_you": dyn, "static_you": static, "readability": readable,
+        "bar": PASS_BAR,
     }
 
 
