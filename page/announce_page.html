@@ -49,6 +49,8 @@ header.top { padding-block: 52px 18px; display: grid; gap: 14px; }
 h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 5vw, 46px); line-height: 1.08; margin: 0; text-wrap: balance; }
 .lede { margin: 0; max-width: 64ch; color: var(--fg2); font-size: 18px; line-height: 1.55; }
 .byline { font-size: 13px; color: var(--muted); }
+.gloss { display: grid; gap: 2px; font-size: 13px; line-height: 1.45; color: var(--muted); max-width: 70ch; margin: 6px 0 10px; }
+.gloss b { font-family: "Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif; color: var(--fg2); font-weight: 700; margin-right: 2px; }
 .map { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 12px; max-width: 76ch; }
 figure.plate { margin: 18px 0 8px; background: var(--plate); border-radius: 12px; padding: 14px; display: grid; gap: 10px; }
 figure.plate img { width: 100%; max-width: 100%; height: auto; display: block; border-radius: 6px; }
@@ -89,11 +91,13 @@ __TOC__
   <header class="top">
     <div class="kicker">Model release · open weights</div>
     <p class="kanji" lang="ja">言霊 紬</p>
+    <div class="gloss"><span><b lang="ja">言霊</b> kotodama — word-spirit: language as a thing with a life of its own. It names the training project.</span>
+      <span><b lang="ja">紬</b> tsumugi — spun thread: words woven into more than the sum of their parts. It names this model.</span></div>
     <h1>kotodama-tsumugi</h1>
     <p class="lede">A 1.4B-parameter base model, trained on 110B tokens with kotodama, our open
     pretraining stack: trainer, evaluation and serving in one package. Shown a few worked examples of a made-up rule,
     tsumugi applies the rule to a new case better than public models of its size. In a two-person chat, it keeps track of
-    who “you” is, like models trained on 40 to 300 times more data. Its weights, training checkpoints, data recipe, code and
+    who “you” is, like larger models trained on 40 to 300 times more data. Its weights, training checkpoints, data recipe, code and
     benchmark are all open.</p>
     <div class="byline">Led by <a href="https://x.com/kataletheia">Luxia</a>, with <a href="https://animalabs.ai">Anima Labs</a> · built with <a href="https://www.anthropic.com/claude">Claude</a></div>
     <div class="map"><a href="https://github.com/anima-research/kotodama">kotodama code on GitHub</a> ·
@@ -117,9 +121,10 @@ __STORY__
     <figcaption>Filled dots: 36 public base models. Open circles: 15 public checkpoints, taken partway through training,
     that had spent the same compute as tsumugi. Dashed line: the trend of the fully trained public models. tsumugi, the orange diamond, does better
     than the trend on all three and furthest on new rules. It scores .559 there, against .536 for the best public model at the
-    same compute (Falcon3 3B) and at most .461 for the checkpoints. The open orange diamond is tsumugi before its final anneal, the closing
-    stretch of training where the learning rate decays. It scored .436 there, level with the checkpoints, so much of the
-    lead comes with the anneal.</figcaption>
+    same compute (Falcon3 3B) and at most .461 for the checkpoints. The open orange diamond is tsumugi before its final cooldown, the closing
+    stretch of training where the learning rate decays. It scored .436 there, level with the checkpoints, which haven't
+    had their cooldown either. The fully trained models have had theirs, and after its own, tsumugi is above every one of
+    them at the same compute.</figcaption>
   </figure>
 
   <h2>Results</h2>
