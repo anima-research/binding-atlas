@@ -320,14 +320,16 @@ fit(); addEventListener("resize", fit);
 const draw = [null, beat1, beat2, beat3, beat4];
 const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
 let cur = 0, raf = 0;
+const PACE = 0.7, seen = new Set();   // the page plays each beat at 0.7x its story time (the video runs at half speed)
 function show(i) {
   if (i === cur) return; cur = i; cancelAnimationFrame(raf);
   for (let k = 1; k <= 4; k++) document.getElementById("L" + k).classList.toggle("on", k === i);
   document.querySelectorAll(".story-step").forEach(s => s.classList.toggle("on", +s.dataset.beat === i));
   const [a, e] = ENDS[i];
-  if (still) { draw[i](e); return; }
+  if (still || seen.has(i)) { draw[i](e); return; }
+  seen.add(i);
   const t0 = performance.now();
-  const step = (now) => { const t = Math.min(e, a + (now - t0) / 1000 / SLOW); draw[i](t); if (t < e) raf = requestAnimationFrame(step); };
+  const step = (now) => { const t = Math.min(e, a + (now - t0) / 1000 / PACE); draw[i](t); if (t < e) raf = requestAnimationFrame(step); };
   raf = requestAnimationFrame(step);
 }
 for (let k = 1; k <= 4; k++) draw[k](ENDS[k][0]);
@@ -454,7 +456,7 @@ document.querySelectorAll(".story-step").forEach(s => io.observe(s));
 </div>
 <footer><div class="wrap">
   <span>Companion pages: <a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b">the model card</a> · <a href="binding-atlas">Binding Atlas</a>, every model against every referent-binding test · <a href="threads">Threads</a>, inside kotodama-tsumugi · <a href="empty-document">An Empty Document</a>.</span>
-  <span class="num" id="stamp">build 2026-11-06 03:44 UTC</span>
+  <span class="num" id="stamp">build 2026-11-06 03:50 UTC</span>
 </div></footer>
 </body>
 </html>
