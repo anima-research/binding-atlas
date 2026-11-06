@@ -87,6 +87,147 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: s
 </style>
 </head>
 <body>
+<nav id="toc" aria-label="Contents" data-reserve="1"></nav>
+<!-- Contents rail: a sticky table of contents in the right gutter on wide screens, built from the page's own
+headings. A page opts in with <nav id="toc" ...></nav> followed by the TOC placeholder; render_hosting fills the placeholder
+with this file. Attributes on the nav:
+  data-sel      top-level entries (default "h2"); data-sel2: the entries nested under them (default "h3");
+                elements with data-toc="Label" are entries too, at the level in data-toc-level (default 1)
+  data-scope    where to look for them (default "body")
+  data-skip     containers whose headings are left out
+  data-hide     elements that, while they fill the middle of the screen, fade the rail out
+  data-reserve  "1": on wide screens the page gives up a right gutter for the rail (pages without free margin)
+  data-min      narrowest viewport, in px, that shows the full rail (default 1400)
+  data-slim     narrowest viewport that shows the slim rail, a strip of ticks that opens on hover (default 900)
+Level-2 entries show only under the active level-1 entry. Below the slim width a "Contents" button opens the list.
+While the rail is on, --toc-w on the root element holds the width it takes, for full-width blocks to make room. -->
+<style>
+#toc { display: none; position: fixed; top: 84px; right: 18px; width: 214px; max-height: calc(100vh - 120px);
+  overflow: auto; z-index: 30; font-size: 12.5px; line-height: 1.35; transition: opacity .25s;
+  scrollbar-width: thin; }
+#toc.away { opacity: 0; pointer-events: none; }
+#toc .tt { font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted, #8a8f98);
+  margin: 0 0 8px 12px; }
+#toc ol { list-style: none; margin: 0; padding: 0; border-left: 1px solid var(--line, #3a3f47); }
+#toc li { margin: 0; }
+#toc a { display: block; padding: 4px 0 4px 11px; margin-left: -1px; border-left: 2px solid transparent;
+  color: var(--muted, #8a8f98); text-decoration: none; overflow-wrap: anywhere; }
+#toc a:hover { color: var(--fg, #e8eaed); }
+#toc li.l2 a { padding-left: 23px; font-size: 12px; }
+#toc li.l2 { display: none; }
+#toc li.l2.open { display: block; }
+#toc a[aria-current] { color: var(--fg, #e8eaed); border-left-color: var(--fg, #e8eaed); }
+html.toc-full, html.toc-slim { --toc-w: 236px; }
+html.toc-slim { --toc-w: 34px; }
+html.toc-full #toc, html.toc-slim #toc { display: block; }
+html.toc-reserve body { padding-right: var(--toc-w, 0px); }
+html.toc-slim #toc { width: 22px; right: 6px; }
+html.toc-slim #toc:not(:hover):not(:focus-within) .tt { visibility: hidden; }
+html.toc-slim #toc:not(:hover):not(:focus-within) a { color: transparent; height: 9px; padding: 0 0 0 9px;
+  overflow: hidden; white-space: nowrap; border-left-color: var(--line, #3a3f47); }
+html.toc-slim #toc:not(:hover):not(:focus-within) a[aria-current] { border-left-color: var(--fg, #e8eaed); }
+html.toc-slim #toc:not(:hover):not(:focus-within) li.l2 { display: none; }
+html.toc-slim #toc:hover, html.toc-slim #toc:focus-within { width: 236px; background: var(--bg, #0b0c0e);
+  padding: 10px 10px 10px 0; border: 1px solid var(--line, #3a3f47); border-radius: 8px; }
+#toc-btn { display: none; position: fixed; right: 12px; bottom: 14px; z-index: 31; font: inherit; font-size: 12.5px;
+  padding: 7px 12px; border-radius: 999px; border: 1px solid var(--line, #3a3f47); background: var(--bg, #0b0c0e);
+  color: var(--fg, #e8eaed); cursor: pointer; }
+html.toc-btn #toc-btn { display: block; }
+html.toc-btn #toc.open { display: block; top: auto; bottom: 58px; right: 12px; width: min(84vw, 320px);
+  max-height: 62vh; background: var(--bg, #0b0c0e); border: 1px solid var(--line, #3a3f47); border-radius: 10px;
+  padding: 12px 12px 12px 0; box-shadow: 0 8px 28px rgba(0,0,0,.35); }
+@media (prefers-reduced-motion: reduce) { #toc { transition: none; } }
+@media print { #toc { display: none !important; } }
+</style>
+<script>
+(() => {
+"use strict";
+const init = () => {
+  const nav = document.getElementById("toc");
+  if (!nav) return;
+  const d = nav.dataset, root = document.documentElement;
+  const MIN = +(d.min || 1400), SLIM = +(d.slim || 900);
+  if (d.reserve === "1") root.classList.add("toc-reserve");
+  const scope = document.querySelector(d.scope || "body") || document.body;
+  const skip = d.skip ? `#toc, ${d.skip}` : "#toc";
+  const used = new Set([...document.querySelectorAll("[id]")].map(e => e.id));
+  const slug = t => {
+    let s = "s-" + t.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48), k = s, n = 2;
+    while (used.has(k)) k = `${s}-${n++}`;
+    used.add(k);
+    return k;
+  };
+  const S1 = d.sel || "h2", S2 = d.sel2 || "h3";
+  const els = [...scope.querySelectorAll(`[data-toc], ${S1}, ${S2}`)].filter(el =>
+    !el.closest(skip) && !el.closest("[hidden]") && (el.dataset.toc || el.textContent.trim()));
+  if (els.length < 2) return;
+  const items = els.map(el => {
+    const label = (el.dataset.toc || el.textContent).replace(/\s+/g, " ").trim();
+    const lv = el.dataset.toc ? +(el.dataset.tocLevel || 1) : (el.matches(S2) && !el.matches(S1) ? 2 : 1);
+    if (!el.id) el.id = slug(label);
+    return { el, label, lv };
+  });
+  let parent = -1;
+  items.forEach((it, i) => {
+    if (it.lv === 2 && parent < 0) it.lv = 1;            // a nested entry with nothing above it stands alone
+    if (it.lv === 1) parent = i;
+    it.parent = it.lv === 1 ? i : parent;
+  });
+  const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  nav.innerHTML = `<p class="tt">Contents</p><ol>${items.map((it, i) =>
+    `<li class="l${it.lv}" data-i="${i}"><a href="#${esc(it.el.id)}">${esc(it.label)}</a></li>`).join("")}</ol>`;
+  const lis = [...nav.querySelectorAll("li")], links = lis.map(li => li.querySelector("a"));
+  let cur = -2;
+  const spy = () => {
+    const line = innerHeight * 0.3;
+    let a = -1;
+    for (let i = 0; i < items.length; i++) { if (items[i].el.getBoundingClientRect().top <= line) a = i; else break; }
+    if (a === cur) return;
+    cur = a;
+    const top = a < 0 ? -1 : items[a].parent;
+    links.forEach((l, i) => i === a ? l.setAttribute("aria-current", "true") : l.removeAttribute("aria-current"));
+    lis.forEach((li, i) => li.classList.toggle("open", items[i].lv === 2 && items[i].parent === top));
+    if (a >= 0) {
+      const r = links[a].getBoundingClientRect(), n = nav.getBoundingClientRect();
+      if (r.top < n.top || r.bottom > n.bottom) links[a].scrollIntoView({ block: "nearest" });
+    }
+  };
+  let raf = 0;
+  addEventListener("scroll", () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; spy(); }); }, { passive: true });
+  const btn = document.createElement("button");
+  btn.id = "toc-btn"; btn.type = "button"; btn.textContent = "Contents";
+  btn.setAttribute("aria-controls", "toc"); btn.setAttribute("aria-expanded", "false");
+  nav.after(btn);
+  const close = () => { nav.classList.remove("open"); btn.setAttribute("aria-expanded", "false"); };
+  btn.addEventListener("click", () => {
+    const o = nav.classList.toggle("open"); btn.setAttribute("aria-expanded", String(o));
+    if (o) { cur = -2; spy(); }
+  });
+  nav.addEventListener("click", e => { if (e.target.closest("a") && root.classList.contains("toc-btn")) close(); });
+  addEventListener("keydown", e => { if (e.key === "Escape") close(); });
+  const fit = () => {
+    const w = innerWidth;
+    root.classList.toggle("toc-full", w >= MIN);
+    root.classList.toggle("toc-slim", w >= SLIM && w < MIN);
+    root.classList.toggle("toc-btn", w < SLIM);
+    if (w >= SLIM) close();
+    spy();
+  };
+  addEventListener("resize", fit);
+  fit();
+  if (d.hide && "IntersectionObserver" in window) {
+    const on = new Set();
+    const io = new IntersectionObserver(es => {
+      for (const e of es) e.isIntersecting ? on.add(e.target) : on.delete(e.target);
+      nav.classList.toggle("away", on.size > 0);
+    }, { rootMargin: "-45% 0px -45% 0px" });
+    document.querySelectorAll(d.hide).forEach(el => io.observe(el));
+  }
+};
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
+})();
+</script>
+
 <div class="wrap">
   <header class="top">
     <div class="kicker">Model release · open weights</div>
@@ -517,7 +658,7 @@ document.querySelectorAll(".story-step").forEach(s => io.observe(s));
 </div>
 <footer><div class="wrap">
   <span>Companion pages: <a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b">the model card</a> · <a href="binding-atlas">Binding Atlas</a>, every model against every referent-binding test · <a href="threads">Threads</a>, inside kotodama-tsumugi · <a href="empty-document">An Empty Document</a>.</span>
-  <span class="num" id="stamp">build 2026-11-06 04:40 UTC</span>
+  <span class="num" id="stamp">build 2026-11-06 04:51 UTC</span>
 </div></footer>
 </body>
 </html>

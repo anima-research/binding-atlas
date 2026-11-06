@@ -30,6 +30,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from urllib.parse import urlparse
 
+TOC = Path(__file__).resolve().parent / "toc.html"   # the contents rail a page opts into with __TOC__
 PAGE = "binding-atlas.html"
 CLEAN = "binding-atlas"
 MARKDOWN = "binding-atlas.md"
@@ -158,4 +159,5 @@ def render_hosting(template: str, cfg: SiteConfig, overrides: dict[str, str] | N
                 line = line.replace(ph, vals[ph])
         if not drop:
             out.append(line)
-    return "".join(out)
+    page = "".join(out)
+    return page.replace("__TOC__", TOC.read_text()) if "__TOC__" in page else page
