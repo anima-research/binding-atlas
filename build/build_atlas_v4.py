@@ -285,7 +285,19 @@ def model_cells(zoo: Path, name: str) -> dict[str, dict[str, Any]]:
 
 
 # ---- examples ------------------------------------------------------------------------------------------------------
+POOL_N = 8                                      # items per column for the page's "Take it yourself" quiz
+
+
+def spread(xs: list[Any], n: int = POOL_N) -> list[Any]:
+    """n items evenly spaced through xs (all of them if there are n or fewer), so a pool spans the column's cells."""
+    if len(xs) <= n:
+        return list(xs)
+    return [xs[round(i * (len(xs) - 1) / (n - 1))] for i in range(n)]
+
+
 def examples(prompts: Path) -> dict[str, dict[str, Any]]:
+    """Per column: one representative 0-shot item (the first that the column's filter keeps), and a pool of POOL_N
+    items spread through all the kept items for the reader's quiz. Every item comes from a pinned prompt file."""
     from binding_bench.bindprobes.grid import build_payload_item
     from binding_bench.bindprobes.items import load_items
 
@@ -310,28 +322,34 @@ def examples(prompts: Path) -> dict[str, dict[str, Any]]:
         if c.battery in bp_files:
             if c.battery not in item_cache:
                 item_cache[c.battery] = load_items(bp_files[c.battery])
+            kept = []
             for it in item_cache[c.battery]:
                 r = {"family": it.family, "cell": list(it.cell), "qkind": it.meta.get("qkind", it.cell[-1]),
                      "variant": it.meta.get("variant", "deictic")}
                 if c.keep(r):
                     pay = build_payload_item(it, "0shot")
-                    out[c.id] = {"prompt": pay["prompt"], "gold": it.gold, "candidates": [x.strip() for x in pay["candidates"]],
-                                 "gold_set": list(getattr(it, "gold_set", []) or []) or None, "item_id": it.item_id}
-                    break
+                    kept.append({"prompt": pay["prompt"], "gold": it.gold,
+                                 "candidates": [x.strip() for x in pay["candidates"]],
+                                 "gold_set": list(getattr(it, "gold_set", []) or []) or None, "item_id": it.item_id})
+            if kept:
+                out[c.id] = dict(kept[0], pool=spread(kept))
         elif c.battery == "riders":
             reg = c.id.split("-", 1)[1]
-            job = next(j for j in rider_jobs() if j.renderer == reg)
-            out[c.id] = {"prompt": job.prompt, "gold": rider_gold(job), "candidates": [x.strip() for x in job.candidates],
-                         "gold_set": None, "item_id": job.id}
+            kept = [{"prompt": j.prompt, "gold": rider_gold(j), "candidates": [x.strip() for x in j.candidates],
+                     "gold_set": None, "item_id": j.id} for j in rider_jobs() if j.renderer == reg]
+            if kept:
+                out[c.id] = dict(kept[0], pool=spread(kept))
         else:
             f = pinned(c.battery)
+            kept = []
             for line in f.open():
                 r = json.loads(line)
                 if c.keep(r):
-                    out[c.id] = {"prompt": r["prompt"], "gold": r.get("gold_orig", r.get("gold")),
+                    kept.append({"prompt": r["prompt"], "gold": r.get("gold_orig", r.get("gold")),
                                  "candidates": [x.strip() for x in r["candidates"]], "gold_set": None,
-                                 "item_id": r["id"]}
-                    break
+                                 "item_id": r["id"]})
+            if kept:
+                out[c.id] = dict(kept[0], pool=spread(kept))
     return out
 
 

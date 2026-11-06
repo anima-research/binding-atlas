@@ -1,6 +1,6 @@
 # Binding Atlas — agent view
 
-Plain-text twin of the [Binding Atlas page](https://kotodama.animalabs.ai/binding-atlas). Same data, same build. Built 2026-11-06 01:40 UTC: 65 rows (models + one human), 24 columns, 2,447 cells, 1,905,952 scored items.
+Plain-text twin of the [Binding Atlas page](https://kotodama.animalabs.ai/binding-atlas). Same data, same build. Built 2026-11-06 01:49 UTC: 65 rows (models + one human), 24 columns, 2,447 cells, 1,905,952 scored items.
 
 ## Summary
 
@@ -256,11 +256,24 @@ Several people each keep an object; name one person's object.
 A battery lies on the shelf. Joe carries the banana. Susan carries the rope. So Joe carries the
 ```
 
+**More item 1** — candidates: `battery, banana, rope` · gold: **`banana`**
+
+```text
+A battery lies on the shelf. Joe carries the banana. Susan carries the rope. So Joe carries the
+```
+
 ### `shortlist` — Who has what? Nothing moves · Short list lookup
 
 A list pairs one to four names with tasks; name one person's task.
 
 **0-shot example** (`cap1|K1|D0|s0|t0|lines|q0`) — candidates: `laundry, dishes, garden, cooking, shopping, painting, windows, trash, mail, dog, car, plants, bills, lunch, dinner, breakfast, garage, kitchen, roof, fence, pool, lawn, taxes, report, budget` · gold: **`shopping`**
+
+```text
+Tyler: shopping
+The task for Tyler is:
+```
+
+**More item 1** — candidates: `laundry, dishes, garden, cooking, shopping, painting, windows, trash, mail, dog, car, plants, bills, lunch, dinner, breakfast, garage, kitchen, roof, fence, pool, lawn, taxes, report, budget` · gold: **`shopping`**
 
 ```text
 Tyler: shopping
@@ -277,11 +290,23 @@ Some people hold two objects and some one; name what a one-object person holds.
 Hannah has the switch and the boot. Olivia has the marble and the notebook. Nina has the whistle. A basket lies on the shelf. A drum lies on the shelf. Roy has the lantern. So Roy has the
 ```
 
+**More item 1** — candidates: `switch, boot, marble, notebook, whistle, basket, drum, lantern` · gold: **`lantern`**
+
+```text
+Hannah has the switch and the boot. Olivia has the marble and the notebook. Nina has the whistle. A basket lies on the shelf. A drum lies on the shelf. Roy has the lantern. So Roy has the
+```
+
 ### `noise` — Who has what? Nothing moves · Lookup past noise
 
 Boxes are filled, unrelated events follow; name what one box holds.
 
 **0-shot example** (`formupdate-v3|K2|U1|prose|b00|A`) — candidates: `hammer, sock, marble, ball, button` · gold: **`hammer`**
+
+```text
+The drawer holds the hammer. The tin holds the ball. Then the kettle is switched on. Then the lights are switched off. So the drawer holds the
+```
+
+**More item 1** — candidates: `hammer, sock, marble, ball, button` · gold: **`hammer`**
 
 ```text
 The drawer holds the hammer. The tin holds the ball. Then the kettle is switched on. Then the lights are switched off. So the drawer holds the
@@ -300,11 +325,26 @@ Jack: I had lunch already.
 Right now Carol is holding the
 ```
 
+**More item 1** — candidates: `photo, onion, marble` · gold: **`onion`**
+
+```text
+A chat between Jack and Carol. Carol has the onion, Jack has the photo, and the marble is on the table.
+Jack: The coffee here is good.
+Jack: I had lunch already.
+Right now Carol is holding the
+```
+
 ### `handoffs` — Who has what after things move: told as a story · Hand-offs in a story
 
 Objects pass between people in a short story; name who has an object at the end.
 
 **0-shot example** (`dialogue-v3_3-1-holder_000`) — candidates: `Beth, Greg, Jerry` · gold: **`Jerry`**
+
+```text
+Beth, Greg and Jerry are sitting at a table. Beth has the whistle. Greg has the hammer. Jerry has the needle. Beth hands the whistle to Jerry. Now the whistle is with
+```
+
+**More item 1** — candidates: `Beth, Greg, Jerry` · gold: **`Jerry`**
 
 ```text
 Beth, Greg and Jerry are sitting at a table. Beth has the whistle. Greg has the hammer. Jerry has the needle. Beth hands the whistle to Jerry. Now the whistle is with
@@ -320,11 +360,23 @@ Each person starts with a set of objects, then two gives; name the set one perso
 A lamp lies on the shelf. Susan has the battery. A potato lies on the shelf. James has the letter and the bulb. Bruce has the sock and the envelope. Jack has the pencil. Jack gives the pencil to Susan. Bruce gives the envelope to Jack. So now Jack has the
 ```
 
+**More item 1** — candidates: `lamp, battery, potato, letter, bulb, sock, envelope, pencil` · gold: **`envelope`**
+
+```text
+A lamp lies on the shelf. Susan has the battery. A potato lies on the shelf. James has the letter and the bulb. Bruce has the sock and the envelope. Jack has the pencil. Jack gives the pencil to Susan. Bruce gives the envelope to Jack. So now Jack has the
+```
+
 ### `refilled` — Who has what after things move: told as a story · Refilled box
 
 A box is emptied and refilled; name its new contents.
 
 **0-shot example** (`formupdate-v3|K2|U1|prose|b00|C`) — candidates: `hammer, sock, marble, ball, button` · gold: **`button`**
+
+```text
+The drawer holds the hammer. The tin holds the ball. Then the drawer is emptied and the button is put in it. Then the lights are switched off. So the drawer holds the
+```
+
+**More item 1** — candidates: `hammer, sock, marble, ball, button` · gold: **`button`**
 
 ```text
 The drawer holds the hammer. The tin holds the ball. Then the drawer is emptied and the button is put in it. Then the lights are switched off. So the drawer holds the
@@ -340,11 +392,27 @@ Boxes are emptied and refilled again and again; name one box's latest contents.
 The tin holds the fork. The crate holds the ball. The bag holds the hat. The drawer holds the brush. Then the drawer is emptied and the button is put in it. Then the bag is emptied and the stone is put in it. In the end, the drawer holds the
 ```
 
+**More item 1** — candidates: `stone, brush, button, ball, fork` · gold: **`button`**
+
+```text
+The tin holds the fork. The crate holds the ball. The bag holds the hat. The drawer holds the brush. Then the drawer is emptied and the button is put in it. Then the bag is emptied and the stone is put in it. In the end, the drawer holds the
+```
+
 ### `codevar` — Who has what after things move: written as code · Variable chains
 
 Python variables are assigned, copied and reassigned; name what one prints.
 
 **0-shot example** (`codevar_0-1_000`) — candidates: `mirror, bulb, bowl, bolt` · gold: **`bolt`**
+
+```text
+b = "mirror"
+d = "bulb"
+n = "bowl"
+b = "bolt"
+print(b)  # output:
+```
+
+**More item 1** — candidates: `mirror, bulb, bowl, bolt` · gold: **`bolt`**
 
 ```text
 b = "mirror"
@@ -371,6 +439,19 @@ k.append("lantern")
 print(d[-1])  # output:
 ```
 
+**More item 1** — candidates: `bolt, spoon, straw, mirror, lantern` · gold: **`lantern`**
+
+```text
+# python
+k = ["bolt"]
+f = ["spoon"]
+n = ["straw"]
+d = k
+n.append("mirror")
+k.append("lantern")
+print(d[-1])  # output:
+```
+
 ### `box-narrative` — One box puzzle, four formats · Box puzzle: prose
 
 Boxes are swapped, moved and refilled, written as plain sentences; name one box's contents.
@@ -381,11 +462,24 @@ Boxes are swapped, moved and refilled, written as plain sentences; name one box'
 Box F contains the fork. Box G contains the tape. So Box F contains the
 ```
 
+**More item 1** — candidates: `fork, tape` · gold: **`fork`**
+
+```text
+Box F contains the fork. Box G contains the tape. So Box F contains the
+```
+
 ### `box-screenplay` — One box puzzle, four formats · Box puzzle: script
 
 Boxes are swapped, moved and refilled, written as a two-speaker script; name one box's contents.
 
 **0-shot example** (`n2m0_131|screenplay|0shot`) — candidates: `fork, tape` · gold: **`fork`**
+
+```text
+SAM: Box F contains the fork. Box G contains the tape.
+RIVER: So Box F contains the
+```
+
+**More item 1** — candidates: `fork, tape` · gold: **`fork`**
 
 ```text
 SAM: Box F contains the fork. Box G contains the tape.
@@ -403,11 +497,27 @@ state = {"F": "fork", "G": "tape"}
 print(state["F"])  #
 ```
 
+**More item 1** — candidates: `fork, tape` · gold: **`fork`**
+
+```text
+state = {"F": "fork", "G": "tape"}
+print(state["F"])  #
+```
+
 ### `box-chat` — One box puzzle, four formats · Box puzzle: chat
 
 Boxes are swapped, moved and refilled, written as chat turns; name one box's contents.
 
 **0-shot example** (`n2m0_131|chat|0shot`) — candidates: `fork, tape` · gold: **`fork`**
+
+```text
+<|im_start|>user
+Box F contains the fork. Box G contains the tape.<|im_end|>
+<|im_start|>assistant
+So Box F contains the
+```
+
+**More item 1** — candidates: `fork, tape` · gold: **`fork`**
 
 ```text
 <|im_start|>user
@@ -429,11 +539,31 @@ Jack: I had lunch already.
 Jack: Right now you're holding the
 ```
 
+**More item 1** — candidates: `photo, onion, marble` · gold: **`onion`**
+
+```text
+A chat between Jack and Carol. Carol has the onion, Jack has the photo, and the marble is on the table.
+Jack: The coffee here is good.
+Jack: I had lunch already.
+Jack: Right now you're holding the
+```
+
 ### `i-moves` — Who are I and you? · 'I', after hand-offs
 
 Two people hand objects over only through I / my / you lines; a speaker says 'right now I'm holding the'.
 
 **0-shot example** (`deixis-v5_2-1-self_000_deictic`) — candidates: `sock, bowl, hat` · gold: **`hat`**
+
+```text
+A chat between Molly and Julia.
+Molly: I have the sock.
+Molly: The bowl is in my hand.
+Molly: The hat is in my hand.
+Molly: Here, take my hat.
+Julia: Right now I'm holding the
+```
+
+**More item 1** — candidates: `sock, bowl, hat` · gold: **`hat`**
 
 ```text
 A chat between Molly and Julia.
@@ -459,6 +589,17 @@ Linda: I'm giving you my drum.
 Linda: Right now you're holding the
 ```
 
+**More item 1** — candidates: `chain, hammer, drum` · gold: **`drum`**
+
+```text
+A chat between Linda and Julia.
+Linda: The chain is in my hand.
+Linda: I have the hammer.
+Linda: The drum is in my hand.
+Linda: I'm giving you my drum.
+Linda: Right now you're holding the
+```
+
 ### `you-named` — Who are I and you? · 'You' among three
 
 Three people talk and hand objects over; the line naming the listener asks what they are holding.
@@ -474,11 +615,35 @@ Susan: Here, Martha, take my bolt.
 Olivia: Martha, right now you're holding the
 ```
 
+**More item 1** — candidates: `wallet, bolt, boot` · gold: **`bolt`**
+
+```text
+A chat between Susan, Olivia and Martha.
+Susan: Olivia, the wallet is in my hand.
+Susan: Martha, I have the bolt.
+Olivia: Susan, I have the boot.
+Susan: Here, Martha, take my bolt.
+Olivia: Martha, right now you're holding the
+```
+
 ### `answer-self` — Who are I and you? · Answering as yourself
 
 A speaker must answer with 'me', 'you' or a name, from where they stand in the conversation.
 
 **0-shot example** (`answer-v4_1-novoc_000_qa`) — candidates: `me, you, Henry, Lily` · gold: **`me`**
+
+```text
+A chat between Henry, Jill, Lily and Simon.
+Jill: I have the lid.
+Jill: I have the tape.
+Lily: I have the switch.
+Simon: I have the towel.
+Lily: Jill, I'm giving you my switch.
+Simon: Quick check: who has the switch?
+Jill: I think it's with
+```
+
+**More item 1** — candidates: `me, you, Henry, Lily` · gold: **`me`**
 
 ```text
 A chat between Henry, Jill, Lily and Simon.
@@ -510,11 +675,36 @@ ma di → ma di bi
 fa fo → fa fo
 ```
 
+**More item 1** — candidates: `fo, di, fa, bi, ta` · gold: **`bi`**
+
+```text
+Word → plural:
+da ba → da ba bi
+de ge → de ge bi
+te su → te su bi
+se pi → se pi bi
+mo po → mo po bi
+mi sa → mi sa bi
+mu fu → mu fu bi
+ma di → ma di bi
+fa fo → fa fo
+```
+
 ### `operators` — Learning a rule from the examples · Made-up operators
 
 Example equations define invented symbols; solve a new equation.
 
 **0-shot example** (`fluid-v2-algebra|k1|d1|s0|t0`) — candidates: `vap, viv, ker, piv, reb, sab` · gold: **`piv`**
+
+```text
+Equations:
+reb ⊙ vap = reb
+vap ⊙ viv = vap
+sab ⊙ reb = sab
+piv ⊙ viv =
+```
+
+**More item 1** — candidates: `vap, viv, ker, piv, reb, sab` · gold: **`piv`**
 
 ```text
 Equations:
@@ -538,11 +728,34 @@ dut neb reb mir saf saf mir
 bif raz vir gaz sab sab
 ```
 
+**More item 1** — candidates: `raz, vir, gaz, sab, mir, bif` · gold: **`gaz`**
+
+```text
+Sequences:
+ker nex vap rif jur jur rif
+tet fus rud bir kar kar bir
+dut neb reb mir saf saf mir
+bif raz vir gaz sab sab
+```
+
 ### `facts` — Learning a rule from the examples · Known facts (control)
 
 Real facts in the same examples-then-question layout; this column separates the layout from the learning.
 
 **0-shot example** (`cryst-v1|capital|shots6|s0|t0`) — candidates: `Copenhagen, Washington, Warsaw, Brussels, Berlin, Paris` · gold: **`Brussels`**
+
+```text
+Country → capital:
+Philippines → Manila
+Greece → Athens
+China → Beijing
+United Kingdom → London
+Japan → Tokyo
+South Korea → Seoul
+Belgium →
+```
+
+**More item 1** — candidates: `Copenhagen, Washington, Warsaw, Brussels, Berlin, Paris` · gold: **`Brussels`**
 
 ```text
 Country → capital:
