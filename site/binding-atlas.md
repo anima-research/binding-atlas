@@ -1,6 +1,6 @@
 # Binding Atlas — agent view
 
-Plain-text twin of the [Binding Atlas page](https://kotodama.animalabs.ai/binding-atlas). Same data, same build. Built 2026-11-06 04:35 UTC: 65 rows (models + one human), 24 columns, 2,447 cells, 1,905,952 scored items.
+Plain-text twin of the [Binding Atlas page](https://kotodama.animalabs.ai/binding-atlas). Same data, same build. Built 2026-11-06 04:37 UTC: 65 rows (models + one human), 24 columns, 2,447 cells, 1,905,952 scored items.
 
 ## Summary
 
@@ -88,7 +88,7 @@ Each dynamic-*you* gauge item is rewritten along one axis: **story, no I or you*
 | kotodama-tsumugi · 33B | 33B | .319 | .269 | .328 | .250 |
 | kotodama-tsumugi · 55B | 55B | .314 | .286 | .297 | .283 |
 | kotodama-tsumugi · 88B | 88B | .331 | .322 | .317 | .269 |
-| kotodama-tsumugi · 110B, second anneal | 110B | .375 | .331 | .364 | .300 |
+| kotodama-tsumugi · 110B, second cooldown | 110B | .375 | .331 | .364 | .300 |
 | kotodama-tsumugi · 110B, release | 110B | .336 | .303 | .336 | .286 |
 | OLMo-2 1B | 4T | .300 | .278 | .300 | .258 |
 | SmolLM2 1.7B | 11T | .400 | .300 | .294 | .303 |
@@ -132,7 +132,7 @@ A 1.42B-parameter model with a looped core, run as 72 effective layers. Its trun
 | s17 | annealed | 55 | +.228 | +.122 | −.028 | +.030 |
 | s17 | annealed | 88 | +.156 | +.181 | −.016 | +.021 |
 | s17 | annealed (release) | 110 | +.178 | +.192 | −.014 | +.038 |
-| s17 | annealed (second anneal from the same 100B fork) | 110 | +.195 | +.127 | −.012 | +.022 |
+| s17 | annealed (second cooldown from the same 100B checkpoint) | 110 | +.195 | +.127 | −.012 | +.022 |
 | s7 | constant | 1 | +.004 | −.005 | −.003 | −.002 |
 | s7 | constant | 2 | +.004 | −.004 | −.006 | +.012 |
 | s7 | constant | 3 | +.007 | −.005 | −.009 | +.021 |
@@ -192,7 +192,7 @@ The two 110B columns are two anneals from the same fork with the same training l
 | 70–72B (2 models) | +.620 | +.592 | +.825 | +.769 |
 | 284B–1.6T (9 models) | +.719 | +.721 | +.811 | +.870 |
 | kotodama-tsumugi 1.4B · release | +.436 | +.121 | +.611 | −.044 |
-| kotodama-tsumugi 1.4B · second anneal | +.481 | +.088 | +.486 | +.001 |
+| kotodama-tsumugi 1.4B · second cooldown | +.481 | +.088 | +.486 | +.001 |
 
 On *lookup* items, the queried box ends with its declared contents; on *update* items, an operation changed it. Each public row is the median model of its size band. Lookup is above chance at every size. The median model updates at chance below 2B. With worked examples, updating climbs with size, from .20 at 2–5B and .40 at 7–10B to .77 at 70B and .87 from 284B up. A few small models update early, each with examples: Qwen3 4B (.43), Falcon-H1 3B (.37) and Falcon-H1 1.5B-Deep (.28). kotodama-tsumugi's lookup with examples (.61) is second of 12 models at 1–2B, behind Llama-3.2 1B (.83); like most models its size, it does not yet update (−.04). One model's cell averages 272 lookup or 328 update items (68 or 82 per format), about ±.08 at 95%.
 

@@ -529,7 +529,7 @@
     {
      "tok": 110.0,
      "kind": "annealed",
-     "note": "second anneal from the same 100B fork",
+     "note": "second cooldown from the same 100B checkpoint",
      "I": 0.195,
      "you": 0.127,
      "dyn0": -0.012,
@@ -848,7 +848,7 @@
     "vocative": 0.269
    },
    {
-    "m": "kotodama-tsumugi · 110B, second anneal",
+    "m": "kotodama-tsumugi · 110B, second cooldown",
     "p": 1.42,
     "tok": "110B",
     "ours": true,
@@ -1133,7 +1133,7 @@
     "uf": -0.044
    },
    {
-    "m": "kotodama-tsumugi 1.4B · second anneal",
+    "m": "kotodama-tsumugi 1.4B · second cooldown",
     "ours": true,
     "l0": 0.481,
     "u0": 0.088,
