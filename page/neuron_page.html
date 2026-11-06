@@ -313,6 +313,8 @@ footer .wrap { display: grid; gap: 8px }
 </style>
 </head>
 <body>
+<nav id="toc" aria-label="Contents" data-reserve="1" data-sel="h1.toc-none" data-sel2=".read > .wrap > h2" data-skip=".reference .read"></nav>
+__TOC__
 
 <!-- icl:begin -->
 <div class="plate">
@@ -339,7 +341,7 @@ footer .wrap { display: grid; gap: 8px }
       <div class="gloss"><span><b>言霊</b>kotodama: word-spirit, language as a thing with a life of its own.</span><span><b>紬</b>tsumugi: spun thread, words woven into more than the sum of their parts.</span></div>
       <span class="scrollcue">scroll</span>
     </div></div>
-    <div class="step" data-step="o1"><div class="card">
+    <div class="step" data-step="o1" data-toc="The map"><div class="card">
       <span class="eyebrow" style="color:var(--plate-muted)">the map · 1 of 5</span>
       <p>Every one of kotodama-tsumugi's 294,912 neurons. Placed by their weights alone, they are a featureless cloud.</p>
     </div></div>
@@ -372,7 +374,7 @@ footer .wrap { display: grid; gap: 8px }
     </div></div>
 <!-- icl:end -->
 <!-- icl:begin -->
-    <div class="chapter" id="ch-wiring">
+    <div class="chapter" id="ch-wiring" data-toc="The wiring">
     <div class="step" data-step="W1"><div class="card">
       <span class="eyebrow" style="color:var(--plate-muted)">the wiring · 1 of 7</span>
       <p>One neuron, <span data-v="graph:wiring.hubs.0.id|id">19/3306</span>, sends to more neurons than any other in the model: <span data-v="graph:wiring.hubs.0.x_median|sig2">200</span> times the median of its layer.</p>
@@ -459,7 +461,7 @@ footer .wrap { display: grid; gap: 8px }
   <div class="wp-tip" id="wp-tip" hidden></div>
 </div></section>
 <!-- icl:begin -->
-    <div class="chapter" id="ch-rule-recall">
+    <div class="chapter" id="ch-rule-recall" data-toc="Rule learning and recall">
     <div class="step" data-step="1a"><div class="card">
       <span class="eyebrow" style="color:var(--plate-muted)">rule vs recall · 1 of 5</span>
       
@@ -506,7 +508,7 @@ footer .wrap { display: grid; gap: 8px }
   </ul>
   <div class="mapbtns"><button class="mapbtn" type="button" data-circuit="rule" style="color:var(--rule)"><i></i><span style="color:var(--fg)">Show the rule circuit on the map</span></button><button class="mapbtn" type="button" data-circuit="recall" style="color:var(--recall)"><i></i><span style="color:var(--fg)">Show the recall circuit on the map</span></button></div>
 </div></section>
-    <div class="chapter" id="ch-loop">
+    <div class="chapter" id="ch-loop" data-toc="The second pass">
     <div class="step" data-step="2a"><div class="card">
       <span class="eyebrow" style="color:var(--plate-muted)">the loop · 1 of 2</span>
       
@@ -528,7 +530,7 @@ footer .wrap { display: grid; gap: 8px }
     <div class="card2"><span class="eyebrow">outside the loop, damage controlled</span><span class="big"><span data-v="loop.L2.outside|sgn3">+.014</span></span><p>The same measure for heads outside the loop, also against the first pass.</p></div>
   </div>
 </div></section>
-    <div class="chapter" id="ch-static-you">
+    <div class="chapter" id="ch-static-you" data-toc="Static “you”">
     <div class="step" data-step="4a"><div class="card">
       <span class="eyebrow" style="color:var(--plate-muted)">static <i>you</i> · 1 of 3</span>
       
@@ -561,7 +563,7 @@ footer .wrap { display: grid; gap: 8px }
   <div class="figure fit" id="figStatic"></div>
   <div class="mapbtns"><button class="mapbtn" type="button" data-circuit="you_interf" style="color:var(--ember-ink)"><i></i><span style="color:var(--fg)">Show the interferers on the map</span></button><button class="mapbtn" type="button" data-circuit="you_supp" style="color:var(--ice-ink)"><i></i><span style="color:var(--fg)">Show the supporters on the map</span></button></div>
 </div></section>
-    <div class="chapter" id="ch-dynamic-you">
+    <div class="chapter" id="ch-dynamic-you" data-toc="Three examples switch on “you”">
     <div class="step" data-step="3a"><div class="card">
       <span class="eyebrow" style="color:var(--plate-muted)">dynamic <i>you</i> · 1 of 3</span>
       
@@ -593,7 +595,7 @@ footer .wrap { display: grid; gap: 8px }
   <div class="strip" id="figDynBands"></div>
   <div class="mapbtns"><button class="mapbtn" type="button" data-circuit="dyn_you" style="color:var(--ice-ink)"><i></i><span style="color:var(--fg)">Show the dynamic-<em>you</em> circuit on the map</span></button></div>
 </div></section>
-    <div class="chapter" id="ch-exploratory">
+    <div class="chapter" id="ch-exploratory" data-toc="Readable or not (exploratory)">
     <div class="step" data-step="x1"><div class="card">
       <span class="eyebrow" style="color:var(--plate-muted)">exploratory</span>
       
@@ -622,7 +624,7 @@ footer .wrap { display: grid; gap: 8px }
     <li><b>Damage at full dose:</b> the full-dose knock-outs do more general damage than same-size random sets. The damage-matched controls above are at half dose, where they pass.</li>
   </ul>
 </div></section>
-    <div class="chapter" id="ch-binding">
+    <div class="chapter" id="ch-binding" data-toc="Earlier binding circuits">
     <div class="step" data-step="5a"><div class="card">
       <span class="eyebrow" style="color:var(--plate-muted)">earlier binding circuits · 1 of 2</span>
       
@@ -636,7 +638,7 @@ footer .wrap { display: grid; gap: 8px }
       <div class="keyrow"><span><i style="background:var(--ice)"></i>supporters</span><span><i style="background:var(--ember)"></i>interferers</span></div>
     </div></div>
     </div>
-    <div class="chapter" id="ch-training">
+    <div class="chapter" id="ch-training" data-toc="Across training">
     <div class="step" data-step="T1"><div class="card">
       <span class="eyebrow" style="color:var(--plate-muted)">across training · 1 of 4</span>
       <p>The same map at the start of training. No neuron yet does what it will do at the end. Only the 12 layers captured over training are coloured; the rest stay dim.</p>
@@ -668,7 +670,7 @@ footer .wrap { display: grid; gap: 8px }
 </div>
 
 <div class="plate">
-<div class="explore" id="explore">
+<div class="explore" id="explore" data-toc="Explore the map">
   <span class="watermark kanji" aria-hidden="true">紬</span>
   <div class="wrap">
     <span class="eyebrow" style="color:var(--plate-muted)">Explore</span>
@@ -696,7 +698,7 @@ footer .wrap { display: grid; gap: 8px }
 </div>
 </div>
 
-<details class="reference" id="reference">
+<details class="reference" id="reference" data-toc="Reference">
 <summary><div class="wrap"><span class="eyebrow">Reference</span><span class="h">Earlier analyses and methods</span><span class="note">The attribute-binding knock-outs cell by cell, ten tasks, one neuron on two passes, position 8, where and when, the compendium, the hand-validated check and the method. Open to read.</span></div></summary>
 <section class="read" id="knockouts"><div class="wrap">
   <span class="eyebrow">The evidence</span>
