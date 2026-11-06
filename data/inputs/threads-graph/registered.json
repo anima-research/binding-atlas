@@ -1,0 +1,12 @@
+{
+ "_note": "Readings published only as tables in the registered results of the wiring and training studies; each block names its registration.",
+ "pos8_split": {"registration": "position-8 sign split", "plus_n": 37, "minus_n": 42, "plus_dmargin": -0.347, "minus_dmargin": 0.452,
+                "all_dmargin": 0.110, "base_acc": 0.577, "minus_acc": 0.691, "base_nll": 2.2653, "minus_nll": 2.2762},
+ "twins": {"registration": "loop twins", "jaccard": 0.320, "null_median": 0.114, "null_p95": 0.187, "pass1_input_share": 0.25,
+           "hub_pair_jaccard": 0.376},
+ "genre": {"registration": "genre graphs", "dialogue_gap": 0.259, "code_gap": 0.135},
+ "edges": {"registration": "edge validation", "spearman": 0.787, "spearman_ci": [0.690, 0.873], "sign": 0.865,
+           "clear_null": 0.958, "pass2_spearman": 0.52},
+ "training": {"registration": "identity and finishedness, first wave", "median_ranges": {"10": [0.07, 0.22], "30": [0.16, 0.37],
+              "80": [0.43, 0.66], "100": [0.56, 0.77]}, "anneal_change": [0.66, 0.002]}
+}

@@ -3,7 +3,7 @@
 Usage: python page/build_neuron_page.py --out site/threads.html [--data data/built/neurons]
                                         [--config config/default.toml] [--stamp "YYYY-MM-DD HH:MM UTC"]
 The page loads its data at run time from the directory threads-data/ next to it (neurons.json, neurons.bin, the
-layout-*.bin files, binding.json, wiring.json and icl.json), which this copies from --data. Refuses to write if the page
+layout-*.bin files, binding.json, wiring.json, icl.json, graph.json and closeness.bin), which this copies from --data. Refuses to write if the page
 or its JSON data contain an internal hostname / path (public-page law), or if a number in the rule-vs-recall prose
 differs from icl.json (see `check_icl_prose`). The page's earlier address, neuron-atlas.html, is written beside it
 as a redirect.
@@ -35,9 +35,9 @@ REDIRECT = """<!doctype html>
 <meta name="robots" content="noindex"></head>
 <body><p>This page is now <a href="{target}">Threads</a>.</p></body></html>
 """
-DATA_FILES = ("neurons.json", "neurons.bin", "binding.json", "wiring.json", "icl.json")
+DATA_FILES = ("neurons.json", "neurons.bin", "binding.json", "wiring.json", "icl.json", "graph.json", "closeness.bin")
 MINUS = "\u2212"
-#: The prose between these markers quotes icl.json. Each number there sits in <span data-v="path|format">text</span>,
+#: The prose between each pair of these markers quotes icl.json (a path may instead start "graph:" for graph.json). Each number there sits in <span data-v="path|format">text</span>,
 #: and the text must equal the JSON value at that path in that format; a bare decimal or neuron id there refuses.
 ICL_BEGIN, ICL_END = "<!-- icl:begin -->", "<!-- icl:end -->"
 SPAN_RE = re.compile(r'<span data-v="([^"|]+)\|([a-z0-9]+)">([^<]*)</span>')
@@ -57,24 +57,32 @@ ICL_FORMATS = {
     "abs2": lambda v: _unsigned(v, 2), "abs3": lambda v: _unsigned(v, 3),
     "sgn2": lambda v: _signed(v, 2), "sgn3": lambda v: _signed(v, 3),
     "int": lambda v: str(int(v)) if float(v) == int(v) else f"not an integer: {v}",
+    "intc": lambda v: f"{int(v):,}" if float(v) == int(v) else f"not an integer: {v}",
     "pct0": lambda v: f"{round(v * 100)}%",
     "pctile1": lambda v: f"{v:.1f}",
     "id": str,
+    "pts": lambda v: str(abs(round(v * 100))),
+    "sig2": lambda v: f"{float(f'{v:.2g}'):g}",
 }
 
 
-def check_icl_prose(page: str, icl: dict) -> int:
-    """Every number the rule-vs-recall prose quotes equals icl.json; returns how many were checked."""
-    if page.count(ICL_BEGIN) != 1 or page.count(ICL_END) != 1:
-        raise SystemExit(f"REFUSING: the page needs exactly one {ICL_BEGIN} … {ICL_END} block")
-    block = page[page.index(ICL_BEGIN):page.index(ICL_END)]
+def check_icl_prose(page: str, icl: dict, graph: dict | None = None) -> int:
+    """Every number the marked prose quotes equals icl.json (or graph.json); returns how many were checked."""
+    starts = [m.start() for m in re.finditer(re.escape(ICL_BEGIN), page)]
+    ends = [m.start() for m in re.finditer(re.escape(ICL_END), page)]
+    if not starts or len(starts) != len(ends) or any(not a < b for a, b in zip(starts, ends)) \
+            or any(not b < a for b, a in zip(ends, starts[1:])):
+        raise SystemExit(f"REFUSING: the page needs one or more {ICL_BEGIN} … {ICL_END} blocks, each closed before the next")
+    block = "\n".join(page[a:b] for a, b in zip(starts, ends))
     problems: list[str] = []
     n = 0
     for path, fmt, text in SPAN_RE.findall(block):
         n += 1
-        cur = icl
+        cur, keys = (graph, path[len("graph:"):]) if path.startswith("graph:") else (icl, path)
         try:
-            for key in path.split("."):
+            if cur is None:
+                raise KeyError(path)
+            for key in keys.split("."):
                 cur = cur[int(key)] if isinstance(cur, list) else cur[key]
         except (KeyError, IndexError, ValueError, TypeError):
             problems.append(f"{path}: not in icl.json")
@@ -118,7 +126,8 @@ def main() -> None:
                   for m in FORBIDDEN.finditer(text)})
     if bad:
         raise SystemExit(f"REFUSING: internal names in the public page or its data: {bad}")
-    checked = check_icl_prose(page, json.loads((a.data / "icl.json").read_text()))
+    checked = check_icl_prose(page, json.loads((a.data / "icl.json").read_text()),
+                              json.loads((a.data / "graph.json").read_text()))
     print(f"rule-vs-recall prose: {checked} numbers match icl.json")
     if a.fragment:
         page = re.sub(r"<!doctype html>\s*|</?html[^>]*>\s*|</?head>\s*|</?body>\s*", "", page, flags=re.I)

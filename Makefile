@@ -22,7 +22,7 @@ VERIFY_STAMP_ANNOUNCE := 2026-11-06 01:32 UTC
 
 PAGE_ARGS = --config $(CONFIG) --stamp "$(STAMP)"
 
-.PHONY: help atlas4 atlas4-check gates page html md card neurons neurons-binding neurons-icl empty empty-data data stage verify guard stage-check data-check check clean
+.PHONY: help atlas4 atlas4-check gates page html md card neurons neurons-binding neurons-icl neurons-graph empty empty-data data stage verify guard stage-check data-check check clean
 
 help:
 	@echo "make page   [CONFIG=config/x.toml] [SITE=dir] [STAMP='YYYY-MM-DD HH:MM UTC']  data/built -> site/"
@@ -33,6 +33,7 @@ help:
 	@echo "make neurons [CONFIG=...] [SITE=dir]  Threads (the neuron page) + its data dir (data/built/neurons -> site/)"
 	@echo "make neurons-binding   data/inputs/binding -> data/built/neurons/binding.json"
 	@echo "make neurons-icl       data/inputs/threads-icl -> data/built/neurons/icl.json (rule vs recall, the loop, the you circuits)"
+	@echo "make neurons-graph     data/inputs/threads-graph -> data/built/neurons/{graph.json,closeness.bin} (wiring, training)"
 	@echo "make empty [CONFIG=...] [SITE=dir]  An Empty Document (zero-seed runs) + its data dir (data/built -> site/)"
 	@echo "make empty-data  data/inputs/empty-document -> data/built/empty-document.json"
 	@echo "make verify       rebuild the kotodama.animalabs.ai deployment into out/verify and check its sha256"
@@ -74,6 +75,9 @@ neurons-binding:
 
 neurons-icl:
 	$(PY) build/build_threads_icl.py
+
+neurons-graph:
+	$(PY) build/build_threads_graph.py
 
 # ---- An Empty Document, the zero-seed page (its runs load at run time from empty-document-data/ next to it)
 empty:

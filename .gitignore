@@ -20,3 +20,6 @@ take/.venv*/
 invites.txt
 # the zoo-sweep score rows the v4 builder reads (published separately)
 .zoo/
+# the training-closeness inputs (12 MB; regenerated from the trajectory captures; data/inputs/threads-graph/closeness.sha256 pins them)
+data/inputs/threads-graph/closeness-f16.npy
+data/inputs/threads-graph/closeness.json

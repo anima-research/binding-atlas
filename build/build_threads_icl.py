@@ -12,7 +12,9 @@ Inputs (data/inputs/threads-icl/, tracked):
   loop-heads-report.json     attention heads removed by pass: medians per arm and k, and the damage-controlled fit
   readability-exploratory.json   per set: steering reliability and firing concentration against same-depth draws
   sets.json                  the five circuits as [position, neuron] lists (rule100, recall100, dyn_rise_pos100,
-                             you_neg100, you_pos100)
+                             you_neg100, you_pos100), and the first damage-matched random set for the rule circuit
+                             (dm32_rule100_s0: 32 times rule100's count at each position) and for the dynamic-you
+                             circuit (dm32_dyn_rise_pos100_s0), which the map story shows
   transcribed.json           the one reading only published as a table: the 95% interval of dynamic you at 3 shots
 
 Every reading the page shows is cross-checked where two inputs carry it (bands against lists, the dynamic-you set
@@ -40,6 +42,8 @@ SET_KEYS = {"rule": "rule100", "recall": "recall100", "dyn_you": "dyn_rise_pos10
             "you_interf": "you_neg100", "you_supp": "you_pos100"}
 READ_KEYS = {"rule": "rule_F2", "recall": "recall_C0", "dyn_you": "dyn_switched_on", "you_interf": "static_you_interf",
              "you_supp": "static_you_supp", "broadcasters": "top1000_broadcasters"}
+SHOWN_RANDOM = "dm32_rule100_s0"     # the random set the map story lights; its knock-out row is matched["rule100"][0]
+SHOWN_RANDOM_DYN = "dm32_dyn_rise_pos100_s0"   # likewise for dynamic you; its 3-shot reading is dm-read.txt's first seed
 LOOP_ARMS = ("pass1", "pass2", "outside")
 LOOP_KS = (24, 60, 120)
 LOOP_K_SHOWN = 60
@@ -238,6 +242,11 @@ def build(inp: Path) -> dict:
         for nid in need(k1c, f"{k}_top10"):
             if tuple(map(int, nid.split("/"))) not in as_set[k]:
                 raise InputError(f"{nid} is in k1c-select.json {k}_top10 but not in {SET_KEYS[k]}")
+    shown, shown_dyn = need(sets, SHOWN_RANDOM), need(sets, SHOWN_RANDOM_DYN)
+    for name, rnd, target in ((SHOWN_RANDOM, shown, "rule"), (SHOWN_RANDOM_DYN, shown_dyn, "dyn_you")):
+        per_pos = Counter(p for p, _ in lists[target])
+        if Counter(p for p, _ in rnd) != {p: min(N_NEURON, MATCHED_M * c) for p, c in per_pos.items()}:
+            raise InputError(f"sets.json: {name} is not {MATCHED_M} times {SET_KEYS[target]}'s count at each position")
     shared = len(as_set["rule"] & as_set["recall"])
     if shared != need(k1c, "rule_recall_overlap"):
         raise InputError("rule100 ∩ recall100 disagrees with k1c-select.json rule_recall_overlap")
@@ -279,6 +288,9 @@ def build(inp: Path) -> dict:
                       for k, s in (("rule", "rule100"), ("recall", "recall100"))},
         "control_max_abs": r4(ctrl),
         "rule_half_F2_after": r4(base.F2 + rows["rule100-dose0.5"].F2),
+        "recall_half_C0_after": r4(base.C0 + rows["recall100-dose0.5"].C0),
+        "random_shown": {"n": len(shown), "row": sc(m_rule[0]), "F2_after": r4(base.F2 + m_rule[0].F2),
+                         "C0_after": r4(base.C0 + m_rule[0].C0)},
         "spearman": r4(need(k1c, "maps_spearman")),
         "shared": shared,
         "bands": {"rule": bands(lists["rule"]), "recall": bands(lists["recall"])},
@@ -329,6 +341,7 @@ def build(inp: Path) -> dict:
         "matched": {"m": MATCHED_M, "n_neurons": MATCHED_M * 100, "shot3": [r4(v) for v in dm32], **lo_hi(dm32),
                     "dNLL_mean": r4(dmd.rows[MATCHED_M][0])},
         "same_size": {"shot3": [r4(v) for v in need(ko, "random_same_size", "3shot")]},
+        "random_shown": {"n": len(shown_dyn), "shot3": r4(dm32[0])},
         "bands": dyn_bands,
         "loop_share": r4(loop_share), "loop_share_all": r4(need(k1b, "D5b_loop_share", "all_neurons")),
         "heads": [{"head": h["head"], "d": r4(h["d"])} for h in heads],
@@ -378,7 +391,7 @@ def build(inp: Path) -> dict:
                    "neurons (or heads) to their corpus mean; dose .5 moves them half way. Scores: fluid and recall "
                    "AUCs; dynamic and static you are the Atlas speaker-swap gauge and kappa cell. Damage-matched "
                    "random sets are 32 times larger, with equal or greater next-token damage.",
-        "sets": {k: ids(v) for k, v in lists.items()},
+        "sets": {**{k: ids(v) for k, v in lists.items()}, "random_rule": ids(shown), "random_dyn": ids(shown_dyn)},
         "hero": hero, "loop": loop_out, "dyn_you": dyn, "static_you": static, "readability": readable,
     }
 

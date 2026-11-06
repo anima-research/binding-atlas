@@ -36,16 +36,21 @@ before adding `.html`, and a directory with the page's name would hide the page.
 | `layout-<name>.bin` | x then y as uint16 for one layout: `meaning`, `masked` (firing token hidden), `depth`, `weights-read`, `weights-write`, `weights-write-pca` |
 | `binding.json` | attribution by position and token role, the causal sets, the knock-out matrices and per-cell results |
 | `icl.json` | the rule, recall and *you* circuits (100 neurons each), their knock-outs beside damage-matched random sets, the head knock-outs by loop pass, and the readability percentiles |
+| `graph.json` | the top 100 broadcasters and the hubs' fan-out, the registered wiring readings (position 8's halves, loop twins, genre, edge validation), and the training chapter's per-checkpoint medians and caveats |
+| `closeness.bin` | for 33 checkpoints, each neuron's closeness to its final firing at the 12 positions captured over training, one byte each |
 
 ```bash
 make neurons                               # page + data dir into site/ (CONFIG= and SITE= as for make page)
 make neurons-binding                       # data/inputs/binding/*.jsonl -> data/built/neurons/binding.json
 make neurons-icl                           # data/inputs/threads-icl/ -> data/built/neurons/icl.json
+make neurons-graph                         # data/inputs/threads-graph/ -> data/built/neurons/graph.json, closeness.bin
 ```
 
-The page build checks every number in the rule-vs-recall prose against `icl.json`, and refuses on any mismatch.
+The page build checks every number in the chapter prose against `icl.json` or `graph.json`, and refuses on any mismatch. The
+closeness array that `neurons-graph` reads is not tracked: copy `closeness-f16.npy` and `closeness.json` beside
+`data/inputs/threads-graph/closeness.sha256`, which pins both.
 
-`build/build_neurons.py` writes everything in `data/built/neurons/` except `binding.json` and `icl.json`, from the compendium build (its
+`build/build_neurons.py` writes everything in `data/built/neurons/` except `binding.json`, `icl.json`, `graph.json` and `closeness.bin`, from the compendium build (its
 inputs are named in its docstring).
 
 ## The announcement
