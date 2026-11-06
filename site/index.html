@@ -92,81 +92,337 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: s
     <div class="kicker">Model release · open weights</div>
     <p class="kanji" lang="ja">言霊 紬</p>
     <h1>kotodama-tsumugi</h1>
-    <p class="lede">A 1.4B base model, trained on 110B tokens, that learns new rules from its prompt above the size trend
-    of public base models. It tracks who “you” is in a conversation like base models trained on 40 to 300 times more data. The weights,
-    the training checkpoints, the code and the benchmark are open.</p>
+    <p class="lede">A 1.4B-parameter base model, trained on 110B tokens. Shown a few worked examples of a made-up rule, it
+    applies the rule to a new case better than public base models of its size. In a two-person chat, it keeps track of who
+    “you” is, like base models trained on 40 to 300 times more data. Its weights, its training checkpoints, its code and
+    the benchmark that it was tested on are open.</p>
     <div class="byline">Led by <a href="https://x.com/kataletheia">Luxia</a>, with <a href="https://animalabs.ai">Anima Labs</a> · built with <a href="https://www.anthropic.com/claude">Claude</a></div>
-    <div class="map">Start here for the model. To run it, use the <a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b">model card</a>; to set it against
-    other models, the <a href="binding-atlas">Binding Atlas</a>; to look at its neurons,
+    <div class="map">Start here for the model. To run it, use the <a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b">model card</a>. To compare it
+    with public models on the same tests, use the <a href="binding-atlas">Binding Atlas</a>. To look at its neurons, use
     <a href="threads">Threads</a>.</div>
   </header>
 
+<section class="story" id="story" aria-label="The four results, told step by step">
+<div class="story-steps"><div class="story-step" data-beat="1"><h3>It learns made-up rules from the prompt</h3><p>The prompt shows worked examples of an invented rule, here a made-up plural, and the model picks the answer for a new word. On these tests it scores .559, where 0 is chance and 1 is always right. Public models that spent the same training compute score lower: checkpoints taken partway through training reach at most .461, and the best fully trained one, Falcon3 3B, .536.</p></div><div class="story-step" data-beat="2"><h3>The second pass of its looped block does that work</h3><p>Its middle 20 layers run twice with the same weights. Switch off a quarter of the attention in one place, and measure how much of the rule-learning score is lost. It loses .132 in the second pass, against .035 in the first pass and .019 in the layers before and after the loop.</p></div><div class="story-step" data-beat="3"><h3>It tracks who “you” is after objects change hands</h3><p>On the last line of this chat, “you” is Kurt, who now has the battery. Swap who says that line, and “you” is Steve, who has the lamp, so the battery should lose probability. Here it falls from .445 to .311, a larger move than most. Averaged over 180 chats the drop is .038, and tsumugi is the smallest public base model whose drop clears +.02 across its whole 95% interval.</p></div><div class="story-step" data-beat="4"><h3>It is cheap for what it scores</h3><p>Its average over nine standard benchmarks (HellaSwag, ARC, PIQA and six more, with no examples in the prompt) is 64.1. Pythia-2.8B scores 64.7 after 4 times the training compute.</p></div></div>
+<div class="story-stage" aria-hidden="true"><div class="story-frame"><div id="L1" class="layer"><div class="rule"></div>
+  <div class="title">It learns made-up rules from the prompt</div>
+  <div class="sub">Shown worked examples of an invented rule, it applies the rule to a new case.</div>
+  <div class="panel" style="left:96px;width:640px">
+    <div class="lab" style="margin-bottom:14px">a test item: an invented plural</div>
+    <div id="items"></div>
+    <div class="line" id="more" style="color:#9aa3ad;font-size:26px">… 4 more examples …</div>
+    <div class="line" id="query" style="font-weight:700"></div>
+    <div id="chips" style="margin-top:18px;opacity:0"></div>
+    <div class="lab" id="pick" style="margin-top:14px;opacity:0">the model picks the answer it finds most likely</div></div>
+  <svg class="panel" id="strip" style="left:800px" width="704" height="560"></svg></div>
+
+<div id="L2" class="layer"><div class="rule"></div>
+  <div class="title">The second pass of its looped block does that work</div>
+  <div class="sub">Its middle 20 layers run twice with the same weights. Switch off a quarter of one pass's attention:</div>
+  <svg class="panel" id="spire" style="left:96px;top:220px" width="560" height="640"></svg>
+  <svg class="panel" id="cuts" style="left:760px;top:300px" width="744" height="420"></svg></div>
+
+<div id="L3" class="layer"><div class="rule"></div>
+  <div class="title">It tracks who “you” is after objects change hands</div>
+  <div class="sub">Swap who says the last line, and “you” is someone else: the old answer should lose probability.</div>
+  <div class="panel" id="chat" style="left:96px;width:700px"></div>
+  <svg class="panel" id="dyn" style="left:900px;top:300px;overflow:visible" width="604" height="330"></svg></div>
+
+<div id="L4" class="layer"><div class="rule"></div>
+  <div class="title">It is cheap for what it scores</div>
+  <div class="sub">Average over nine standard benchmarks (HellaSwag, ARC, PIQA and six more), no examples in the prompt.</div>
+  <svg class="panel" id="cheap" style="left:96px;top:260px" width="1408" height="480"></svg></div>
+
+</div></div>
+</section>
+<style>
+.story { display: grid; grid-template-columns: minmax(0, 280px) minmax(0, 1fr); gap: 32px; margin: 26px 0 10px;
+  width: min(1400px, 100vw - 32px); margin-left: 50%; transform: translateX(-50%); }
+.story-steps { display: grid; }
+.story-step { min-height: 80vh; display: flex; flex-direction: column; justify-content: center; opacity: .3; transition: opacity .4s; }
+.story-step.on { opacity: 1; }
+.story-step h3 { font-family: var(--f-display); font-size: 21px; line-height: 1.25; margin: 0 0 10px; text-wrap: balance; }
+.story-step p { margin: 0; color: var(--fg2); font-size: 15.5px; line-height: 1.6; }
+.story-stage { position: sticky; top: max(16px, calc(50vh - 260px)); align-self: start; background: #0b0c0e; border-radius: 12px;
+  overflow: hidden; margin-top: 18vh; width: 100%; }
+.story-frame { position: relative; width: 1600px; height: 730px; transform-origin: 0 0; color: #f2f3f5; font-family: var(--f-display); }
+.story-frame .layer { position: absolute; left: 0; right: 0; top: -170px; height: 900px; opacity: 0; transition: opacity .45s; }
+.story-frame .layer.on { opacity: 1; }
+.story-frame .title, .story-frame .sub, .story-frame .rule { display: none; }
+.story-frame .line { font-family: var(--f-mono); font-size: 34px; line-height: 1.5; opacity: 0; }
+.story-frame .chip { display: inline-block; font-family: var(--f-mono); font-size: 30px; padding: 4px 14px; margin-right: 10px; border: 1.5px solid #2b3038; color: #9aa3ad; }
+.story-frame .chip.on { border-color: #f2f3f5; color: #0b0c0e; background: #f2f3f5; font-weight: 700; }
+.story-frame .lab { font-size: 22px; color: #9aa3ad; }
+.story-frame .mono { font-family: var(--f-mono); }
+.story-frame .panel { position: absolute; top: 230px; }
+.story-frame svg { overflow: visible; }
+.story-frame svg text { font-family: var(--f-display); }
+/* phone: a portrait frame, panels stacked, small labels enlarged */
+@media (max-width: 760px) {
+  .story { grid-template-columns: minmax(0, 1fr); width: auto; margin-left: 0; transform: none; gap: 0; }
+  .story-stage { grid-row: 1; top: 6px; margin-top: 0; z-index: 2; box-shadow: 0 8px 22px rgba(0,0,0,.45); }
+  .story-step { justify-content: flex-start; }
+  .story-frame { width: 760px; height: 930px; }
+  .story-frame .layer { top: 0; height: 930px; }
+  .story-step { min-height: calc(var(--story-h, 420px) + 55vh); padding-top: calc(var(--story-h, 420px) + 22px); }
+  .story-frame .panel { left: 30px !important; }
+  .story-frame .dup { display: none; }
+  #L1 div.panel, #L3 div.panel { top: 24px !important; }
+  #L1 svg.panel { top: 545px !important; left: 6px !important; }
+  #L3 svg.panel { top: 590px !important; left: 40px !important; }
+  #L2 svg#spire { top: 0 !important; transform: scale(.74); transform-origin: 0 0; }
+  #L2 svg#spire text[font-size="24"] { font-size: 34px; } #L2 svg#spire text[font-size="19"] { font-size: 28px; }
+  #L2 svg#cuts { top: 500px !important; }
+  #L4 svg#cheap { top: 70px !important; transform: scale(.5); transform-origin: 0 0; }
+  #L4 svg text[font-size="30"] { font-size: 46px; } #L4 svg text[font-size="54"] { font-size: 76px; }
+  #L4 svg text[font-size="24"] { font-size: 36px; } #L4 svg text[font-size="21"] { font-size: 25px; }
+  .story-frame .lab { font-size: 27px; }
+  .story-frame svg text[font-size="19"], .story-frame svg text[font-size="20"], .story-frame svg text[font-size="21"] { font-size: 25px; }
+  #L3 .line { font-size: 28px !important; }
+}
+</style>
+<script>
+(() => {
+
+const D = {"rule": 0.5585956790123457, "trunk": 0.43590277777777775, "pub": [[0.4612577160493827, "Pythia 2.8B"], [0.4380555555555556, "Pythia 2.8B"], [0.4274922839506173, "Pythia 6.9B"], [0.4270061728395062, "OLMo-2 7B"], [0.42337962962962966, "OLMo-2 1B"], [0.42216049382716053, "Pythia 1.4B"], [0.4213734567901235, "OLMo-2 1B"], [0.4167824074074074, "Pythia 1.4B"], [0.407692901234568, "Pythia 1.4B"], [0.4047376543209877, "Pythia 2.8B"], [0.3951543209876543, "Pythia 1.4B"], [0.3694830246913581, "Pythia 6.9B"], [0.35041666666666677, "OLMo-2 7B"], [0.34717592592592594, "OLMo-2 13B"], [0.3284645061728395, "Pythia 6.9B"]], "final": [[0.5360108024691358, "Falcon3 3B"], [0.3918981481481482, "Pythia 1B"]], "cut": {"2nd pass": -0.13197530864197532, "1st pass": -0.03500000000000003, "outside the block": -0.019243827160493998}, "dyn": [["tsumugi 1.4B", 0.038, true], ["Qwen3 4B", 0.0549, false], ["SmolLM3 3B", 0.0274, false], ["Qwen3 1.7B", 0.0258, false], ["OLMo-2 1B", -0.0185, false], ["Qwen2.5 1.5B", -0.0356, false]], "avg9": 64.149, "p28": 64.651, "x28": 4.0244022526146415, "item": [["ta mu", "ta mo"], ["mo mi", "mo mo"], ["du bu", "du bo"], ["se pi", "se po"]], "chat": ["A chat between Steve and Kurt.", "Steve: The battery is in my hand.", "Steve: The shoe is in my hand.", "Kurt: I have the lamp.", "Kurt: Here, take my lamp.", "Steve: My battery is in your hand now."], "p_orig": 0.445, "p_swap": 0.311, "query": "pe fi", "choices": ["po", "fe", "fu", "fi", "fo"], "gold": "fo"};
+const FG="#f2f3f5", MUTED="#9aa3ad", LINE="#2b3038", NEG="#5d6672", BG="#0b0c0e";
+const cl = (x) => Math.max(0, Math.min(1, x));
+const ease = (x) => { x = cl(x); return x < .5 ? 2*x*x : 1 - Math.pow(-2*x + 2, 2)/2; };
+const ramp = (t, a, b) => ease((t - a) / (b - a));
+const f3 = (v, s) => (s && v > 0 ? "+" : "") + (v < 0 ? "−" : "") + Math.abs(v).toFixed(3).replace(/^0/, "");
+const $ = (id) => document.getElementById(id);
+const B = [[0, 2.6], [2.6, 10.6], [10.6, 17.4], [17.4, 24.2], [24.2, 28.6], [28.6, 32.5]], SEGS = [[0.0, 0, 2.6, 0.6, false], [5.8, 2.6, 10.6, 3.0, false], [24.8, 10.6, 17.4, 3.0, false], [41.4, 17.4, 24.2, 3.5, false], [58.5, 24.2, 28.6, 3.0, false], [70.3, 28.6, 32.5, 2.0, true]], SLOW = 2.0, FADE = 0.45;
+function story(t) {   // real time -> story time: half speed, then a hold on the beat's last full frame, then the fade
+  let seg = SEGS[0];
+  for (const sg of SEGS) if (t >= sg[0]) seg = sg;
+  const [r0, a, b, hold, last] = seg, core = (b - a) - (last ? 0 : FADE), u = t - r0;
+  if (u < SLOW * core) return a + u / SLOW;
+  if (u < SLOW * core + hold) return a + core;
+  return Math.min(b, a + core + (u - SLOW * core - hold) / SLOW);
+}
+function layer(i, t) { const [a, b] = B[i]; const last = i === B.length - 1;
+  return Math.min(ramp(t, a, a + .45), last ? 1 : 1 - ramp(t, b - .45, b)); }
+
+// beat 1: item + strip chart
+function beat1(t) {
+  const t0 = B[1][0];
+  $("items").innerHTML = D.item.map((p, i) => `<div class="line" style="opacity:${ramp(t, t0+.8+i*.45, t0+1.1+i*.45)}">${p[0]} → ${p[1]}</div>`).join("");
+  $("more").style.opacity = ramp(t, t0+2.6, t0+2.9);
+  const q = ramp(t, t0+3.1, t0+3.4); $("query").style.opacity = q; $("query").textContent = `${D.query} → pe ___`;
+  const pk = t > t0 + 4.6;
+  $("chips").style.opacity = ramp(t, t0+3.7, t0+4.0);
+  $("chips").innerHTML = D.choices.map(c => `<span class="chip${pk && c === D.gold ? " on" : ""}">${c}</span>`).join("");
+  $("pick").style.opacity = ramp(t, t0+4.6, t0+4.9);
+  if (pk) $("query").textContent = `${D.query} → pe ${D.gold}`;
+  const W = 704, x = (v) => 40 + (v - .30) / (.60 - .30) * (W - 80), y0 = 300;
+  let s = `<text x="40" y="40" class="lab" fill="${MUTED}" font-size="20">rule-learning score · 0 = chance, 1 = perfect</text>`;
+  s += `<line x1="40" x2="${W-40}" y1="${y0}" y2="${y0}" stroke="${LINE}" stroke-width="2"/>`;
+  for (const v of [.3, .4, .5, .6]) s += `<line x1="${x(v)}" x2="${x(v)}" y1="${y0-6}" y2="${y0+6}" stroke="${MUTED}"/><text x="${x(v)}" y="${y0+34}" text-anchor="middle" fill="${MUTED}" font-size="20" font-family="Courier Prime, Nimbus Mono PS, Courier New, monospace">${v.toFixed(1).replace(/^0/,"")}</text>`;
+  const pa = ramp(t, t0+4.9, t0+5.9);
+  const stack = {};
+  D.pub.forEach((p, i) => { const bin = Math.round(p[0] / .012); stack[bin] = (stack[bin] || 0) + 1; const yy = y0 - 22 - (stack[bin] - 1) * 20;
+    s += `<circle cx="${x(p[0])}" cy="${yy}" r="7" fill="${NEG}" opacity="${cl(pa*15 - i)}"/>`; });
+  D.final.forEach((p) => { const bin = Math.round(p[0] / .012); stack[bin] = (stack[bin] || 0) + 1; const yy = y0 - 22 - (stack[bin] - 1) * 20;
+    s += `<circle cx="${x(p[0])}" cy="${yy}" r="7" fill="none" stroke="${MUTED}" stroke-width="2.5" opacity="${pa}"/>`; });
+  const fb = D.final[0];
+  s += `<text x="${x(fb[0])}" y="${y0+62}" text-anchor="middle" fill="${MUTED}" font-size="19" opacity="${pa}">○ ${fb[1]} ${f3(fb[0])}</text>`;
+  s += `<text x="40" y="${y0+108}" fill="${MUTED}" font-size="21" opacity="${pa}">● 15 public checkpoints, partway through training · ○ 2 fully</text>`;
+  s += `<text x="40" y="${y0+134}" fill="${MUTED}" font-size="21" opacity="${pa}">trained public models: all at the same training compute</text>`;
+  const d = ramp(t, t0+6.3, t0+6.9), yd = y0 - 40 - (1 - d) * 160;
+  s += `<g opacity="${d}"><rect x="${x(D.rule)-12}" y="${yd-12}" width="24" height="24" fill="${FG}" transform="rotate(45 ${x(D.rule)} ${yd})"/>`;
+  s += `<text x="${x(D.rule)}" y="${yd-34}" text-anchor="middle" fill="${FG}" font-size="40" font-weight="700" font-family="Courier Prime, Nimbus Mono PS, Courier New, monospace">${f3(D.rule)}</text>`;
+  s += `<text x="${x(D.rule)}" y="${yd-82}" text-anchor="middle" fill="${FG}" font-size="24">tsumugi</text></g>`;
+  $("strip").innerHTML = s;
+}
+
+// beat 2: spire + cut bars
+function beat2(t) {
+  const t0 = B[2][0], H = 600, pitch = (H - 60) / 72, bx = 120, bw = 90;
+  const sec = (p) => p < 19 ? 0 : p < 39 ? 1 : p < 59 ? 2 : 3;
+  const yb = (p) => H - 20 - p * pitch - sec(p) * 6;
+  const sweep = (t - (t0 + .6)) / 2.2 * 72;   // activity sweeps up the 72 layers
+  const dim = ramp(t, t0 + 3.2, t0 + 3.8);
+  let s = "";
+  for (let p = 0; p < 72; p++) {
+    const lit = p <= sweep; const k = sec(p);
+    let fill = k === 1 || k === 2 ? (lit ? FG : "#3a414b") : (lit ? "#8a939e" : "#2b3038");
+    let op = k === 2 ? 1 - .45 * dim : 1;
+    s += `<rect x="${bx}" y="${(yb(p) - pitch*.66).toFixed(1)}" width="${bw}" height="${(pitch*.66).toFixed(1)}" fill="${fill}" opacity="${op}"/>`;
+  }
+  const lab = (p0, p1, a, b) => { const y = (yb(p0) + yb(p1)) / 2; return `<text x="${bx+bw+30}" y="${y-4}" fill="${FG}" font-size="24">${a}</text><text x="${bx+bw+30}" y="${y+22}" fill="${MUTED}" font-size="19">${b}</text>`; };
+  s += lab(59, 71, "output layers", "13");
+  s += lab(39, 58, "middle block, again", "same weights, 2nd pass");
+  s += lab(19, 38, "middle block", "20 layers, 1st pass");
+  s += lab(0, 18, "input layers", "19");
+  s += `<path d="M${bx-14},${yb(38)-pitch} H${bx-34} V${yb(19)} H${bx-14}" fill="none" stroke="${FG}" stroke-width="2" opacity="${ramp(t,t0+1.6,t0+2)}"/><text x="${bx-44}" y="${(yb(19)+yb(38))/2}" text-anchor="end" fill="${FG}" font-size="22" font-family="Courier Prime, Nimbus Mono PS, Courier New, monospace" opacity="${ramp(t,t0+1.6,t0+2)}">×2</text>`;
+  s += `<text x="${bx+bw+30}" y="${(yb(39)+yb(58))/2+52}" fill="${FG}" font-size="19" font-family="Courier Prime, Nimbus Mono PS, Courier New, monospace" opacity="${dim}">¼ of attention off</text>`;
+  $("spire").innerHTML = s;
+  let c = `<text x="0" y="24" fill="${MUTED}" font-size="21">rule-learning score lost, by where the cut is made</text>`;
+  const rows = Object.entries(D.cut), sc = 2400;
+  rows.forEach(([name, v], i) => { const gr = ramp(t, t0 + 4.0 + i * .5, t0 + 4.8 + i * .5); const y = 60 + i * 100;
+    const w = Math.abs(v) * sc * gr, hi = name === "2nd pass";
+    c += `<text x="0" y="${y+30}" fill="${hi ? FG : MUTED}" font-size="26">${name}</text>`;
+    c += `<rect x="300" y="${y+6}" width="${w}" height="34" fill="${hi ? FG : NEG}"/>`;
+    c += `<text x="${310+w}" y="${y+34}" fill="${hi ? FG : MUTED}" font-size="30" font-weight="700" font-family="Courier Prime, Nimbus Mono PS, Courier New, monospace" opacity="${gr}">${f3(v)}</text>`; });
+  $("cuts").innerHTML = c;
+}
+
+// beat 3: chat swap + bars (item text filled in when the real item arrives)
+function beat3(t) {
+  const t0 = B[3][0], sw = ramp(t, t0 + 2.4, t0 + 2.8);
+  const ln = (txt, a, st) => `<div class="line" style="font-size:24px;line-height:1.45;opacity:${ramp(t, a, a + .3)};${st||""}">${txt}</div>`;
+  let h = `<div class="lab" style="margin-bottom:10px">one test chat (after 3 worked examples)</div>`;
+  D.chat.forEach((c, i) => { h += ln(c, t0 + .4 + i * .18, i === 0 ? "color:" + MUTED : ""); });
+  h += ln((sw < .5 ? "Steve" : "Kurt") + ": Right now you're holding the ___", t0 + 1.6, "font-weight:700");
+  h += ln(sw < .5 ? "“you” = Kurt, who now has the battery" : "“you” = Steve, who now has the lamp", t0 + 1.8, "color:" + MUTED + ";font-size:21px");
+  const p = D.p_orig + (D.p_swap - D.p_orig) * sw, show = ramp(t, t0 + 1.9, t0 + 2.2);
+  h += `<div style="margin-top:22px;opacity:${show}"><span class="lab">probability of “battery”</span>`
+     + `<div style="display:flex;align-items:center;gap:14px;margin-top:8px"><div style="height:26px;width:${p*600}px;background:${FG}"></div>`
+     + `<span class="mono" style="font-size:28px;font-weight:700">${p.toFixed(3).replace(/^0/,"")}</span></div>`
+     + `<div class="lab dup" style="margin-top:8px;opacity:${ramp(t, t0+3.0, t0+3.3)}">this chat moves more than most: the average across 180 is .038</div></div>`;
+  $("chat").innerHTML = h;
+  const W = 604, lw = 160, x0 = lw + (W - lw - 60) / 2, sc = (W - lw - 60) / 2 / .1;
+  let s = `<text x="0" y="-6" fill="${MUTED}" font-size="21">average drop, by model</text>`;
+  D.dyn.forEach(([name, v, ours], i) => { const gr = ramp(t, t0 + 3.6 + i * .18, t0 + 4.2 + i * .18), y = 30 + i * 34, w = Math.abs(v) * sc * gr;
+    s += `<text x="${lw-12}" y="${y+21}" text-anchor="end" fill="${ours ? FG : MUTED}" font-size="20" font-family="Courier Prime, Nimbus Mono PS, Courier New, monospace" font-weight="${ours ? 700 : 400}">${name}</text>`;
+    s += `<rect x="${v < 0 ? x0 - w : x0}" y="${y+4}" width="${w}" height="22" fill="${ours ? FG : NEG}"/>`;
+    s += `<text x="${v < 0 ? x0 + 8 : x0 + w + 8}" y="${y+21}" fill="${ours ? FG : MUTED}" font-size="19" font-family="Courier Prime, Nimbus Mono PS, Courier New, monospace" opacity="${gr}">${f3(v, true)}</text>`; });
+  const yb = 30 + D.dyn.length * 34 + 10;
+  s += `<line x1="${x0}" x2="${x0}" y1="28" y2="${yb}" stroke="${FG}" stroke-width="2"/>`;
+  s += `<text x="${x0-8}" y="${yb+28}" text-anchor="end" fill="${MUTED}" font-size="19">← takes “you” as the speaker</text><text x="${x0+8}" y="${yb+28}" fill="${MUTED}" font-size="19">tracks “you” →</text>`;
+  const c = ramp(t, t0 + 5.0, t0 + 5.4);
+  s += `<text class="dup" x="0" y="${yb+76}" fill="${FG}" font-size="22" opacity="${c}">the smallest public base model whose drop</text>`;
+  s += `<text class="dup" x="0" y="${yb+104}" fill="${FG}" font-size="22" opacity="${c}">clears +.02 across its whole 95% interval</text>`;
+  $("dyn").innerHTML = s;
+}
+
+// beat 4: benchmark average and compute
+function beat4(t) {
+  const t0 = B[4][0]; let s = "";
+  const row = (y, name, avg, comp, hi, a) => { const g = ramp(t, a, a + .8);
+    return `<text x="0" y="${y}" fill="${hi ? FG : MUTED}" font-size="30">${name}</text>`
+      + `<text x="360" y="${y}" fill="${hi ? FG : MUTED}" font-size="54" font-weight="700" font-family="Courier Prime, Nimbus Mono PS, Courier New, monospace" opacity="${g}">${avg.toFixed(1)}</text>`
+      + `<rect x="620" y="${y-34}" width="${comp * 170 * g}" height="40" fill="${hi ? FG : NEG}"/>`
+      + `<text x="${630 + comp*170*g}" y="${y-4}" fill="${hi ? FG : MUTED}" font-size="24" font-family="Courier Prime, Nimbus Mono PS, Courier New, monospace" opacity="${g}">${comp === 1 ? "1×" : comp.toFixed(0) + "×"}</text>`; };
+  s += `<text x="360" y="20" fill="${MUTED}" font-size="21">benchmark average</text><text x="620" y="20" fill="${MUTED}" font-size="21">training compute</text>`;
+  s += row(130, "tsumugi 1.4B", D.avg9, 1, true, t0 + .6);
+  s += row(250, "Pythia-2.8B", D.p28, D.x28, false, t0 + 1.2);
+  $("cheap").innerHTML = s;
+}
+
+
+const ENDS = B.map(([a, b], i) => [a, i === B.length - 1 ? b : b - FADE]);
+const frame = document.querySelector(".story-frame"), stage = document.querySelector(".story-stage");
+const fit = () => { const fw = frame.offsetWidth, fh = frame.offsetHeight, k = stage.clientWidth / fw;
+  frame.style.transform = `scale(${k})`; stage.style.height = `${fh * k}px`;
+  document.querySelector(".story").style.setProperty("--story-h", `${fh * k}px`); };
+fit(); addEventListener("resize", fit);
+const draw = [null, beat1, beat2, beat3, beat4];
+const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let cur = 0, raf = 0;
+function show(i) {
+  if (i === cur) return; cur = i; cancelAnimationFrame(raf);
+  for (let k = 1; k <= 4; k++) document.getElementById("L" + k).classList.toggle("on", k === i);
+  document.querySelectorAll(".story-step").forEach(s => s.classList.toggle("on", +s.dataset.beat === i));
+  const [a, e] = ENDS[i];
+  if (still) { draw[i](e); return; }
+  const t0 = performance.now();
+  const step = (now) => { const t = Math.min(e, a + (now - t0) / 1000 / SLOW); draw[i](t); if (t < e) raf = requestAnimationFrame(step); };
+  raf = requestAnimationFrame(step);
+}
+for (let k = 1; k <= 4; k++) draw[k](ENDS[k][0]);
+const io = new IntersectionObserver((es) => { for (const en of es) if (en.isIntersecting) show(+en.target.dataset.beat); },
+  { rootMargin: "-45% 0px -45% 0px" });
+document.querySelectorAll(".story-step").forEach(s => io.observe(s));
+})();
+</script>
+
+  <div class="prose">
+    <p>The figure below compares tsumugi with public base models on three measures, against the compute that each spent in
+    training. Compute is about 6 × parameters × tokens, with tsumugi's repeated layers counted twice.
+    <b>New rules:</b> the prompt shows worked examples of an invented rule, such as an invented word ending, invented
+    operators or a nonsense pattern. The model then picks the answer to a new case. The score runs from 0 (chance) to 1 (always right).
+    <b>Recall:</b> questions about real facts, in the same worked-example format and scored the same way. <b>Held-out
+    text:</b> how well it predicts text published after its training data was collected, in bits per byte; lower is
+    better.</p>
+  </div>
   <figure class="plate">
-    <a href="announce-data/figure.png"><img src="announce-data/figure.png" width="1600" height="900" alt="Three panels against training compute: new rules learned from the prompt, recall of facts in the same few-shot frame, and held-out text in bits per byte. Filled dots are 36 public base models, open circles 15 public checkpoints that had spent the same compute as kotodama-tsumugi. kotodama-tsumugi sits above the compute trend on all three, furthest on new rules (.559, against at most .461 for the matched checkpoints). An open diamond marks its unannealed trunk (.436)."></a>
-    <figcaption>In-prompt rule learning, recall and held-out text against training compute. Filled dots are 36 public base
-    models; open circles are 15 public checkpoints that had spent the same compute as kotodama-tsumugi. The dashed line is
-    each panel's compute trend. kotodama-tsumugi, the white diamond, is above it on all three and furthest on new rules:
-    .559, against .461 for the best matched checkpoint. Its unannealed trunk, the open diamond, scores .436 and is level
-    with them, so much of that lead comes with its final anneal. Against model size, the registered test puts it 1.07
-    standard deviations above the trend on new rules, and on the trend for recall and held-out text.</figcaption>
+    <a href="announce-data/figure.png"><img src="announce-data/figure.png" width="1600" height="900" alt="Three panels against training compute: new rules learned from the prompt, recall of facts in the same worked-example format, and held-out text in bits per byte. Filled dots are 36 public base models, open circles 15 public checkpoints taken partway through training at the same compute as kotodama-tsumugi. kotodama-tsumugi does better than the compute trend on all three, furthest on new rules (.559, against .536 for the best public model at the same compute and at most .461 for the checkpoints). An open orange diamond marks it before its final anneal (.436)."></a>
+    <figcaption>Filled dots: 36 public base models. Open circles: 15 public checkpoints, taken partway through training,
+    that had spent the same compute as tsumugi. Dashed line: the trend of the fully trained public models. tsumugi, the orange diamond, does better
+    than the trend on all three and furthest on new rules. It scores .559 there, against .536 for the best public model at the
+    same compute (Falcon3 3B) and at most .461 for the checkpoints. The open orange diamond is tsumugi before its final anneal, the closing
+    stretch of training where the learning rate decays. It scored .436 there, level with the checkpoints, so much of the
+    lead comes with the anneal.</figcaption>
   </figure>
 
   <h2>What it does</h2>
   <div class="results">
     <section class="result" id="rules">
-      <div class="num">z +1.07<small>above the size trend on new rules · 95% interval +0.68 to +2.07</small></div>
+      <div class="num">+1.07 SD<small>above the size trend on new rules · 95% interval +0.68 to +2.07</small></div>
       <div>
         <h3>It learns new rules from its prompt beyond its size</h3>
-        <p>Each prompt shows worked examples of an invented word ending, invented operators or a nonsense pattern. The
-        model then has to apply the rule to a new case. On this, tsumugi scores above the size trend of 37 public base
-        models. On recall in the same format, and on held-out text, it sits on that trend.</p>
-        <p>The test was registered before any row was scored, and all three of its predictions hold. Among the public
-        bases under 4B, only Qwen3 1.7B scores higher on new rules.</p>
+        <p>On new rules, tsumugi scores .559. A trend line fitted to 37 public base models predicts less for a model of
+        its size. The 37 are the 36 in the figure plus GPT-2 XL, which has no published token count. tsumugi sits 1.07 standard
+        deviations above it, measured in the spread of the public models around the line. The interval comes from
+        resampling both the public models and tsumugi's test items. On recall and on held-out text, it sits on the trend.</p>
+        <p>This comparison was registered: the test and its three predictions were written down and committed before any
+        score was computed, and all three hold. Among public bases under 4B parameters, only Qwen3 1.7B scores higher on
+        new rules.</p>
         <p class="more"><a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b#learning-rules-from-the-prompt">The registered test, its table and checks</a></p>
       </div>
     </section>
     <section class="result" id="loop">
-      <div class="num">−.13<small>rule learning, with a quarter of the second pass's attention removed (recall: −.025)</small></div>
+      <div class="num">−.13<small>on new rules, with a quarter of the second pass's attention switched off (recall: −.025)</small></div>
       <div>
-        <h3>Its looped core carries that learning</h3>
-        <p>tsumugi runs one 20-layer block twice, with the same weights. Removing a quarter of the attention in the second
-        pass cuts its rule-learning score by .13, while recall in the same prompts falls .025. The same cut costs .035 in
-        the first pass and .019 outside the loop.</p>
-        <p>This test was registered too. The second-pass cut also does more general damage, and the result holds with that
-        damage controlled for.</p>
-        <p class="more"><a href="threads">Inside tsumugi: its rule and recall circuits, on Threads</a></p>
+        <h3>Its looped block carries that learning</h3>
+        <p>tsumugi runs one block of 20 layers twice, with the same weights. Switching off a quarter of the attention in
+        the second pass lowers its new-rules score by .13 on the same 0-to-1 scale, while recall falls .025. The same cut
+        costs .035 in the first pass and .019 in the layers before and after the loop.</p>
+        <p>This test was registered too, and its prediction holds. The cut also makes the model worse at predicting ordinary text, and the result
+        holds after controlling for that loss.</p>
+        <p class="more"><a href="threads">Inside tsumugi: the neurons behind rule learning and recall, on Threads</a></p>
       </div>
     </section>
     <section class="result" id="you">
-      <div class="num">+.038<small>dynamic “you” with three worked examples · 95% interval +.023 to +.055</small></div>
+      <div class="num">+.038<small>“you” tracked after objects change hands, given three worked examples · 95% interval +.023 to +.055</small></div>
       <div>
         <h3>It tracks who “you” is after objects change hands</h3>
-        <p>In a two-person chat where objects pass between the speakers, “you” has to follow the person being addressed.
-        Shown three worked examples, tsumugi does, and it is the smallest public base model measured that passes this
-        test. The next smallest is Qwen3-4B, trained on 36T tokens, about 300 times tsumugi's 110B.</p>
-        <p>The simpler case, a fixed “you”, it learns by 33B training tokens. OLMo-2 1B needs 420–525B.</p>
+        <p>In a two-person chat where objects pass between the speakers, a line like “Right now you're holding the ___”
+        asks about the person being addressed. Swap who says that line, and “you” becomes the other person, so the old
+        answer should lose probability. Given three worked examples, tsumugi's old answer loses .038 on average over 180
+        chats. A model passes when its whole 95% interval is above .02, a bar that was fixed before
+        any model was scored. tsumugi is the smallest public base model
+        measured that passes. The next smallest is Qwen3-4B, trained on 36T tokens, about 300 times tsumugi's 110B.</p>
+        <p>On the simpler test with a fixed “you”, where nothing changes hands, it passes by 33B training tokens. OLMo-2 1B
+        passes that test somewhere between its 420B and 525B checkpoints.</p>
         <p class="more"><a href="binding-atlas#tsumugi-you">The test and its threshold, on the Binding Atlas</a></p>
       </div>
     </section>
     <section class="result" id="compute">
-      <div class="num">¼<small>of Pythia-2.8B's training compute, for its benchmark average</small></div>
+      <div class="num">¼<small>of Pythia-2.8B's training compute, for a benchmark average within a point of it</small></div>
       <div>
         <h3>It is cheap for what it scores</h3>
-        <p>Its average over nine standard zero-shot benchmarks is 64.1, half a point below Pythia-2.8B's 64.7, at a quarter
-        of the training compute.</p>
+        <p>Its average over nine standard benchmarks is 64.1, half a point below Pythia-2.8B's 64.7, at a quarter of the
+        training compute. The nine are HellaSwag, LAMBADA, ARC-Easy, ARC-Challenge, PIQA, SciQ, WinoGrande, COPA and BoolQ,
+        with no examples in the prompt.</p>
         <p class="more"><a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b#benchmarks-and-compute">Benchmarks and compute, on the model card</a></p>
       </div>
     </section>
   </div>
-  <p class="aside">Given an empty document, 128 times, tsumugi writes no chatbot transcripts, assistant replies or
-  machine-made training data. Many modern base models do. Every run is on <a href="empty-document">An Empty Document</a>.</p>
+  <p class="aside">Given only the start-of-document token, 128 times, tsumugi writes no chatbot transcripts, assistant
+  replies or machine-made training data. Claude sorted every run, after agreeing with 300 hand-labelled runs 98.7% of
+  the time. Many modern base models do write them. All 128 runs
+  can be read on the page <a href="empty-document">An Empty Document</a>.</p>
 
   <h2>How it is built</h2>
   <div class="prose">
-    <p>tsumugi is a Llama-style decoder with Block Attention Residuals. Each layer reads a learned mixture of earlier blocks'
-    outputs, and the block boundaries are fitted to the network's own layer geometry. Its 52 unique layers run as 72: a
-    19-layer prelude, a 20-layer core executed twice with shared weights, and a 13-layer coda. Hidden matrices are
-    trained with Muon. It was trained on 110B tokens with the SmolLM2 tokenizer and annealed at the end.</p>
+    <p>tsumugi is a Llama-style decoder with <a href="https://arxiv.org/abs/2603.15031">Block Attention Residuals</a>.
+    Each layer reads a learned mixture of earlier blocks' outputs, and the block boundaries were fitted to the network's
+    own layer geometry. Its 52 layers of weights run as 72: 19 input layers, a 20-layer middle block run twice with
+    shared weights, and 13 output layers. Its hidden matrices were trained with the
+    <a href="https://kellerjordan.github.io/posts/muon/">Muon</a> optimizer. It was trained on 110B tokens with the
+    SmolLM2 tokenizer and annealed at the end: the learning rate decayed over the final stretch of training.</p>
     <p>The training data, the full architecture and how to run it are on the <a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b">model card</a>. A
     technical report will follow.</p>
   </div>
@@ -174,17 +430,16 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: s
   <h2>What is open</h2>
   <ul class="open">
     <li><b>Weights</b><span><a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b">LuxiaSL/kotodama-tsumugi-1b</a>, with the model card.</span></li>
-    <li><b>The training run</b><span>Its checkpoints, with the annealed branches as <code>anneal…</code> branches: the
-      release seed to 110B (<a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b-trajectory">seed 17</a>) and a
-      replicate to 11B (<a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b-seed7-trajectory">seed 7</a>).</span></li>
+    <li><b>The training run</b><span>Every checkpoint, plus the annealed versions as separate branches named
+      <code>anneal…</code>: seed 17, the release, to 110B (<a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b-trajectory">trajectory</a>),
+      and a second seed, seed 7, to 11B (<a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b-seed7-trajectory">trajectory</a>).</span></li>
     <li><b>The training stack</b><span><a href="https://github.com/anima-research/kotodama">anima-research/kotodama</a>:
       the trainer, the evaluation suite and the serving stack.</span></li>
     <li><b>The benchmark</b><span><a href="https://github.com/anima-research/binding-bench">anima-research/binding-bench</a>,
-      with every public model's results on the <a href="binding-atlas">Binding Atlas</a>.</span></li>
-    <li><b>The neuron graph</b><span>Every neuron of the release and how they connect:
-      <a href="https://huggingface.co/datasets/LuxiaSL/kotodama-tsumugi-1b-neuron-graph">kotodama-tsumugi-1b-neuron-graph</a>,
-      across training in
-      <a href="https://huggingface.co/datasets/LuxiaSL/kotodama-tsumugi-1b-neuron-graph-trajectory">its trajectory</a>.
+      the tests above, with every public model's results on the <a href="binding-atlas">Binding Atlas</a>.</span></li>
+    <li><b>The neuron graph</b><span>Every neuron of its feed-forward layers, and the strongest connections between them,
+      for the release (<a href="https://huggingface.co/datasets/LuxiaSL/kotodama-tsumugi-1b-neuron-graph">kotodama-tsumugi-1b-neuron-graph</a>)
+      and across training (<a href="https://huggingface.co/datasets/LuxiaSL/kotodama-tsumugi-1b-neuron-graph-trajectory">its trajectory</a>).
       Explore it on <a href="threads">Threads</a>.</span></li>
   </ul>
 
@@ -192,14 +447,14 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: s
   <ul class="limits">
     <li>It is a base model, with no instruction, preference or safety tuning. It continues text and does not follow instructions.</li>
     <li>Without a repetition penalty it falls into self-copying loops in long generations. The model card gives sampling that avoids them.</li>
-    <li>On held-out code it trails Pythia-1.4B and OLMo-2 1B; on held-out prose it is ahead of Pythia-1.4B.</li>
-    <li>Like every ~1B model measured, it tracks who holds an object in a third-person story at chance.</li>
-    <li>It is one anneal of one seed, and its training data is mostly English.</li>
+    <li>On held-out code, in bits per byte, it trails Pythia-1.4B and OLMo-2 1B; on held-out prose it is ahead of Pythia-1.4B.</li>
+    <li>Like every ~1B model measured, it scores at chance on tracking who holds an object in a third-person story.</li>
+    <li>It is one anneal of one seed (seed 17), and its training data is mostly English.</li>
   </ul>
 </div>
 <footer><div class="wrap">
   <span>Companion pages: <a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b">the model card</a> · <a href="binding-atlas">Binding Atlas</a>, every model against every referent-binding test · <a href="threads">Threads</a>, inside kotodama-tsumugi · <a href="empty-document">An Empty Document</a>.</span>
-  <span class="num" id="stamp">build 2026-11-06 01:32 UTC</span>
+  <span class="num" id="stamp">build 2026-11-06 03:44 UTC</span>
 </div></footer>
 </body>
 </html>

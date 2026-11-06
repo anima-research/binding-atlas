@@ -110,11 +110,11 @@ __STORY__
     better.</p>
   </div>
   <figure class="plate">
-    <a href="__FIGURE__"><img src="__FIGURE__" width="1600" height="900" alt="Three panels against training compute: new rules learned from the prompt, recall of facts in the same worked-example format, and held-out text in bits per byte. Filled dots are 36 public base models, open circles 15 public checkpoints taken partway through training at the same compute as kotodama-tsumugi. kotodama-tsumugi sits above the compute trend on all three, furthest on new rules (.559, against .536 for the best public model at the same compute and at most .461 for the checkpoints). An open diamond marks it before its final anneal (.436)."></a>
+    <a href="__FIGURE__"><img src="__FIGURE__" width="1600" height="900" alt="Three panels against training compute: new rules learned from the prompt, recall of facts in the same worked-example format, and held-out text in bits per byte. Filled dots are 36 public base models, open circles 15 public checkpoints taken partway through training at the same compute as kotodama-tsumugi. kotodama-tsumugi does better than the compute trend on all three, furthest on new rules (.559, against .536 for the best public model at the same compute and at most .461 for the checkpoints). An open orange diamond marks it before its final anneal (.436)."></a>
     <figcaption>Filled dots: 36 public base models. Open circles: 15 public checkpoints, taken partway through training,
-    that had spent the same compute as tsumugi. Dashed line: each panel's trend. tsumugi, the white diamond, is above the
-    trend on all three and furthest on new rules. It scores .559 there, against .536 for the best public model at the
-    same compute (Falcon3 3B) and at most .461 for the checkpoints. The open diamond is tsumugi before its final anneal, the closing
+    that had spent the same compute as tsumugi. Dashed line: the trend of the fully trained public models. tsumugi, the orange diamond, does better
+    than the trend on all three and furthest on new rules. It scores .559 there, against .536 for the best public model at the
+    same compute (Falcon3 3B) and at most .461 for the checkpoints. The open orange diamond is tsumugi before its final anneal, the closing
     stretch of training where the learning rate decays. It scored .436 there, level with the checkpoints, so much of the
     lead comes with the anneal.</figcaption>
   </figure>
