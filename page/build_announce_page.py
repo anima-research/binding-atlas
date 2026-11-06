@@ -20,7 +20,7 @@ from build_page import build_stamp, load_config  # noqa: E402
 from build_empty_page import EMPTY_CLEAN, EMPTY_PAGE  # noqa: E402
 from build_neuron_page import NEURON_CLEAN, NEURON_PAGE  # noqa: E402
 from forbidden import FORBIDDEN  # noqa: E402
-from siteconfig import CLEAN, PAGE, render_hosting  # noqa: E402
+from siteconfig import CLEAN, PAGE, TSUMUGI_CLEAN, TSUMUGI_PAGE, render_hosting  # noqa: E402
 
 CARD_FILE, DATA_DIR, FIGURE = "kotodama-tsumugi-card.png", "announce-data", "figure.png"
 MODEL_CARD = "https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b"
@@ -45,6 +45,7 @@ def main() -> None:
                                                          "__CARD_URL__": html.escape(card)})
     page = (page.replace("__ATLAS_LINK__", CLEAN if cfg.clean_urls else PAGE)
                 .replace("__THREADS_LINK__", NEURON_CLEAN if cfg.clean_urls else NEURON_PAGE)
+                .replace("__TSUMUGI_LINK__", TSUMUGI_CLEAN if cfg.clean_urls else TSUMUGI_PAGE)
                 .replace("__EMPTY_LINK__", EMPTY_CLEAN if cfg.clean_urls else EMPTY_PAGE)
                 .replace("__CARD_LINK__", MODEL_CARD)
                 .replace("__FIGURE__", f"{DATA_DIR}/{FIGURE}")
