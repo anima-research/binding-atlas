@@ -309,6 +309,8 @@ if (document.readyState === "loading") document.addEventListener("DOMContentLoad
 .story-frame .title, .story-frame .sub, .story-frame .rule { display: none; }
 .story-frame #atext .ah[data-i] { cursor: pointer; transition: opacity .25s; }
 .story-frame .ahint { font-size: 18px; color: #9aa3ad; margin-top: 6px; }
+.story-frame #atext .ah.dim .f { font-size: 17px; line-height: 1.35; }     /* while one step is brought back */
+.story-frame #atext .ah.dim .f .lab { display: none; }
 .cite { position: relative; display: inline; }
 .cite-mk { font: 600 11px/1 var(--f-mono, monospace); vertical-align: super; margin-left: 1px; padding: 1px 4px; border-radius: 4px;
   border: 1px solid var(--line); background: var(--chip, transparent); color: var(--fg); cursor: pointer; }
@@ -434,13 +436,15 @@ DRAW.arch = (t) => {
     const last = i === P.length - 1, inn = ramp(t, t0 + P[i][0], t0 + P[i][0] + .4);
     let e = inn * (1 - ramp(t, t0 + P[i][1], t0 + P[i][1] + .5)); // this step's explanation, collapsing smoothly
     let fo = last ? inn : Math.max(e, done), op = inn * (.45 + .55 * Math.max(e, done, last ? inn : 0));
-    if (foc >= 0) { e = i === foc ? 1 : 0; fo = i === foc ? 1 : 0; op = i === foc ? 1 : .35; }
-    h += `<div class="ah" data-i="${i}" style="opacity:${op}"><b>${i + 1}. ${head}</b>`
+    // a brought-back step opens its explanation; the others dim but keep their formula line, so nothing above the
+    // focused step moves and the pointer stays on it
+    if (foc >= 0) { e = i === foc ? 1 : 0; fo = i <= foc ? 1 : 0; op = i === foc ? 1 : .35; }   // steps below may fold
+    h += `<div class="ah${foc >= 0 && i !== foc ? " dim" : ""}" data-i="${i}" style="opacity:${op}"><b>${i + 1}. ${head}</b>`
        + `<div class="body" style="opacity:${e};max-height:${(e * 220).toFixed(1)}px;margin-top:${(e * 8).toFixed(1)}px;overflow:hidden">${body}</div>`
        + `<div class="f" style="opacity:${fo};max-height:${(fo * 140).toFixed(1)}px;margin-top:${(fo * 10).toFixed(1)}px;overflow:hidden">${f}</div></div>`;
   });
-  h += `<div class="ah" style="opacity:${foc >= 0 ? .35 : ramp(t, t0 + END + .7, t0 + END + 1.2)}"><div class="body" style="color:${FG}">Together: 72 layers of computation from 52 layers of weights, with every layer choosing what to read from the blocks below it.</div></div>`;
-  if (typeof ARCH_FOCUS !== "undefined") h += `<div class="ahint" style="opacity:${done}">${ARCH_FOCUS.touch ? "Tap" : "Hover over"} a step to read it again.</div>`;
+  h += `<div class="ah" style="${foc >= 0 ? "display:none" : ""};opacity:${ramp(t, t0 + END + .7, t0 + END + 1.2)}"><div class="body" style="color:${FG}">Together: 72 layers of computation from 52 layers of weights, with every layer choosing what to read from the blocks below it.</div></div>`;
+  if (typeof ARCH_FOCUS !== "undefined" && foc < 0) h += `<div class="ahint" style="opacity:${done}">${ARCH_FOCUS.touch ? "Tap" : "Hover over"} a step to read it again.</div>`;
   $("atext").innerHTML = h;
 };
 
@@ -734,7 +738,7 @@ document.querySelectorAll(".story .cite").forEach(c => {
 </div>
 <footer><div class="wrap">
   <span>Companion pages: <a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b">the model card</a> · <a href="binding-atlas">Binding Atlas</a>, every model against every referent-binding test · <a href="threads">Threads</a>, inside kotodama-tsumugi · <a href="empty-document">An Empty Document</a>.</span>
-  <span class="num" id="stamp">build 2026-11-06 09:17 UTC</span>
+  <span class="num" id="stamp">build 2026-11-06 09:30 UTC</span>
 </div></footer>
 </body>
 </html>
