@@ -98,10 +98,13 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: s
   </header>
 
   <figure class="plate">
-    <a href="__FIGURE__"><img src="__FIGURE__" width="1600" height="900" alt="Three panels against model size, for 37 public base models: new rules learned from the prompt, recall of facts in the same few-shot frame, and held-out text in bits per byte. A dashed line marks each panel's size trend. kotodama-tsumugi sits above the trend on new rules (.559) and on it for recall (.930) and held-out text (.768)."></a>
-    <figcaption>In-prompt rule learning, recall and held-out text against model size, for 37 public base models from 0.2B to
-    9.8B parameters. The dashed line is each panel's size trend. kotodama-tsumugi is the white diamond: above the trend on
-    new rules, on it for the other two.</figcaption>
+    <a href="__FIGURE__"><img src="__FIGURE__" width="1600" height="900" alt="Three panels against training compute: new rules learned from the prompt, recall of facts in the same few-shot frame, and held-out text in bits per byte. Filled dots are 36 public base models, open circles 15 public checkpoints that had spent the same compute as kotodama-tsumugi. kotodama-tsumugi sits above the compute trend on all three, furthest on new rules (.559, against at most .461 for the matched checkpoints). An open diamond marks its unannealed trunk (.436)."></a>
+    <figcaption>In-prompt rule learning, recall and held-out text against training compute. Filled dots are 36 public base
+    models; open circles are 15 public checkpoints that had spent the same compute as kotodama-tsumugi. The dashed line is
+    each panel's compute trend. kotodama-tsumugi, the white diamond, is above it on all three and furthest on new rules:
+    .559, against .461 for the best matched checkpoint. Its unannealed trunk, the open diamond, scores .436 and is level
+    with them, so much of that lead comes with its final anneal. Against model size, the registered test puts it 1.07
+    standard deviations above the trend on new rules, and on the trend for recall and held-out text.</figcaption>
   </figure>
 
   <h2>What it does</h2>
