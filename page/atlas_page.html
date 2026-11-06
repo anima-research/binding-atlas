@@ -331,7 +331,7 @@ __TOC__
       </section>
       <section class="fig" aria-labelledby="f3h">
         <div class="fh"><span class="no">Figure 3</span><h2 id="f3h">Training tokens until each stage appears</h2></div>
-        <p class="cap lead">For one training recipe (OLMo-2) at three sizes, and for kotodama-tsumugi: how many training
+        <p class="cap lead">For one training recipe at three sizes (OLMo-2 1B, 7B and 13B), and for kotodama-tsumugi: how many training
           tokens pass before each stage first passes. Each line spans the two saved checkpoints on either side of that
           point.</p>
         <div id="cost"></div>
@@ -424,7 +424,7 @@ __TOC__
         +.192 at the 110B release. The second cooldown from the same checkpoint reads +.127 (Table 3 gives the spread).
         On seed 17, <i>you</i> through hand-offs with no examples sits just below zero from about 4B (−.015 to −.034) and
         never passes. At 110B the two cooldowns read −.014 and −.012, not reliably backwards. The markers along the top show where
-        OLMo-2 reaches stage 3 at 13B, 7B and 1B parameters.</p>
+        OLMo-2 13B, 7B and 1B reach stage 3.</p>
     </section>
     <section class="fig" aria-labelledby="f5h">
       <div class="fh"><span class="no">Figure 5</span><h2 id="f5h">The run against its peers</h2></div>
@@ -470,7 +470,7 @@ __TOC__
         5.1, and held-out text differs by .025 bits/byte. Every
         single-cooldown number on this page carries that spread, so a difference between neighbouring checkpoints on
         one axis is not a trend. A second run from another random start (seed 7, same data order) was trained to 11B. The who-has-what test has no SmolLM2 or Qwen3 reading. Capacity tracks training recipe and
-        tokens more than parameters on this test (Pythia is flat from 160M to 6.9B), so no parameter-equivalent
+        tokens more than parameters on this test (Pythia-160M through Pythia-6.9B read about the same), so no parameter-equivalent
         size is read from it.</p>
     </section>
     <section class="fig" aria-labelledby="t5h">
@@ -601,7 +601,7 @@ const dia = (x, y, r = 6) => `<path d="M${x} ${y - r}L${x + r} ${y}L${x} ${y + r
   s += `<line class="zero" x1="${L}" x2="${W - R}" y1="${Y(0)}" y2="${Y(0)}"/>`;
   s += `<line x1="${L}" x2="${W - R}" y1="${Y(0.02)}" y2="${Y(0.02)}" stroke="var(--line)" stroke-dasharray="2 4"/><text x="${W - R + 4}" y="${Y(0.02) + 4}" class="lbl">passes (+.02)</text>`;
   for (const [oi, o] of M.olmo_stage3.entries()) s += `<g><title>${esc(o.m)} reaches stage 3 at ~${o.tok}B tokens</title><line x1="${X(o.tok)}" x2="${X(o.tok)}" y1="${Tp}" y2="${H - B}" stroke="var(--line)" stroke-dasharray="1 3"/><path d="M${X(o.tok) - 5} ${Tp}L${X(o.tok) + 5} ${Tp}L${X(o.tok)} ${Tp + 7}Z" fill="var(--fg)"/><text class="lbl" x="${X(o.tok)}" y="${Tp + 20 + (oi % 2) * 13}" text-anchor="middle">${esc(o.m)}</text></g>`;
-  s += `<text x="${(L + W - R) / 2}" y="${H - 6}" text-anchor="middle">training tokens (log) · ▾ = where OLMo-2 reaches stage 3 at 13B / 7B / 1B parameters</text><text x="12" y="${(Tp + H - B) / 2}" text-anchor="middle" transform="rotate(-90 12 ${(Tp + H - B) / 2})">swap shift</text>`;
+  s += `<text x="${(L + W - R) / 2}" y="${H - 6}" text-anchor="middle">training tokens (log) · ▾ = where OLMo-2 13B / 7B / 1B reach stage 3</text><text x="12" y="${(Tp + H - B) / 2}" text-anchor="middle" transform="rotate(-90 12 ${(Tp + H - B) / 2})">swap shift</text>`;
   const pts = (seed, kind) => M.traj[seed].filter(p => p.kind === kind);
   for (const [k, name, dash] of ser) {
     const c = pts("s17", "constant"), path = c.map((p, i) => `${i ? "L" : "M"}${X(p.tok).toFixed(1)} ${Y(p[k]).toFixed(1)}`).join("");
