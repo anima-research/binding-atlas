@@ -201,7 +201,7 @@ def main() -> None:
     P("")
     P("The values are the grid's own cells. Each test is read as the grid reads it. Columns with worked examples use "
       "them, the others are read cold, and the rule-learning rows are AUC over the example ladder. Lookup rises from .69 at 5B tokens to "
-      ".99 by 55B, level with the 7–9B bases (.97 to 1.00). The update tests (many refills, variable chains, shared "
+      ".98 by 55B, level with the 7–9B bases (.97 to 1.00). The update tests (many refills, variable chains, shared "
       "lists) stay at chance through 33B and lift from 55B on (.04 to .22). Static *you* climbs from .08 at 5B to .49 "
       "at the release. Pattern completion reaches .55, second of 12 models at 1–2B parameters. The two seeds differ at "
       "5B (seed 7 forms lookup and set binding earlier) and agree within .05 on all ten rows at 11B.")

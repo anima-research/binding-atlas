@@ -1,6 +1,6 @@
 # Binding Atlas — agent view
 
-Plain-text twin of the [Binding Atlas page](https://kotodama.animalabs.ai/binding-atlas). Same data, same build. Built 2026-11-05 12:25 UTC: 65 rows (models + one human), 24 columns, 2,447 cells, 1,905,952 scored items.
+Plain-text twin of the [Binding Atlas page](https://kotodama.animalabs.ai/binding-atlas). Same data, same build. Built 2026-11-06 00:20 UTC: 65 rows (models + one human), 24 columns, 2,447 cells, 1,905,952 scored items.
 
 ## Summary
 
@@ -163,7 +163,7 @@ For reference, OLMo-2 reaches stage 3 at about 42B tokens (OLMo-2 13B), 210B tok
 | Pattern completion (AUC) | +.458 | +.402 | +.475 | +.438 | +.507 | +.553 | +.426 | +.434 |
 | Known facts (control) (AUC) | +.640 | +.713 | +.892 | +.892 | +.925 | +.948 | +.651 | +.765 |
 
-The values are the grid's own cells. Each test is read as the grid reads it. Columns with worked examples use them, the others are read cold, and the rule-learning rows are AUC over the example ladder. Lookup rises from .69 at 5B tokens to .99 by 55B, level with the 7–9B bases (.97 to 1.00). The update tests (many refills, variable chains, shared lists) stay at chance through 33B and lift from 55B on (.04 to .22). Static *you* climbs from .08 at 5B to .49 at the release. Pattern completion reaches .55, second of 12 models at 1–2B parameters. The two seeds differ at 5B (seed 7 forms lookup and set binding earlier) and agree within .05 on all ten rows at 11B.
+The values are the grid's own cells. Each test is read as the grid reads it. Columns with worked examples use them, the others are read cold, and the rule-learning rows are AUC over the example ladder. Lookup rises from .69 at 5B tokens to .98 by 55B, level with the 7–9B bases (.97 to 1.00). The update tests (many refills, variable chains, shared lists) stay at chance through 33B and lift from 55B on (.04 to .22). Static *you* climbs from .08 at 5B to .49 at the release. Pattern completion reaches .55, second of 12 models at 1–2B parameters. The two seeds differ at 5B (seed 7 forms lookup and set binding earlier) and agree within .05 on all ten rows at 11B.
 
 ### The release against its trajectory and its class
 
