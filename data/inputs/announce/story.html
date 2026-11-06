@@ -1,8 +1,11 @@
-<section class="story" id="story" aria-label="The four results, told step by step">
-<div class="story-steps"><div class="story-step" data-beat="1"><h3>It learns made-up rules from the prompt</h3><p>The prompt shows worked examples of an invented rule, here a made-up plural, and the model picks the answer for a new word. On these tests it scores .559, where 0 is chance and 1 is always right. Public models that spent the same training compute score lower: checkpoints taken partway through training reach at most .461, and the best fully trained one, Falcon3 3B, .536.</p></div><div class="story-step" data-beat="2"><h3>The second pass of its looped block does that work</h3><p>Its middle 20 layers run twice with the same weights. Switch off a quarter of the attention in one place, and measure how much of the rule-learning score is lost. It loses .132 in the second pass, against .035 in the first pass and .019 in the layers before and after the loop.</p></div><div class="story-step" data-beat="3"><h3>It tracks who “you” is after objects change hands</h3><p>On the last line of this chat, “you” is Kurt, who now has the battery. Swap who says that line, and “you” is Steve, who has the lamp, so the battery should lose probability. Here it falls from .445 to .311, a larger move than most. Averaged over 180 chats the drop is .038, and tsumugi is the smallest public base model whose drop clears +.02 across its whole 95% interval.</p></div><div class="story-step" data-beat="4"><h3>It is cheap for what it scores</h3><p>Its average over nine standard benchmarks (HellaSwag, ARC, PIQA and six more, with no examples in the prompt) is 64.1. Pythia-2.8B scores 64.7 after 4 times the training compute.</p></div></div>
-<div class="story-stage" aria-hidden="true"><div class="story-frame"><div id="L1" class="layer"><div class="rule"></div>
-  <div class="title">It learns made-up rules from the prompt</div>
-  <div class="sub">Shown worked examples of an invented rule, it applies the rule to a new case.</div>
+<section class="story" id="story" aria-label="How kotodama-tsumugi is built, and its four results, step by step">
+<div class="story-steps"><div class="story-step" data-beat="arch"><h3>How it is built</h3><p>kotodama-tsumugi is a 1.4B decoder with four design choices. It has 52 layers of weights. Its middle block of 20 runs twice with the same weights, for 72 layers of computation. Each layer reads a learned mix of earlier blocks' outputs instead of a plain running sum. Those blocks begin where the layer geometry of a model trained without them said they should.</p></div><div class="story-step" data-beat="rules"><h3>It learns made-up rules from the prompt</h3><p>The prompt shows worked examples of an invented rule, here a made-up plural, and the model picks the answer for a new word. On these tests it scores .559, where 0 is chance and 1 is always right. Public models that spent the same training compute score lower: checkpoints taken partway through training reach at most .461, and the best fully trained one, Falcon3 3B, .536.</p></div><div class="story-step" data-beat="loop"><h3>Its second pass does that work</h3><p>Switch off 60 attention heads chosen at random, a quarter of one pass, and measure how much rule learning is lost. It loses .132 when the cut is in the second pass, against .035 in the first pass and .019 in the layers before and after the loop. Fact recall in the same prompts falls only .025.</p></div><div class="story-step" data-beat="you"><h3>It tracks who “you” is after objects change hands</h3><p>On the last line of this chat, “you” is Kurt, who now has the battery. Swap who says that line, and “you” is Steve, who has the lamp, so the battery should lose probability. Here it falls from .445 to .311, a larger move than most. Averaged over 180 chats the drop is .038, and tsumugi is the smallest public base model whose drop clears +.02 across its whole 95% interval.</p></div><div class="story-step" data-beat="cheap"><h3>It is cheap for what it scores</h3><p>On nine standard benchmarks, with no examples in the prompt, it averages 64.1. That is above OLMo-2 1B at about the same number of tokens (61.8), and half a point below Pythia-2.8B (64.7), which spent 4 times the training compute.</p></div></div>
+<div class="story-stage" aria-hidden="true"><div class="story-frame"><div id="Larch" class="layer"><div class="rule"></div>
+  <div class="title">How it is built</div><div class="sub">Four choices, built up one at a time.</div>
+  <svg class="panel" id="aspire" style="left:96px;top:205px" width="520" height="660"></svg>
+  <div class="panel" id="atext" style="left:700px;top:230px;width:800px"></div></div>
+<div id="Lrules" class="layer"><div class="rule"></div>
+  <div class="title">It learns made-up rules from the prompt</div><div class="sub">Shown worked examples of an invented rule, it applies the rule to a new case.</div>
   <div class="panel" style="left:96px;width:640px">
     <div class="lab" style="margin-bottom:14px">a test item: an invented plural</div>
     <div id="items"></div>
@@ -10,226 +13,284 @@
     <div class="line" id="query" style="font-weight:700"></div>
     <div id="chips" style="margin-top:18px;opacity:0"></div>
     <div class="lab" id="pick" style="margin-top:14px;opacity:0">the model picks the answer it finds most likely</div></div>
-  <svg class="panel" id="strip" style="left:800px" width="704" height="560"></svg></div>
-
-<div id="L2" class="layer"><div class="rule"></div>
-  <div class="title">The second pass of its looped block does that work</div>
-  <div class="sub">Its middle 20 layers run twice with the same weights. Switch off a quarter of one pass's attention:</div>
-  <svg class="panel" id="spire" style="left:96px;top:220px" width="560" height="640"></svg>
-  <svg class="panel" id="cuts" style="left:760px;top:300px" width="744" height="420"></svg></div>
-
-<div id="L3" class="layer"><div class="rule"></div>
-  <div class="title">It tracks who “you” is after objects change hands</div>
-  <div class="sub">Swap who says the last line, and “you” is someone else: the old answer should lose probability.</div>
-  <div class="panel" id="chat" style="left:96px;width:700px"></div>
+  <svg class="panel" id="strip" style="left:800px" width="704" height="600"></svg></div>
+<div id="Lloop" class="layer"><div class="rule"></div>
+  <div class="title">Its second pass does that work</div><div class="sub">The same 20 layers run twice. Cutting attention in the second pass hurts rule learning most.</div>
+  <svg class="panel" id="spire" style="left:96px;top:215px" width="520" height="640"></svg>
+  <svg class="panel" id="cuts" style="left:700px;top:240px" width="800" height="300"></svg>
+  <div class="panel" id="cutnote" style="left:700px;top:560px;width:790px;font-size:21px;line-height:1.5;opacity:0"></div></div>
+<div id="Lyou" class="layer"><div class="rule"></div>
+  <div class="title">It tracks who “you” is after objects change hands</div><div class="sub">Swap who says the last line, and “you” is someone else: the old answer should lose probability.</div>
+  <div class="panel" id="chat" style="left:96px;width:720px"></div>
   <svg class="panel" id="dyn" style="left:900px;top:300px;overflow:visible" width="604" height="330"></svg></div>
-
-<div id="L4" class="layer"><div class="rule"></div>
-  <div class="title">It is cheap for what it scores</div>
-  <div class="sub">Average over nine standard benchmarks (HellaSwag, ARC, PIQA and six more), no examples in the prompt.</div>
-  <svg class="panel" id="cheap" style="left:96px;top:260px" width="1408" height="480"></svg></div>
-
-</div></div>
+<div id="Lcheap" class="layer"><div class="rule"></div>
+  <div class="title">It is cheap for what it scores</div><div class="sub">Nine standard benchmarks, no examples in the prompt. Each bar is accuracy, out of 100.</div>
+  <svg class="panel" id="grid" style="left:96px;top:205px" width="1408" height="660"></svg></div></div></div>
 </section>
 <style>
-.story { display: grid; grid-template-columns: minmax(0, 280px) minmax(0, 1fr); gap: 32px; margin: 26px 0 10px;
+.story { display: grid; grid-template-columns: minmax(0, 290px) minmax(0, 1fr); gap: 32px; margin: 26px 0 10px;
   width: min(1400px, 100vw - 32px); margin-left: 50%; transform: translateX(-50%); }
 .story-steps { display: grid; }
 .story-step { min-height: 80vh; display: flex; flex-direction: column; justify-content: center; opacity: .3; transition: opacity .4s; }
 .story-step.on { opacity: 1; }
 .story-step h3 { font-family: var(--f-display); font-size: 21px; line-height: 1.25; margin: 0 0 10px; text-wrap: balance; }
 .story-step p { margin: 0; color: var(--fg2); font-size: 15.5px; line-height: 1.6; }
-.story-stage { position: sticky; top: max(16px, calc(50vh - 260px)); align-self: start; background: #0b0c0e; border-radius: 12px;
+.story-stage { position: sticky; top: max(16px, calc(50vh - 280px)); align-self: start; background: #0b0c0e; border-radius: 12px;
   overflow: hidden; margin-top: 18vh; width: 100%; }
 .story-frame { position: relative; width: 1600px; height: 730px; transform-origin: 0 0; color: #f2f3f5; font-family: var(--f-display); }
-.story-frame .layer { position: absolute; left: 0; right: 0; top: -170px; height: 900px; opacity: 0; transition: opacity .45s; }
+.story-frame .layer { left: 0; right: 0; top: -170px; height: 900px; bottom: auto; transition: opacity .45s; }
 .story-frame .layer.on { opacity: 1; }
 .story-frame .title, .story-frame .sub, .story-frame .rule { display: none; }
-.story-frame .line { font-family: var(--f-mono); font-size: 34px; line-height: 1.5; opacity: 0; }
-.story-frame .chip { display: inline-block; font-family: var(--f-mono); font-size: 30px; padding: 4px 14px; margin-right: 10px; border: 1.5px solid #2b3038; color: #9aa3ad; }
-.story-frame .chip.on { border-color: #f2f3f5; color: #0b0c0e; background: #f2f3f5; font-weight: 700; }
-.story-frame .lab { font-size: 22px; color: #9aa3ad; }
-.story-frame .mono { font-family: var(--f-mono); }
-.story-frame .panel { position: absolute; top: 230px; }
+.layer { position: absolute; inset: 0; opacity: 0; }
+.mono { font-family: "Courier Prime", "Nimbus Mono PS", "Courier New", monospace; }
+.panel { position: absolute; top: 230px; }
+.line { font-family: "Courier Prime", "Nimbus Mono PS", "Courier New", monospace; font-size: 34px; line-height: 1.5; opacity: 0; }
+.chip { display: inline-block; font-family: "Courier Prime", "Nimbus Mono PS", "Courier New", monospace; font-size: 30px; padding: 4px 14px; margin-right: 10px; border: 1.5px solid #2b3038; color: #9aa3ad; }
+.chip.on { border-color: #f2f3f5; color: #0b0c0e; background: #f2f3f5; font-weight: 700; }
+.lab { font-size: 20px; color: #9aa3ad; }
+.ah { margin-bottom: 18px; }
+.ah b { display: block; font-size: 28px; }
+.ah .body { font-size: 22px; line-height: 1.45; color: #9aa3ad; margin-top: 8px; }
+.ah .f { font-family: "Courier Prime", "Nimbus Mono PS", "Courier New", monospace; font-size: 22px; line-height: 1.6; margin-top: 10px; color: #f2f3f5; }
+.ah .f .lab { font-size: 17px; }
+.spk { display: inline-block; }
+.story-frame .lab { font-size: 22px; }
 .story-frame svg { overflow: visible; }
 .story-frame svg text { font-family: var(--f-display); }
-/* phone: a portrait frame, panels stacked, small labels enlarged */
 @media (max-width: 760px) {
   .story { grid-template-columns: minmax(0, 1fr); width: auto; margin-left: 0; transform: none; gap: 0; }
   .story-stage { grid-row: 1; top: 6px; margin-top: 0; z-index: 2; box-shadow: 0 8px 22px rgba(0,0,0,.45); }
-  .story-step { justify-content: flex-start; }
-  .story-frame { width: 760px; height: 930px; }
-  .story-frame .layer { top: 0; height: 930px; }
-  .story-step { min-height: calc(var(--story-h, 420px) + 55vh); padding-top: calc(var(--story-h, 420px) + 22px); }
+  .story-step { justify-content: flex-start; min-height: calc(var(--story-h, 420px) + 55vh); padding-top: calc(var(--story-h, 420px) + 22px); }
+  .story-frame { width: 760px; height: 1020px; }
+  .story-frame .layer { top: 0; height: 1020px; }
   .story-frame .panel { left: 30px !important; }
   .story-frame .dup { display: none; }
-  #L1 div.panel, #L3 div.panel { top: 24px !important; }
-  #L1 svg.panel { top: 545px !important; left: 6px !important; }
-  #L3 svg.panel { top: 590px !important; left: 40px !important; }
-  #L2 svg#spire { top: 0 !important; transform: scale(.74); transform-origin: 0 0; }
-  #L2 svg#spire text[font-size="24"] { font-size: 34px; } #L2 svg#spire text[font-size="19"] { font-size: 28px; }
-  #L2 svg#cuts { top: 500px !important; }
-  #L4 svg#cheap { top: 70px !important; transform: scale(.5); transform-origin: 0 0; }
-  #L4 svg text[font-size="30"] { font-size: 46px; } #L4 svg text[font-size="54"] { font-size: 76px; }
-  #L4 svg text[font-size="24"] { font-size: 36px; } #L4 svg text[font-size="21"] { font-size: 25px; }
+  #Larch svg#aspire { top: 0 !important; transform: scale(.62); transform-origin: 0 0; }
+  #Larch #atext { top: 420px !important; width: 700px !important; }
+  #Lrules div.panel, #Lyou div.panel { top: 24px !important; }
+  #Lrules svg.panel { top: 545px !important; left: 6px !important; }
+  #Lyou svg.panel { top: 600px !important; left: 40px !important; }
+  #Lloop svg#spire { top: 0 !important; transform: scale(.62); transform-origin: 0 0; }
+  #Lloop svg#cuts { top: 410px !important; }
+  #Lloop #cutnote { top: 700px !important; width: 700px !important; font-size: 24px !important; }
+  #Lcheap svg#grid { top: 20px !important; transform: scale(.78); transform-origin: 0 0; }
   .story-frame .lab { font-size: 27px; }
   .story-frame svg text[font-size="19"], .story-frame svg text[font-size="20"], .story-frame svg text[font-size="21"] { font-size: 25px; }
-  #L3 .line { font-size: 28px !important; }
+  #Lyou .line { font-size: 28px !important; }
 }
 </style>
 <script>
 (() => {
-
-const D = {"rule": 0.5585956790123457, "trunk": 0.43590277777777775, "pub": [[0.4612577160493827, "Pythia 2.8B"], [0.4380555555555556, "Pythia 2.8B"], [0.4274922839506173, "Pythia 6.9B"], [0.4270061728395062, "OLMo-2 7B"], [0.42337962962962966, "OLMo-2 1B"], [0.42216049382716053, "Pythia 1.4B"], [0.4213734567901235, "OLMo-2 1B"], [0.4167824074074074, "Pythia 1.4B"], [0.407692901234568, "Pythia 1.4B"], [0.4047376543209877, "Pythia 2.8B"], [0.3951543209876543, "Pythia 1.4B"], [0.3694830246913581, "Pythia 6.9B"], [0.35041666666666677, "OLMo-2 7B"], [0.34717592592592594, "OLMo-2 13B"], [0.3284645061728395, "Pythia 6.9B"]], "final": [[0.5360108024691358, "Falcon3 3B"], [0.3918981481481482, "Pythia 1B"]], "cut": {"2nd pass": -0.13197530864197532, "1st pass": -0.03500000000000003, "outside the block": -0.019243827160493998}, "dyn": [["tsumugi 1.4B", 0.038, true], ["Qwen3 4B", 0.0549, false], ["SmolLM3 3B", 0.0274, false], ["Qwen3 1.7B", 0.0258, false], ["OLMo-2 1B", -0.0185, false], ["Qwen2.5 1.5B", -0.0356, false]], "avg9": 64.149, "p28": 64.651, "x28": 4.0244022526146415, "item": [["ta mu", "ta mo"], ["mo mi", "mo mo"], ["du bu", "du bo"], ["se pi", "se po"]], "chat": ["A chat between Steve and Kurt.", "Steve: The battery is in my hand.", "Steve: The shoe is in my hand.", "Kurt: I have the lamp.", "Kurt: Here, take my lamp.", "Steve: My battery is in your hand now."], "p_orig": 0.445, "p_swap": 0.311, "query": "pe fi", "choices": ["po", "fe", "fu", "fi", "fo"], "gold": "fo"};
-const FG="#f2f3f5", MUTED="#9aa3ad", LINE="#2b3038", NEG="#5d6672", BG="#0b0c0e";
+const D = {"rule": 0.5585956790123457, "pub": [[0.4612577160493827, "Pythia 2.8B"], [0.4380555555555556, "Pythia 2.8B"], [0.4274922839506173, "Pythia 6.9B"], [0.4270061728395062, "OLMo-2 7B"], [0.42337962962962966, "OLMo-2 1B"], [0.42216049382716053, "Pythia 1.4B"], [0.4213734567901235, "OLMo-2 1B"], [0.4167824074074074, "Pythia 1.4B"], [0.407692901234568, "Pythia 1.4B"], [0.4047376543209877, "Pythia 2.8B"], [0.3951543209876543, "Pythia 1.4B"], [0.3694830246913581, "Pythia 6.9B"], [0.35041666666666677, "OLMo-2 7B"], [0.34717592592592594, "OLMo-2 13B"], [0.3284645061728395, "Pythia 6.9B"]], "final": [[0.5360108024691358, "Falcon3 3B"], [0.3918981481481482, "Pythia 1B"]], "cut": [["2nd pass", -0.13197530864197532], ["1st pass", -0.03500000000000003], ["outside the loop", -0.019243827160493998]], "cut_recall2": -0.024609375000000044, "dyn": [["tsumugi 1.4B", 0.038, true], ["Qwen3 4B", 0.0549, false], ["SmolLM3 3B", 0.0274, false], ["Qwen3 1.7B", 0.0258, false], ["OLMo-2 1B", -0.0185, false], ["Qwen2.5 1.5B", -0.0356, false]], "grid": [{"name": "kotodama-tsumugi", "tok": "110B tokens", "scores": [58.1, 60.5, 62.9, 31.7, 71.4, 92.6, 61.6, 74.0, 64.5], "avg": 64.1, "compute": 1.0}, {"name": "OLMo-2 1B", "tok": "105B tokens", "scores": [54.7, 55.8, 64.3, 31.0, 72.2, 89.0, 56.8, 73.0, 59.2], "avg": 61.8, "compute": 0.7501206757843926}, {"name": "Pythia-1.4B", "tok": "300B tokens", "scores": [51.9, 60.9, 60.8, 28.2, 70.9, 86.8, 57.3, 72.0, 63.3], "avg": 61.4, "compute": 2.041153660498793}, {"name": "Pythia-2.8B", "tok": "300B tokens", "scores": [59.4, 63.9, 64.1, 31.9, 73.8, 88.8, 58.6, 78.0, 63.4], "avg": 64.7, "compute": 4.0244022526146415}], "bench": ["HellaSwag", "LAMBADA", "ARC-e", "ARC-c", "PIQA", "SciQ", "WinoGrande", "COPA", "BoolQ"], "item": [["ta mu", "ta mo"], ["mo mi", "mo mo"], ["du bu", "du bo"], ["se pi", "se po"]], "query": "pe fi", "choices": ["po", "fe", "fu", "fi", "fo"], "gold": "fo", "chat": ["A chat between Steve and Kurt.", "Steve: The battery is in my hand.", "Steve: The shoe is in my hand.", "Kurt: I have the lamp.", "Kurt: Here, take my lamp.", "Steve: My battery is in your hand now."], "p_orig": 0.445, "p_swap": 0.311, "bounds_even": [0, 9, 18, 27, 36, 45, 54, 63], "bounds": [0, 1, 7, 9, 17, 19, 39, 59]}, ARCH = [["Depth", "A decoder with 52 layers of weights, 1,536 wide: 19 input layers, a middle block of 20, and 13 output layers.", "1.42B parameters"], ["A looped middle block", "The middle block runs twice with the same weights, so the model computes through 72 layers while storing 52. Each pass keeps its own norms.", "f<sub>39+i</sub> = f<sub>19+i</sub>,  i = 0 \u2026 19"], ["Attention over depth", "A plain residual stream adds every earlier layer with weight 1. Here, each layer reads a learned, input-dependent mix of earlier blocks' outputs (Block Attention Residuals, Moonshot AI).", "plain:  h<sub>l+1</sub> = h<sub>l</sub> + f<sub>l</sub>(h<sub>l</sub>)<br>here:  h<sub>l</sub> = \u03a3<sub>n</sub> \u03b1<sub>n,l</sub> b<sub>n</sub>,  \u03b1<sub>n,l</sub> = softmax<sub>n</sub>( w<sub>l</sub> \u00b7 RMSNorm(b<sub>n</sub>) )<br><span class=\"lab\">b<sub>n</sub>: the summed outputs of block n \u00b7 w<sub>l</sub>: a learned query for layer l</span>"], ["Where the blocks begin", "The original design spaces its blocks evenly. These boundaries were fitted instead to the layer geometry of a model trained without them.", "blocks start at layers 0, 1, 7, 9, 17, 19, 39, 59"]];
+const FG = "#f2f3f5", MUTED = "#9aa3ad", LINE = "#2b3038", NEG = "#5d6672", BG = "#0b0c0e", MONO = "Courier Prime, Nimbus Mono PS, Courier New, monospace";
+const B = [[0.0, 2.6], [2.6, 15.0], [15.0, 23.6], [23.6, 30.0], [30.0, 38.6], [38.6, 44.6], [44.6, 48.6]], NAMES = ["intro", "arch", "rules", "loop", "you", "cheap", "card"], FADE = 0.45;
 const cl = (x) => Math.max(0, Math.min(1, x));
 const ease = (x) => { x = cl(x); return x < .5 ? 2*x*x : 1 - Math.pow(-2*x + 2, 2)/2; };
 const ramp = (t, a, b) => ease((t - a) / (b - a));
 const f3 = (v, s) => (s && v > 0 ? "+" : "") + (v < 0 ? "−" : "") + Math.abs(v).toFixed(3).replace(/^0/, "");
 const $ = (id) => document.getElementById(id);
-const B = [[0, 2.6], [2.6, 10.6], [10.6, 17.4], [17.4, 24.2], [24.2, 28.6], [28.6, 32.5]], SEGS = [[0.0, 0, 2.6, 0.6, false], [5.8, 2.6, 10.6, 3.0, false], [24.8, 10.6, 17.4, 3.0, false], [41.4, 17.4, 24.2, 3.5, false], [58.5, 24.2, 28.6, 3.0, false], [70.3, 28.6, 32.5, 2.0, true]], SLOW = 2.0, FADE = 0.45;
-function story(t) {   // real time -> story time: half speed, then a hold on the beat's last full frame, then the fade
-  let seg = SEGS[0];
-  for (const sg of SEGS) if (t >= sg[0]) seg = sg;
-  const [r0, a, b, hold, last] = seg, core = (b - a) - (last ? 0 : FADE), u = t - r0;
-  if (u < SLOW * core) return a + u / SLOW;
-  if (u < SLOW * core + hold) return a + core;
-  return Math.min(b, a + core + (u - SLOW * core - hold) / SLOW);
-}
-function layer(i, t) { const [a, b] = B[i]; const last = i === B.length - 1;
-  return Math.min(ramp(t, a, a + .45), last ? 1 : 1 - ramp(t, b - .45, b)); }
+const T0 = (n) => B[NAMES.indexOf(n)][0];
 
-// beat 1: item + strip chart
-function beat1(t) {
-  const t0 = B[1][0];
+// the layer stack, shared by the architecture and loop beats. open = how far the second pass has opened (0..1),
+// lit = how many of the 72 positions are lit, dim = second-pass dimming, bnd = block-boundary ticks to draw
+function stack(opts) {
+  const { open = 1, lit = 72, dim = 0, bnd = null, bndOp = 0, arc = 0, labels = 1 } = opts;
+  const H = 600, pitch = 7.6, bx = 120, bw = 90, gap = 6;
+  const sec = (p) => p < 19 ? 0 : p < 39 ? 1 : p < 59 ? 2 : 3;
+  const y = (p) => {   // bottom edge of position p; the second pass has height `open`
+    let off = p; if (p >= 39) off = 39 + Math.min(p - 39, 20) * open + (p >= 59 ? p - 59 : 0);
+    return H - 10 - off * pitch - Math.min(sec(p), 1) * gap - (p >= 39 ? gap * open : 0) - (p >= 59 ? gap : 0);
+  };
+  let s = "";
+  for (let p = 0; p < 72; p++) {
+    const k = sec(p); if (k === 2 && open < .02) continue;
+    const on = p < lit, hh = pitch * .66 * (k === 2 ? open : 1);
+    let fill = (k === 1 || k === 2) ? (on ? FG : "#3a414b") : (on ? "#8a939e" : "#2b3038");
+    const op = k === 2 ? (1 - .55 * dim) * cl(open * 1.5) : 1;
+    if (k === 2) s += `<rect x="${bx + .6}" y="${(y(p) - hh).toFixed(1)}" width="${bw - 1.2}" height="${hh.toFixed(1)}" fill="none" stroke="${fill}" stroke-width="1.1" opacity="${op}"/>`;
+    else s += `<rect x="${bx}" y="${(y(p) - hh).toFixed(1)}" width="${bw}" height="${hh.toFixed(1)}" fill="${fill}"/>`;
+  }
+  const lab = (p0, p1, a, b, o) => { const yy = (y(p0) + y(p1)) / 2;
+    return `<g opacity="${o}"><text x="${bx + bw + 28}" y="${yy - 4}" fill="${FG}" font-size="23">${a}</text><text x="${bx + bw + 28}" y="${yy + 21}" fill="${MUTED}" font-size="18">${b}</text></g>`; };
+  if (labels) {
+    s += lab(59, 71, "output layers", "13", 1);
+    s += lab(39, 58, "middle block, again", "same weights, 2nd pass", cl(open * 2 - 1));
+    s += lab(19, 38, "middle block", "20 layers, 1st pass", 1);
+    s += lab(0, 18, "input layers", "19", 1);
+  }
+  if (open > .5) { const o = cl(open * 2 - 1);
+    s += `<path d="M${bx - 14},${y(38) - pitch} H${bx - 34} V${y(19)} H${bx - 14}" fill="none" stroke="${FG}" stroke-width="2" opacity="${o}"/>`
+       + `<text x="${bx - 44}" y="${(y(19) + y(38)) / 2 + 6}" text-anchor="end" fill="${FG}" font-size="22" font-family="${MONO}" opacity="${o}">×2</text>`; }
+  if (bnd) {
+    bnd.forEach((b0) => { const yy = y(b0);
+      s += `<line x1="${bx - 10}" x2="${bx + bw + 10}" y1="${yy}" y2="${yy}" stroke="#64c9ff" stroke-width="2.2" opacity="${bndOp}"/>`
+         + `<text x="${bx - 16}" y="${yy + 5}" text-anchor="end" fill="#64c9ff" font-size="16" font-family="${MONO}" opacity="${bndOp}">${Math.round(b0)}</text>`; });
+    if (arc > 0) {   // one layer (position 50) reading earlier blocks: equal-weight arcs, drawn in order
+      const yl = y(50) - pitch * .3;
+      bnd.forEach((b0, i) => { const yy = y(b0) - pitch * .3, o = cl(arc * bnd.length - i);
+        if (b0 >= 50) return;
+        s += `<path d="M${bx + bw},${yl} C${bx + bw + 60 + i * 9},${yl} ${bx + bw + 60 + i * 9},${yy} ${bx + bw},${yy}" fill="none" stroke="#64c9ff" stroke-width="1.6" opacity="${.75 * o}"/>`; });
+      s += `<circle cx="${bx + bw}" cy="${yl}" r="5" fill="#64c9ff" opacity="${cl(arc * 3)}"/>`;
+    }
+  }
+  return s;
+}
+
+const DRAW = {};
+DRAW.arch = (t) => {
+  const t0 = T0("arch");
+  const P = [[.3, 2.7], [2.9, 5.5], [5.7, 8.7], [8.9, 11.6]];          // the four choices
+  const ph = P.findIndex(([a, b]) => t < t0 + b + .2); const k = ph < 0 ? 4 : ph;
+  const open = ramp(t, t0 + 3.1, t0 + 4.6), lit = 72 * ramp(t, t0 + .4, t0 + 2.0);
+  const bndOp = ramp(t, t0 + 5.9, t0 + 6.4), slide = ramp(t, t0 + 9.1, t0 + 10.6);
+  const bnd = D.bounds_even.map((b0, i) => b0 + (D.bounds[i] - b0) * slide);
+  const arc = ramp(t, t0 + 6.6, t0 + 8.2) * (1 - ramp(t, t0 + 8.9, t0 + 9.3));
+  $("aspire").innerHTML = stack({ open, lit: open < .02 ? lit : 72, bnd, bndOp, arc });
+  let h = "";
+  ARCH.forEach(([head, body, f], i) => {
+    const seen = ramp(t, t0 + P[i][0], t0 + P[i][0] + .4), active = i === k, done = k === 4;
+    h += `<div class="ah" style="opacity:${seen * (active || done ? 1 : .45)}"><b>${i + 1}. ${head}</b>`
+       + (active ? `<div class="body">${body}</div><div class="f">${f}</div>` : done ? `<div class="f">${f}</div>` : "") + `</div>`;
+  });
+  h += `<div class="ah" style="opacity:${ramp(t, t0 + 11.4, t0 + 11.9)}"><div class="body" style="color:${FG}">Together: 72 layers of computation from 52 layers of weights, with every layer choosing what to read from the blocks below it.</div></div>`;
+  $("atext").innerHTML = h;
+};
+
+DRAW.rules = (t) => {
+  const t0 = T0("rules");
   $("items").innerHTML = D.item.map((p, i) => `<div class="line" style="opacity:${ramp(t, t0+.8+i*.45, t0+1.1+i*.45)}">${p[0]} → ${p[1]}</div>`).join("");
   $("more").style.opacity = ramp(t, t0+2.6, t0+2.9);
-  const q = ramp(t, t0+3.1, t0+3.4); $("query").style.opacity = q; $("query").textContent = `${D.query} → pe ___`;
+  $("query").style.opacity = ramp(t, t0+3.1, t0+3.4); $("query").textContent = `${D.query} → pe ___`;
   const pk = t > t0 + 4.6;
   $("chips").style.opacity = ramp(t, t0+3.7, t0+4.0);
   $("chips").innerHTML = D.choices.map(c => `<span class="chip${pk && c === D.gold ? " on" : ""}">${c}</span>`).join("");
   $("pick").style.opacity = ramp(t, t0+4.6, t0+4.9);
   if (pk) $("query").textContent = `${D.query} → pe ${D.gold}`;
+  const s0 = t0 + 5.15;                                                  // a beat after the pick (Luxia)
   const W = 704, x = (v) => 40 + (v - .30) / (.60 - .30) * (W - 80), y0 = 300;
-  let s = `<text x="40" y="40" class="lab" fill="${MUTED}" font-size="20">rule-learning score · 0 = chance, 1 = perfect</text>`;
+  let s = `<text x="40" y="40" fill="${MUTED}" font-size="20">rule-learning score · 0 = chance, 1 = perfect</text>`;
   s += `<line x1="40" x2="${W-40}" y1="${y0}" y2="${y0}" stroke="${LINE}" stroke-width="2"/>`;
-  for (const v of [.3, .4, .5, .6]) s += `<line x1="${x(v)}" x2="${x(v)}" y1="${y0-6}" y2="${y0+6}" stroke="${MUTED}"/><text x="${x(v)}" y="${y0+34}" text-anchor="middle" fill="${MUTED}" font-size="20" font-family="Courier Prime, Nimbus Mono PS, Courier New, monospace">${v.toFixed(1).replace(/^0/,"")}</text>`;
-  const pa = ramp(t, t0+4.9, t0+5.9);
-  const stack = {};
-  D.pub.forEach((p, i) => { const bin = Math.round(p[0] / .012); stack[bin] = (stack[bin] || 0) + 1; const yy = y0 - 22 - (stack[bin] - 1) * 20;
-    s += `<circle cx="${x(p[0])}" cy="${yy}" r="7" fill="${NEG}" opacity="${cl(pa*15 - i)}"/>`; });
-  D.final.forEach((p) => { const bin = Math.round(p[0] / .012); stack[bin] = (stack[bin] || 0) + 1; const yy = y0 - 22 - (stack[bin] - 1) * 20;
-    s += `<circle cx="${x(p[0])}" cy="${yy}" r="7" fill="none" stroke="${MUTED}" stroke-width="2.5" opacity="${pa}"/>`; });
-  const fb = D.final[0];
-  s += `<text x="${x(fb[0])}" y="${y0+62}" text-anchor="middle" fill="${MUTED}" font-size="19" opacity="${pa}">○ ${fb[1]} ${f3(fb[0])}</text>`;
+  for (const v of [.3, .4, .5, .6]) s += `<line x1="${x(v)}" x2="${x(v)}" y1="${y0-6}" y2="${y0+6}" stroke="${MUTED}"/><text x="${x(v)}" y="${y0+34}" text-anchor="middle" fill="${MUTED}" font-size="20" font-family="${MONO}">${v.toFixed(1).replace(/^0/,"")}</text>`;
+  const pa = ramp(t, s0, s0 + 1.0), stack_ = {};
+  D.pub.forEach((p, i) => { const bin = Math.round(p[0] / .012); stack_[bin] = (stack_[bin] || 0) + 1;
+    s += `<circle cx="${x(p[0])}" cy="${y0 - 22 - (stack_[bin] - 1) * 20}" r="7" fill="${NEG}" opacity="${cl(pa*15 - i)}"/>`; });
+  D.final.forEach((p) => { const bin = Math.round(p[0] / .012); stack_[bin] = (stack_[bin] || 0) + 1;
+    s += `<circle cx="${x(p[0])}" cy="${y0 - 22 - (stack_[bin] - 1) * 20}" r="7" fill="none" stroke="${MUTED}" stroke-width="2.5" opacity="${pa}"/>`; });
+  s += `<text x="${x(D.final[0][0])}" y="${y0+62}" text-anchor="middle" fill="${MUTED}" font-size="19" opacity="${pa}">○ ${D.final[0][1]} ${f3(D.final[0][0])}</text>`;
   s += `<text x="40" y="${y0+108}" fill="${MUTED}" font-size="21" opacity="${pa}">● 15 public checkpoints, partway through training · ○ 2 fully</text>`;
   s += `<text x="40" y="${y0+134}" fill="${MUTED}" font-size="21" opacity="${pa}">trained public models: all at the same training compute</text>`;
-  const d = ramp(t, t0+6.3, t0+6.9), yd = y0 - 40 - (1 - d) * 160;
-  s += `<g opacity="${d}"><rect x="${x(D.rule)-12}" y="${yd-12}" width="24" height="24" fill="${FG}" transform="rotate(45 ${x(D.rule)} ${yd})"/>`;
-  s += `<text x="${x(D.rule)}" y="${yd-34}" text-anchor="middle" fill="${FG}" font-size="40" font-weight="700" font-family="Courier Prime, Nimbus Mono PS, Courier New, monospace">${f3(D.rule)}</text>`;
-  s += `<text x="${x(D.rule)}" y="${yd-82}" text-anchor="middle" fill="${FG}" font-size="24">tsumugi</text></g>`;
+  const d = ramp(t, s0 + 1.4, s0 + 2.0), yd = y0 - 40 - (1 - d) * 160;
+  s += `<g opacity="${d}"><rect x="${x(D.rule)-12}" y="${yd-12}" width="24" height="24" fill="${FG}" transform="rotate(45 ${x(D.rule)} ${yd})"/>`
+     + `<text x="${x(D.rule)}" y="${yd-34}" text-anchor="middle" fill="${FG}" font-size="40" font-weight="700" font-family="${MONO}">${f3(D.rule)}</text>`
+     + `<text x="${x(D.rule)}" y="${yd-82}" text-anchor="middle" fill="${FG}" font-size="24">tsumugi</text></g>`;
   $("strip").innerHTML = s;
-}
+};
 
-// beat 2: spire + cut bars
-function beat2(t) {
-  const t0 = B[2][0], H = 600, pitch = (H - 60) / 72, bx = 120, bw = 90;
-  const sec = (p) => p < 19 ? 0 : p < 39 ? 1 : p < 59 ? 2 : 3;
-  const yb = (p) => H - 20 - p * pitch - sec(p) * 6;
-  const sweep = (t - (t0 + .6)) / 2.2 * 72;   // activity sweeps up the 72 layers
-  const dim = ramp(t, t0 + 3.2, t0 + 3.8);
-  let s = "";
-  for (let p = 0; p < 72; p++) {
-    const lit = p <= sweep; const k = sec(p);
-    let fill = k === 1 || k === 2 ? (lit ? FG : "#3a414b") : (lit ? "#8a939e" : "#2b3038");
-    let op = k === 2 ? 1 - .45 * dim : 1;
-    s += `<rect x="${bx}" y="${(yb(p) - pitch*.66).toFixed(1)}" width="${bw}" height="${(pitch*.66).toFixed(1)}" fill="${fill}" opacity="${op}"/>`;
-  }
-  const lab = (p0, p1, a, b) => { const y = (yb(p0) + yb(p1)) / 2; return `<text x="${bx+bw+30}" y="${y-4}" fill="${FG}" font-size="24">${a}</text><text x="${bx+bw+30}" y="${y+22}" fill="${MUTED}" font-size="19">${b}</text>`; };
-  s += lab(59, 71, "output layers", "13");
-  s += lab(39, 58, "middle block, again", "same weights, 2nd pass");
-  s += lab(19, 38, "middle block", "20 layers, 1st pass");
-  s += lab(0, 18, "input layers", "19");
-  s += `<path d="M${bx-14},${yb(38)-pitch} H${bx-34} V${yb(19)} H${bx-14}" fill="none" stroke="${FG}" stroke-width="2" opacity="${ramp(t,t0+1.6,t0+2)}"/><text x="${bx-44}" y="${(yb(19)+yb(38))/2}" text-anchor="end" fill="${FG}" font-size="22" font-family="Courier Prime, Nimbus Mono PS, Courier New, monospace" opacity="${ramp(t,t0+1.6,t0+2)}">×2</text>`;
-  s += `<text x="${bx+bw+30}" y="${(yb(39)+yb(58))/2+52}" fill="${FG}" font-size="19" font-family="Courier Prime, Nimbus Mono PS, Courier New, monospace" opacity="${dim}">¼ of attention off</text>`;
+DRAW.loop = (t) => {
+  const t0 = T0("loop");
+  const lit = 72 * ramp(t, t0 + .5, t0 + 1.6), dim = ramp(t, t0 + 1.9, t0 + 2.3);
+  let s = stack({ lit, dim });
+  s += `<text x="238" y="262" fill="#64c9ff" font-size="18" font-family="${MONO}" opacity="${dim}">60 random heads off</text>`;
   $("spire").innerHTML = s;
-  let c = `<text x="0" y="24" fill="${MUTED}" font-size="21">rule-learning score lost, by where the cut is made</text>`;
-  const rows = Object.entries(D.cut), sc = 2400;
-  rows.forEach(([name, v], i) => { const gr = ramp(t, t0 + 4.0 + i * .5, t0 + 4.8 + i * .5); const y = 60 + i * 100;
-    const w = Math.abs(v) * sc * gr, hi = name === "2nd pass";
-    c += `<text x="0" y="${y+30}" fill="${hi ? FG : MUTED}" font-size="26">${name}</text>`;
-    c += `<rect x="300" y="${y+6}" width="${w}" height="34" fill="${hi ? FG : NEG}"/>`;
-    c += `<text x="${310+w}" y="${y+34}" fill="${hi ? FG : MUTED}" font-size="30" font-weight="700" font-family="Courier Prime, Nimbus Mono PS, Courier New, monospace" opacity="${gr}">${f3(v)}</text>`; });
+  const g0 = t0 + 2.5, g1 = t0 + 3.3, gr = ramp(t, g0, g1), lab = ramp(t, g1, g1 + .3), sc = 2600;
+  let c = `<text x="0" y="24" fill="${MUTED}" font-size="21">rule learning lost, by where 60 random heads are switched off</text>`;
+  D.cut.forEach(([name, v], i) => { const y = 54 + i * 78, w = Math.abs(v) * sc * gr, hi = i === 0;
+    c += `<text x="0" y="${y + 30}" fill="${hi ? FG : MUTED}" font-size="26">${name}</text>`
+       + `<rect x="270" y="${y + 6}" width="${w}" height="34" fill="${hi ? FG : NEG}"/>`
+       + `<text x="${280 + Math.abs(v) * sc}" y="${y + 34}" fill="${hi ? FG : MUTED}" font-size="30" font-weight="700" font-family="${MONO}" opacity="${lab}">${f3(v)}</text>`; });
   $("cuts").innerHTML = c;
-}
+  $("cutnote").style.opacity = ramp(t, g0, g1);
+  $("cutnote").innerHTML = `<span style="color:${MUTED}">Each cut switches off 60 attention heads chosen at random, a quarter of the 240 in one pass, `
+    + `with five different draws per place. A second-pass cut costs rule learning ${f3(Math.abs(D.cut[0][1]))}, almost four times a first-pass cut, `
+    + `while fact recall in the same prompts falls only ${f3(Math.abs(D.cut_recall2))}. The gap holds after controlling for how much each cut hurts the model's text prediction.</span>`;
+};
 
-// beat 3: chat swap + bars (item text filled in when the real item arrives)
-function beat3(t) {
-  const t0 = B[3][0], sw = ramp(t, t0 + 2.4, t0 + 2.8);
+DRAW.you = (t) => {
+  const t0 = T0("you"), sw = ramp(t, t0 + 3.4, t0 + 4.2), pb = ramp(t, t0 + 4.3, t0 + 5.0);
   const ln = (txt, a, st) => `<div class="line" style="font-size:24px;line-height:1.45;opacity:${ramp(t, a, a + .3)};${st||""}">${txt}</div>`;
   let h = `<div class="lab" style="margin-bottom:10px">one test chat (after 3 worked examples)</div>`;
   D.chat.forEach((c, i) => { h += ln(c, t0 + .4 + i * .18, i === 0 ? "color:" + MUTED : ""); });
-  h += ln((sw < .5 ? "Steve" : "Kurt") + ": Right now you're holding the ___", t0 + 1.6, "font-weight:700");
-  h += ln(sw < .5 ? "“you” = Kurt, who now has the battery" : "“you” = Steve, who now has the lamp", t0 + 1.8, "color:" + MUTED + ";font-size:21px");
-  const p = D.p_orig + (D.p_swap - D.p_orig) * sw, show = ramp(t, t0 + 1.9, t0 + 2.2);
-  h += `<div style="margin-top:22px;opacity:${show}"><span class="lab">probability of “battery”</span>`
+  // the swap: the old speaker floats up and out while the new one floats in
+  const name = (who, o, dy, dx) => `<span class="spk" style="opacity:${o};transform:translate(${dx}px, ${dy}px)">${who}</span>`;
+  const spk = `<span style="position:relative;display:inline-block;width:5.2ch">${name("Steve:", 1 - sw, 0, -60 * sw)}`
+            + `<span style="position:absolute;left:0;top:0">${name("Kurt:", sw, 0, 60 * (1 - sw))}</span></span>`;
+  h += `<div class="line" style="font-size:24px;line-height:1.45;font-weight:700;opacity:${ramp(t, t0 + 1.6, t0 + 1.9)}">${spk} Right now you're holding the ___</div>`;
+  h += `<div style="position:relative;height:34px;opacity:${ramp(t, t0 + 1.8, t0 + 2.1)}">`
+     + `<div class="line" style="position:absolute;opacity:${cl(1 - 2 * sw)};font-size:21px;color:${MUTED}">“you” = Kurt, who now has the battery</div>`
+     + `<div class="line" style="position:absolute;opacity:${cl(2 * sw - 1)};font-size:21px;color:${MUTED}">“you” = Steve, who now has the lamp</div></div>`;
+  const p = D.p_orig + (D.p_swap - D.p_orig) * pb;
+  h += `<div style="margin-top:22px;opacity:${ramp(t, t0 + 2.0, t0 + 2.3)}"><span class="lab">probability of “battery”</span>`
      + `<div style="display:flex;align-items:center;gap:14px;margin-top:8px"><div style="height:26px;width:${p*600}px;background:${FG}"></div>`
      + `<span class="mono" style="font-size:28px;font-weight:700">${p.toFixed(3).replace(/^0/,"")}</span></div>`
-     + `<div class="lab dup" style="margin-top:8px;opacity:${ramp(t, t0+3.0, t0+3.3)}">this chat moves more than most: the average across 180 is .038</div></div>`;
+     + `<div class="lab dup" style="margin-top:8px;opacity:${ramp(t, t0+5.1, t0+5.4)}">this chat moves more than most: the average across 180 is ${f3(D.dyn[0][1])}</div></div>`;
   $("chat").innerHTML = h;
   const W = 604, lw = 160, x0 = lw + (W - lw - 60) / 2, sc = (W - lw - 60) / 2 / .1;
+  const g0 = t0 + 5.6, g1 = t0 + 6.4, gr = ramp(t, g0, g1), lab = ramp(t, g1, g1 + .3);
   let s = `<text x="0" y="-6" fill="${MUTED}" font-size="21">average drop, by model</text>`;
-  D.dyn.forEach(([name, v, ours], i) => { const gr = ramp(t, t0 + 3.6 + i * .18, t0 + 4.2 + i * .18), y = 30 + i * 34, w = Math.abs(v) * sc * gr;
-    s += `<text x="${lw-12}" y="${y+21}" text-anchor="end" fill="${ours ? FG : MUTED}" font-size="20" font-family="Courier Prime, Nimbus Mono PS, Courier New, monospace" font-weight="${ours ? 700 : 400}">${name}</text>`;
-    s += `<rect x="${v < 0 ? x0 - w : x0}" y="${y+4}" width="${w}" height="22" fill="${ours ? FG : NEG}"/>`;
-    s += `<text x="${v < 0 ? x0 + 8 : x0 + w + 8}" y="${y+21}" fill="${ours ? FG : MUTED}" font-size="19" font-family="Courier Prime, Nimbus Mono PS, Courier New, monospace" opacity="${gr}">${f3(v, true)}</text>`; });
-  const yb = 30 + D.dyn.length * 34 + 10;
-  s += `<line x1="${x0}" x2="${x0}" y1="28" y2="${yb}" stroke="${FG}" stroke-width="2"/>`;
-  s += `<text x="${x0-8}" y="${yb+28}" text-anchor="end" fill="${MUTED}" font-size="19">← takes “you” as the speaker</text><text x="${x0+8}" y="${yb+28}" fill="${MUTED}" font-size="19">tracks “you” →</text>`;
-  const c = ramp(t, t0 + 5.0, t0 + 5.4);
-  s += `<text class="dup" x="0" y="${yb+76}" fill="${FG}" font-size="22" opacity="${c}">the smallest public base model whose drop</text>`;
-  s += `<text class="dup" x="0" y="${yb+104}" fill="${FG}" font-size="22" opacity="${c}">clears +.02 across its whole 95% interval</text>`;
+  D.dyn.forEach(([nm, v, ours], i) => { const y = 30 + i * 34, w = Math.abs(v) * sc * gr;
+    s += `<text x="${lw-12}" y="${y+21}" text-anchor="end" fill="${ours ? FG : MUTED}" font-size="20" font-family="${MONO}" font-weight="${ours ? 700 : 400}">${nm}</text>`
+       + `<rect x="${v < 0 ? x0 - w : x0}" y="${y+4}" width="${w}" height="22" fill="${ours ? FG : NEG}"/>`
+       + `<text x="${v < 0 ? x0 + 8 : x0 + Math.abs(v) * sc + 8}" y="${y+21}" fill="${ours ? FG : MUTED}" font-size="19" font-family="${MONO}" opacity="${lab}">${f3(v, true)}</text>`; });
+  const yb = 30 + D.dyn.length * 34 + 10, c = ramp(t, g1 + .4, g1 + .8);
+  s += `<line x1="${x0}" x2="${x0}" y1="28" y2="${yb}" stroke="${FG}" stroke-width="2"/>`
+     + `<text x="${x0-8}" y="${yb+28}" text-anchor="end" fill="${MUTED}" font-size="19">← takes “you” as the speaker</text><text x="${x0+8}" y="${yb+28}" fill="${MUTED}" font-size="19">tracks “you” →</text>`
+     + `<text class="dup" x="0" y="${yb+76}" fill="${FG}" font-size="22" opacity="${c}">the smallest public base model whose drop</text>`
+     + `<text class="dup" x="0" y="${yb+104}" fill="${FG}" font-size="22" opacity="${c}">clears +.02 across its whole 95% interval</text>`;
   $("dyn").innerHTML = s;
-}
+};
 
-// beat 4: benchmark average and compute
-function beat4(t) {
-  const t0 = B[4][0]; let s = "";
-  const row = (y, name, avg, comp, hi, a) => { const g = ramp(t, a, a + .8);
-    return `<text x="0" y="${y}" fill="${hi ? FG : MUTED}" font-size="30">${name}</text>`
-      + `<text x="360" y="${y}" fill="${hi ? FG : MUTED}" font-size="54" font-weight="700" font-family="Courier Prime, Nimbus Mono PS, Courier New, monospace" opacity="${g}">${avg.toFixed(1)}</text>`
-      + `<rect x="620" y="${y-34}" width="${comp * 170 * g}" height="40" fill="${hi ? FG : NEG}"/>`
-      + `<text x="${630 + comp*170*g}" y="${y-4}" fill="${hi ? FG : MUTED}" font-size="24" font-family="Courier Prime, Nimbus Mono PS, Courier New, monospace" opacity="${g}">${comp === 1 ? "1×" : comp.toFixed(0) + "×"}</text>`; };
-  s += `<text x="360" y="20" fill="${MUTED}" font-size="21">benchmark average</text><text x="620" y="20" fill="${MUTED}" font-size="21">training compute</text>`;
-  s += row(130, "tsumugi 1.4B", D.avg9, 1, true, t0 + .6);
-  s += row(250, "Pythia-2.8B", D.p28, D.x28, false, t0 + 1.2);
-  $("cheap").innerHTML = s;
-}
+DRAW.cheap = (t) => {
+  const t0 = T0("cheap"), g0 = t0 + .6, g1 = t0 + 1.4, gr = ramp(t, g0, g1), lab = ramp(t, g1, g1 + .3);
+  const c0 = t0 + 2.0, c1 = t0 + 2.8, cg = ramp(t, c0, c1), clab = ramp(t, c1, c1 + .3);
+  const phone = !!document.querySelector(".story-frame") && matchMedia("(max-width: 760px)").matches;
+  const cols = phone ? [0, 3] : [0, 1, 2, 3], G = cols.map(j => D.grid[j]);
+  const lw = phone ? 230 : 190, cw = phone ? 360 : 300, rh = phone ? 52 : 38, bw = phone ? 230 : 210, top = phone ? 96 : 70;
+  const fs = phone ? 1.6 : 1;
+  let s = "";
+  G.forEach((m, j) => { const x = lw + j * cw, hi = j === 0;
+    s += `<text x="${x}" y="${24 * fs}" fill="${hi ? FG : MUTED}" font-size="${22 * fs}" font-weight="${hi ? 700 : 400}">${m.name}</text>`
+       + `<text x="${x}" y="${52 * fs}" fill="${MUTED}" font-size="${18 * fs}" font-family="${MONO}">${m.tok}</text>`; });
+  const rows = D.bench.map((b, i) => [b, G.map(m => m.scores[i]), false]).concat([["average", G.map(m => m.avg), true]]);
+  rows.forEach(([b, vals, avg], i) => { const y = top + i * rh + (avg ? 10 : 0);
+    if (avg) s += `<line x1="0" x2="${lw + cols.length * cw - 40}" y1="${y - 6}" y2="${y - 6}" stroke="${LINE}"/>`;
+    s += `<text x="0" y="${y + 22 * fs}" fill="${avg ? FG : MUTED}" font-size="${(avg ? 22 : 19) * fs}" font-weight="${avg ? 700 : 400}">${b}</text>`;
+    vals.forEach((v, j) => { const x = lw + j * cw, hi = j === 0, bh = (avg ? 24 : 20) * (phone ? 1.4 : 1);
+      s += `<rect x="${x}" y="${y + 6}" width="${v / 100 * bw * gr}" height="${bh}" fill="${hi ? FG : NEG}"/>`
+         + `<text x="${x + v / 100 * bw + 8}" y="${y + 6 + bh - 3}" fill="${hi ? FG : MUTED}" font-size="${(avg ? 21 : 17) * fs}" font-weight="${avg ? 700 : 400}" font-family="${MONO}" opacity="${lab}">${v.toFixed(1)}</text>`; }); });
+  const yc = top + rows.length * rh + 34;
+  s += `<line x1="0" x2="${lw + cols.length * cw - 40}" y1="${yc - 8}" y2="${yc - 8}" stroke="${LINE}"/>`
+     + `<text x="0" y="${yc + 22 * fs}" fill="${FG}" font-size="${21 * fs}" font-weight="700">compute</text>`;
+  G.forEach((m, j) => { const x = lw + j * cw, hi = j === 0, w = Math.min(m.compute, 4.2) / 4.2 * bw, bh = 24 * (phone ? 1.4 : 1);
+    s += `<rect x="${x}" y="${yc + 6}" width="${w * cg}" height="${bh}" fill="${hi ? FG : NEG}"/>`
+       + `<text x="${x + w + 8}" y="${yc + 6 + bh - 3}" fill="${hi ? FG : MUTED}" font-size="${20 * fs}" font-family="${MONO}" opacity="${clab}">${m.compute < .95 ? m.compute.toFixed(2) : m.compute.toFixed(1)}×</text>`; });
+  if (phone) { $("grid").innerHTML = s; return; }
+  const co = ramp(t, c1 + .5, c1 + .9);
+  s += `<text x="0" y="${yc + 78}" fill="${FG}" font-size="22" opacity="${co}">tsumugi averages ${D.grid[0].avg.toFixed(1)}: above OLMo-2 1B at about the same number of tokens,</text>`
+     + `<text x="0" y="${yc + 108}" fill="${FG}" font-size="22" opacity="${co}">and half a point below Pythia-2.8B, which spent ${D.grid[3].compute.toFixed(0)} times the training compute.</text>`;
+  $("grid").innerHTML = s;
+};
 
-
-const ENDS = B.map(([a, b], i) => [a, i === B.length - 1 ? b : b - FADE]);
 const frame = document.querySelector(".story-frame"), stage = document.querySelector(".story-stage");
-const fit = () => { const fw = frame.offsetWidth, fh = frame.offsetHeight, k = stage.clientWidth / fw;
-  frame.style.transform = `scale(${k})`; stage.style.height = `${fh * k}px`;
-  document.querySelector(".story").style.setProperty("--story-h", `${fh * k}px`); };
+const fit = () => { const k = stage.clientWidth / frame.offsetWidth; frame.style.transform = `scale(${k})`;
+  stage.style.height = `${frame.offsetHeight * k}px`; document.querySelector(".story").style.setProperty("--story-h", `${frame.offsetHeight * k}px`); };
 fit(); addEventListener("resize", fit);
-const draw = [null, beat1, beat2, beat3, beat4];
+const STEPN = ["arch", "rules", "loop", "you", "cheap"], END = (n) => { const i = NAMES.indexOf(n); return [B[i][0], B[i][1] - FADE]; };
 const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
-let cur = 0, raf = 0;
-const PACE = 0.7, seen = new Set();   // the page plays each beat at 0.7x its story time (the video runs at half speed)
-function show(i) {
-  if (i === cur) return; cur = i; cancelAnimationFrame(raf);
-  for (let k = 1; k <= 4; k++) document.getElementById("L" + k).classList.toggle("on", k === i);
-  document.querySelectorAll(".story-step").forEach(s => s.classList.toggle("on", +s.dataset.beat === i));
-  const [a, e] = ENDS[i];
-  if (still || seen.has(i)) { draw[i](e); return; }
-  seen.add(i);
+const PACE = 0.7, seen = new Set();   // the page plays each beat at 0.7x story time; a beat already seen shows its end
+let cur = "", raf = 0;
+function show(n) {
+  if (n === cur) return; cur = n; cancelAnimationFrame(raf);
+  for (const k of STEPN) document.getElementById("L" + k).classList.toggle("on", k === n);
+  document.querySelectorAll(".story-step").forEach(s => s.classList.toggle("on", s.dataset.beat === n));
+  const [a, e] = END(n);
+  if (still || seen.has(n)) { DRAW[n](e); return; }
+  seen.add(n);
   const t0 = performance.now();
-  const step = (now) => { const t = Math.min(e, a + (now - t0) / 1000 / PACE); draw[i](t); if (t < e) raf = requestAnimationFrame(step); };
+  const step = (now) => { const t = Math.min(e, a + (now - t0) / 1000 / PACE); DRAW[n](t); if (t < e) raf = requestAnimationFrame(step); };
   raf = requestAnimationFrame(step);
 }
-for (let k = 1; k <= 4; k++) draw[k](ENDS[k][0]);
-const io = new IntersectionObserver((es) => { for (const en of es) if (en.isIntersecting) show(+en.target.dataset.beat); },
+for (const k of STEPN) DRAW[k](END(k)[0]);
+const io = new IntersectionObserver((es) => { for (const en of es) if (en.isIntersecting) show(en.target.dataset.beat); },
   { rootMargin: "-45% 0px -45% 0px" });
 document.querySelectorAll(".story-step").forEach(s => io.observe(s));
 })();
