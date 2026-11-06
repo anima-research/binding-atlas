@@ -1,0 +1,18 @@
+== you_neg100: target dNLL +0.0022  dkappa +0.234
+   m= 4 dNLL mean +0.0003  dkappa [-0.027, -0.032, -0.042]
+   m= 8 dNLL mean +0.0004  dkappa [0.014, -0.009, 0.0]
+   m=16 dNLL mean +0.0009  dkappa [-0.017, -0.02, 0.012]
+   m=32 dNLL mean +0.0023  dkappa [-0.016, -0.013, -0.022]
+   MATCHED m = 32
+== you_pos100: target dNLL +0.0022  dkappa -0.312
+   m= 4 dNLL mean +0.0001  dkappa [-0.021, -0.039, -0.042]
+   m= 8 dNLL mean +0.0003  dkappa [-0.034, -0.035, -0.018]
+   m=16 dNLL mean +0.0008  dkappa [-0.046, 0.009, 0.002]
+   m=32 dNLL mean +0.0015  dkappa [-0.041, -0.029, -0.062]
+   MATCHED m = None
+== dyn: target dNLL +0.0015 3shot +0.0160 (base +0.0380)
+   m= 4 dNLL mean +0.0000 3shot [0.0372, 0.037, 0.0389]
+   m= 8 dNLL mean +0.0003 3shot [0.0355, 0.0362, 0.0365]
+   m=16 dNLL mean +0.0008 3shot [0.0381, 0.0368, 0.0369]
+   m=32 dNLL mean +0.0019 3shot [0.0384, 0.0361, 0.0399]
+   MATCHED m = 32

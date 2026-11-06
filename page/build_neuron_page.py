@@ -3,8 +3,9 @@
 Usage: python page/build_neuron_page.py --out site/threads.html [--data data/built/neurons]
                                         [--config config/default.toml] [--stamp "YYYY-MM-DD HH:MM UTC"]
 The page loads its data at run time from the directory threads-data/ next to it (neurons.json, neurons.bin, the
-layout-*.bin files and binding.json), which this copies from --data. Refuses to write if the page or its JSON data
-contain an internal hostname / path (public-page law). The page's earlier address, neuron-atlas.html, is written beside it
+layout-*.bin files, binding.json, wiring.json and icl.json), which this copies from --data. Refuses to write if the page
+or its JSON data contain an internal hostname / path (public-page law), or if a number in the rule-vs-recall prose
+differs from icl.json (see `check_icl_prose`). The page's earlier address, neuron-atlas.html, is written beside it
 as a redirect.
 """
 from __future__ import annotations
@@ -34,7 +35,60 @@ REDIRECT = """<!doctype html>
 <meta name="robots" content="noindex"></head>
 <body><p>This page is now <a href="{target}">Threads</a>.</p></body></html>
 """
-DATA_FILES = ("neurons.json", "neurons.bin", "binding.json", "wiring.json")
+DATA_FILES = ("neurons.json", "neurons.bin", "binding.json", "wiring.json", "icl.json")
+MINUS = "\u2212"
+#: The prose between these markers quotes icl.json. Each number there sits in <span data-v="path|format">text</span>,
+#: and the text must equal the JSON value at that path in that format; a bare decimal or neuron id there refuses.
+ICL_BEGIN, ICL_END = "<!-- icl:begin -->", "<!-- icl:end -->"
+SPAN_RE = re.compile(r'<span data-v="([^"|]+)\|([a-z0-9]+)">([^<]*)</span>')
+BARE_RE = re.compile(r"(?<![\w#&;])[+\-\u2212]?\d*\.\d+(?![\d]|B\b)|\b\d+[/:]\d+\b")
+
+
+def _unsigned(v: float, d: int) -> str:
+    return f"{abs(v):.{d}f}".removeprefix("0")
+
+
+def _signed(v: float, d: int) -> str:
+    a = _unsigned(v, d)
+    return a if float(a) == 0 else ("+" if v > 0 else MINUS) + a
+
+
+ICL_FORMATS = {
+    "abs2": lambda v: _unsigned(v, 2), "abs3": lambda v: _unsigned(v, 3),
+    "sgn2": lambda v: _signed(v, 2), "sgn3": lambda v: _signed(v, 3),
+    "int": lambda v: str(int(v)) if float(v) == int(v) else f"not an integer: {v}",
+    "pct0": lambda v: f"{round(v * 100)}%",
+    "pctile1": lambda v: f"{v:.1f}",
+    "id": str,
+}
+
+
+def check_icl_prose(page: str, icl: dict) -> int:
+    """Every number the rule-vs-recall prose quotes equals icl.json; returns how many were checked."""
+    if page.count(ICL_BEGIN) != 1 or page.count(ICL_END) != 1:
+        raise SystemExit(f"REFUSING: the page needs exactly one {ICL_BEGIN} … {ICL_END} block")
+    block = page[page.index(ICL_BEGIN):page.index(ICL_END)]
+    problems: list[str] = []
+    n = 0
+    for path, fmt, text in SPAN_RE.findall(block):
+        n += 1
+        cur = icl
+        try:
+            for key in path.split("."):
+                cur = cur[int(key)] if isinstance(cur, list) else cur[key]
+        except (KeyError, IndexError, ValueError, TypeError):
+            problems.append(f"{path}: not in icl.json")
+            continue
+        if fmt not in ICL_FORMATS:
+            problems.append(f"{path}: unknown format {fmt}")
+        elif (want := ICL_FORMATS[fmt](cur)) != text:
+            problems.append(f"{path}: the prose says {text!r}, icl.json gives {want!r}")
+    bare = re.sub(r"<script.*?</script>", "", SPAN_RE.sub("", block), flags=re.S)
+    bare = re.sub(r"<[^>]*>", " ", bare)
+    problems += [f"a number outside a data-v span: {m.group(0)!r}" for m in BARE_RE.finditer(bare)]
+    if problems:
+        raise SystemExit("REFUSING: the rule-vs-recall prose disagrees with icl.json:\n  " + "\n  ".join(problems))
+    return n
 
 
 def main() -> None:
@@ -64,6 +118,8 @@ def main() -> None:
                   for m in FORBIDDEN.finditer(text)})
     if bad:
         raise SystemExit(f"REFUSING: internal names in the public page or its data: {bad}")
+    checked = check_icl_prose(page, json.loads((a.data / "icl.json").read_text()))
+    print(f"rule-vs-recall prose: {checked} numbers match icl.json")
     if a.fragment:
         page = re.sub(r"<!doctype html>\s*|</?html[^>]*>\s*|</?head>\s*|</?body>\s*", "", page, flags=re.I)
     a.out.parent.mkdir(parents=True, exist_ok=True)

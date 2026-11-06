@@ -20,7 +20,9 @@ A second page, `threads.html` (*Threads*; 紬 tsumugi, spun thread), maps every 
 neurons. Each one is placed by the meaning of its strongest firing contexts in 24M training tokens, by depth, or by its
 weights. Language-model agents wrote the groups and labels. They graded each label by how well three readings agree: the
 contexts that a neuron fires on, the tokens that its output favours (logit lens and J-lens), and what steering it does.
-The labels are drafts. The page also shows the referent-binding circuit. It gives each neuron's attribution of the
+The labels are drafts. The page leads with two circuits that knock-outs separate: one for learning a rule from the prompt and
+one for recalling a fact in the same prompt format. It also shows where the loop's second pass carries rule learning, and
+the circuits for who *you* is. The page also shows the referent-binding circuit. It gives each neuron's attribution of the
 battery margin on bare items, and held-out knock-outs of the supporter and interferer sets. It also shows which parts of
 the circuit hold when the items come with balanced worked examples: 246 neurons stay in a top-100 set under both
 formats. The page loads its data at run
@@ -33,13 +35,17 @@ before adding `.html`, and a directory with the page's name would hide the page.
 | `neurons.bin` | per-neuron columns (family, group, binding attribution per task as signed int8, causal-set bits) |
 | `layout-<name>.bin` | x then y as uint16 for one layout: `meaning`, `masked` (firing token hidden), `depth`, `weights-read`, `weights-write`, `weights-write-pca` |
 | `binding.json` | attribution by position and token role, the causal sets, the knock-out matrices and per-cell results |
+| `icl.json` | the rule, recall and *you* circuits (100 neurons each), their knock-outs beside damage-matched random sets, the head knock-outs by loop pass, and the readability percentiles |
 
 ```bash
 make neurons                               # page + data dir into site/ (CONFIG= and SITE= as for make page)
 make neurons-binding                       # data/inputs/binding/*.jsonl -> data/built/neurons/binding.json
+make neurons-icl                           # data/inputs/threads-icl/ -> data/built/neurons/icl.json
 ```
 
-`build/build_neurons.py` writes everything in `data/built/neurons/` except `binding.json`, from the compendium build (its
+The page build checks every number in the rule-vs-recall prose against `icl.json`, and refuses on any mismatch.
+
+`build/build_neurons.py` writes everything in `data/built/neurons/` except `binding.json` and `icl.json`, from the compendium build (its
 inputs are named in its docstring).
 
 ## The announcement

@@ -1,0 +1,687 @@
+{
+ "layer": {
+  "file": "layer-icl-rise.f16.bin",
+  "scale_p999": 0.003453458439062307,
+  "meaning": "rise in twin attribution, 0-shot to 3-shot, dynamic-you addressee rows; + = toward the listener"
+ },
+ "switched_on": [
+  {
+   "pos": 7,
+   "neuron": 967,
+   "band": "prelude",
+   "rise": 1.5494368713838123
+  },
+  {
+   "pos": 8,
+   "neuron": 109,
+   "band": "prelude",
+   "rise": 1.1275311465691638
+  },
+  {
+   "pos": 8,
+   "neuron": 650,
+   "band": "prelude",
+   "rise": 2.067976673622369
+  },
+  {
+   "pos": 8,
+   "neuron": 1149,
+   "band": "prelude",
+   "rise": 1.130484926278317
+  },
+  {
+   "pos": 8,
+   "neuron": 1204,
+   "band": "prelude",
+   "rise": 2.3939199276882
+  },
+  {
+   "pos": 8,
+   "neuron": 1502,
+   "band": "prelude",
+   "rise": 1.1904954769216929
+  },
+  {
+   "pos": 8,
+   "neuron": 1686,
+   "band": "prelude",
+   "rise": 1.6879183946893621
+  },
+  {
+   "pos": 8,
+   "neuron": 2016,
+   "band": "prelude",
+   "rise": 2.682327327513482
+  },
+  {
+   "pos": 8,
+   "neuron": 2115,
+   "band": "prelude",
+   "rise": 2.307714894889993
+  },
+  {
+   "pos": 8,
+   "neuron": 2322,
+   "band": "prelude",
+   "rise": 2.2146565351123915
+  },
+  {
+   "pos": 8,
+   "neuron": 2527,
+   "band": "prelude",
+   "rise": 1.725017873589462
+  },
+  {
+   "pos": 8,
+   "neuron": 3147,
+   "band": "prelude",
+   "rise": 1.1218378914545055
+  },
+  {
+   "pos": 8,
+   "neuron": 3198,
+   "band": "prelude",
+   "rise": 2.0860645561352387
+  },
+  {
+   "pos": 8,
+   "neuron": 3222,
+   "band": "prelude",
+   "rise": 1.6279459106269918
+  },
+  {
+   "pos": 8,
+   "neuron": 3529,
+   "band": "prelude",
+   "rise": 1.3913419737001171
+  },
+  {
+   "pos": 8,
+   "neuron": 4030,
+   "band": "prelude",
+   "rise": 1.3974759429783739
+  },
+  {
+   "pos": 12,
+   "neuron": 3852,
+   "band": "prelude",
+   "rise": 2.0646200305880353
+  },
+  {
+   "pos": 15,
+   "neuron": 1331,
+   "band": "prelude",
+   "rise": 1.1264154937060666
+  },
+  {
+   "pos": 17,
+   "neuron": 44,
+   "band": "prelude",
+   "rise": 2.8667547106938533
+  },
+  {
+   "pos": 17,
+   "neuron": 3034,
+   "band": "prelude",
+   "rise": 1.9381357608058007
+  },
+  {
+   "pos": 17,
+   "neuron": 3234,
+   "band": "prelude",
+   "rise": 1.8712854270232488
+  },
+  {
+   "pos": 18,
+   "neuron": 270,
+   "band": "prelude",
+   "rise": 1.1817214416280013
+  },
+  {
+   "pos": 18,
+   "neuron": 1388,
+   "band": "prelude",
+   "rise": 1.2809573027437509
+  },
+  {
+   "pos": 18,
+   "neuron": 3762,
+   "band": "prelude",
+   "rise": 1.4076512503497003
+  },
+  {
+   "pos": 19,
+   "neuron": 529,
+   "band": "loop pass 1",
+   "rise": 2.1151702927380738
+  },
+  {
+   "pos": 19,
+   "neuron": 784,
+   "band": "loop pass 1",
+   "rise": 1.519428563680199
+  },
+  {
+   "pos": 19,
+   "neuron": 2011,
+   "band": "loop pass 1",
+   "rise": 1.5504328110822092
+  },
+  {
+   "pos": 21,
+   "neuron": 3531,
+   "band": "loop pass 1",
+   "rise": 1.8498778893441137
+  },
+  {
+   "pos": 22,
+   "neuron": 3441,
+   "band": "loop pass 1",
+   "rise": 1.2742824428270694
+  },
+  {
+   "pos": 23,
+   "neuron": 522,
+   "band": "loop pass 1",
+   "rise": 2.3727417723224433
+  },
+  {
+   "pos": 23,
+   "neuron": 1133,
+   "band": "loop pass 1",
+   "rise": 1.564952047511365
+  },
+  {
+   "pos": 24,
+   "neuron": 2762,
+   "band": "loop pass 1",
+   "rise": 2.2518470334130454
+  },
+  {
+   "pos": 24,
+   "neuron": 3760,
+   "band": "loop pass 1",
+   "rise": 1.1612471344684776
+  },
+  {
+   "pos": 25,
+   "neuron": 541,
+   "band": "loop pass 1",
+   "rise": 1.1009521631804948
+  },
+  {
+   "pos": 25,
+   "neuron": 933,
+   "band": "loop pass 1",
+   "rise": 1.3665783922716142
+  },
+  {
+   "pos": 25,
+   "neuron": 1438,
+   "band": "loop pass 1",
+   "rise": 1.2880346424432347
+  },
+  {
+   "pos": 25,
+   "neuron": 2893,
+   "band": "loop pass 1",
+   "rise": 1.475986971847639
+  },
+  {
+   "pos": 26,
+   "neuron": 1872,
+   "band": "loop pass 1",
+   "rise": 1.292303085566815
+  },
+  {
+   "pos": 26,
+   "neuron": 2478,
+   "band": "loop pass 1",
+   "rise": 3.058775537785962
+  },
+  {
+   "pos": 27,
+   "neuron": 847,
+   "band": "loop pass 1",
+   "rise": 1.6215824152069644
+  },
+  {
+   "pos": 27,
+   "neuron": 2382,
+   "band": "loop pass 1",
+   "rise": 1.6047532948069432
+  },
+  {
+   "pos": 29,
+   "neuron": 2681,
+   "band": "loop pass 1",
+   "rise": 1.255343096235275
+  },
+  {
+   "pos": 30,
+   "neuron": 1147,
+   "band": "loop pass 1",
+   "rise": 1.4335797938082588
+  },
+  {
+   "pos": 30,
+   "neuron": 2606,
+   "band": "loop pass 1",
+   "rise": 1.7550126134814572
+  },
+  {
+   "pos": 31,
+   "neuron": 2765,
+   "band": "loop pass 1",
+   "rise": 2.2179300453363164
+  },
+  {
+   "pos": 31,
+   "neuron": 3023,
+   "band": "loop pass 1",
+   "rise": 1.1980120205866627
+  },
+  {
+   "pos": 35,
+   "neuron": 3274,
+   "band": "loop pass 1",
+   "rise": 1.334218394477945
+  },
+  {
+   "pos": 38,
+   "neuron": 819,
+   "band": "loop pass 1",
+   "rise": 1.5053648557389878
+  },
+  {
+   "pos": 38,
+   "neuron": 908,
+   "band": "loop pass 1",
+   "rise": 1.2652948463430869
+  },
+  {
+   "pos": 38,
+   "neuron": 1968,
+   "band": "loop pass 1",
+   "rise": 1.49755281664325
+  },
+  {
+   "pos": 38,
+   "neuron": 2102,
+   "band": "loop pass 1",
+   "rise": 1.1429778843536613
+  },
+  {
+   "pos": 38,
+   "neuron": 2323,
+   "band": "loop pass 1",
+   "rise": 1.264212585638265
+  },
+  {
+   "pos": 38,
+   "neuron": 2507,
+   "band": "loop pass 1",
+   "rise": 3.1865340312331543
+  },
+  {
+   "pos": 38,
+   "neuron": 3619,
+   "band": "loop pass 1",
+   "rise": 2.191994454286564
+  },
+  {
+   "pos": 38,
+   "neuron": 3705,
+   "band": "loop pass 1",
+   "rise": 1.88150472191104
+  },
+  {
+   "pos": 38,
+   "neuron": 3832,
+   "band": "loop pass 1",
+   "rise": 1.7515196930459784
+  },
+  {
+   "pos": 39,
+   "neuron": 718,
+   "band": "loop pass 2",
+   "rise": 1.3835604262234216
+  },
+  {
+   "pos": 41,
+   "neuron": 103,
+   "band": "loop pass 2",
+   "rise": 2.562269046587473
+  },
+  {
+   "pos": 41,
+   "neuron": 2791,
+   "band": "loop pass 2",
+   "rise": 1.1050986637993032
+  },
+  {
+   "pos": 42,
+   "neuron": 509,
+   "band": "loop pass 2",
+   "rise": 1.3578353040535387
+  },
+  {
+   "pos": 42,
+   "neuron": 2269,
+   "band": "loop pass 2",
+   "rise": 1.7846217973980745
+  },
+  {
+   "pos": 42,
+   "neuron": 2335,
+   "band": "loop pass 2",
+   "rise": 1.4843168650677296
+  },
+  {
+   "pos": 42,
+   "neuron": 2540,
+   "band": "loop pass 2",
+   "rise": 1.2549136726004257
+  },
+  {
+   "pos": 42,
+   "neuron": 3441,
+   "band": "loop pass 2",
+   "rise": 1.379153020902051
+  },
+  {
+   "pos": 42,
+   "neuron": 3745,
+   "band": "loop pass 2",
+   "rise": 1.1011189322006827
+  },
+  {
+   "pos": 43,
+   "neuron": 522,
+   "band": "loop pass 2",
+   "rise": 2.426251998802478
+  },
+  {
+   "pos": 43,
+   "neuron": 570,
+   "band": "loop pass 2",
+   "rise": 1.3770605814880528
+  },
+  {
+   "pos": 43,
+   "neuron": 1088,
+   "band": "loop pass 2",
+   "rise": 1.386324496283909
+  },
+  {
+   "pos": 43,
+   "neuron": 1458,
+   "band": "loop pass 2",
+   "rise": 1.1497859773038634
+  },
+  {
+   "pos": 43,
+   "neuron": 2524,
+   "band": "loop pass 2",
+   "rise": 1.1994751628441314
+  },
+  {
+   "pos": 44,
+   "neuron": 956,
+   "band": "loop pass 2",
+   "rise": 1.7738141964453915
+  },
+  {
+   "pos": 44,
+   "neuron": 963,
+   "band": "loop pass 2",
+   "rise": 3.3744362124716494
+  },
+  {
+   "pos": 44,
+   "neuron": 1067,
+   "band": "loop pass 2",
+   "rise": 1.1538925655439727
+  },
+  {
+   "pos": 44,
+   "neuron": 1628,
+   "band": "loop pass 2",
+   "rise": 1.484814295560459
+  },
+  {
+   "pos": 44,
+   "neuron": 2081,
+   "band": "loop pass 2",
+   "rise": 1.1240740633746196
+  },
+  {
+   "pos": 44,
+   "neuron": 3869,
+   "band": "loop pass 2",
+   "rise": 1.1972294503073675
+  },
+  {
+   "pos": 45,
+   "neuron": 1849,
+   "band": "loop pass 2",
+   "rise": 1.1065100518071551
+  },
+  {
+   "pos": 45,
+   "neuron": 2536,
+   "band": "loop pass 2",
+   "rise": 1.3581183583284242
+  },
+  {
+   "pos": 45,
+   "neuron": 3189,
+   "band": "loop pass 2",
+   "rise": 1.3285138967773344
+  },
+  {
+   "pos": 45,
+   "neuron": 3789,
+   "band": "loop pass 2",
+   "rise": 1.2258729224592455
+  },
+  {
+   "pos": 45,
+   "neuron": 4082,
+   "band": "loop pass 2",
+   "rise": 1.3640908802369867
+  },
+  {
+   "pos": 46,
+   "neuron": 64,
+   "band": "loop pass 2",
+   "rise": 1.2906081398847065
+  },
+  {
+   "pos": 46,
+   "neuron": 74,
+   "band": "loop pass 2",
+   "rise": 1.5525151345659907
+  },
+  {
+   "pos": 46,
+   "neuron": 250,
+   "band": "loop pass 2",
+   "rise": 1.4324729863912518
+  },
+  {
+   "pos": 46,
+   "neuron": 336,
+   "band": "loop pass 2",
+   "rise": 1.425950009256216
+  },
+  {
+   "pos": 46,
+   "neuron": 776,
+   "band": "loop pass 2",
+   "rise": 2.6698628234882977
+  },
+  {
+   "pos": 46,
+   "neuron": 2351,
+   "band": "loop pass 2",
+   "rise": 2.0303199795613853
+  },
+  {
+   "pos": 46,
+   "neuron": 3613,
+   "band": "loop pass 2",
+   "rise": 1.1407925078272194
+  },
+  {
+   "pos": 47,
+   "neuron": 1831,
+   "band": "loop pass 2",
+   "rise": 1.3950593623122582
+  },
+  {
+   "pos": 48,
+   "neuron": 738,
+   "band": "loop pass 2",
+   "rise": 1.345885010500117
+  },
+  {
+   "pos": 49,
+   "neuron": 1318,
+   "band": "loop pass 2",
+   "rise": 2.1428850170218814
+  },
+  {
+   "pos": 50,
+   "neuron": 2374,
+   "band": "loop pass 2",
+   "rise": 1.2324960041549116
+  },
+  {
+   "pos": 50,
+   "neuron": 3279,
+   "band": "loop pass 2",
+   "rise": 1.1728519761964102
+  },
+  {
+   "pos": 52,
+   "neuron": 3154,
+   "band": "loop pass 2",
+   "rise": 1.6353905400961064
+  },
+  {
+   "pos": 54,
+   "neuron": 3556,
+   "band": "loop pass 2",
+   "rise": 1.6141427238459654
+  },
+  {
+   "pos": 55,
+   "neuron": 3780,
+   "band": "loop pass 2",
+   "rise": 1.3628092973526529
+  },
+  {
+   "pos": 56,
+   "neuron": 3616,
+   "band": "loop pass 2",
+   "rise": 1.2882201810685407
+  },
+  {
+   "pos": 58,
+   "neuron": 1831,
+   "band": "loop pass 2",
+   "rise": 1.474617557758768
+  },
+  {
+   "pos": 58,
+   "neuron": 2019,
+   "band": "loop pass 2",
+   "rise": 1.1390122958802256
+  },
+  {
+   "pos": 60,
+   "neuron": 510,
+   "band": "coda",
+   "rise": 1.1609994859493515
+  }
+ ],
+ "switched_on_by_band": {
+  "prelude": 24,
+  "loop pass 1": 32,
+  "loop pass 2": 43,
+  "coda": 1
+ },
+ "heads_rising_top5": [
+  {
+   "head": "39:0",
+   "d": 0.10681308060884476,
+   "census_reader": false
+  },
+  {
+   "head": "43:1",
+   "d": 0.08127512782812119,
+   "census_reader": false
+  },
+  {
+   "head": "40:4",
+   "d": 0.07852214574813843,
+   "census_reader": true
+  },
+  {
+   "head": "45:4",
+   "d": 0.06343478709459305,
+   "census_reader": false
+  },
+  {
+   "head": "19:0",
+   "d": 0.05135683715343475,
+   "census_reader": false
+  }
+ ],
+ "ko": {
+  "readout": "speaker-swap shift on the pinned dynamic-you battery (swapdyn-v1, 180 bases), the Atlas gauge",
+  "base": {
+   "0shot": -0.014,
+   "3shot": 0.038
+  },
+  "examples_circuit_out_dose1": {
+   "0shot": 0.005,
+   "3shot": -0.005,
+   "dNLL": 0.058
+  },
+  "examples_circuit_out_dose0.5": {
+   "0shot": 0.006,
+   "3shot": 0.016,
+   "dNLL": 0.0015
+  },
+  "random_same_size": {
+   "3shot": [
+    0.0365,
+    0.0377,
+    0.0371
+   ],
+   "dNLL": 0.0003
+  },
+  "random_damage_matched_3200": {
+   "3shot": [
+    0.0384,
+    0.0361,
+    0.0399
+   ],
+   "dNLL": 0.0019
+  },
+  "source": "PREREG-K1b-dynamic-you.md RESULTS part 2 + ADDENDUM DM"
+ },
+ "facts": [
+  "Three worked examples switch on a reliable set of neurons (split-half top-100 overlap 68-72 of 100).",
+  "75 of the 100 sit in the looped core (positions 19-58; 56% of all neurons do).",
+  "Removing them takes the 3-shot gain from +.038 to zero; 0-shot stays at chance.",
+  "3,200 random neurons doing as much general damage leave the 3-shot gain at +.036 to +.040.",
+  "The top rising head is 39:0, the first position of the loop's second pass."
+ ],
+ "caveats": [
+  "The 3-shot effect is small in absolute terms (+.038 on the gauge).",
+  "Removing the set raises F2 / F4 and lowers C0 (a recall-vs-rule trade-off); narrow at half dose."
+ ]
+}
