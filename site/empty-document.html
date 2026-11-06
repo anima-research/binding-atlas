@@ -130,9 +130,13 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: s
   <header class="top">
     <div class="kicker"><a href="https://kotodama.animalabs.ai/">kotodama-tsumugi</a></div>
     <h1>An Empty Document</h1>
-    <p class="lede">Each base model got only the token that starts a document, and wrote 256 tokens from it, 128 times.
-    Every square below is one of those runs. A coloured square marks a run that reads as a chatbot transcript, as an
-    assistant speaking, or as training data written by one language model for another.</p>
+    <p class="lede">kotodama-tsumugi is a 1.4B base model trained from scratch on text curated to leave out assistant
+    and machine-written text. This page asks what it and other base models write when given nothing at all. Each
+    model got only the token that starts a document, and wrote 256 tokens from it, 128 times. Every square below is one
+    of those runs. A coloured square marks a run that reads as a chatbot transcript, as an assistant speaking, or as
+    training data written by one language model for another. Together these are called assistant-era text below: kinds
+    of writing that became common only once chat assistants existed. Human-written questions and answers, such as forum
+    threads and exam banks, are shown in grey and not counted.</p>
     <div class="figures" id="figures"></div>
   </header>
   <div class="plate">
@@ -168,8 +172,9 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: s
     <h3>How the runs were made</h3>
     <p>Every model got its own start-of-document token and nothing else. Sampling was plain: temperature 1, no top-k
     or top-p, no repetition penalty, 256 new tokens, stopping early only at the end-of-text token. The classes and
-    the predictions were registered before any run was drawn. Contact details are redacted, and the
-    <span id="omitted"></span> runs omitted for content appear as black squares.</p>
+    the predictions were registered, that is written down and committed, before any run was drawn. Contact details are
+    redacted. The <span id="omitted"></span> runs omitted because their content is not fit to show appear as black
+    squares.</p>
     <h3>How the runs were classified</h3>
     <p>A language model (<span id="coder"></span>) classified every run, with the writing model's name hidden. It gave
     each run one class and quoted the words behind it, and the panel under the grid underlines that quote. Before any
@@ -181,7 +186,7 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: s
 </div>
 <footer><div class="wrap">
   <span>Companion pages: <a href="./">kotodama-tsumugi</a>, the announcement · <a href="binding-atlas">Binding Atlas</a>, every model against every referent-binding test · <a href="threads">Threads</a>, inside kotodama-tsumugi.</span>
-  <span class="num" id="stamp">build 2026-11-06 00:37 UTC</span>
+  <span class="num" id="stamp">build 2026-11-06 04:23 UTC</span>
 </div></footer>
 <div class="tip" id="tip" hidden></div>
 <script>

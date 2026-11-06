@@ -1,12 +1,12 @@
 # Binding Atlas — agent view
 
-Plain-text twin of the [Binding Atlas page](https://kotodama.animalabs.ai/binding-atlas). Same data, same build. Built 2026-11-06 02:01 UTC: 65 rows (models + one human), 24 columns, 2,447 cells, 1,905,952 scored items.
+Plain-text twin of the [Binding Atlas page](https://kotodama.animalabs.ai/binding-atlas). Same data, same build. Built 2026-11-06 03:55 UTC: 65 rows (models + one human), 24 columns, 2,447 cells, 1,905,952 scored items.
 
 ## Summary
 
 This atlas scores 64 models and checkpoints, plus one human reader, on 24 tests of tracking who *I* and *you* refer to. "Example items per column" quotes the exact prompts that the models were given.
 
-Base language models learn to look things up long before they learn to track change. In the box puzzle, the median model under 1B already finds a box's declared contents above chance, and scores zero on the boxes changed by an operation. With worked examples, updating climbs steadily with size, to .77 for the 70B models and above .8 for most of the largest. The referent of *you* follows five ordered stages. Every base of 0.6B parameters or more trained on trillions of tokens reaches the first three, except Bamba 9B. The fifth stage is tracking *you* after objects change hands. Zero-shot, it appears from about 7B (OLMo-2 7B, Qwen2.5 7B), and every base measured from 13B up reaches it. **kotodama-tsumugi**, a 1.4B model run as 72 effective layers, reaches stage 3 by **33B tokens**, in the range where OLMo-2 13B gets there; OLMo-2 1B needs 420–525B. Given three worked examples, it is the smallest base measured that tracks *you* after objects change hands. It reads +.038, with its whole 95% interval above the +.02 line. The next is Qwen3 4B.
+Base language models learn to look things up long before they learn to track change. In the box puzzle, items go into boxes and are then swapped, moved or refilled, and the model is asked what one box holds. The median model under 1B already finds what a box was said to hold, and scores zero on the boxes that a later step changed. With worked examples, updating climbs steadily with size, to .77 for the 70B models and above .8 for most of the largest. In a chat, *you* means the person being spoken to. Models get this right in five stages, in the same order in every training run measured. To read a stage, the speaker's name on the chat's last line is swapped: a model that follows *you* moves its answer to the other person's object. The swap shift is how much probability leaves the first answer; a model passes when the whole 95% interval of that shift is above +.02. Every base of 0.6B parameters or more trained on trillions of tokens reaches the third stage (*you* is the person spoken to), except Bamba 9B. The fifth stage is following *you* as objects change hands. With no examples in the prompt, it appears from about 7B (OLMo-2 7B, Qwen2.5 7B), and every base measured from 13B up reaches it. **kotodama-tsumugi** is a 1.4B model whose middle 20 layers run twice, so each token passes through 72 layers. It reaches the third stage by **33B tokens**, in the range where OLMo-2 13B gets there; OLMo-2 1B needs 420–525B. Given three worked examples, it is the smallest base measured that passes the fifth stage: +.038, with its whole 95% interval above +.02. The next is Qwen3 4B.
 
 Swap shift = mean[p(gold | original) − p(gold | speaker swapped)] over the candidates. Above +.02, a pronoun binds: its answer moves with the speaker. Below −.02, it inverts: it resolves to the speaker.
 
@@ -16,11 +16,11 @@ Swap shift = mean[p(gold | original) − p(gold | speaker swapped)] over the can
 
 | stage | name | what it means | example | where public models stand | OLMo-2 1B | kotodama-tsumugi 1.4B |
 |---|---|---|---|---|---|---|
-| 1 | I binds | "I" resolves to whoever is speaking. | `Jack: I'm holding the ___` | every base ≥ 0.5B | ~21–63B tokens | ~3–3.75B tokens |
-| 2 | you = me | "you" is read as the speaker too: the pronoun-reversal phase young children go through. | `Jack: you're holding the ___  → Jack's object` | transient in every trajectory | ~63B → ~500B tokens | transient, ~4–20B |
-| 3 | static you binds | "you" resolves to the addressee, when ownership is simply stated. | `Carol has the onion. … Jack: you're holding the ___` | every base ≥ 0.6B trained on trillions of tokens, except Bamba 9B | 420–525B tokens | by 33B tokens annealed (trunk: 40B); +.192 at 110B |
-| 4 | you = me, again | once objects change hands in the scene, "you" collapses back onto the speaker. | `Erin gives Paul her cup. … Paul: now you're holding the ___` | where every base up to 4B stops | from ~63B, still there at 4T | from ~4B; at 110B no longer inverted under the gauge rule (−.027 at 11B → −.014) |
-| 5 | dynamic you binds | "you" tracked through transfers. In-context first (3-shot), zero-shot last. | `same scene, answered correctly without examples` | zero-shot: from about 7B (OLMo-2 7B, Qwen2.5 7B), and every base from 13B up; with three worked examples: from Qwen3 4B | never (flat to 4T) | zero-shot: not reached by 110B; with three worked examples it binds at 110B (+.038), the smallest base measured that does under the +.02 rule |
+| 1 | I = the speaker | "I" means whoever is speaking. | `Jack: I'm holding the ___` | every base of 0.5B parameters or more | ~21–63B tokens | ~3–3.75B tokens |
+| 2 | you = the speaker (a mistake) | "you" is read as the speaker too: the pronoun-reversal phase young children go through. | `Jack: you're holding the ___  → Jack's object` | every training run measured passes through it | ~63B → ~500B tokens | passes through it at ~4–20B tokens |
+| 3 | you = the person spoken to | "you" means the addressee, when who holds what is simply stated. | `Carol has the onion. … Jack: you're holding the ___` | every base of 0.6B or more trained on trillions of tokens, except Bamba 9B | 420–525B tokens | by 33B tokens with a cooldown (40B without one); +.192 at 110B |
+| 4 | you = the speaker again | once objects change hands in the chat, "you" slides back onto the speaker. | `Erin gives Paul her cup. … Paul: now you're holding the ___` | every base up to 4B parameters, and they stop here | from ~63B, still there at 4T | from ~4B tokens; by 110B no longer reliably reversed (−.027 at 11B → −.014) |
+| 5 | you followed through hand-offs | "you" is tracked as objects change hands: first with three worked examples, later with none. | `same scene, answered correctly without examples` | with no examples: from about 7B (OLMo-2 7B, Qwen2.5 7B), and every base from 13B up; with three worked examples: from Qwen3 4B | never (flat to 4T) | with no examples: not reached by 110B tokens; with three worked examples it passes at 110B (+.038), the smallest base measured that does |
 
 ### Dynamic *you* at each model's final checkpoint (OLMo-2 1B: its 4T pre-anneal checkpoint; zero-shot from about 7B, every base from 13B up)
 
@@ -59,30 +59,30 @@ Swap shift = mean[p(gold | original) − p(gold | speaker swapped)] over the can
 
 Zero-shot, no model up to 4B binds, and four of the small Qwen models invert. At 7B, OLMo-2 7B (+.055) and Qwen2.5 7B (+.047) bind; Qwen3 8B and Gemma-2 9B do not yet. From 13B up, every base binds: all 19 measured, here and in the full atlas, from OLMo-2 13B to DeepSeek-V4 Pro at 1.6T. The largest readings are DeepSeek-V3 (+.216), DeepSeek-V4 Flash (+.177) and MiMo-V2.5 Pro (+.162). Static *you* reads +.27 to +.89 across these 19. With three worked examples, binding starts at Qwen3 4B (+.055) and reaches +.32 for Qwen3 14B. The kotodama-tsumugi release reads −.014 zero-shot and +.038 with three examples, which binds; its second anneal reads +.022 with examples, just short of the line.
 
-**The binding test.** A swap shift binds when its whole 95% interval lies above +.02. The bar is a fixed convention, set before any of these models was read. Under it, kotodama-tsumugi binds with three worked examples (+.038, interval +.023 to +.055). It is the only base at 3B or below that does; the next is Qwen3 4B (+.055). The finding depends on the bar. With the bar at +.01 it still holds. With the bar at 0, Pythia-160M and Pythia-2.8B also pass, and at +.03 kotodama-tsumugi no longer does. The bench's roadmap derives the bar from each battery's own noise, registered before any model is read.
+**The +.02 bar.** A model passes when the whole 95% interval of its swap shift is above +.02. The bar is a fixed convention, set before any of these models was read. Under it, kotodama-tsumugi passes with three worked examples (+.038, interval +.023 to +.055). It is the only base at 3B or below that does; the next is Qwen3 4B (+.055). The finding depends on the bar. With the bar at +.01 it still holds. With the bar at 0, Pythia-160M and Pythia-2.8B also pass, and at +.03 kotodama-tsumugi no longer does. A later version of the benchmark will set the bar from each test's own noise, registered before any model is read.
 
 ### Training tokens until each stage appears (the range spans the checkpoints that bracket the stage)
 
 | stage | model | tokens |
 |---|---|---|
-| 1 · I | OLMo-2 1B | 21.0–63.0B |
-| 1 · I | OLMo-2 7B | 21.0–42.0B |
-| 1 · I | OLMo-2 13B | 17.0–42.0B |
-| 1 · I | kotodama-tsumugi | 3.0–3.75B |
-| 3 · static you | OLMo-2 1B | 420.0–525.0B |
-| 3 · static you | OLMo-2 7B | 105.0–210.0B |
-| 3 · static you | OLMo-2 13B | 17.0–42.0B |
-| 3 · static you | kotodama-tsumugi | 30.0–33.0B |
-| 5 · dynamic you | OLMo-2 1B | not reached by 4000B |
-| 5 · dynamic you | OLMo-2 7B | 210.0–3896.0B |
-| 5 · dynamic you | OLMo-2 13B | 42.0–5000.0B |
-| 5 · dynamic you | kotodama-tsumugi | not reached by 110B; 0-shot not reached by 110B; with three examples it binds at 110B |
+| 1 · I = speaker | OLMo-2 1B | 21.0–63.0B |
+| 1 · I = speaker | OLMo-2 7B | 21.0–42.0B |
+| 1 · I = speaker | OLMo-2 13B | 17.0–42.0B |
+| 1 · I = speaker | kotodama-tsumugi | 3.0–3.75B |
+| 3 · you = person spoken to | OLMo-2 1B | 420.0–525.0B |
+| 3 · you = person spoken to | OLMo-2 7B | 105.0–210.0B |
+| 3 · you = person spoken to | OLMo-2 13B | 17.0–42.0B |
+| 3 · you = person spoken to | kotodama-tsumugi | 30.0–33.0B |
+| 5 · you through hand-offs | OLMo-2 1B | not reached by 4000B |
+| 5 · you through hand-offs | OLMo-2 7B | 210.0–3896.0B |
+| 5 · you through hand-offs | OLMo-2 13B | 42.0–5000.0B |
+| 5 · you through hand-offs | kotodama-tsumugi | not reached by 110B; 0-shot not reached by 110B; with three examples it binds at 110B |
 
 ### Stage 5, taken apart (accuracy, 0-shot, self + addressee queries pooled; chance ≈ .29)
 
-Each dynamic-*you* gauge item is rewritten along one axis: **transfer, narrated** (`Erin gives the cup to Paul. … Right now Paul is holding the`); **transfer, spoken** (`Erin: Here, take my cup. … Paul: Right now I'm holding the`); **spoken, transfer narrated** (`[Erin gives the cup to Paul.] … deictic query`); **spoken + vocative** (`Erin: Paul, right now you're holding the`).
+Each dynamic-*you* gauge item is rewritten along one axis: **story, no I or you** (`Erin gives the cup to Paul. … Right now Paul is holding the`); **chat (the test itself)** (`Erin: Here, take my cup. … Paul: Right now I'm holding the`); **chat, hand-off as a stage direction** (`[Erin gives the cup to Paul.] … deictic query`); **chat, addressee named** (`Erin: Paul, right now you're holding the`).
 
-| model | tokens | transfer, narrated | transfer, spoken | spoken, transfer narrated | spoken + vocative |
+| model | tokens | story, no I or you | chat (the test itself) | chat, hand-off as a stage direction | chat, addressee named |
 |---|---|---|---|---|---|
 | Pythia-1.4B | 134B | .283 | .300 | .281 | .267 |
 | kotodama-tsumugi · 33B | 33B | .319 | .269 | .328 | .250 |
@@ -167,16 +167,16 @@ The values are the grid's own cells. Each test is read as the grid reads it. Col
 
 ### The release against its trajectory and its class
 
-| probe | 33B | 55B | 88B | 110B · 2nd anneal | 110B · release | OLMo-2 1B · 4T | SmolLM2 1.7B · 11T | Qwen3 1.7B · 36T |
+| probe | 33B | 55B | 88B | 110B · 2nd cooldown | 110B · release | OLMo-2 1B · 4T | SmolLM2 1.7B · 11T | Qwen3 1.7B · 36T |
 |---|---|---|---|---|---|---|---|---|
-| static I (swap shift) | +.221 | +.228 | +.156 | +.195 | +.178 | +.312 | +.363 | +.595 |
-| static you (swap shift) | +.065 | +.122 | +.181 | +.127 | +.192 | +.114 | +.207 | +.137 |
-| dynamic you, 0-shot (swap shift) | −.018 | −.028 | −.016 | −.012 | −.014 | −.040 | +.010 | −.054 |
-| dynamic you, 3-shot (swap shift) | +.010 | +.030 | +.021 | +.022 | +.038 | −.018 | +.006 | +.026 |
-| binding capacity K50 (chance .04) | 3.4 | 4.1 | 5.4 | 4.6 | 5.1 | 3.8 | 10.2 | 33.1 |
-| one binding past 256 filler tokens | .852 | .988 | .927 | .912 | .906 | .738 | .819 | .942 |
-| deixis v2, deictic, 0-shot (acc) | .270 | .302 | .319 | .354 | .314 | .320 | — | — |
-| deixis v2, third person, 0-shot (acc) | .418 | .404 | .446 | .467 | .441 | .461 | — | — |
+| I = speaker (swap shift) | +.221 | +.228 | +.156 | +.195 | +.178 | +.312 | +.363 | +.595 |
+| you = person spoken to (swap shift) | +.065 | +.122 | +.181 | +.127 | +.192 | +.114 | +.207 | +.137 |
+| you through hand-offs, no examples (swap shift) | −.018 | −.028 | −.016 | −.012 | −.014 | −.040 | +.010 | −.054 |
+| you through hand-offs, three examples (swap shift) | +.010 | +.030 | +.021 | +.022 | +.038 | −.018 | +.006 | +.026 |
+| name–task pairs held: K50 | 3.4 | 4.1 | 5.4 | 4.6 | 5.1 | 3.8 | 10.2 | 33.1 |
+| one name–task pair past 256 filler tokens (accuracy, chance .04) | .852 | .988 | .927 | .912 | .906 | .738 | .819 | .942 |
+| who has what, said with I and you (accuracy, chance ≈ .33) | .270 | .302 | .319 | .354 | .314 | .320 | — | — |
+| who has what, third person (accuracy, chance ≈ .33) | .418 | .404 | .446 | .467 | .441 | .461 | — | — |
 
 The two 110B columns are two anneals from the same fork with the same training loss. Their spread is the measured anneal-to-anneal variance. It is .127 vs .192 on static *you* and .022 vs .038 on dynamic *you* with examples. K50 reads 4.6 vs 5.1, and held-out text differs by .025 bits/byte. Every single-anneal number here carries it. A second initialization seed (seed 7, same data order) was trained to 11B. Capacity (K50, after arXiv 2609.30634) is how many name–task pairs fit in context before recall falls halfway to chance. On this harness it tracks recipe and tokens more than parameters, so no parameter-equivalent size is read from it.
 
