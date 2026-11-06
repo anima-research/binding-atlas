@@ -121,12 +121,12 @@ __STORY__
     lead comes with the anneal.</figcaption>
   </figure>
 
-  <h2>What it does</h2>
+  <h2>Results</h2>
   <div class="results">
     <section class="result" id="rules">
       <div class="num">+1.07 SD<small>above the size trend on new rules · 95% interval +0.68 to +2.07</small></div>
       <div>
-        <h3>It learns new rules from its prompt beyond its size</h3>
+        <h3>Learns made-up rules from its prompt, beyond its size</h3>
         <p>On new rules, tsumugi scores .559. A trend line fitted to 37 public base models predicts less for a model of
         its size. The 37 are the 36 in the figure plus GPT-2 XL, which has no published token count. tsumugi sits 1.07 standard
         deviations above it, measured in the spread of the public models around the line. The interval comes from
@@ -140,7 +140,7 @@ __STORY__
     <section class="result" id="loop">
       <div class="num">−.13<small>on new rules, with a quarter of the second pass's attention switched off (recall: −.025)</small></div>
       <div>
-        <h3>Its looped block carries that learning</h3>
+        <h3>Rule learning leans on the looped block’s second pass</h3>
         <p>tsumugi runs one block of 20 layers twice, with the same weights. Switching off a quarter of the attention in
         the second pass lowers its new-rules score by .13 on the same 0-to-1 scale, while recall falls .025. The same cut
         costs .035 in the first pass and .019 in the layers before and after the loop.</p>
@@ -152,7 +152,7 @@ __STORY__
     <section class="result" id="you">
       <div class="num">+.038<small>“you” tracked after objects change hands, given three worked examples · 95% interval +.023 to +.055</small></div>
       <div>
-        <h3>It tracks who “you” is after objects change hands</h3>
+        <h3>Tracks who “you” is as objects change hands</h3>
         <p>In a two-person chat where objects pass between the speakers, a line like “Right now you're holding the ___”
         asks about the person being addressed. Swap who says that line, and “you” becomes the other person, so the old
         answer should lose probability. Given three worked examples, tsumugi's old answer loses .038 on average over 180
@@ -167,7 +167,7 @@ __STORY__
     <section class="result" id="compute">
       <div class="num">¼<small>of Pythia-2.8B's training compute, for a benchmark average within a point of it</small></div>
       <div>
-        <h3>It is cheap for what it scores</h3>
+        <h3>Near Pythia-2.8B’s score at a quarter of the compute</h3>
         <p>Its average over nine standard benchmarks is 64.1, half a point below Pythia-2.8B's 64.7, at a quarter of the
         training compute. The nine are HellaSwag, LAMBADA, ARC-Easy, ARC-Challenge, PIQA, SciQ, WinoGrande, COPA and BoolQ,
         with no examples in the prompt.</p>
@@ -180,7 +180,7 @@ __STORY__
   the time. Many modern base models do write them. All 128 runs
   can be read on the page <a href="__EMPTY_LINK__">An Empty Document</a>.</p>
 
-  <h2>How it is built</h2>
+  <h2>Architecture</h2>
   <div class="prose">
     <p>tsumugi is a Llama-style decoder with <a href="https://arxiv.org/abs/2603.15031">Block Attention Residuals</a>.
     Each layer reads a learned mixture of earlier blocks' outputs, and the block boundaries were fitted to the network's
