@@ -181,7 +181,7 @@ COLS: list[Col] = [
         "contents.", "fluid-v2-rebind", lambda r: int(r["R"]) >= 1, conds=(COND_FLOOR,), headline=True),
     Col("codevar", G_CODE, "Variable chains", "Python variables are assigned, copied and reassigned; name what one "
         "prints.", "bp-profile", bp("codevar"), headline=True, old=("codevar",)),
-    Col("sharedlists", G_CODE, "Shared lists", "Two names point at one Python list that is changed, rebound or "
+    Col("sharedlists", G_CODE, "Shared lists", "Two names point at one Python list that is changed, reassigned or "
         "copied; name what a print shows.", "bp-v3.2", bp("codevarmut"), headline=True,
         old=("cm-mutate", "cm-rebind", "cm-copy")),
     *[Col(f"box-{reg}", G_BOX, f"Box puzzle: {lab}", f"Boxes are swapped, moved and refilled, written as {how}; name "

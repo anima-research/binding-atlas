@@ -31,6 +31,17 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 TOC = Path(__file__).resolve().parent / "toc.html"   # the contents rail a page opts into with __TOC__
+
+# Row groups the published grid leaves out. The human row is one reader on small samples; it returns as a range drawn
+# from everyone's scores on the take-the-tests page.
+HIDDEN_ROW_GROUPS: frozenset[str] = frozenset({"Human"})
+
+
+def without_hidden_rows(atlas: dict) -> dict:
+    """The atlas as published: rows in HIDDEN_ROW_GROUPS and their cells removed."""
+    hidden = {r["id"] for r in atlas["rows"] if r["group"] in HIDDEN_ROW_GROUPS}
+    return {**atlas, "rows": [r for r in atlas["rows"] if r["id"] not in hidden],
+            "cells": {k: v for k, v in atlas["cells"].items() if k.split("|", 1)[0] not in hidden}}
 PAGE = "binding-atlas.html"
 CLEAN = "binding-atlas"
 MARKDOWN = "binding-atlas.md"

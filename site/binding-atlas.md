@@ -1,10 +1,10 @@
 # Binding Atlas — agent view
 
-Plain-text twin of the [Binding Atlas page](https://kotodama.animalabs.ai/binding-atlas). Same data, same build. Built 2026-11-06 07:58 UTC: 65 rows (models + one human), 24 columns, 2,447 cells, 1,905,952 scored items.
+Plain-text twin of the [Binding Atlas page](https://kotodama.animalabs.ai/binding-atlas). Same data, same build. Built 2026-11-06 22:51 UTC: 64 rows (models and checkpoints), 24 columns, 2,432 cells, 1,905,920 scored items.
 
 ## Summary
 
-This atlas scores 64 models and checkpoints, plus one human reader, on 24 tests of tracking who *I* and *you* refer to. "Example items per column" quotes the exact prompts that the models were given.
+This atlas scores 64 models and checkpoints on 24 tests of tracking who *I* and *you* refer to. "Example items per column" quotes the exact prompts that the models were given.
 
 Base language models learn to look things up long before they learn to track change. In the box puzzle, items go into boxes and are then swapped, moved or refilled, and the model is asked what one box holds. The median model under 1B already finds what a box was said to hold, and scores zero on the boxes that a later step changed. With worked examples, updating climbs steadily with size, to .77 for the 70B models and above .8 for most of the largest. In a chat, *you* means the person being spoken to. Models get this right in five stages, in the same order in every training run measured. To read a stage, the speaker's name on the chat's last line is swapped: a model that follows *you* moves its answer to the other person's object. The swap shift is how much probability leaves the first answer; a model passes when the whole 95% interval of that shift is above +.02. Every base of 0.6B parameters or more trained on trillions of tokens reaches the third stage (*you* is the person spoken to), except Bamba 9B. The fifth stage is following *you* as objects change hands. With no examples in the prompt, it appears from about 7B (OLMo-2 7B, Qwen2.5 7B), and every base measured from 13B up reaches it. **kotodama-tsumugi** is a 1.4B model whose middle 20 layers run twice, so each token passes through 72 layers. It reaches the third stage by **33B tokens**, in the range where OLMo-2 13B gets there; OLMo-2 1B needs 420–525B. Given three worked examples, it is the smallest base measured that passes the fifth stage: +.038, with its whole 95% interval above +.02. The next is Qwen3 4B.
 
@@ -57,7 +57,7 @@ Swap shift = mean[p(gold | original) − p(gold | speaker swapped)] over the can
 | DeepSeek-V4 Pro | 1600 | ≥32T | +.066 | +.051 |
 | kotodama-tsumugi 1.4B @ 110B tokens (release) | 1.42 | 110B | −.014 | +.038 |
 
-Zero-shot, no model up to 4B binds, and four of the small Qwen models invert. At 7B, OLMo-2 7B (+.055) and Qwen2.5 7B (+.047) bind; Qwen3 8B and Gemma-2 9B do not yet. From 13B up, every base binds: all 19 measured, here and in the full atlas, from OLMo-2 13B to DeepSeek-V4 Pro at 1.6T. The largest readings are DeepSeek-V3 (+.216), DeepSeek-V4 Flash (+.177) and MiMo-V2.5 Pro (+.162). Static *you* reads +.27 to +.89 across these 19. With three worked examples, binding starts at Qwen3 4B (+.055) and reaches +.32 for Qwen3 14B. The kotodama-tsumugi release reads −.014 zero-shot and +.038 with three examples, which binds; its second anneal reads +.022 with examples, just short of the line.
+Zero-shot, no model up to 4B binds, and four of the small Qwen models invert. At 7B, OLMo-2 7B (+.055) and Qwen2.5 7B (+.047) bind; Qwen3 8B and Gemma-2 9B do not yet. From 13B up, every base binds: all 19 measured, here and in the full atlas, from OLMo-2 13B to DeepSeek-V4 Pro at 1.6T parameters. The largest readings are DeepSeek-V3 (+.216), DeepSeek-V4 Flash (+.177) and MiMo-V2.5 Pro (+.162). Static *you* reads +.27 to +.89 across these 19. With three worked examples, binding starts at Qwen3 4B (+.055) and reaches +.32 for Qwen3 14B. The kotodama-tsumugi release reads −.014 zero-shot and +.038 with three examples, which binds; the other cooldown from the same 100B checkpoint reads +.022 with examples, just short of the bar.
 
 **The +.02 bar.** A model passes when the whole 95% interval of its swap shift is above +.02. The bar is a fixed convention, set before any of these models was read. Under it, kotodama-tsumugi passes with three worked examples (+.038, interval +.023 to +.055). It is the only base at 3B or below that does; the next is Qwen3 4B (+.055). The finding depends on the bar. With the bar at +.01 it still holds. With the bar at 0, Pythia-160M and Pythia-2.8B also pass, and at +.03 kotodama-tsumugi no longer does. A later version of the benchmark will set the bar from each test's own noise, registered before any model is read.
 
@@ -88,7 +88,7 @@ Each dynamic-*you* gauge item is rewritten along one axis: **story, no I or you*
 | kotodama-tsumugi · 33B | 33B | .319 | .269 | .328 | .250 |
 | kotodama-tsumugi · 55B | 55B | .314 | .286 | .297 | .283 |
 | kotodama-tsumugi · 88B | 88B | .331 | .322 | .317 | .269 |
-| kotodama-tsumugi · 110B, second cooldown | 110B | .375 | .331 | .364 | .300 |
+| kotodama-tsumugi · 110B, other cooldown | 110B | .375 | .331 | .364 | .300 |
 | kotodama-tsumugi · 110B, release | 110B | .336 | .303 | .336 | .286 |
 | OLMo-2 1B | 4T | .300 | .278 | .300 | .258 |
 | SmolLM2 1.7B | 11T | .400 | .300 | .294 | .303 |
@@ -132,7 +132,7 @@ A 1.42B-parameter model with a looped core, run as 72 effective layers. Its trun
 | s17 | annealed | 55 | +.228 | +.122 | −.028 | +.030 |
 | s17 | annealed | 88 | +.156 | +.181 | −.016 | +.021 |
 | s17 | annealed (release) | 110 | +.178 | +.192 | −.014 | +.038 |
-| s17 | annealed (second cooldown from the same 100B checkpoint) | 110 | +.195 | +.127 | −.012 | +.022 |
+| s17 | annealed (the other cooldown from the same 100B checkpoint) | 110 | +.195 | +.127 | −.012 | +.022 |
 | s7 | constant | 1 | +.004 | −.005 | −.003 | −.002 |
 | s7 | constant | 2 | +.004 | −.004 | −.006 | +.012 |
 | s7 | constant | 3 | +.007 | −.005 | −.009 | +.021 |
@@ -163,11 +163,11 @@ For reference, OLMo-2 reaches stage 3 at about 42B tokens (OLMo-2 13B), 210B tok
 | Pattern completion (AUC) | +.458 | +.402 | +.475 | +.438 | +.507 | +.553 | +.426 | +.434 |
 | Known facts (control) (AUC) | +.640 | +.713 | +.892 | +.892 | +.925 | +.948 | +.651 | +.765 |
 
-The values are the grid's own cells. Each test is read as the grid reads it. Columns with worked examples use them, the others are read cold, and the rule-learning rows are AUC over the example ladder. Lookup rises from .69 at 5B tokens to .98 by 55B, level with the 7–9B bases (.97 to 1.00). The update tests (many refills, variable chains, shared lists) stay at chance through 33B and lift from 55B on (.04 to .22). Static *you* climbs from .08 at 5B to .49 at the release. Pattern completion reaches .55, second of 12 models at 1–2B parameters. The two seeds differ at 5B (seed 7 forms lookup and set binding earlier) and agree within .05 on all ten rows at 11B.
+The values are the grid's own cells. Each test is read as the grid reads it. Columns with worked examples use them, the others are read with no examples, and the rule-learning rows are AUC over the example ladder. Lookup rises from .69 at 5B tokens to .98 by 55B, level with the 7–9B bases (.97 to 1.00). The update tests (many refills, variable chains, shared lists) stay at chance through 33B and lift from 55B on (.04 to .22). Static *you* climbs from .08 at 5B to .49 at the release. Pattern completion reaches .55, second of 12 models at 1–2B parameters. The two seeds differ at 5B (seed 7 forms lookup and set binding earlier) and agree within .05 on all ten rows at 11B.
 
 ### The release against its trajectory and its class
 
-| probe | 33B | 55B | 88B | 110B · 2nd cooldown | 110B · release | OLMo-2 1B · 4T | SmolLM2 1.7B · 11T | Qwen3 1.7B · 36T |
+| probe | 33B | 55B | 88B | 110B · other cooldown | 110B · release | OLMo-2 1B · 4T | SmolLM2 1.7B · 11T | Qwen3 1.7B · 36T |
 |---|---|---|---|---|---|---|---|---|
 | I = speaker (swap shift) | +.221 | +.228 | +.156 | +.195 | +.178 | +.312 | +.363 | +.595 |
 | you = person spoken to (swap shift) | +.065 | +.122 | +.181 | +.127 | +.192 | +.114 | +.207 | +.137 |
@@ -178,7 +178,7 @@ The values are the grid's own cells. Each test is read as the grid reads it. Col
 | who has what, said with I and you (accuracy, chance ≈ .33) | .270 | .302 | .319 | .354 | .314 | .320 | — | — |
 | who has what, third person (accuracy, chance ≈ .33) | .418 | .404 | .446 | .467 | .441 | .461 | — | — |
 
-The two 110B columns are two anneals from the same fork with the same training loss. Their spread is the measured anneal-to-anneal variance. It is .127 vs .192 on static *you* and .022 vs .038 on dynamic *you* with examples. K50 reads 4.6 vs 5.1, and held-out text differs by .025 bits/byte. Every single-anneal number here carries it. A second initialization seed (seed 7, same data order) was trained to 11B. Capacity (K50, after arXiv 2609.30634) is how many name–task pairs fit in context before recall falls halfway to chance. On this harness it tracks recipe and tokens more than parameters, so no parameter-equivalent size is read from it.
+The two 110B columns are two anneals from the same fork with the same training loss. Their spread is the measured anneal-to-anneal variance. It is .127 vs .192 on static *you* and .022 vs .038 on dynamic *you* with examples. K50 reads 4.6 vs 5.1, and held-out text differs by .025 bits/byte. Every single-anneal number here carries it. A second initialization seed (seed 7, same data order) was trained to 11B. Capacity (K50, after Ravulapalli 2026, *In-context binding capacity in language models*, arXiv 2609.30634) is how many name–task pairs fit in context before recall falls halfway to chance. On this harness it tracks recipe and tokens more than parameters, so no parameter-equivalent size is read from it.
 
 ### Object tracking: lookup early, updating later (the box puzzle; κ, mean over code, prose, script and chat)
 
@@ -192,7 +192,7 @@ The two 110B columns are two anneals from the same fork with the same training l
 | 70–72B (2 models) | +.620 | +.592 | +.825 | +.769 |
 | 284B–1.6T (9 models) | +.719 | +.721 | +.811 | +.870 |
 | kotodama-tsumugi 1.4B · release | +.436 | +.121 | +.611 | −.044 |
-| kotodama-tsumugi 1.4B · second cooldown | +.481 | +.088 | +.486 | +.001 |
+| kotodama-tsumugi 1.4B · other cooldown | +.481 | +.088 | +.486 | +.001 |
 
 On *lookup* items, the queried box ends with its declared contents; on *update* items, an operation changed it. Each public row is the median model of its size band. Lookup is above chance at every size. The median model updates at chance below 2B. With worked examples, updating climbs with size, from .20 at 2–5B and .40 at 7–10B to .77 at 70B and .87 from 284B up. A few small models update early, each with examples: Qwen3 4B (.43), Falcon-H1 3B (.37) and Falcon-H1 1.5B-Deep (.28). kotodama-tsumugi's lookup with examples (.61) is second of 12 models at 1–2B, behind Llama-3.2 1B (.83); like most models its size, it does not yet update (−.04). One model's cell averages 272 lookup or 328 update items (68 or 82 per format), about ±.08 at 95%.
 
@@ -203,7 +203,7 @@ On *lookup* items, the queried box ends with its declared contents; on *update* 
 - **Conditions:** `fair` = four solved items first, balanced so that no answer can be copied from them (the reading); `0shot` = the item alone (the floor). Columns without worked examples (lookups in lists, box refills, the static gauges) have a `0shot` reading only. The rule-learning columns are read across their difficulty ladder (`ladder`: the mean chance-normalized accuracy over the ladder's rungs, clipped at 0 and 1).
 - **Wording controls:** the word *now* in a query implies that something moved. The largest models read that implication. After a scene where nothing moves, 'Now X is holding the' leads them to answer as if something had. Every query here uses one lead per test, whether or not anything moved: 'Right now X is holding the', 'So Box G contains the'. The wording therefore never signals a change.
 - **Groups:** columns are grouped by what the questions look like. Each column is scored and read on its own.
-- **Models:** every base model is scored by log-probability over the candidate set, with one scorer and one set of batteries. The **Human** row is one person reading items cold, with typed answers.
+- **Models:** every base model is scored by log-probability over the candidate set, with one scorer and one set of batteries.
 - **Parsing:** sections are `##` headings outside code fences (prompts inside code fences can contain lines that start with `#`). Two CSV blocks at the end: `rows` (id → label, group, size, tokens) and `cells` (every number).
 
 ## Glossary
@@ -227,7 +227,7 @@ On *lookup* items, the queried box ends with its declared contents; on *update* 
 | `refilled` | Who has what after things move: told as a story | Refilled box | A box is emptied and refilled; name its new contents. | 0shot |  |
 | `refills` | Who has what after things move: told as a story | Many refills | Boxes are emptied and refilled again and again; name one box's latest contents. | 0shot | yes |
 | `codevar` | Who has what after things move: written as code | Variable chains | Python variables are assigned, copied and reassigned; name what one prints. | fair, 0shot | yes |
-| `sharedlists` | Who has what after things move: written as code | Shared lists | Two names point at one Python list that is changed, rebound or copied; name what a print shows. | fair, 0shot | yes |
+| `sharedlists` | Who has what after things move: written as code | Shared lists | Two names point at one Python list that is changed, reassigned or copied; name what a print shows. | fair, 0shot | yes |
 | `box-narrative` | One box puzzle, four formats | Box puzzle: prose | Boxes are swapped, moved and refilled, written as plain sentences; name one box's contents. | fair, 0shot |  |
 | `box-screenplay` | One box puzzle, four formats | Box puzzle: script | Boxes are swapped, moved and refilled, written as a two-speaker script; name one box's contents. | fair, 0shot |  |
 | `box-code` | One box puzzle, four formats | Box puzzle: code | Boxes are swapped, moved and refilled, written as a Python dictionary; name one box's contents. | fair, 0shot |  |
@@ -244,7 +244,7 @@ On *lookup* items, the queried box ends with its declared contents; on *update* 
 
 ## Example items per column (verbatim prompts)
 
-Each prompt ends right before the scored word. `candidates` = the closed set a logprob model ranks; `gold` = the right answer. Generation-scored (API, human) rows see the same prompt with no options.
+Each prompt ends right before the scored word. `candidates` = the closed set a logprob model ranks; `gold` = the right answer. Generation-scored (API) rows see the same prompt with no options.
 
 ### `lookup` — Who has what? Nothing moves · Simple lookup
 
@@ -424,7 +424,7 @@ print(b)  # output:
 
 ### `sharedlists` — Who has what after things move: written as code · Shared lists
 
-Two names point at one Python list that is changed, rebound or copied; name what a print shows.
+Two names point at one Python list that is changed, reassigned or copied; name what a print shows.
 
 **0-shot example** (`codevarmut-v1_1-mutate_000`) — candidates: `bolt, spoon, straw, mirror, lantern` · gold: **`lantern`**
 
@@ -772,7 +772,6 @@ Belgium →
 
 | id | label | group | params (B) | active (B) | pretraining tokens | note |
 |---|---|---|---|---|---|---|
-| `human` | Human reader (gauntlet) | Human | — | — | — | reflex, read cold: round 1 (31 items, 30 right) + round 2 (24 items, 22 right; both misses self-reported reading slips) |
 | `pythia-160m` | Pythia 160M | under 1B | 0.213 | 0.213 | 300B |  |
 | `smollm2-360m` | SmolLM2 360M | under 1B | 0.362 | 0.362 | 4T |  |
 | `qwen2.5-0.5b` | Qwen2.5 0.5B | under 1B | 0.494 | 0.494 | ≤ 18T |  |
@@ -840,14 +839,12 @@ Belgium →
 
 ## Tables by group
 
-Score (0 = guessing, 1 = always right), with worked examples where the column has them; `°` = the column's only reading (cold, or across its ladder); `↓` = below chance (the interval is below 0); `—` = not measured. Full numbers (n, chance, the interval, every condition) are in the CSV below.
+Score (0 = guessing, 1 = always right), with worked examples where the column has them; `°` = the column's only reading (with no examples, or across its ladder); `↓` = below chance (the interval is below 0); `—` = not measured. Full numbers (n, chance, the interval, every condition) are in the CSV below.
 
 ### Who has what? Nothing moves
 
 | model | Simple lookup | Short list lookup | Lookup among pairs | Lookup past noise | Who holds it now |
 |---|---|---|---|---|---|
-| **Human** | | | | | |
-| Human reader (gauntlet) | +1.00 | — | +1.00 | — | — |
 | **under 1B** | | | | | |
 | Pythia 160M | +0.10 | +0.22° | +0.13 | +0.22° | +0.06° |
 | SmolLM2 360M | +0.35 | +0.57° | +0.29 | +0.35° | +0.36° |
@@ -922,8 +919,6 @@ Score (0 = guessing, 1 = always right), with worked examples where the column ha
 
 | model | Hand-offs in a story | Sets after hand-offs | Refilled box | Many refills |
 |---|---|---|---|---|
-| **Human** | | | | |
-| Human reader (gauntlet) | +1.00 | +1.00 | — | — |
 | **under 1B** | | | | |
 | Pythia 160M | +0.06 | +0.11 | +0.03° | -0.01° |
 | SmolLM2 360M | +0.29 | +0.22 | +0.28° | +0.10° |
@@ -998,8 +993,6 @@ Score (0 = guessing, 1 = always right), with worked examples where the column ha
 
 | model | Variable chains | Shared lists |
 |---|---|---|
-| **Human** | | |
-| Human reader (gauntlet) | +0.73 | +1.00 |
 | **under 1B** | | |
 | Pythia 160M | +0.01 | -0.01 |
 | SmolLM2 360M | +0.05 | -0.02 |
@@ -1148,8 +1141,6 @@ Score (0 = guessing, 1 = always right), with worked examples where the column ha
 
 | model | 'You', nothing moves | 'I', after hand-offs | 'You', after hand-offs | 'You' among three | Answering as yourself |
 |---|---|---|---|---|---|
-| **Human** | | | | | |
-| Human reader (gauntlet) | — | +1.00 | +1.00 | +1.00 | +1.00 |
 | **under 1B** | | | | | |
 | Pythia 160M | +0.03° | +0.03 | -0.04 | +0.05 | +0.04 |
 | SmolLM2 360M | +0.15° | -0.00 | -0.02 | +0.08 | +0.03 |
@@ -1298,7 +1289,6 @@ Score (0 = guessing, 1 = always right), with worked examples where the column ha
 
 ```csv
 row_id,label,group,params_b,active_b,tokens,scoring
-human,"Human reader (gauntlet)","Human",,,,generation
 pythia-160m,"Pythia 160M","under 1B",0.213,0.213,300000000000.0,logprob
 smollm2-360m,"SmolLM2 360M","under 1B",0.362,0.362,4000000000000.0,logprob
 qwen2.5-0.5b,"Qwen2.5 0.5B","under 1B",0.494,0.494,18000000000000.0,logprob
@@ -1371,21 +1361,6 @@ tsumugi-s17-a88B,"kotodama-tsumugi · 88B tokens","kotodama-tsumugi, by training
 
 ```csv
 row_id,col_id,condition,acc,n,chance,score,lo,hi,state
-human,lookup,0shot,1.000,5,0.185,1.000,,,
-human,pairs,0shot,1.000,1,0.125,1.000,,,
-human,handoffs,0shot,1.000,6,0.319,1.000,,,
-human,handoffs,3shot_collide,1.000,1,0.250,1.000,,,
-human,handoffs,3shot,1.000,1,0.250,1.000,,,
-human,sets,0shot,1.000,1,0.036,1.000,,,
-human,codevar,0shot,0.800,5,0.257,0.731,,,
-human,sharedlists,0shot,1.000,1,0.200,1.000,,,
-human,i-moves,0shot,1.000,3,0.306,1.000,,,
-human,i-moves,0shot,1.000,1,0.250,1.000,,,
-human,you-moves,0shot,1.000,4,0.312,1.000,,,
-human,you-moves,0shot,1.000,2,0.292,1.000,,,
-human,you-named,0shot,1.000,3,0.306,1.000,,,
-human,you-named,0shot,1.000,1,0.250,1.000,,,
-human,answer-self,0shot,1.000,1,0.250,1.000,,,
 pythia-160m,lookup,0shot,0.220,1210,0.169,0.065,0.051,0.080,above
 pythia-160m,lookup,fair,0.249,1210,0.169,0.100,0.079,0.121,above
 pythia-160m,shortlist,0shot,0.250,3840,0.040,0.219,0.208,0.230,above

@@ -20,7 +20,7 @@ REPO = HERE.parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(REPO / "build"))
 from forbidden import FORBIDDEN  # noqa: E402  (the one table of forbidden names)
-from siteconfig import ConfigError, SiteConfig, render_hosting  # noqa: E402
+from siteconfig import ConfigError, SiteConfig, render_hosting, without_hidden_rows  # noqa: E402
 
 STAMP_FMT = "%Y-%m-%d %H:%M UTC"
 
@@ -58,7 +58,7 @@ def main() -> None:
     a = ap.parse_args()
     cfg = load_config(a.config)
     stamp = build_stamp(a.stamp)
-    atlas = json.loads(a.atlas.read_text())
+    atlas = without_hidden_rows(json.loads(a.atlas.read_text()))
     meta = {"updated": stamp[:10], "build": stamp,
             "items": sum(v["n"] for k, v in atlas["cells"].items() if k.endswith("|all"))}
     for r in atlas["rows"]:

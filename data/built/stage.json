@@ -529,7 +529,7 @@
     {
      "tok": 110.0,
      "kind": "annealed",
-     "note": "second cooldown from the same 100B checkpoint",
+     "note": "the other cooldown from the same 100B checkpoint",
      "I": 0.195,
      "you": 0.127,
      "dyn0": -0.012,
@@ -848,7 +848,7 @@
     "vocative": 0.269
    },
    {
-    "m": "kotodama-tsumugi · 110B, second cooldown",
+    "m": "kotodama-tsumugi · 110B, other cooldown",
     "p": 1.42,
     "tok": "110B",
     "ours": true,
@@ -1133,7 +1133,7 @@
     "uf": -0.044
    },
    {
-    "m": "kotodama-tsumugi 1.4B · second cooldown",
+    "m": "kotodama-tsumugi 1.4B · other cooldown",
     "ours": true,
     "l0": 0.481,
     "u0": 0.088,
@@ -1148,7 +1148,7 @@
    "33B",
    "55B",
    "88B",
-   "110B · 2nd cooldown",
+   "110B · other cooldown",
    "110B · release",
    "OLMo-2 1B · 4T",
    "SmolLM2 1.7B · 11T",

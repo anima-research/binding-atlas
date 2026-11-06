@@ -15,7 +15,7 @@
 <meta property="og:image" content="__CARD_URL__">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Binding Atlas: dynamic “you” swap shift against parameter count for 29 public base models; zero-shot it binds from about 7B and for every base from 13B up.">
+<meta property="og:image:alt" content="Binding Atlas: the swap shift for “you” after hand-offs against parameter count for 29 public base models; with no examples, models pass from about 7B, and every base from 13B up passes.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Binding Atlas">
 <meta name="twitter:description" content="Base language models learn to look things up long before they learn to track change. 56 public base models, 160M to 1.6T parameters, one scorer.">
@@ -95,12 +95,12 @@ select { max-width: 100%; font: inherit; font-size: 14px; padding: 5px 8px; bord
 .cellbtn.only::after { content: "°"; position: absolute; top: 0; right: 2px; font-size: 10px; line-height: 1; }
 .atlas thead th.cg button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-transform: inherit; letter-spacing: inherit; }
 /* grid */
-.gridwrap { width: fit-content; max-width: 100%; overflow: auto; max-height: 78vh; border: 1px solid var(--line); border-radius: 3px; background: var(--surface); }
-table.atlas { border-collapse: separate; border-spacing: 2px; font-variant-numeric: tabular-nums; padding: 0 10px 10px 0; }
+.gridwrap { isolation: isolate; width: fit-content; max-width: 100%; overflow: auto; max-height: 78vh; border: 1px solid var(--line); border-radius: 3px; background: var(--surface); }
+table.atlas { border-collapse: separate; border-spacing: 2px; font-variant-numeric: tabular-nums; padding: 0 112px 10px 0; }
 .atlas thead th { position: sticky; z-index: 3; background: var(--surface); }
 .atlas thead tr.r1 th { top: 0; }
 .atlas thead tr.r2 th { top: 22px; }
-.atlas th.corner { position: sticky; left: 0; z-index: 5; background: var(--surface); box-shadow: 2px 0 0 var(--surface); }
+.atlas th.corner { position: sticky; left: 0; z-index: 300; background: var(--surface); box-shadow: 2px 0 0 var(--surface); }
 .atlas tr.grp th .grpbtn { position: sticky; left: 12px; }
 .atlas th.rowh { position: sticky; left: 0; z-index: 2; background: var(--surface); box-shadow: 2px 0 0 var(--surface); text-align: right; font-weight: 400; font-size: 13px; padding: 0 10px 0 12px; white-space: nowrap; cursor: pointer; }
 .atlas th.rowh:hover { color: var(--accent); }
@@ -111,8 +111,10 @@ table.atlas { border-collapse: separate; border-spacing: 2px; font-variant-numer
 .grpbtn, .rowbtn { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-align: inherit; }
 .atlas tr.grp th .caret { display: inline-block; width: 14px; color: var(--muted); }
 .atlas thead th.cg { font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 600; text-align: left; padding: 2px 4px; border-bottom: 2px solid var(--line); white-space: nowrap; height: 22px; }
-.atlas thead th.cl { height: 132px; vertical-align: bottom; padding: 0; }
-.atlas thead th.cl button { writing-mode: vertical-rl; transform: rotate(180deg); font: inherit; font-size: 12px; color: var(--fg); background: none; border: 0; cursor: pointer; padding: 4px 0; white-space: nowrap; text-align: left; }
+/* column names run up and to the right at 45°, starting over their score cell (19px = half a cell): readable without turning the head, and still compact. Each header sits
+   above its right-hand neighbour (z-index set per column), so a long name stays visible over the next header. */
+.atlas thead th.cl { height: 118px; vertical-align: bottom; padding: 0; }
+.atlas thead th.cl button { position: absolute; left: 19px; bottom: 6px; transform-origin: 0 100%; transform: rotate(-45deg); font: inherit; font-size: 12px; color: var(--fg); background: none; border: 0; cursor: pointer; padding: 0 2px; white-space: nowrap; text-align: left; }
 .atlas thead th.cl button[aria-pressed="true"] { color: var(--accent); font-weight: 600; }
 .atlas thead th.cl button .srt { color: var(--accent); }
 .atlas td { padding: 0; }
@@ -134,7 +136,7 @@ table.atlas { border-collapse: separate; border-spacing: 2px; font-variant-numer
   input[type=search] { width: 100%; font-size: 16px; }
   .quiz input { font-size: 16px; }
   .atlas th.rowh { max-width: 132px; white-space: normal; font-size: 12px; line-height: 1.2; }
-  .atlas thead th.cl button { padding: 4px 8px; min-width: 32px; }
+  .atlas thead th.cl button { padding: 0 2px; }
   .chip { padding: 6px 12px; }
   .cellbtn { height: 32px; }
   details.panel summary { padding: 6px 0; }
@@ -260,11 +262,11 @@ table.levers td.cost { color: var(--muted); }
 __TOC__
 <div class="wrap">
   <header class="paper" style="gap:14px">
-    <div class="eyebrow"><span>kotodama · who is who, in base language models</span>
+    <div class="eyebrow"><span>who is who, in base language models</span>
       <button class="iconbtn" id="theme" aria-label="toggle light / dark theme">light / dark</button></div>
     <h1>Binding Atlas</h1>
     <p class="credit">Led by <a href="https://x.com/kataletheia">Luxia</a>, with <a href="https://animalabs.ai">Anima Labs</a> · built with <a href="https://www.anthropic.com/claude">Claude</a></p>
-    <p class="claim">This atlas scores <b>__N_MODELS__ base models and checkpoints</b>, plus one human reader, on
+    <p class="claim">This atlas scores <b>__N_MODELS__ base models and checkpoints</b> on
       <b>__N_TESTS__ tests</b> of keeping track of who is who. Each test is a short text that ends in a blank, with a
       fixed list of possible answers. The tests ask who holds which object, who holds it after things change hands, who
       <i>I</i> and <i>you</i> refer to in a chat, and what a made-up rule gives for a new case. A model's answer is the
@@ -276,10 +278,10 @@ __TOC__
       a later step changed (0 is guessing, 1 is always right). With worked examples in the prompt, updating climbs
       steadily with size, to .77 for the 70B models and above .8 for most of the largest.</p>
     <p class="claim">In a chat, <i>you</i> means the person being spoken to. Models get this right in five stages, in the
-      same order in every training run measured (Figure 1). To read a stage, the speaker's name on the chat's last line
+      same order in every training run measured; Figure 1, just below, walks through all five. To read a stage, the speaker's name on the chat's last line
       is swapped: in "Jack: you're holding the ___", a model that follows <i>you</i> moves its answer to the other
       person's object. The <b>swap shift</b> is how much probability leaves the first answer. A model passes a stage
-      when the whole 95% interval of its swap shift is above +.02, and reads <i>you</i> backwards when the interval
+      when the whole 95% interval of its swap shift is above +.02, a bar fixed before any model was scored, and reads <i>you</i> backwards when the interval
       is below −.02. Every base of 0.6B parameters or more trained on trillions of tokens reaches the third stage,
       <i>you</i> as the person spoken to, except Bamba 9B. The fifth stage is following <i>you</i> as objects change
       hands. <b>With no examples in the prompt, it appears from about 7B, and every base measured from 13B up reaches
@@ -290,7 +292,7 @@ __TOC__
       measured that passes the fifth stage. Its swap shift is +.038, with the whole 95% interval above +.02
       (<a href="#tsumugi-you">the test</a>). The next is Qwen3 4B.</p>
     <div class="byline"><span>kotodama · 2026</span><span>__N_BASES__ public bases in the atlas · 29 public bases and 5 public training trajectories in the figures · kotodama-tsumugi (seed 17 to 110B tokens; seed 7 to 11B)</span>
-      <a href="#atlas">full atlas ↓</a><a href="binding-atlas.md">plain-text version, for language models</a><a href="__THREADS_LINK__">Threads: a map of tsumugi's neurons</a>__BACK_LINK__</div>
+      <a href="#atlas">full atlas ↓</a><a href="binding-atlas.md">plain-text version, for language models</a><a href="take">take the tests yourself</a><a href="__THREADS_LINK__">a map of tsumugi's neurons</a>__BACK_LINK__</div>
   </header>
 
   <div class="part"><span class="no">Part I</span><h2>Where base models fail</h2></div>
@@ -315,13 +317,12 @@ __TOC__
         <p class="cap"><b>With no examples (filled), no model up to 4B passes</b> (OLMo-2 1B is shown at its 4T
           checkpoint before its final cooldown), and four of the small Qwen models read <i>you</i> backwards. At 7B,
           OLMo-2 7B (+.055) and Qwen2.5 7B (+.047) pass; Qwen3 8B and Gemma-2 9B do not yet. From 13B up, every base
-          passes: all 19 measured, here and in the full atlas, from OLMo-2 13B to DeepSeek-V4 Pro at 1.6T. The largest
+          passes: all 19 measured, here and in the full atlas, from OLMo-2 13B to DeepSeek-V4 Pro at 1.6T parameters. The largest
           readings are DeepSeek-V3 (+.216), DeepSeek-V4 Flash (+.177) and MiMo-V2.5 Pro (+.162). On the third stage
           (<i>you</i> as the person spoken to), these 19 read +.27 to +.89. With three worked examples (hollow), passing
           starts at Qwen3 4B (+.055) and reaches +.32 for Qwen3 14B. The kotodama-tsumugi release (diamond; 1.4B at 110B
-          tokens) reads −.014 with no examples and +.038 with three, which passes. A second cooldown of the same model,
-          from the same checkpoint, reads +.022 with examples, just short of the bar (Table 3 gives the spread between
-          the two).</p>
+          tokens) reads −.014 with no examples and +.038 with three, which passes. The other cooldown from the same 100B
+          checkpoint reads +.022 with examples, just short of the bar (Table 3 compares the two).</p>
         <p class="cap" id="tsumugi-you"><b>The +.02 bar.</b> A model passes when the whole 95% interval of its swap
           shift is above +.02. The bar is a fixed convention, set before any of these models was read. Under it,
           kotodama-tsumugi passes with three worked examples (+.038, interval +.023 to +.055). It is the only base at 3B or below that does; the next is
@@ -346,7 +347,7 @@ __TOC__
     <section class="fig" aria-labelledby="t1h">
       <div class="fh"><span class="no">Table 1</span><h2 id="t1h">Why stage 5 is hard: the same chats, changed one thing at a time</h2></div>
       <p class="cap lead">Each stage-5 chat is rewritten four ways, with no examples in the prompt. Scores are accuracy
-        (chance ≈ .29, about ±.024 per cell), pooled over questions about the speaker's and the addressee's objects.
+        (chance ≈ .29; each cell's 95% interval is about ±.024), pooled over questions about the speaker's and the addressee's objects.
         <i>Story, no I or you</i> tells the whole scene in the third person. <i>Chat</i> is the test itself.
         <i>Chat, hand-off as a stage direction</i> keeps the chat but writes the hand-off as narration ("[Erin gives
         the cup to Paul.]"). <i>Chat, addressee named</i> puts the listener's name in the question ("Paul, right now
@@ -367,12 +368,35 @@ __TOC__
   <section class="sect" id="atlas" aria-labelledby="ah">
     <h2 id="ah">Full atlas</h2>
     <p class="cap">Every base model, scored by one scorer on one set of tests. A score of 0 means guessing, 1 means always
-      right, and below 0 means reliably wrong. By default each item comes after four worked examples; the <i>Cold</i> view shows
+      right, and below 0 means reliably wrong. By default each item comes after four worked examples; the <i>No examples</i> view shows
       the items alone. Columns are grouped by what the questions look like, and each column is read on its own. Click a cell to read
       the exact text that the model was given.</p>
     <div class="stats" id="stats"></div>
     <div class="colkey" id="colkey"></div>
   </section>
+
+  <details class="panel prose" open><summary>Reading the grid</summary>
+      <ul>
+        <li><b>Score</b> = (accuracy − chance) / (1 − chance). 0 is guessing among the candidates, 1 is always right, and
+          below 0 is reliably wrong: a systematic wrong answer, usually a shortcut.</li>
+        <li><b>A cell has three states.</b> A colored cell is above chance. An outlined cell is at chance: its 95% interval
+          includes 0. A red-hatched cell is below chance. When candidates tie exactly, the item's credit is split among
+          them.</li>
+        <li><b>With examples</b> puts four solved items before each item, balanced so that no answer can be copied from
+          them. That is the reading. <b>No examples</b> shows the item alone, with no solved items: the floor.
+          Columns with no worked-example version (Short list lookup, Lookup past noise, Who holds it now, the two box
+          refills and 'You', nothing moves) have a no-examples reading only.</li>
+        <li><b>Wording controls.</b> The word <i>now</i> in a query implies that something moved, and the largest
+          models read that implication. After a scene where nothing moves, "Now X is holding the" leads them to answer
+          as if something had. Every query here uses one lead per test, whether or not anything moved: "Right now X is
+          holding the", "So Box G contains the". The wording therefore never signals a change.</li>
+        <li><b>Each model</b> is scored by the log-probability that it gives each candidate answer.</li>
+        <li><b>Columns are grouped</b> by what the questions look like. Each column is its own test, and a collapsed group
+          shows one named column, never an average. Rows are grouped by size, with kotodama-tsumugi's checkpoints in
+          training order at the foot. The rule-learning suite has a fourth family, rebinding, where one name is
+          reassigned again and again: it is the Many refills column, under the story group. Click any cell to read its prompts.</li>
+      </ul>
+    </details>
 
   <section class="panel" aria-label="controls">
     <div class="controls">
@@ -381,7 +405,7 @@ __TOC__
         <button data-v="acc" aria-pressed="false">Accuracy</button></div></div>
       <div class="ctl" role="group" aria-labelledby="lab-cond"><span id="lab-cond">Condition</span><div class="seg" id="cond">
         <button data-v="fair" aria-pressed="true" title="four solved items first, balanced so no answer can be copied from them: the reading">With examples</button>
-        <button data-v="0shot" aria-pressed="false" title="the item alone, with no solved items before it: the floor">Cold</button></div></div>
+        <button data-v="0shot" aria-pressed="false" title="the item alone, with no solved items before it: the floor">No examples</button></div></div>
       <label class="ctl"><span>Find a model</span><input type="search" id="q" placeholder="e.g. 405B, Qwen3, tsumugi"></label>
       <label class="ctl"><span>Sort rows</span><select id="sort"><option value="">by group (default)</option></select></label>
       <label class="ctl"><span>Parameters</span><select id="psz"><option value="">any size</option><option value="0-2">up to 2B</option><option value="2-10">2B to 10B</option><option value="10-100">10B to 100B</option><option value="100-">100B and up</option><option value="known">published size only</option></select></label>
@@ -421,7 +445,7 @@ __TOC__
       <p class="cap"><i>I</i> as the speaker starts to pass at 3.75B tokens and levels off at +.16 to +.25 from about 40B. <i>You</i>
         as the person spoken to first dips below zero, the stage where the model treats <i>you</i> as <i>me</i>. It
         first passes at 33B tokens in a cooled-down read (+.065) and at 40B on the main run itself (+.068), and reaches
-        +.192 at the 110B release. The second cooldown from the same checkpoint reads +.127 (Table 3 gives the spread).
+        +.192 at the 110B release. The other cooldown from the same checkpoint reads +.127 (Table 3 gives the spread).
         On seed 17, <i>you</i> through hand-offs with no examples sits just below zero from about 4B (−.015 to −.034) and
         never passes. At 110B the two cooldowns read −.014 and −.012, not reliably backwards. The markers along the top show where
         OLMo-2 13B, 7B and 1B reach stage 3.</p>
@@ -460,7 +484,7 @@ __TOC__
       <p class="cap lead">The release beside its own earlier checkpoints and three public models of its size. The table
         has three kinds of row. The first four are swap shifts on the stages, and above +.02 passes. The next two test
         how many name–task pairs ("Ana: plumbing") a model can hold in its prompt, following a published capacity study
-        (arXiv 2609.30634). K50 is how
+        (Ravulapalli 2026, <a href="https://arxiv.org/abs/2609.30634"><i>In-context binding capacity in language models</i></a>). K50 is how
         many pairs fit before recall falls halfway to chance. Each trial is written four ways (a list or inline, two
         question wordings), and K50 is read over all four. The second of the two is recall of one pair across 256 tokens
         of filler. The last two are accuracies on who-has-what questions (chance ≈ .33).</p>
@@ -490,29 +514,6 @@ __TOC__
     </section>
   </div>
 
-  <details class="panel prose"><summary>Reading the grid</summary>
-      <ul>
-        <li><b>Score</b> = (accuracy − chance) / (1 − chance). 0 is guessing among the candidates, 1 is always right, and
-          below 0 is reliably wrong: a systematic wrong answer, usually a shortcut.</li>
-        <li><b>A cell has three states.</b> A colored cell is above chance. An outlined cell is at chance: its 95% interval
-          includes 0. A red-hatched cell is below chance. When candidates tie exactly, the item's credit is split among
-          them.</li>
-        <li><b>With examples</b> puts four solved items before each item, balanced so that no answer can be copied from
-          them. That is the reading. <b>Cold</b> shows the item alone, with no solved items: the floor.
-          Columns with no worked-example version (lookups in lists, box refills, the static gauges) have a Cold
-          reading only.</li>
-        <li><b>Wording controls.</b> The word <i>now</i> in a query implies that something moved, and the largest
-          models read that implication. After a scene where nothing moves, "Now X is holding the" leads them to answer
-          as if something had. Every query here uses one lead per test, whether or not anything moved: "Right now X is
-          holding the", "So Box G contains the". The wording therefore never signals a change.</li>
-        <li><b>Each model</b> is scored by the log-probability that it gives each candidate answer. The human row read
-          each item cold, once, without options.</li>
-        <li><b>Columns are grouped</b> by what the questions look like. Each column is its own test, and a collapsed group
-          shows one named column, never an average. Rows are grouped by size, with kotodama-tsumugi's checkpoints in
-          training order at the foot. The rule-learning suite has a fourth family, rebinding, where one name is
-          reassigned again and again: it is the Many refills column, under the story group. Click any cell to read its prompts.</li>
-      </ul>
-    </details>
 
   <footer><span id="updated"></span><span id="foot"></span><span>Built from the kotodama binding research (2026). Numbers are point
     estimates; hover a cell for n and ± standard error.</span><span>__FONT_CREDIT__</span><span><a href="binding-atlas.md">Agent view (Markdown)</a>: the same data as plain text, with example prompts and every cell as CSV.</span></footer>
@@ -556,7 +557,7 @@ const dia = (x, y, r = 6) => `<path d="M${x} ${y - r}L${x + r} ${y}L${x} ${y + r
   for (const m of M) {
     const x = X(m.p);
     s += `<line x1="${x}" x2="${x}" y1="${Y(m.z)}" y2="${Y(m.t)}" stroke="var(--line)"/>`;
-    s += `<g><title>${esc(m.m)} · ${m.tok} tokens · 0-shot ${f3(m.z)} · 3-shot ${f3(m.t)}</title>${sq(x, Y(m.t), false)}${sq(x, Y(m.z), true)}</g>`;
+    s += `<g><title>${esc(m.m)} · ${m.tok} tokens · no examples ${f3(m.z)} · three examples ${f3(m.t)}</title>${sq(x, Y(m.t), false)}${sq(x, Y(m.z), true)}</g>`;
   }
   const o = T.ours, ox = X(o.p), dh = (y, r = 6) => `<path d="M${ox} ${y - r}L${ox + r} ${y}L${ox} ${y + r}L${ox - r} ${y}Z" fill="var(--bg)" stroke="var(--fg)" stroke-width="1.6"/>`;
   s += `<g><title>${esc(o.m)}: no examples ${f3(o.z)} · three examples ${f3(o.t)}</title><line x1="${ox}" x2="${ox}" y1="${Y(o.z)}" y2="${Y(o.t)}" stroke="var(--fg)" stroke-width="1.4"/>${dia(ox, Y(o.z))}${dh(Y(o.t))}</g><text class="lbl" x="${ox}" y="${Y(o.t) - 12}" text-anchor="middle">tsumugi</text>`;
@@ -829,7 +830,7 @@ function render() {
   const gap = S.view === "gap";
   const groups = []; for (const c of cols) { const nm = gap ? "Perspective gap · twin − I/you" : c.group; const g = groups[groups.length - 1]; if (g && g.name === nm) g.n++; else groups.push({name: nm, n: 1}); }
   let h = `<thead><tr class="r1"><th class="corner" rowspan="2"></th>${groups.map(g => { const all = COLS.filter(c => c.group === g.name).length, op = S.open.has(g.name); return `<th class="cg" colspan="${g.n}" title="${esc(g.name)}"><button data-cg="${esc(g.name)}" aria-expanded="${op}" title="${op ? "show this group's headline column only" : `show all ${all} columns`}"><span style="display:block;${g.n < 3 ? "white-space:nowrap" : `max-width:${Math.max(g.n * 40 - 6, 34)}px;overflow:hidden;text-overflow:ellipsis`}">${all > g.n || op ? (op ? "▾ " : "▸ ") : ""}${esc(g.n < 3 ? (COLS.find(c => c.group === g.name).group_short || g.name) : g.name)}</span></button></th>`; }).join("")}</tr>
-    <tr class="r2">${cols.map(c => `<th class="cl"><button data-col="${c.id}" aria-pressed="${S.col === c.id}" title="${esc(c.what)}">${esc(gap ? shortGroup(c.group) : c.label)}${S.sort === c.id ? ' <span class="srt">◀</span>' : ""}</button></th>`).join("")}</tr></thead><tbody>`;
+    <tr class="r2">${cols.map((c, ci) => `<th class="cl" style="z-index:${200 - ci}"><button data-col="${c.id}" aria-pressed="${S.col === c.id}" title="${esc(c.what)}">${esc(gap ? shortGroup(c.group) : c.label)}${S.sort === c.id ? ' <span class="srt">◀</span>' : ""}</button></th>`).join("")}</tr></thead><tbody>`;
   const rs = rowsInView();
   let last = null;
   for (const r of rs) {
@@ -877,7 +878,7 @@ document.addEventListener("pointermove", e => {
   if (S.view === "gap") t += `twin ${fmt2(v.b.score)} − deictic ${fmt2(v.a.score)} = <b>${fmt2(v.v)}</b>`;
   else { const x = v.x; t += (x.acc != null ? `acc <b>${pct(x.acc)}</b> · n ${x.n} · chance ${pct(x.chance)}<br>` : `ladder AUC · n ${x.n}<br>`) +
     `score <b>${fmt2(x.score)}</b>${x.lo != null ? ` [${fmt2(x.lo)}, ${fmt2(x.hi)}]` : ""}${x.state === "below" ? " · <b>below chance</b>" : x.state === "at" ? " · at chance" : ""}` +
-    (x.only ? `<br><i>${x.only === "ladder" ? "read across its difficulty ladder" : "this column has a cold reading only"}</i>` : "") +
+    (x.only ? `<br><i>${x.only === "ladder" ? "read across its difficulty ladder" : "this column has a no-examples reading only"}</i>` : "") +
     (c.flag ? `<br><i>${esc(c.flag)}</i>` : ""); }
   tip.innerHTML = t + `<br><span style="opacity:.7">click for the raw context</span>`;
   tip.style.display = "block";
@@ -958,7 +959,7 @@ function showDrawer(key) {
 function see(cid, r) {
   const ex = EX[cid], box = $("#rawbox");
   box.innerHTML = `<div class="tabs" id="extabs">
-      <button class="iconbtn" data-w="main" aria-pressed="true">0-shot item</button>
+      <button class="iconbtn" data-w="main" aria-pressed="true">item, no examples</button>
       ${ex && ex.free ? `<button class="iconbtn" data-w="free" aria-pressed="false">shortcut-free item</button>` : ""}
       ${ex && ex.shot3 ? `<button class="iconbtn" data-w="shot3" aria-pressed="false">with 3 exemplars</button>` : ""}</div>
     <p class="note" style="margin:6px 0">One representative item from this column — the exact text the model is given, ending at the
@@ -986,7 +987,7 @@ function quiz(cid, r, user) {
   const constGold = /^an-(me|you)/.test(cid);
   const isSet = Array.isArray(it.gold_set) && it.gold_set.length > 1;
   box.innerHTML = `<div class="quiz">
-    <p class="note" style="margin:0">Read it cold, like a model would: no options, one answer. ${isSet ? `This one wants <b>all ${it.gold_set.length}</b> objects — separate them with spaces or commas.` : "Type the single word that comes next."}
+    <p class="note" style="margin:0">Read it with no examples, like a model would: no options, one answer. ${isSet ? `This one wants <b>all ${it.gold_set.length}</b> objects — separate them with spaces or commas.` : "Type the single word that comes next."}
       ${constGold ? " (Here the answer is about <i>who</i>: say it the way the speaker would.)" : ""}</p>
     <pre class="ctx">${markQuery(it.prompt)}</pre>
     <form id="qf" autocomplete="off"><input id="qa" placeholder="${isSet ? "e.g. cup key lamp" : "your answer"}" aria-label="your answer" autofocus>
@@ -1036,7 +1037,7 @@ function quizWho(cid, it) {
   for (let i = ls.length - 1; i >= 0; i--) { const m = ls[i].match(/^(\w+): Who has/); if (m) return norm(m[1]); }
   return null;
 }
-const COND_NAMES = { fair: "with examples", "0shot": "cold", ladder: "across its ladder" };
+const COND_NAMES = { fair: "with examples", "0shot": "no examples", ladder: "across its ladder" };
 function condLabel() { return COND_NAMES[S.cond]; }
 function conds(rid, cid) {
   return (colById[cid].conds || ["0shot"]).map(k => { const x = CELLS[`${rid}|${cid}|${k}|all`];

@@ -57,7 +57,7 @@ diffs: list[str] = []
 TRUNK = [(f"trunk-{t}B", float(t)) for t in ("1.0", "2.0", "3.0", "3.75", "10", "20", "30", "40", "50", "60", "80", "100")]
 ANNEALED = [("anneal-5B", 5.0, ""), ("anneal-11B", 11.0, ""), ("anneal-33B", 33.0, ""), ("anneal-55B", 55.0, ""),
             ("anneal-88B", 88.0, ""),
-            (REL, 110.0, "release"), (AN1, 110.0, "second cooldown from the same 100B checkpoint")]
+            (REL, 110.0, "release"), (AN1, 110.0, "the other cooldown from the same 100B checkpoint")]
 s17 = [{"tok": tok, "kind": "constant", **gauges(T, ck, f"traj s17 {ck}")} for ck, tok in TRUNK]
 s17 += [{"tok": tok, "kind": "annealed", **({"note": note} if note else {}), **gauges(T, ck, f"traj s17 {ck}")}
         for ck, tok, note in ANNEALED]
@@ -246,7 +246,7 @@ DEC_ROWS = [("Pythia-1.4B", "Pythia-1.4B", "134B tokens", 1.41, "134B", False),
             ("kotodama-tsumugi · 33B", T, "anneal-33B", 1.42, "33B", True),
             ("kotodama-tsumugi · 55B", T, "anneal-55B", 1.42, "55B", True),
             ("kotodama-tsumugi · 88B", T, "anneal-88B", 1.42, "88B", True),
-            ("kotodama-tsumugi · 110B, second cooldown", T, AN1, 1.42, "110B", True),
+            ("kotodama-tsumugi · 110B, other cooldown", T, AN1, 1.42, "110B", True),
             ("kotodama-tsumugi · 110B, release", T, REL, 1.42, "110B", True),
             ("OLMo-2 1B", "OLMo-2-0425-1B", "4001B tokens", 1.48, "4T", False),
             ("SmolLM2 1.7B", "SmolLM2-1.7B", "11000B tokens", 1.71, "11T", False),
@@ -310,7 +310,7 @@ for lo, hi, name in RS_BANDS:
     rs_rows.append({"m": f"{name} ({len(ms)} models)", "ours": False, "models": sorted(ms),
                     **{k: r3(median([rs_pooled(m, c, kind) for m in ms])) for k, c, kind, _ in RS_COLS}})
 for label, rid in (("kotodama-tsumugi 1.4B · release", "tsumugi"),
-                   ("kotodama-tsumugi 1.4B · second cooldown", "tsumugi-anneal-110B-second")):
+                   ("kotodama-tsumugi 1.4B · other cooldown", "tsumugi-anneal-110B-second")):
     rs_rows.append({"m": label, "ours": True, **{k: r3(rs_pooled(rid, c, kind)) for k, c, kind, _ in RS_COLS}})
 new["riders"] = {
     "_note": ("riders ladder, the box puzzle in four registers (code, narrative, screenplay, chat), items with 1-4 "
@@ -321,7 +321,7 @@ new["riders"] = {
 }
 
 # ------------------------------------------------------------------ NEW: the release against its trajectory and class
-REL_COLS = [("33B", T, "anneal-33B"), ("55B", T, "anneal-55B"), ("88B", T, "anneal-88B"), ("110B · 2nd cooldown", T, AN1),
+REL_COLS = [("33B", T, "anneal-33B"), ("55B", T, "anneal-55B"), ("88B", T, "anneal-88B"), ("110B · other cooldown", T, AN1),
             ("110B · release", T, REL), ("OLMo-2 1B · 4T", "OLMo-2-0425-1B", "main/final"),
             ("SmolLM2 1.7B · 11T", "SmolLM2-1.7B", "main/final"), ("Qwen3 1.7B · 36T", "Qwen3-1.7B-Base", "main/final")]
 GAUGE_CK = {"OLMo-2-0425-1B": "main/final", "SmolLM2-1.7B": "11000B tokens", "Qwen3-1.7B-Base": "36000B tokens"}

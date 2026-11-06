@@ -20,6 +20,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from build_page import FORBIDDEN, build_stamp, common_args, load_config  # noqa: E402  (one table of forbidden names)
+from siteconfig import without_hidden_rows  # noqa: E402
 
 N_POOL = 1                                   # extra example items per column (the page has up to 8)
 SMALL_N = 20                                 # cells with fewer items get a dagger in the wide tables
@@ -77,7 +78,7 @@ def main() -> None:
     cfg = load_config(args.config)
     PAGE_URL = cfg.page_link
     SWAP_PROMPTS = args.swap_prompts
-    atlas = json.loads(args.atlas.read_text())
+    atlas = without_hidden_rows(json.loads(args.atlas.read_text()))
     out = args.out
     swap = json.loads(args.swap.read_text()) if args.swap is not None and args.swap.exists() else None
     rows, cols, cells, ex = atlas["rows"], atlas["cols"], atlas["cells"], atlas["examples"]
@@ -91,13 +92,13 @@ def main() -> None:
     P("# Binding Atlas — agent view")
     P("")
     P(f"Plain-text twin of the [Binding Atlas page]({PAGE_URL}). Same data, same build. Built {build}: "
-      f"{len(rows)} rows (models + one human), {len(cols)} columns, {len(cells):,} cells, {n_items:,} scored items.")
+      f"{len(rows)} rows (models and checkpoints), {len(cols)} columns, {len(cells):,} cells, {n_items:,} scored items.")
     P("")
     stage = json.loads(args.stage.read_text())
     f3 = lambda v: ("+" if v > 0 else "−" if v < 0 else "") + f"{abs(v):.3f}".lstrip("0")
     P("## Summary")
     P("")
-    P(f"This atlas scores {sum(1 for r in rows if r['group'] != 'Human')} models and checkpoints, plus one human reader, "
+    P(f"This atlas scores {sum(1 for r in rows if r['group'] != 'Human')} models and checkpoints "
       f"on {len(cols)} tests of tracking who *I* and *you* refer to. \"Example items per column\" quotes the exact prompts "
       "that the models were given.")
     P("")
@@ -129,11 +130,11 @@ def main() -> None:
     P("")
     P("Zero-shot, no model up to 4B binds, and four of the small Qwen models invert. At 7B, OLMo-2 7B (+.055) and "
       "Qwen2.5 7B (+.047) bind; Qwen3 8B and Gemma-2 9B do not yet. From 13B up, every base binds: all 19 measured, "
-      "here and in the full atlas, from OLMo-2 13B to DeepSeek-V4 Pro at 1.6T. The largest readings are DeepSeek-V3 "
+      "here and in the full atlas, from OLMo-2 13B to DeepSeek-V4 Pro at 1.6T parameters. The largest readings are DeepSeek-V3 "
       "(+.216), DeepSeek-V4 Flash (+.177) and MiMo-V2.5 Pro (+.162). Static *you* reads +.27 to +.89 across these "
       "19. With three worked examples, binding starts at Qwen3 4B (+.055) and reaches +.32 for Qwen3 14B. The "
-      "kotodama-tsumugi release reads −.014 zero-shot and +.038 with three examples, which binds; its second anneal "
-      "reads +.022 with examples, just short of the line.")
+      "kotodama-tsumugi release reads −.014 zero-shot and +.038 with three examples, which binds; the other cooldown "
+      "from the same 100B checkpoint reads +.022 with examples, just short of the bar.")
     P("")
     P("**The +.02 bar.** A model passes when the whole 95% interval of its swap shift is above +.02. The bar is a fixed "
       "convention, set before any of these models was read. Under it, kotodama-tsumugi passes with three worked "
@@ -200,7 +201,7 @@ def main() -> None:
             P(f"| {name} | " + " | ".join(f3(v) for v in vals) + " |")
     P("")
     P("The values are the grid's own cells. Each test is read as the grid reads it. Columns with worked examples use "
-      "them, the others are read cold, and the rule-learning rows are AUC over the example ladder. Lookup rises from .69 at 5B tokens to "
+      "them, the others are read with no examples, and the rule-learning rows are AUC over the example ladder. Lookup rises from .69 at 5B tokens to "
       ".98 by 55B, level with the 7–9B bases (.97 to 1.00). The update tests (many refills, variable chains, shared "
       "lists) stay at chance through 33B and lift from 55B on (.04 to .22). Static *you* climbs from .08 at 5B to .49 "
       "at the release. Pattern completion reaches .55, second of 12 models at 1–2B parameters. The two seeds differ at "
@@ -218,7 +219,7 @@ def main() -> None:
       "the measured anneal-to-anneal variance. It is .127 vs .192 on static *you* and .022 vs .038 on dynamic *you* "
       "with examples. K50 reads 4.6 vs 5.1, and held-out text differs by .025 bits/byte. "
       "Every single-anneal number here carries it. A second initialization seed (seed 7, same data order) was "
-      "trained to 11B. Capacity (K50, after arXiv 2609.30634) is how many name–task pairs fit in context before recall "
+      "trained to 11B. Capacity (K50, after Ravulapalli 2026, *In-context binding capacity in language models*, arXiv 2609.30634) is how many name–task pairs fit in context before recall "
       "falls halfway to chance. On this harness it tracks recipe and tokens more than parameters, so no "
       "parameter-equivalent size is read from it.")
     P("")
@@ -257,7 +258,7 @@ def main() -> None:
       "contains the'. The wording therefore never signals a change.")
     P("- **Groups:** columns are grouped by what the questions look like. Each column is scored and read on its own.")
     P("- **Models:** every base model is scored by log-probability over the candidate set, with one scorer and one set "
-      "of batteries. The **Human** row is one person reading items cold, with typed answers.")
+      "of batteries.")
     P("- **Parsing:** sections are `##` headings outside code fences (prompts inside code fences can contain lines "
       "that start with `#`). Two CSV blocks at the end: `rows` (id → label, group, size, tokens) and `cells` (every number).")
     P("")
@@ -281,7 +282,7 @@ def main() -> None:
     P("## Example items per column (verbatim prompts)")
     P("")
     P("Each prompt ends right before the scored word. `candidates` = the closed set a logprob model ranks; "
-      "`gold` = the right answer. Generation-scored (API, human) rows see the same prompt with no options.")
+      "`gold` = the right answer. Generation-scored (API) rows see the same prompt with no options.")
     P("")
     seen_fam: set[str] = set()
     for c in cols:
@@ -344,7 +345,7 @@ def main() -> None:
     P("## Tables by group")
     P("")
     P("Score (0 = guessing, 1 = always right), with worked examples where the column has them; `°` = the column's "
-      "only reading (cold, or across its ladder); `↓` = below chance (the interval is below 0); `—` = not measured. "
+      "only reading (with no examples, or across its ladder); `↓` = below chance (the interval is below 0); `—` = not measured. "
       "Full numbers (n, chance, the interval, every condition) are in the CSV below.")
     P("")
     for gname, cs in groups.items():
