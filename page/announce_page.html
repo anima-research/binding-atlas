@@ -90,7 +90,7 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: s
     <h1>kotodama-tsumugi</h1>
     <p class="lede">A 1.4B base model, trained on 110B tokens, that learns new rules from its prompt above the size trend
     of public base models. It tracks who “you” is in a conversation like base models trained on 40 to 300 times more data. The weights,
-    every training checkpoint, the code and the benchmark are open.</p>
+    the training checkpoints, the code and the benchmark are open.</p>
     <div class="byline">Led by <a href="https://x.com/kataletheia">Luxia</a>, with <a href="https://animalabs.ai">Anima Labs</a> · built with <a href="https://www.anthropic.com/claude">Claude</a></div>
     <div class="map">Start here for the model. To run it, use the <a href="__CARD_LINK__">model card</a>; to set it against
     other models, the <a href="__ATLAS_LINK__">Binding Atlas</a>; to look at its neurons,
@@ -167,9 +167,9 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: s
   <h2>What is open</h2>
   <ul class="open">
     <li><b>Weights</b><span><a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b">LuxiaSL/kotodama-tsumugi-1b</a>, with the model card.</span></li>
-    <li><b>Every checkpoint</b><span>The full training trajectory, including every annealed branch, for two seeds:
-      <a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b-trajectory">seed 17</a> and
-      <a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b-seed7-trajectory">seed 7</a>.</span></li>
+    <li><b>The training run</b><span>Its checkpoints, with the annealed branches as <code>anneal…</code> branches: the
+      release seed to 110B (<a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b-trajectory">seed 17</a>) and a
+      replicate to 11B (<a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b-seed7-trajectory">seed 7</a>).</span></li>
     <li><b>The training stack</b><span><a href="https://github.com/anima-research/kotodama">anima-research/kotodama</a>:
       the trainer, the evaluation suite and the serving stack.</span></li>
     <li><b>The benchmark</b><span><a href="https://github.com/anima-research/binding-bench">anima-research/binding-bench</a>,
