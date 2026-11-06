@@ -166,12 +166,15 @@ __STORY__
       </div>
     </section>
     <section class="result" id="compute">
-      <div class="num">¼<small>of Pythia-2.8B's training compute, for a benchmark average within a point of it</small></div>
+      <div class="num">64.1<small>average over nine standard benchmarks: ahead of Pythia 1.4B, 2.8B and 6.9B and OLMo-1 1B at the same compute</small></div>
       <div>
-        <h3>Near Pythia-2.8B’s score at a quarter of the compute</h3>
-        <p>Its average over nine standard benchmarks is 64.1, half a point below Pythia-2.8B's 64.7, at a quarter of the
-        training compute. The nine are HellaSwag, LAMBADA, ARC-Easy, ARC-Challenge, PIQA, SciQ, WinoGrande, COPA and BoolQ,
-        with no examples in the prompt.</p>
+        <h3>Ahead of Pythia 1.4B–6.9B and OLMo-1 1B at its compute</h3>
+        <p>Its average over nine standard benchmarks is 64.1. Public models released checkpoints from partway through
+        training, which show how much compute each needed to reach that score: Pythia 2.8B about 2.7 times tsumugi's,
+        Pythia 6.9B about 5 times and OLMo-1 1B about 7 times. Pythia 1.4B never got there: it ends at 61.4 after twice
+        the compute. OLMo-2 1B got there at about the same compute as tsumugi. Those checkpoints are taken before any
+        final learning-rate decay, and tsumugi's score includes its own. The nine are HellaSwag, LAMBADA, ARC-Easy,
+        ARC-Challenge, PIQA, SciQ, WinoGrande, COPA and BoolQ, with no examples in the prompt.</p>
         <p class="more"><a href="__CARD_LINK__#benchmarks-and-compute">Benchmarks and compute, on the model card</a></p>
       </div>
     </section>
