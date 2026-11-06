@@ -544,7 +544,7 @@ footer .wrap { display: grid; gap: 8px }
     <div class="step" data-step="4c"><div class="card">
       <span class="eyebrow" style="color:var(--plate-muted)">static <i>you</i> · 3 of 3</span>
       
-      <p>Remove the 100 supporters instead, and it falls to <span data-v="static_you.kappa.supp_out|abs2">.12</span>. The model no longer binds a fixed <i>you</i>: how far its answer moves when the speaker is swapped drops from <span data-v="static_you.gauge.base|sgn3">+.192</span> to <span data-v="static_you.gauge.supp_out|sgn3">+.014</span>.</p>
+      <p>Remove the 100 supporters instead, and it falls to <span data-v="static_you.kappa.supp_out|abs2">.12</span>. The model no longer passes the bar for a fixed <i>you</i>: how far its answer moves when the speaker is swapped drops from <span data-v="static_you.gauge.base|sgn3">+.192</span> to <span data-v="static_you.gauge.supp_out|sgn3">+.014</span>.</p>
       <div class="keyrow"><span><i style="background:var(--ember)"></i>interferers</span><span><i style="background:var(--ice)"></i>supporters</span></div>
     </div></div>
     </div>
@@ -648,7 +648,7 @@ footer .wrap { display: grid; gap: 8px }
     </div></div>
     <div class="step" data-step="T3"><div class="card">
       <span class="eyebrow" style="color:var(--plate-muted)">across training · 3 of 4</span>
-      <p>By 100B the median neuron's firing correlates <span data-v="graph:training.reads.100.lo|abs2">.56</span>–<span data-v="graph:training.reads.100.hi|abs2">.77</span> with its final form. The rise is steady at all 12 layers measured: no step along the trunk lowers a layer's median by more than a hair.</p>
+      <p>By 100B the median neuron's firing correlates <span data-v="graph:training.reads.100.lo|abs2">.56</span>–<span data-v="graph:training.reads.100.hi|abs2">.77</span> with its final form. The rise is steady at all 12 layers measured: no step along the main run lowers a layer's median by more than a hair.</p>
     </div></div>
     <div class="step" data-step="T4"><div class="card">
       <span class="eyebrow" style="color:var(--plate-muted)">across training · 4 of 4</span>
@@ -658,7 +658,7 @@ footer .wrap { display: grid; gap: 8px }
 <section class="read" id="training"><div class="wrap">
   <span class="eyebrow">Across training</span>
   <h2>Each layer's neurons grow toward their final firing</h2>
-  <p class="prose note">The median closeness of each captured layer's neurons to their firing at the reference checkpoint, at every checkpoint of the trunk and the final anneal. Position 8 is drawn in colour.</p>
+  <p class="prose note">The median closeness of each captured layer's neurons to their firing at the reference checkpoint, at every checkpoint of the main run and the final cooldown (anneal). Position 8 is drawn in colour.</p>
   <div class="figure fit" id="figTrain"></div>
   <p class="prose note">The reference is the anneal-1 model at 110B, not the published release. The probe text over-weights conversation about 2×. Only 12 of the 72 positions were captured over training.</p>
 </div></section>
@@ -1552,7 +1552,7 @@ function figFixes() {
       ['Stored knowledge', 'facts in the same few-shot frame', aucV('C0'), [0, 1], f3]],
     'Stage 5': [
       ['Speaker swap after objects change hands', 'the stage-5 test, 0-shot: “you” must be tracked through the conversation; not fixed', shiftV('dyn_you_0shot'), [-0.1, 0.5], f3],
-      ['The same, with three examples', '3-shot, where it already binds; it moves little', shiftV('dyn_you_3shot'), [-0.1, 0.5], f3]],
+      ['The same, with three examples', 'with three examples, where it already passes; it moves little', shiftV('dyn_you_3shot'), [-0.1, 0.5], f3]],
   };
   const track = (lo, hi, vb, vu, vr) => { const x = v => 4 + (v - lo) / (hi - lo) * 292;
     let t = `<svg viewBox="0 0 300 26" preserveAspectRatio="none" aria-hidden="true"><line x1="4" x2="296" y1="13" y2="13" stroke="var(--line)" stroke-width="2"/>`;
