@@ -258,13 +258,13 @@ if (document.readyState === "loading") document.addEventListener("DOMContentLoad
   </header>
 
 <section class="story" id="story" data-toc="The story" aria-label="How kotodama-tsumugi is built, and its four results, step by step">
-<div class="story-steps"><div class="story-step" id="story-arch" data-beat="arch" data-toc="How it is built" data-toc-level="2"><div class="h" role="heading" aria-level="3">How it is built</div><p>kotodama-tsumugi is a 1.4B decoder with four design choices. It has 52 layers of weights. Its middle block of 20 runs twice with the same weights, for 72 layers of computation. Each layer reads a learned mix of earlier blocks' outputs instead of a plain running sum. Those blocks begin where the layer geometry of a model trained without them said they should.</p></div><div class="story-step" id="story-rules" data-beat="rules" data-toc="Rules from the prompt" data-toc-level="2"><div class="h" role="heading" aria-level="3">It learns made-up rules from the prompt</div><p>The prompt shows worked examples of an invented rule, here a made-up plural, and the model picks the answer for a new word. On these tests it scores .559, where 0 is chance and 1 is always right. Public models that spent the same training compute score lower: checkpoints taken partway through training reach at most .461, and the best fully trained one, Falcon3 3B, .536.</p></div><div class="story-step" id="story-loop" data-beat="loop" data-toc="The second pass" data-toc-level="2"><div class="h" role="heading" aria-level="3">Its second pass does that work</div><p>Switch off 60 attention heads chosen at random, a quarter of one pass, and measure how much rule learning is lost. It loses .132 when the cut is in the second pass, against .035 in the first pass and .019 in the layers before and after the loop. Fact recall in the same prompts falls only .025.</p></div><div class="story-step" id="story-you" data-beat="you" data-toc="Tracking “you”" data-toc-level="2"><div class="h" role="heading" aria-level="3">It tracks who “you” is after objects change hands</div><p>On the last line of this chat, “you” is Kurt, who now has the battery. Swap who says that line, and “you” is Steve, who has the lamp, so the battery should lose probability. Here it falls from .445 to .311, a larger move than most. Averaged over 180 chats the drop is .038, and tsumugi is the smallest public base model whose drop clears +.02 across its whole 95% interval.</p></div><div class="story-step" id="story-cheap" data-beat="cheap" data-toc="Cheap for its score" data-toc-level="2"><div class="h" role="heading" aria-level="3">It is cheap for what it scores</div><p>On nine standard benchmarks, with no examples in the prompt, it averages 64.1. That is above OLMo-2 1B at about the same number of tokens (61.8), and half a point below Pythia-2.8B (64.7), which spent 4 times the training compute.</p></div></div>
+<div class="story-steps"><div class="story-step" id="story-arch" data-beat="arch" data-toc="Four design choices" data-toc-level="2"><div class="h" role="heading" aria-level="3">Four design choices</div><p>kotodama-tsumugi is a 1.4B decoder with four design choices. It has 52 layers of weights. Its middle block of 20 runs twice with the same weights, for 72 layers of computation. Each layer reads a learned mix of earlier blocks' outputs instead of a plain running sum. Those blocks begin where the layer geometry of a model trained without them said they should.</p></div><div class="story-step" id="story-rules" data-beat="rules" data-toc="Rules from the prompt" data-toc-level="2"><div class="h" role="heading" aria-level="3">Learns made-up rules from the prompt</div><p>The prompt shows worked examples of an invented rule, here a made-up plural, and the model picks the answer for a new word. On these tests it scores .559, where 0 is chance and 1 is always right. Public models that spent the same training compute score lower: checkpoints taken partway through training reach at most .461, and the best fully trained one, Falcon3 3B, .536.</p></div><div class="story-step" id="story-loop" data-beat="loop" data-toc="The second pass" data-toc-level="2"><div class="h" role="heading" aria-level="3">Rule learning leans on the second pass</div><p>Switch off 60 attention heads chosen at random, a quarter of one pass, and measure how much rule learning is lost. It loses .132 when the cut is in the second pass, against .035 in the first pass and .019 in the layers before and after the loop. Fact recall in the same prompts falls only .025.</p></div><div class="story-step" id="story-you" data-beat="you" data-toc="Tracking “you”" data-toc-level="2"><div class="h" role="heading" aria-level="3">Tracks who “you” is as objects change hands</div><p>On the last line of this chat, “you” is Kurt, who now has the battery. Swap who says that line, and “you” is Steve, who has the lamp, so the battery should lose probability. Here it falls from .445 to .311, a larger move than most. Averaged over 180 chats the drop is .038, and tsumugi is the smallest public base model whose drop clears +.02 across its whole 95% interval.</p></div><div class="story-step" id="story-cheap" data-beat="cheap" data-toc="Benchmarks" data-toc-level="2"><div class="h" role="heading" aria-level="3">Near Pythia-2.8B at ¼ of its compute</div><p>On nine standard benchmarks, with no examples in the prompt, it averages 64.1. That is above OLMo-2 1B at about the same number of tokens (61.8), and half a point below Pythia-2.8B (64.7), which spent 4 times the training compute.</p></div></div>
 <div class="story-stage" aria-hidden="true"><div class="story-frame"><div id="Larch" class="layer"><div class="rule"></div>
-  <div class="title">How it is built</div><div class="sub">Four choices, built up one at a time.</div>
+  <div class="title">Four design choices</div><div class="sub">Added one at a time.</div>
   <svg class="panel" id="aspire" style="left:96px;top:205px" width="520" height="660"></svg>
   <div class="panel" id="atext" style="left:700px;top:230px;width:800px"></div></div>
 <div id="Lrules" class="layer"><div class="rule"></div>
-  <div class="title">It learns made-up rules from the prompt</div><div class="sub">Shown worked examples of an invented rule, it applies the rule to a new case.</div>
+  <div class="title">Learns made-up rules from the prompt</div><div class="sub">Worked examples of an invented rule, then a new word to apply it to.</div>
   <div class="panel" style="left:96px;width:640px">
     <div class="lab" style="margin-bottom:14px">a test item: an invented plural</div>
     <div id="items"></div>
@@ -274,16 +274,16 @@ if (document.readyState === "loading") document.addEventListener("DOMContentLoad
     <div class="lab" id="pick" style="margin-top:14px;opacity:0">the model picks the answer it finds most likely</div></div>
   <svg class="panel" id="strip" style="left:800px" width="704" height="600"></svg></div>
 <div id="Lloop" class="layer"><div class="rule"></div>
-  <div class="title">Its second pass does that work</div><div class="sub">The same 20 layers run twice. Cutting attention in the second pass hurts rule learning most.</div>
+  <div class="title">Rule learning leans on the second pass</div><div class="sub">The same 20 layers run twice. Cutting attention in the second pass costs rule learning most.</div>
   <svg class="panel" id="spire" style="left:96px;top:215px" width="520" height="640"></svg>
   <svg class="panel" id="cuts" style="left:700px;top:240px" width="800" height="300"></svg>
   <div class="panel" id="cutnote" style="left:700px;top:560px;width:790px;font-size:21px;line-height:1.5;opacity:0"></div></div>
 <div id="Lyou" class="layer"><div class="rule"></div>
-  <div class="title">It tracks who “you” is after objects change hands</div><div class="sub">Swap who says the last line, and “you” is someone else: the old answer should lose probability.</div>
+  <div class="title">Tracks who “you” is as objects change hands</div><div class="sub">Swap who says the last line and “you” is the other person, so the old answer should lose probability.</div>
   <div class="panel" id="chat" style="left:96px;width:720px"></div>
   <svg class="panel" id="dyn" style="left:900px;top:300px;overflow:visible" width="604" height="330"></svg></div>
 <div id="Lcheap" class="layer"><div class="rule"></div>
-  <div class="title">It is cheap for what it scores</div><div class="sub">Nine standard benchmarks, no examples in the prompt. Each bar is accuracy, out of 100.</div>
+  <div class="title">Near Pythia-2.8B at ¼ of its compute</div><div class="sub">Nine standard benchmarks, no examples in the prompt. Each bar is accuracy, out of 100.</div>
   <svg class="panel" id="grid" style="left:96px;top:205px" width="1408" height="660"></svg></div></div></div>
 </section>
 <style>
@@ -343,7 +343,7 @@ if (document.readyState === "loading") document.addEventListener("DOMContentLoad
 (() => {
 const D = {"rule": 0.5585956790123457, "pub": [[0.4612577160493827, "Pythia 2.8B"], [0.4380555555555556, "Pythia 2.8B"], [0.4274922839506173, "Pythia 6.9B"], [0.4270061728395062, "OLMo-2 7B"], [0.42337962962962966, "OLMo-2 1B"], [0.42216049382716053, "Pythia 1.4B"], [0.4213734567901235, "OLMo-2 1B"], [0.4167824074074074, "Pythia 1.4B"], [0.407692901234568, "Pythia 1.4B"], [0.4047376543209877, "Pythia 2.8B"], [0.3951543209876543, "Pythia 1.4B"], [0.3694830246913581, "Pythia 6.9B"], [0.35041666666666677, "OLMo-2 7B"], [0.34717592592592594, "OLMo-2 13B"], [0.3284645061728395, "Pythia 6.9B"]], "final": [[0.5360108024691358, "Falcon3 3B"], [0.3918981481481482, "Pythia 1B"]], "cut": [["2nd pass", -0.13197530864197532], ["1st pass", -0.03500000000000003], ["outside the loop", -0.019243827160493998]], "cut_recall2": -0.024609375000000044, "dyn": [["tsumugi 1.4B", 0.038, true], ["Qwen3 4B", 0.0549, false], ["SmolLM3 3B", 0.0274, false], ["Qwen3 1.7B", 0.0258, false], ["OLMo-2 1B", -0.0185, false], ["Qwen2.5 1.5B", -0.0356, false]], "grid": [{"name": "kotodama-tsumugi", "tok": "110B tokens", "scores": [58.1, 60.5, 62.9, 31.7, 71.4, 92.6, 61.6, 74.0, 64.5], "avg": 64.1, "compute": 1.0}, {"name": "OLMo-2 1B", "tok": "105B tokens", "scores": [54.7, 55.8, 64.3, 31.0, 72.2, 89.0, 56.8, 73.0, 59.2], "avg": 61.8, "compute": 0.7501206757843926}, {"name": "Pythia-1.4B", "tok": "300B tokens", "scores": [51.9, 60.9, 60.8, 28.2, 70.9, 86.8, 57.3, 72.0, 63.3], "avg": 61.4, "compute": 2.041153660498793}, {"name": "Pythia-2.8B", "tok": "300B tokens", "scores": [59.4, 63.9, 64.1, 31.9, 73.8, 88.8, 58.6, 78.0, 63.4], "avg": 64.7, "compute": 4.0244022526146415}], "bench": ["HellaSwag", "LAMBADA", "ARC-e", "ARC-c", "PIQA", "SciQ", "WinoGrande", "COPA", "BoolQ"], "item": [["ta mu", "ta mo"], ["mo mi", "mo mo"], ["du bu", "du bo"], ["se pi", "se po"]], "query": "pe fi", "choices": ["po", "fe", "fu", "fi", "fo"], "gold": "fo", "chat": ["A chat between Steve and Kurt.", "Steve: The battery is in my hand.", "Steve: The shoe is in my hand.", "Kurt: I have the lamp.", "Kurt: Here, take my lamp.", "Steve: My battery is in your hand now."], "p_orig": 0.445, "p_swap": 0.311, "bounds_even": [0, 9, 18, 27, 36, 45, 54, 63], "bounds": [0, 1, 7, 9, 17, 19, 39, 59]}, ARCH = [["Depth", "A decoder with 52 layers of weights, 1,536 wide: 19 input layers, a middle block of 20, and 13 output layers.", "1.42B parameters"], ["A looped middle block", "The middle block runs twice with the same weights, so the model computes through 72 layers while storing 52. Each pass keeps its own norms.", "f<sub>39+i</sub> = f<sub>19+i</sub>,  i = 0 \u2026 19"], ["Attention over depth", "A plain residual stream adds every earlier layer with weight 1. Here, each layer reads a learned, input-dependent mix of earlier blocks' outputs (Block Attention Residuals, Moonshot AI).", "plain:  h<sub>l+1</sub> = h<sub>l</sub> + f<sub>l</sub>(h<sub>l</sub>)<br>here:  h<sub>l</sub> = \u03a3<sub>n</sub> \u03b1<sub>n,l</sub> b<sub>n</sub>,  \u03b1<sub>n,l</sub> = softmax<sub>n</sub>( w<sub>l</sub> \u00b7 RMSNorm(b<sub>n</sub>) )<br><span class=\"lab\">b<sub>n</sub>: the summed outputs of block n \u00b7 w<sub>l</sub>: a learned query for layer l</span>"], ["Where the blocks begin", "The original design spaces its blocks evenly. These boundaries were fitted instead to the layer geometry of a model trained without them.", "blocks start at layers 0, 1, 7, 9, 17, 19, 39, 59"]];
 const FG = "#f2f3f5", MUTED = "#9aa3ad", LINE = "#2b3038", NEG = "#5d6672", BG = "#0b0c0e", MONO = "Courier Prime, Nimbus Mono PS, Courier New, monospace";
-const B = [[0.0, 2.6], [2.6, 15.0], [15.0, 23.6], [23.6, 30.0], [30.0, 38.6], [38.6, 44.6], [44.6, 48.6]], NAMES = ["intro", "arch", "rules", "loop", "you", "cheap", "card"], FADE = 0.45;
+const B = [[0.0, 2.6], [2.6, 17.2], [17.2, 25.8], [25.8, 32.2], [32.2, 40.8], [40.8, 46.8], [46.8, 50.8]], NAMES = ["intro", "arch", "rules", "loop", "you", "cheap", "card"], FADE = 0.45;
 const cl = (x) => Math.max(0, Math.min(1, x));
 const ease = (x) => { x = cl(x); return x < .5 ? 2*x*x : 1 - Math.pow(-2*x + 2, 2)/2; };
 const ramp = (t, a, b) => ease((t - a) / (b - a));
@@ -399,20 +399,25 @@ function stack(opts) {
 const DRAW = {};
 DRAW.arch = (t) => {
   const t0 = T0("arch");
-  const P = [[.3, 2.7], [2.9, 5.5], [5.7, 8.7], [8.9, 11.6]];          // the four choices
-  const ph = P.findIndex(([a, b]) => t < t0 + b + .2); const k = ph < 0 ? 4 : ph;
+  // the four choices (story seconds). Step 3 reads longest; step 4 breathes after its slide (Luxia m6fb623)
+  const P = [[.3, 2.7], [2.9, 5.5], [5.7, 9.2], [9.4, 12.9]], END = P[3][1];
   const open = ramp(t, t0 + 3.1, t0 + 4.6), lit = 72 * ramp(t, t0 + .4, t0 + 2.0);
-  const bndOp = ramp(t, t0 + 5.9, t0 + 6.4), slide = ramp(t, t0 + 9.1, t0 + 10.6);
+  const bndOp = ramp(t, t0 + 5.9, t0 + 6.4), slide = ramp(t, t0 + 9.6, t0 + 11.1);
   const bnd = D.bounds_even.map((b0, i) => b0 + (D.bounds[i] - b0) * slide);
-  const arc = ramp(t, t0 + 6.6, t0 + 8.2) * (1 - ramp(t, t0 + 8.9, t0 + 9.3));
+  // the arcs draw with the boundaries, before the reader settles into step 3's text, then hold still
+  const arc = ramp(t, t0 + 6.0, t0 + 6.9) * (1 - ramp(t, t0 + 9.2, t0 + 9.6));
   $("aspire").innerHTML = stack({ open, lit: open < .02 ? lit : 72, bnd, bndOp, arc });
+  const done = ramp(t, t0 + END + .2, t0 + END + .8);              // every step's formula, eased in
   let h = "";
   ARCH.forEach(([head, body, f], i) => {
-    const seen = ramp(t, t0 + P[i][0], t0 + P[i][0] + .4), active = i === k, done = k === 4;
-    h += `<div class="ah" style="opacity:${seen * (active || done ? 1 : .45)}"><b>${i + 1}. ${head}</b>`
-       + (active ? `<div class="body">${body}</div><div class="f">${f}</div>` : done ? `<div class="f">${f}</div>` : "") + `</div>`;
+    const last = i === P.length - 1, inn = ramp(t, t0 + P[i][0], t0 + P[i][0] + .4);
+    const e = inn * (1 - ramp(t, t0 + P[i][1], t0 + P[i][1] + .5)); // this step's explanation, collapsing smoothly
+    const fo = last ? inn : Math.max(e, done);
+    h += `<div class="ah" style="opacity:${inn * (.45 + .55 * Math.max(e, done, last ? inn : 0))}"><b>${i + 1}. ${head}</b>`
+       + `<div class="body" style="opacity:${e};max-height:${(e * 220).toFixed(1)}px;margin-top:${(e * 8).toFixed(1)}px;overflow:hidden">${body}</div>`
+       + `<div class="f" style="opacity:${fo};max-height:${(fo * 140).toFixed(1)}px;margin-top:${(fo * 10).toFixed(1)}px;overflow:hidden">${f}</div></div>`;
   });
-  h += `<div class="ah" style="opacity:${ramp(t, t0 + 11.4, t0 + 11.9)}"><div class="body" style="color:${FG}">Together: 72 layers of computation from 52 layers of weights, with every layer choosing what to read from the blocks below it.</div></div>`;
+  h += `<div class="ah" style="opacity:${ramp(t, t0 + END + .7, t0 + END + 1.2)}"><div class="body" style="color:${FG}">Together: 72 layers of computation from 52 layers of weights, with every layer choosing what to read from the blocks below it.</div></div>`;
   $("atext").innerHTML = h;
 };
 
@@ -576,12 +581,12 @@ document.querySelectorAll(".story-step").forEach(s => io.observe(s));
     lead comes with the anneal.</figcaption>
   </figure>
 
-  <h2>What it does</h2>
+  <h2>Results</h2>
   <div class="results">
     <section class="result" id="rules">
       <div class="num">+1.07 SD<small>above the size trend on new rules · 95% interval +0.68 to +2.07</small></div>
       <div>
-        <h3>It learns new rules from its prompt beyond its size</h3>
+        <h3>Learns made-up rules from its prompt, beyond its size</h3>
         <p>On new rules, tsumugi scores .559. A trend line fitted to 37 public base models predicts less for a model of
         its size. The 37 are the 36 in the figure plus GPT-2 XL, which has no published token count. tsumugi sits 1.07 standard
         deviations above it, measured in the spread of the public models around the line. The interval comes from
@@ -595,7 +600,7 @@ document.querySelectorAll(".story-step").forEach(s => io.observe(s));
     <section class="result" id="loop">
       <div class="num">−.13<small>on new rules, with a quarter of the second pass's attention switched off (recall: −.025)</small></div>
       <div>
-        <h3>Its looped block carries that learning</h3>
+        <h3>Rule learning leans on the looped block’s second pass</h3>
         <p>tsumugi runs one block of 20 layers twice, with the same weights. Switching off a quarter of the attention in
         the second pass lowers its new-rules score by .13 on the same 0-to-1 scale, while recall falls .025. The same cut
         costs .035 in the first pass and .019 in the layers before and after the loop.</p>
@@ -607,7 +612,7 @@ document.querySelectorAll(".story-step").forEach(s => io.observe(s));
     <section class="result" id="you">
       <div class="num">+.038<small>“you” tracked after objects change hands, given three worked examples · 95% interval +.023 to +.055</small></div>
       <div>
-        <h3>It tracks who “you” is after objects change hands</h3>
+        <h3>Tracks who “you” is as objects change hands</h3>
         <p>In a two-person chat where objects pass between the speakers, a line like “Right now you're holding the ___”
         asks about the person being addressed. Swap who says that line, and “you” becomes the other person, so the old
         answer should lose probability. Given three worked examples, tsumugi's old answer loses .038 on average over 180
@@ -622,7 +627,7 @@ document.querySelectorAll(".story-step").forEach(s => io.observe(s));
     <section class="result" id="compute">
       <div class="num">¼<small>of Pythia-2.8B's training compute, for a benchmark average within a point of it</small></div>
       <div>
-        <h3>It is cheap for what it scores</h3>
+        <h3>Near Pythia-2.8B’s score at a quarter of the compute</h3>
         <p>Its average over nine standard benchmarks is 64.1, half a point below Pythia-2.8B's 64.7, at a quarter of the
         training compute. The nine are HellaSwag, LAMBADA, ARC-Easy, ARC-Challenge, PIQA, SciQ, WinoGrande, COPA and BoolQ,
         with no examples in the prompt.</p>
@@ -635,7 +640,7 @@ document.querySelectorAll(".story-step").forEach(s => io.observe(s));
   the time. Many modern base models do write them. All 128 runs
   can be read on the page <a href="empty-document">An Empty Document</a>.</p>
 
-  <h2>How it is built</h2>
+  <h2>Architecture</h2>
   <div class="prose">
     <p>tsumugi is a Llama-style decoder with <a href="https://arxiv.org/abs/2603.15031">Block Attention Residuals</a>.
     Each layer reads a learned mixture of earlier blocks' outputs, and the block boundaries were fitted to the network's
@@ -674,7 +679,7 @@ document.querySelectorAll(".story-step").forEach(s => io.observe(s));
 </div>
 <footer><div class="wrap">
   <span>Companion pages: <a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b">the model card</a> · <a href="binding-atlas">Binding Atlas</a>, every model against every referent-binding test · <a href="threads">Threads</a>, inside kotodama-tsumugi · <a href="empty-document">An Empty Document</a>.</span>
-  <span class="num" id="stamp">build 2026-11-06 05:05 UTC</span>
+  <span class="num" id="stamp">build 2026-11-06 06:01 UTC</span>
 </div></footer>
 </body>
 </html>
