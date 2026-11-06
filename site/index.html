@@ -311,7 +311,8 @@ if (document.readyState === "loading") document.addEventListener("DOMContentLoad
 .cite-leaf { display: none; position: absolute; left: 0; top: 1.6em; z-index: 5; width: min(300px, 70vw); padding: 10px 12px;
   border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--fg2); font-size: 13.5px; line-height: 1.45;
   box-shadow: 0 6px 20px rgba(0,0,0,.18); }
-.cite:hover .cite-leaf, .cite:focus-within .cite-leaf, .cite.open .cite-leaf { display: block; }
+.cite-leaf::before { content: ""; position: absolute; left: 0; right: 0; top: -14px; height: 14px; }   /* a bridge over the gap */
+.cite:focus-within .cite-leaf, .cite.open .cite-leaf { display: block; }
 .layer { position: absolute; inset: 0; opacity: 0; }
 .mono { font-family: "Courier Prime", "Nimbus Mono PS", "Courier New", monospace; }
 .panel { position: absolute; top: 230px; }
@@ -586,9 +587,17 @@ const focus = (i) => { if (!finished.has("arch") || cur !== "arch" || ARCH_FOCUS
 at.addEventListener("mouseover", (ev) => { const el = ev.target.closest(".ah[data-i]"); if (el && !ARCH_FOCUS.touch) focus(+el.dataset.i); });
 at.addEventListener("mouseleave", () => { if (!ARCH_FOCUS.touch) focus(-1); });
 at.addEventListener("click", (ev) => { const el = ev.target.closest(".ah[data-i]"); focus(el && +el.dataset.i !== ARCH_FOCUS.i ? +el.dataset.i : -1); });
-// citation leaflets: open on hover or focus (CSS), and toggle on tap
-document.querySelectorAll(".story .cite-mk").forEach(b => b.addEventListener("click", () => {
-  const o = b.parentElement.classList.toggle("open"); b.setAttribute("aria-expanded", String(o)); }));
+// citation leaflets (Luxia): hovering the marker opens the leaflet, which stays open while the pointer is on the
+// marker or the leaflet and closes a forgiving moment after it leaves both; a click or tap pins it open until the next
+document.querySelectorAll(".story .cite").forEach(c => {
+  const b = c.querySelector(".cite-mk"); let timer = 0, pinned = false;
+  const set = (o) => { c.classList.toggle("open", o); b.setAttribute("aria-expanded", String(o)); };
+  c.addEventListener("pointerenter", (ev) => { if (ev.pointerType === "touch") return; clearTimeout(timer); set(true); });
+  c.addEventListener("pointerleave", (ev) => { if (ev.pointerType === "touch" || pinned) return;
+    clearTimeout(timer); timer = setTimeout(() => set(false), 450); });
+  b.addEventListener("click", () => { pinned = !pinned || !c.classList.contains("open"); set(pinned); });
+  document.addEventListener("pointerdown", (ev) => { if (pinned && !c.contains(ev.target)) { pinned = false; set(false); } });
+});
 })();
 </script>
 
@@ -713,7 +722,7 @@ document.querySelectorAll(".story .cite-mk").forEach(b => b.addEventListener("cl
 </div>
 <footer><div class="wrap">
   <span>Companion pages: <a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b">the model card</a> · <a href="binding-atlas">Binding Atlas</a>, every model against every referent-binding test · <a href="threads">Threads</a>, inside kotodama-tsumugi · <a href="empty-document">An Empty Document</a>.</span>
-  <span class="num" id="stamp">build 2026-11-06 07:07 UTC</span>
+  <span class="num" id="stamp">build 2026-11-06 07:34 UTC</span>
 </div></footer>
 </body>
 </html>
