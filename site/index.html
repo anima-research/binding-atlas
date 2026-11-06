@@ -247,14 +247,15 @@ if (document.readyState === "loading") document.addEventListener("DOMContentLoad
     <div class="kicker">Model release · open weights</div>
     <p class="kanji" lang="ja">言霊 紬</p>
     <h1>kotodama-tsumugi</h1>
-    <p class="lede">A 1.4B-parameter base model, trained on 110B tokens. Shown a few worked examples of a made-up rule, it
-    applies the rule to a new case better than public base models of its size. In a two-person chat, it keeps track of who
-    “you” is, like base models trained on 40 to 300 times more data. Its weights, its training checkpoints, its code and
-    the benchmark that it was tested on are open.</p>
+    <p class="lede">A 1.4B-parameter base model with a looped middle block, trained on 110B tokens with kotodama, our open
+    pretraining stack: trainer, evaluation and serving in one package. Shown a few worked examples of a made-up rule,
+    tsumugi applies the rule to a new case better than public models of its size. In a two-person chat, it keeps track of
+    who “you” is, like models trained on 40 to 300 times more data. Its weights, training checkpoints, code and benchmark
+    are all open.</p>
     <div class="byline">Led by <a href="https://x.com/kataletheia">Luxia</a>, with <a href="https://animalabs.ai">Anima Labs</a> · built with <a href="https://www.anthropic.com/claude">Claude</a></div>
-    <div class="map">Start here for the model. To run it, use the <a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b">model card</a>. To compare it
-    with public models on the same tests, use the <a href="binding-atlas">Binding Atlas</a>. To look at its neurons, use
-    <a href="threads">Threads</a>.</div>
+    <div class="map"><a href="https://github.com/anima-research/kotodama">kotodama code on GitHub</a> ·
+    <a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b">weights on Hugging Face</a> · <a href="binding-atlas">benchmark results</a> ·
+    <a href="threads">neuron graphs</a></div>
   </header>
 
 <section class="story" id="story" data-toc="The story" aria-label="How kotodama-tsumugi is built, and its four results, step by step">
@@ -679,7 +680,7 @@ document.querySelectorAll(".story-step").forEach(s => io.observe(s));
 </div>
 <footer><div class="wrap">
   <span>Companion pages: <a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b">the model card</a> · <a href="binding-atlas">Binding Atlas</a>, every model against every referent-binding test · <a href="threads">Threads</a>, inside kotodama-tsumugi · <a href="empty-document">An Empty Document</a>.</span>
-  <span class="num" id="stamp">build 2026-11-06 06:01 UTC</span>
+  <span class="num" id="stamp">build 2026-11-06 06:34 UTC</span>
 </div></footer>
 </body>
 </html>
