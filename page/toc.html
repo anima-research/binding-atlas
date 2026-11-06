@@ -31,6 +31,7 @@ html.toc-full, html.toc-slim { --toc-w: 236px; }
 html.toc-slim { --toc-w: 34px; }
 html.toc-full #toc, html.toc-slim #toc { display: block; }
 html.toc-reserve body { padding-right: var(--toc-w, 0px); }
+html.toc-reserve { background: var(--bg, Canvas); }   /* the reserved gutter takes the page's own background */
 html.toc-slim #toc { width: 22px; right: 6px; }
 html.toc-slim #toc:not(:hover):not(:focus-within) .tt { visibility: hidden; }
 html.toc-slim #toc:not(:hover):not(:focus-within) a { color: transparent; height: 9px; padding: 0 0 0 9px;

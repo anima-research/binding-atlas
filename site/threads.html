@@ -317,6 +317,148 @@ footer .wrap { display: grid; gap: 8px }
 </style>
 </head>
 <body>
+<nav id="toc" aria-label="Contents" data-reserve="1" data-sel="h1.toc-none" data-sel2=".read > .wrap > h2" data-skip=".reference .read"></nav>
+<!-- Contents rail: a sticky table of contents in the right gutter on wide screens, built from the page's own
+headings. A page opts in with <nav id="toc" ...></nav> followed by the TOC placeholder; render_hosting fills the placeholder
+with this file. Attributes on the nav:
+  data-sel      top-level entries (default "h2"); data-sel2: the entries nested under them (default "h3");
+                elements with data-toc="Label" are entries too, at the level in data-toc-level (default 1)
+  data-scope    where to look for them (default "body")
+  data-skip     containers whose headings are left out
+  data-hide     elements that, while they fill the middle of the screen, fade the rail out
+  data-reserve  "1": on wide screens the page gives up a right gutter for the rail (pages without free margin)
+  data-min      narrowest viewport, in px, that shows the full rail (default 1400)
+  data-slim     narrowest viewport that shows the slim rail, a strip of ticks that opens on hover (default 900)
+Level-2 entries show only under the active level-1 entry. Below the slim width a "Contents" button opens the list.
+While the rail is on, --toc-w on the root element holds the width it takes, for full-width blocks to make room. -->
+<style>
+#toc { display: none; position: fixed; top: 84px; right: 18px; width: 214px; max-height: calc(100vh - 120px);
+  overflow: auto; z-index: 30; font-size: 12.5px; line-height: 1.35; transition: opacity .25s;
+  scrollbar-width: thin; }
+#toc.away { opacity: 0; pointer-events: none; }
+#toc .tt { font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted, #8a8f98);
+  margin: 0 0 8px 12px; }
+#toc ol { list-style: none; margin: 0; padding: 0; border-left: 1px solid var(--line, #3a3f47); }
+#toc li { margin: 0; }
+#toc a { display: block; padding: 4px 0 4px 11px; margin-left: -1px; border-left: 2px solid transparent;
+  color: var(--muted, #8a8f98); text-decoration: none; overflow-wrap: anywhere; }
+#toc a:hover { color: var(--fg, #e8eaed); }
+#toc li.l2 a { padding-left: 23px; font-size: 12px; }
+#toc li.l2 { display: none; }
+#toc li.l2.open { display: block; }
+#toc a[aria-current] { color: var(--fg, #e8eaed); border-left-color: var(--fg, #e8eaed); }
+html.toc-full, html.toc-slim { --toc-w: 236px; }
+html.toc-slim { --toc-w: 34px; }
+html.toc-full #toc, html.toc-slim #toc { display: block; }
+html.toc-reserve body { padding-right: var(--toc-w, 0px); }
+html.toc-reserve { background: var(--bg, Canvas); }   /* the reserved gutter takes the page's own background */
+html.toc-slim #toc { width: 22px; right: 6px; }
+html.toc-slim #toc:not(:hover):not(:focus-within) .tt { visibility: hidden; }
+html.toc-slim #toc:not(:hover):not(:focus-within) a { color: transparent; height: 9px; padding: 0 0 0 9px;
+  overflow: hidden; white-space: nowrap; border-left-color: var(--line, #3a3f47); }
+html.toc-slim #toc:not(:hover):not(:focus-within) a[aria-current] { border-left-color: var(--fg, #e8eaed); }
+html.toc-slim #toc:not(:hover):not(:focus-within) li.l2 { display: none; }
+html.toc-slim #toc:hover, html.toc-slim #toc:focus-within { width: 236px; background: var(--bg, #0b0c0e);
+  padding: 10px 10px 10px 0; border: 1px solid var(--line, #3a3f47); border-radius: 8px; }
+#toc-btn { display: none; position: fixed; right: 12px; bottom: 14px; z-index: 31; font: inherit; font-size: 12.5px;
+  padding: 7px 12px; border-radius: 999px; border: 1px solid var(--line, #3a3f47); background: var(--bg, #0b0c0e);
+  color: var(--fg, #e8eaed); cursor: pointer; }
+html.toc-btn #toc-btn { display: block; }
+html.toc-btn #toc.open { display: block; top: auto; bottom: 58px; right: 12px; width: min(84vw, 320px);
+  max-height: 62vh; background: var(--bg, #0b0c0e); border: 1px solid var(--line, #3a3f47); border-radius: 10px;
+  padding: 12px 12px 12px 0; box-shadow: 0 8px 28px rgba(0,0,0,.35); }
+@media (prefers-reduced-motion: reduce) { #toc { transition: none; } }
+@media print { #toc { display: none !important; } }
+</style>
+<script>
+(() => {
+"use strict";
+const init = () => {
+  const nav = document.getElementById("toc");
+  if (!nav) return;
+  const d = nav.dataset, root = document.documentElement;
+  const MIN = +(d.min || 1400), SLIM = +(d.slim || 900);
+  if (d.reserve === "1") root.classList.add("toc-reserve");
+  const scope = document.querySelector(d.scope || "body") || document.body;
+  const skip = d.skip ? `#toc, ${d.skip}` : "#toc";
+  const used = new Set([...document.querySelectorAll("[id]")].map(e => e.id));
+  const slug = t => {
+    let s = "s-" + t.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48), k = s, n = 2;
+    while (used.has(k)) k = `${s}-${n++}`;
+    used.add(k);
+    return k;
+  };
+  const S1 = d.sel || "h2", S2 = d.sel2 || "h3";
+  const els = [...scope.querySelectorAll(`[data-toc], ${S1}, ${S2}`)].filter(el =>
+    !el.closest(skip) && !el.closest("[hidden]") && (el.dataset.toc || el.textContent.trim()));
+  if (els.length < 2) return;
+  const items = els.map(el => {
+    const label = (el.dataset.toc || el.textContent).replace(/\s+/g, " ").trim();
+    const lv = el.dataset.toc ? +(el.dataset.tocLevel || 1) : (el.matches(S2) && !el.matches(S1) ? 2 : 1);
+    if (!el.id) el.id = slug(label);
+    return { el, label, lv };
+  });
+  let parent = -1;
+  items.forEach((it, i) => {
+    if (it.lv === 2 && parent < 0) it.lv = 1;            // a nested entry with nothing above it stands alone
+    if (it.lv === 1) parent = i;
+    it.parent = it.lv === 1 ? i : parent;
+  });
+  const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  nav.innerHTML = `<p class="tt">Contents</p><ol>${items.map((it, i) =>
+    `<li class="l${it.lv}" data-i="${i}"><a href="#${esc(it.el.id)}">${esc(it.label)}</a></li>`).join("")}</ol>`;
+  const lis = [...nav.querySelectorAll("li")], links = lis.map(li => li.querySelector("a"));
+  let cur = -2;
+  const spy = () => {
+    const line = innerHeight * 0.3;
+    let a = -1;
+    for (let i = 0; i < items.length; i++) { if (items[i].el.getBoundingClientRect().top <= line) a = i; else break; }
+    if (a === cur) return;
+    cur = a;
+    const top = a < 0 ? -1 : items[a].parent;
+    links.forEach((l, i) => i === a ? l.setAttribute("aria-current", "true") : l.removeAttribute("aria-current"));
+    lis.forEach((li, i) => li.classList.toggle("open", items[i].lv === 2 && items[i].parent === top));
+    if (a >= 0) {
+      const r = links[a].getBoundingClientRect(), n = nav.getBoundingClientRect();
+      if (r.top < n.top || r.bottom > n.bottom) links[a].scrollIntoView({ block: "nearest" });
+    }
+  };
+  let raf = 0;
+  addEventListener("scroll", () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; spy(); }); }, { passive: true });
+  const btn = document.createElement("button");
+  btn.id = "toc-btn"; btn.type = "button"; btn.textContent = "Contents";
+  btn.setAttribute("aria-controls", "toc"); btn.setAttribute("aria-expanded", "false");
+  nav.after(btn);
+  const close = () => { nav.classList.remove("open"); btn.setAttribute("aria-expanded", "false"); };
+  btn.addEventListener("click", () => {
+    const o = nav.classList.toggle("open"); btn.setAttribute("aria-expanded", String(o));
+    if (o) { cur = -2; spy(); }
+  });
+  nav.addEventListener("click", e => { if (e.target.closest("a") && root.classList.contains("toc-btn")) close(); });
+  addEventListener("keydown", e => { if (e.key === "Escape") close(); });
+  const fit = () => {
+    const w = innerWidth;
+    root.classList.toggle("toc-full", w >= MIN);
+    root.classList.toggle("toc-slim", w >= SLIM && w < MIN);
+    root.classList.toggle("toc-btn", w < SLIM);
+    if (w >= SLIM) close();
+    spy();
+  };
+  addEventListener("resize", fit);
+  fit();
+  if (d.hide && "IntersectionObserver" in window) {
+    const on = new Set();
+    const io = new IntersectionObserver(es => {
+      for (const e of es) e.isIntersecting ? on.add(e.target) : on.delete(e.target);
+      nav.classList.toggle("away", on.size > 0);
+    }, { rootMargin: "-45% 0px -45% 0px" });
+    document.querySelectorAll(d.hide).forEach(el => io.observe(el));
+  }
+};
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
+})();
+</script>
+
 
 <!-- icl:begin -->
 <div class="plate">
@@ -343,7 +485,7 @@ footer .wrap { display: grid; gap: 8px }
       <div class="gloss"><span><b>言霊</b>kotodama: word-spirit, language as a thing with a life of its own.</span><span><b>紬</b>tsumugi: spun thread, words woven into more than the sum of their parts.</span></div>
       <span class="scrollcue">scroll</span>
     </div></div>
-    <div class="step" data-step="o1"><div class="card">
+    <div class="step" data-step="o1" data-toc="The map"><div class="card">
       <span class="eyebrow" style="color:var(--plate-muted)">the map · 1 of 5</span>
       <p>Every one of kotodama-tsumugi's 294,912 neurons. Placed by their weights alone, they are a featureless cloud.</p>
     </div></div>
@@ -376,7 +518,7 @@ footer .wrap { display: grid; gap: 8px }
     </div></div>
 <!-- icl:end -->
 <!-- icl:begin -->
-    <div class="chapter" id="ch-wiring">
+    <div class="chapter" id="ch-wiring" data-toc="The wiring">
     <div class="step" data-step="W1"><div class="card">
       <span class="eyebrow" style="color:var(--plate-muted)">the wiring · 1 of 7</span>
       <p>One neuron, <span data-v="graph:wiring.hubs.0.id|id">19/3306</span>, sends to more neurons than any other in the model: <span data-v="graph:wiring.hubs.0.x_median|sig2">200</span> times the median of its layer.</p>
@@ -463,7 +605,7 @@ footer .wrap { display: grid; gap: 8px }
   <div class="wp-tip" id="wp-tip" hidden></div>
 </div></section>
 <!-- icl:begin -->
-    <div class="chapter" id="ch-rule-recall">
+    <div class="chapter" id="ch-rule-recall" data-toc="Rule learning and recall">
     <div class="step" data-step="1a"><div class="card">
       <span class="eyebrow" style="color:var(--plate-muted)">rule vs recall · 1 of 5</span>
       
@@ -510,7 +652,7 @@ footer .wrap { display: grid; gap: 8px }
   </ul>
   <div class="mapbtns"><button class="mapbtn" type="button" data-circuit="rule" style="color:var(--rule)"><i></i><span style="color:var(--fg)">Show the rule circuit on the map</span></button><button class="mapbtn" type="button" data-circuit="recall" style="color:var(--recall)"><i></i><span style="color:var(--fg)">Show the recall circuit on the map</span></button></div>
 </div></section>
-    <div class="chapter" id="ch-loop">
+    <div class="chapter" id="ch-loop" data-toc="The second pass">
     <div class="step" data-step="2a"><div class="card">
       <span class="eyebrow" style="color:var(--plate-muted)">the loop · 1 of 2</span>
       
@@ -532,7 +674,7 @@ footer .wrap { display: grid; gap: 8px }
     <div class="card2"><span class="eyebrow">outside the loop, damage controlled</span><span class="big"><span data-v="loop.L2.outside|sgn3">+.014</span></span><p>The same measure for heads outside the loop, also against the first pass.</p></div>
   </div>
 </div></section>
-    <div class="chapter" id="ch-static-you">
+    <div class="chapter" id="ch-static-you" data-toc="Static “you”">
     <div class="step" data-step="4a"><div class="card">
       <span class="eyebrow" style="color:var(--plate-muted)">static <i>you</i> · 1 of 3</span>
       
@@ -565,7 +707,7 @@ footer .wrap { display: grid; gap: 8px }
   <div class="figure fit" id="figStatic"></div>
   <div class="mapbtns"><button class="mapbtn" type="button" data-circuit="you_interf" style="color:var(--ember-ink)"><i></i><span style="color:var(--fg)">Show the interferers on the map</span></button><button class="mapbtn" type="button" data-circuit="you_supp" style="color:var(--ice-ink)"><i></i><span style="color:var(--fg)">Show the supporters on the map</span></button></div>
 </div></section>
-    <div class="chapter" id="ch-dynamic-you">
+    <div class="chapter" id="ch-dynamic-you" data-toc="Three examples switch on “you”">
     <div class="step" data-step="3a"><div class="card">
       <span class="eyebrow" style="color:var(--plate-muted)">dynamic <i>you</i> · 1 of 3</span>
       
@@ -597,7 +739,7 @@ footer .wrap { display: grid; gap: 8px }
   <div class="strip" id="figDynBands"></div>
   <div class="mapbtns"><button class="mapbtn" type="button" data-circuit="dyn_you" style="color:var(--ice-ink)"><i></i><span style="color:var(--fg)">Show the dynamic-<em>you</em> circuit on the map</span></button></div>
 </div></section>
-    <div class="chapter" id="ch-exploratory">
+    <div class="chapter" id="ch-exploratory" data-toc="Readable or not (exploratory)">
     <div class="step" data-step="x1"><div class="card">
       <span class="eyebrow" style="color:var(--plate-muted)">exploratory</span>
       
@@ -626,7 +768,7 @@ footer .wrap { display: grid; gap: 8px }
     <li><b>Damage at full dose:</b> the full-dose knock-outs do more general damage than same-size random sets. The damage-matched controls above are at half dose, where they pass.</li>
   </ul>
 </div></section>
-    <div class="chapter" id="ch-binding">
+    <div class="chapter" id="ch-binding" data-toc="Earlier binding circuits">
     <div class="step" data-step="5a"><div class="card">
       <span class="eyebrow" style="color:var(--plate-muted)">earlier binding circuits · 1 of 2</span>
       
@@ -640,7 +782,7 @@ footer .wrap { display: grid; gap: 8px }
       <div class="keyrow"><span><i style="background:var(--ice)"></i>supporters</span><span><i style="background:var(--ember)"></i>interferers</span></div>
     </div></div>
     </div>
-    <div class="chapter" id="ch-training">
+    <div class="chapter" id="ch-training" data-toc="Across training">
     <div class="step" data-step="T1"><div class="card">
       <span class="eyebrow" style="color:var(--plate-muted)">across training · 1 of 4</span>
       <p>The same map at the start of training. No neuron yet does what it will do at the end. Only the 12 layers captured over training are coloured; the rest stay dim.</p>
@@ -672,7 +814,7 @@ footer .wrap { display: grid; gap: 8px }
 </div>
 
 <div class="plate">
-<div class="explore" id="explore">
+<div class="explore" id="explore" data-toc="Explore the map">
   <span class="watermark kanji" aria-hidden="true">紬</span>
   <div class="wrap">
     <span class="eyebrow" style="color:var(--plate-muted)">Explore</span>
@@ -700,7 +842,7 @@ footer .wrap { display: grid; gap: 8px }
 </div>
 </div>
 
-<details class="reference" id="reference">
+<details class="reference" id="reference" data-toc="Reference">
 <summary><div class="wrap"><span class="eyebrow">Reference</span><span class="h">Earlier analyses and methods</span><span class="note">The attribute-binding knock-outs cell by cell, ten tasks, one neuron on two passes, position 8, where and when, the compendium, the hand-validated check and the method. Open to read.</span></div></summary>
 <section class="read" id="knockouts"><div class="wrap">
   <span class="eyebrow">The evidence</span>
@@ -798,7 +940,7 @@ footer .wrap { display: grid; gap: 8px }
   <span><span class="kanji" style="font-size:15px">言霊 紬</span> Threads · model: kotodama-tsumugi.</span>
   <span>Companion pages: <a href="./">kotodama-tsumugi</a>, the announcement · <a href="binding-atlas">Binding Atlas</a>, every model against every referent-binding probe.</span>
   <span>Led by <a href="https://x.com/kataletheia">Luxia</a>, with <a href="https://animalabs.ai">Anima Labs</a> · built with <a href="https://www.anthropic.com/claude">Claude</a>. Set in Love Letter Typewriter (© 1994 Blake Haber, Dixie's Delights) with Courier Prime. Data CC-BY-4.0; code Apache-2.0.</span>
-  <span class="num" id="stamp">atlas build 2026-11-06 04:28 UTC</span>
+  <span class="num" id="stamp">atlas build 2026-11-06 04:58 UTC</span>
 </div></footer>
 
 <script>
