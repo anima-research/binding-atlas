@@ -563,7 +563,7 @@ const dia = (x, y, r = 6) => `<path d="M${x} ${y - r}L${x + r} ${y}L${x} ${y + r
 })();
 // Figure 3: tokens to each stage, OLMo-2 1B/7B/13B (+ ours)
 (() => {
-  const rows = G.cost.rows, W = 520, H = 70 + rows.length * 64, L = 150, R = 18, Tp = 10, B = 40;
+  const rows = G.cost.rows, W = 580, H = 70 + rows.length * 64, L = 210, R = 18, Tp = 10, B = 40;
   const x0 = Math.log10(1), x1 = Math.log10(10000), X = t => L + (Math.log10(t) - x0) / (x1 - x0) * (W - L - R);
   const lanes = ["OLMo-2 1B", "OLMo-2 7B", "OLMo-2 13B", "kotodama-tsumugi"], off = {"OLMo-2 1B": -15, "OLMo-2 7B": -5, "OLMo-2 13B": 5, "kotodama-tsumugi": 15};
   let s = `<svg class="plot" viewBox="0 0 ${W} ${H}" role="img" aria-label="tokens until each stage appears">`;
