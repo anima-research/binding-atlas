@@ -966,7 +966,8 @@ function quiz(cid, r, user) {
     const golds = new Set((it.gold_set || [it.gold]).map(String));
     const whoName = /^an-(me|you)/.test(cid) ? quizWho(cid, it) : null;
     $("#qv").innerHTML = `<div class="verdict ${ok ? "ok" : "no"}" role="status"><b>${ok ? "✓ right" : "✗ not quite"}</b> — the answer is <b>${esc((it.gold_set || [it.gold]).join(", "))}</b>${whoName ? ` (or the person's name: <b>${esc(whoName)}</b>)` : ""}.
-      ${x ? `<br>${esc(r.label)} gets ${pct(x.acc)} on this column (chance ${pct(x.chance)}).` : ""}</div>
+      ${x ? (x.acc != null ? `<br>${esc(r.label)} gets ${pct(x.acc)} on this column (chance ${pct(x.chance)}).`
+        : x.score != null ? `<br>${esc(r.label)} scores ${fmt(x.score)} on this column: the area under its example ladder, where 0 is chance and 1 is every rung right.` : "") : ""}</div>
       <div><div class="note" style="margin:6px 0 4px">The candidates the models ranked:</div><div class="cands">${it.candidates.map(c => `<span class="${golds.has(String(c)) ? "gold" : ""}">${esc(c)}</span>`).join("")}</div></div>
       <div><button class="iconbtn" id="qn">next item →</button></div>`;
     $("#qf").querySelector("button").disabled = true; $("#qa").disabled = true;
