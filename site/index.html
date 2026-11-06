@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>kotodama-tsumugi</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="typeface" content="Love Letter Typewriter (Love Letter TW Luxia build), © 1994 Blake Haber for Dixie's Delights; fallback Courier Prime (OFL)">
+<meta name="description" content="kotodama-tsumugi is a 1.4B open base model trained on 110B tokens. It learns new rules from its prompt better than its size predicts, and its looped core is where that happens. Weights, every checkpoint, the code and the benchmark are open.">
+<link rel="canonical" href="https://kotodama.animalabs.ai/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="kotodama.animalabs.ai">
+<meta property="og:title" content="kotodama-tsumugi: a 1.4B base model that learns rules beyond its size">
+<meta property="og:description" content="Open weights, every checkpoint, the training stack and the benchmark. Registered tests, stated with their intervals.">
+<meta property="og:url" content="https://kotodama.animalabs.ai/">
+<meta property="og:image" content="https://kotodama.animalabs.ai/kotodama-tsumugi-card.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="kotodama-tsumugi">
+<meta name="twitter:image" content="https://kotodama.animalabs.ai/kotodama-tsumugi-card.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Shippori+Mincho:wght@700&text=%E8%A8%80%E9%9C%8A%E7%B4%AC&display=swap">
+<style>
+/* Love Letter TW Luxia (self-hosted next to the page); Courier Prime fills the glyphs it lacks (→ × ≈ ≥ “ ” …). */
+@font-face { font-family: "LL Luxia"; src: url("fonts/LoveLetterTWLuxia-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "LL Luxia"; src: url("fonts/LoveLetterTWLuxia-Bold.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "LL Luxia"; src: url("fonts/LoveLetterTWLuxia-Italic.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: "LL Luxia"; src: url("fonts/LoveLetterTWLuxia-BoldItalic.woff2") format("woff2"); font-weight: 700; font-style: italic; font-display: swap; }
+/* Two grounds, as on the Atlas and An Empty Document: the page (paper in light, ink in dark) and the plate (always dark,
+   where the figures sit). */
+:root {
+  --bg: #f4f5f6; --surface: #ffffff; --fg: #0b0c0e; --fg2: #3d4652; --muted: #5d6672; --line: #d5d9de; --chip: #eceef1;
+  --plate: #0b0c0e; --plate-fg: #eef0f2; --plate-muted: #8c95a0; --plate-line: #262a31; --link: #0b6fa4;
+  --f-display: "LL Luxia", "Courier Prime", "Courier New", ui-monospace, monospace;
+  --f-body: "LL Luxia", "Courier Prime", "Courier New", ui-monospace, monospace;
+  --f-mono: "Courier Prime", "LL Luxia", "Courier New", ui-monospace, monospace;
+  --f-kanji: "Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0b0c0e; --surface: #111317; --fg: #eef0f2; --fg2: #b9c1cb; --muted: #8c95a0; --line: #262a31; --chip: #15181c;
+  --link: #64c9ff; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0b0c0e; --surface: #111317; --fg: #eef0f2; --fg2: #b9c1cb; --muted: #8c95a0; --line: #262a31; --chip: #15181c;
+  --link: #64c9ff; color-scheme: dark }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 16px; line-height: 1.6; }
+a { color: var(--link); text-underline-offset: 2px; }
+.wrap { max-width: 1080px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px));
+        padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+header.top { padding-block: 52px 18px; display: grid; gap: 14px; }
+.kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.kanji { font-family: var(--f-kanji); font-weight: 700; font-size: clamp(44px, 9vw, 84px); line-height: 1; letter-spacing: .08em; margin: 0; }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 5vw, 46px); line-height: 1.08; margin: 0; text-wrap: balance; }
+.lede { margin: 0; max-width: 64ch; color: var(--fg2); font-size: 18px; line-height: 1.55; }
+.byline { font-size: 13px; color: var(--muted); }
+.map { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 12px; max-width: 76ch; }
+figure.plate { margin: 18px 0 8px; background: var(--plate); border-radius: 12px; padding: 14px; display: grid; gap: 10px; }
+figure.plate img { width: 100%; max-width: 100%; height: auto; display: block; border-radius: 6px; }
+figure.plate figcaption { color: var(--plate-muted); font-size: 13px; line-height: 1.5; padding-inline: 4px; max-width: 90ch; }
+h2 { font-family: var(--f-display); font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted);
+     margin: 44px 0 14px; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+.results { display: grid; gap: 14px; }
+.result { display: grid; grid-template-columns: 170px 1fr; gap: 6px 26px; background: var(--surface);
+          border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; }
+.result .num { font-family: var(--f-mono); font-weight: 700; font-size: 34px; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.result .num small { display: block; font-size: 12px; font-weight: 400; color: var(--muted); letter-spacing: .02em; margin-top: 6px; line-height: 1.35; }
+.result h3 { margin: 0 0 6px; font-size: 19px; line-height: 1.3; text-wrap: balance; }
+.result p { margin: 0 0 8px; color: var(--fg2); max-width: 68ch; }
+.result p:last-child { margin-bottom: 0; }
+.result .more { font-size: 14px; }
+.result > div { min-width: 0; }
+.aside { margin-top: 14px; padding: 14px 18px; border-left: 3px solid var(--fg); background: var(--chip); border-radius: 0 8px 8px 0;
+         color: var(--fg2); max-width: 80ch; }
+.prose { max-width: 70ch; color: var(--fg2); }
+.prose p { margin: 0 0 12px; }
+ul.open { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; max-width: 80ch; }
+ul.open li { display: grid; grid-template-columns: 200px 1fr; gap: 4px 18px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+ul.open li b { font-size: 14px; }
+ul.open li span { color: var(--fg2); min-width: 0; overflow-wrap: anywhere; }
+ul.limits { margin: 0; padding-left: 20px; max-width: 72ch; color: var(--fg2); display: grid; gap: 6px; }
+footer { border-top: 1px solid var(--line); margin-top: 48px; padding-block: 16px 34px; font-size: 13px; color: var(--muted); }
+footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: space-between; }
+@media (max-width: 680px) {
+  .result { grid-template-columns: 1fr; }
+  ul.open li { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="kicker">Model release · open weights</div>
+    <p class="kanji" lang="ja">言霊 紬</p>
+    <h1>kotodama-tsumugi</h1>
+    <p class="lede">A 1.4B base model, trained on 110B tokens, that learns new rules from its prompt above the size trend
+    of public base models. It tracks who “you” is in a conversation like base models trained on 40 to 300 times more data. The weights,
+    the training checkpoints, the code and the benchmark are open.</p>
+    <div class="byline">Led by <a href="https://x.com/kataletheia">Luxia</a>, with <a href="https://animalabs.ai">Anima Labs</a> · built with <a href="https://www.anthropic.com/claude">Claude</a></div>
+    <div class="map">Start here for the model. To run it, use the <a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b">model card</a>; to set it against
+    other models, the <a href="binding-atlas">Binding Atlas</a>; to look at its neurons,
+    <a href="threads">Threads</a>.</div>
+  </header>
+
+  <figure class="plate">
+    <a href="announce-data/figure.png"><img src="announce-data/figure.png" width="1600" height="900" alt="Three panels against model size, for 37 public base models: new rules learned from the prompt, recall of facts in the same few-shot frame, and held-out text in bits per byte. A dashed line marks each panel's size trend. kotodama-tsumugi sits above the trend on new rules (.559) and on it for recall (.930) and held-out text (.768)."></a>
+    <figcaption>In-prompt rule learning, recall and held-out text against model size, for 37 public base models from 0.2B to
+    9.8B parameters. The dashed line is each panel's size trend. kotodama-tsumugi is the white diamond: above the trend on
+    new rules, on it for the other two.</figcaption>
+  </figure>
+
+  <h2>What it does</h2>
+  <div class="results">
+    <section class="result" id="rules">
+      <div class="num">z +1.07<small>above the size trend on new rules · 95% interval +0.68 to +2.07</small></div>
+      <div>
+        <h3>It learns new rules from its prompt beyond its size</h3>
+        <p>Each prompt shows worked examples of an invented word ending, invented operators or a nonsense pattern. The
+        model then has to apply the rule to a new case. On this, tsumugi scores above the size trend of 37 public base
+        models. On recall in the same format, and on held-out text, it sits on that trend.</p>
+        <p>The test was registered before any row was scored, and all three of its predictions hold. Among the public
+        bases under 4B, only Qwen3 1.7B scores higher on new rules.</p>
+        <p class="more"><a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b#learning-rules-from-the-prompt">The registered test, its table and checks</a></p>
+      </div>
+    </section>
+    <section class="result" id="loop">
+      <div class="num">−.13<small>rule learning, with a quarter of the second pass's attention removed (recall: −.025)</small></div>
+      <div>
+        <h3>Its looped core carries that learning</h3>
+        <p>tsumugi runs one 20-layer block twice, with the same weights. Removing a quarter of the attention in the second
+        pass cuts its rule-learning score by .13, while recall in the same prompts falls .025. The same cut costs .035 in
+        the first pass and .019 outside the loop.</p>
+        <p>This test was registered too. The second-pass cut also does more general damage, and the result holds with that
+        damage controlled for.</p>
+        <p class="more"><a href="threads">Inside tsumugi, on Threads</a></p>
+      </div>
+    </section>
+    <section class="result" id="you">
+      <div class="num">+.038<small>dynamic “you” with three worked examples · 95% interval +.023 to +.055</small></div>
+      <div>
+        <h3>It tracks who “you” is after objects change hands</h3>
+        <p>In a two-person chat where objects pass between the speakers, “you” has to follow the person being addressed.
+        Shown three worked examples, tsumugi does, and it is the smallest public base model measured that passes this
+        test. The next smallest is Qwen3-4B, trained on 36T tokens, about 300 times tsumugi's 110B.</p>
+        <p>The simpler case, a fixed “you”, it learns by 33B training tokens. OLMo-2 1B needs 420–525B.</p>
+        <p class="more"><a href="binding-atlas#tsumugi-you">The test and its threshold, on the Binding Atlas</a></p>
+      </div>
+    </section>
+    <section class="result" id="compute">
+      <div class="num">¼<small>of Pythia-2.8B's training compute, for its benchmark average</small></div>
+      <div>
+        <h3>It is cheap for what it scores</h3>
+        <p>Its average over nine standard zero-shot benchmarks is 64.1, half a point below Pythia-2.8B's 64.7, at a quarter
+        of the training compute.</p>
+        <p class="more"><a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b#benchmarks-and-compute">Benchmarks and compute, on the model card</a></p>
+      </div>
+    </section>
+  </div>
+  <p class="aside">Given an empty document, 128 times, tsumugi writes no chatbot transcripts, assistant replies or
+  machine-made training data. Many modern base models do. Every run is on <a href="empty-document">An Empty Document</a>.</p>
+
+  <h2>How it is built</h2>
+  <div class="prose">
+    <p>tsumugi is a Llama-style decoder with Block Attention Residuals. Each layer reads a learned mixture of earlier blocks'
+    outputs, and the block boundaries are fitted to the network's own layer geometry. Its 52 unique layers run as 72: a
+    19-layer prelude, a 20-layer core executed twice with shared weights, and a 13-layer coda. Hidden matrices are
+    trained with Muon. It was trained on 110B tokens with the SmolLM2 tokenizer and annealed at the end.</p>
+    <p>The training data, the full architecture and how to run it are on the <a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b">model card</a>. A
+    technical report will follow.</p>
+  </div>
+
+  <h2>What is open</h2>
+  <ul class="open">
+    <li><b>Weights</b><span><a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b">LuxiaSL/kotodama-tsumugi-1b</a>, with the model card.</span></li>
+    <li><b>The training run</b><span>Its checkpoints, with the annealed branches as <code>anneal…</code> branches: the
+      release seed to 110B (<a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b-trajectory">seed 17</a>) and a
+      replicate to 11B (<a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b-seed7-trajectory">seed 7</a>).</span></li>
+    <li><b>The training stack</b><span><a href="https://github.com/anima-research/kotodama">anima-research/kotodama</a>:
+      the trainer, the evaluation suite and the serving stack.</span></li>
+    <li><b>The benchmark</b><span><a href="https://github.com/anima-research/binding-bench">anima-research/binding-bench</a>,
+      with every public model's results on the <a href="binding-atlas">Binding Atlas</a>.</span></li>
+    <li><b>The neuron graph</b><span>Every neuron of the release and how they connect:
+      <a href="https://huggingface.co/datasets/LuxiaSL/kotodama-tsumugi-1b-neuron-graph">kotodama-tsumugi-1b-neuron-graph</a>,
+      across training in
+      <a href="https://huggingface.co/datasets/LuxiaSL/kotodama-tsumugi-1b-neuron-graph-trajectory">its trajectory</a>.
+      Explore it on <a href="threads">Threads</a>.</span></li>
+  </ul>
+
+  <h2>Limitations</h2>
+  <ul class="limits">
+    <li>It is a base model, with no instruction, preference or safety tuning. It continues text and does not follow instructions.</li>
+    <li>Without a repetition penalty it falls into self-copying loops in long generations. The model card gives sampling that avoids them.</li>
+    <li>On held-out code it trails Pythia-1.4B and OLMo-2 1B; on held-out prose it is ahead of Pythia-1.4B.</li>
+    <li>Like every ~1B model measured, it tracks who holds an object in a third-person story at chance.</li>
+    <li>It is one anneal of one seed, and its training data is mostly English.</li>
+  </ul>
+</div>
+<footer><div class="wrap">
+  <span>Companion pages: <a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b">the model card</a> · <a href="binding-atlas">Binding Atlas</a>, every model against every referent-binding test · <a href="threads">Threads</a>, inside kotodama-tsumugi · <a href="empty-document">An Empty Document</a>.</span>
+  <span class="num" id="stamp">build 2026-11-06 00:37 UTC</span>
+</div></footer>
+</body>
+</html>
