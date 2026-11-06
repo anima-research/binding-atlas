@@ -17,8 +17,8 @@ endif
 # the build the kotodama.animalabs.ai deployment serves (config/animalabs.sha256)
 VERIFY_CONFIG := animalabs
 VERIFY_STAMP := 2026-11-06 22:51 UTC
-VERIFY_STAMP_EMPTY := 2026-11-06 04:23 UTC
-VERIFY_STAMP_ANNOUNCE := 2026-11-06 09:30 UTC
+VERIFY_STAMP_EMPTY := 2026-11-06 22:56 UTC
+VERIFY_STAMP_ANNOUNCE := 2026-11-06 22:56 UTC
 
 PAGE_ARGS = --config $(CONFIG) --stamp "$(STAMP)"
 

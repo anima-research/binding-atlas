@@ -55,7 +55,7 @@ h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 5vw
 .byline { font-size: 13px; color: var(--muted); }
 .gloss { display: grid; gap: 2px; font-size: 13px; line-height: 1.45; color: var(--muted); max-width: 70ch; margin: 6px 0 10px; }
 .gloss b { font-family: "Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif; color: var(--fg2); font-weight: 700; margin-right: 2px; }
-.map { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 12px; max-width: 76ch; }
+.map { font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 12px; }
 figure.plate { margin: 18px 0 8px; background: var(--plate); border-radius: 12px; padding: 14px; display: grid; gap: 10px; }
 figure.plate img { width: 100%; max-width: 100%; height: auto; display: block; border-radius: 6px; }
 figure.plate figcaption { color: var(--plate-muted); font-size: 13px; line-height: 1.5; padding-inline: 4px; max-width: 90ch; }
@@ -71,6 +71,8 @@ h2 { font-family: var(--f-display); font-size: 13px; letter-spacing: .12em; text
 .result p:last-child { margin-bottom: 0; }
 .result .more { font-size: 14px; }
 .result > div { min-width: 0; }
+.aside-h { margin: 0 0 6px; font-size: 16px; color: var(--fg); }
+.aside p { margin: 0; }
 .aside { margin-top: 14px; padding: 14px 18px; border-left: 3px solid var(--fg); background: var(--chip); border-radius: 0 8px 8px 0;
          color: var(--fg2); max-width: 80ch; }
 .prose { max-width: 70ch; color: var(--fg2); }
@@ -257,13 +259,13 @@ if (document.readyState === "loading") document.addEventListener("DOMContentLoad
     who “you” is, like larger models trained on 40 to 300 times more data. Its weights, training checkpoints, data recipe, code and
     benchmark are all open.</p>
     <div class="byline">Led by <a href="https://x.com/kataletheia">Luxia</a>, with <a href="https://animalabs.ai">Anima Labs</a> · built with <a href="https://www.anthropic.com/claude">Claude</a></div>
-    <div class="map"><a href="https://github.com/anima-research/kotodama">kotodama code on GitHub</a> ·
+    <div class="map"><a href="https://github.com/anima-research/kotodama">code on GitHub</a> ·
     <a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b">weights on Hugging Face</a> · <a href="binding-atlas">benchmark results</a> ·
     <a href="threads">neuron graphs</a></div>
   </header>
 
 <section class="story" id="story" data-toc="The story" aria-label="How kotodama-tsumugi is built, and its four results, step by step">
-<div class="story-steps"><div class="story-step" id="story-arch" data-beat="arch" data-toc="Four design choices" data-toc-level="2"><div class="h" role="heading" aria-level="3">Four design choices</div><p>Four design choices went into tsumugi's architecture. We spent its 1.4B parameters on depth instead of width: 52 layers, 1,536 wide. A block of 20 layers in the middle runs twice with the same weights, so the model computes through 72 layers. Then we added Moonshot AI's Attention Residuals<span class="cite"><button type="button" class="cite-mk" aria-expanded="false" aria-label="Reference 1">1</button><span class="cite-leaf" role="note">Kimi Team (Moonshot AI), <a href="https://arxiv.org/abs/2603.15031"><i>Attention Residuals</i></a>, arXiv:2603.15031, 2026.</span></span>, so each layer reads a learned mix of earlier blocks' outputs instead of a plain running sum. Finally, we pretrained a model without them and read its layer geometry (at snapshots through training, how spread out each layer's attention is, how uneven its hidden states are and how many directions its weights use) to find the natural seams where one block should end and the next begin.</p></div><div class="story-step" id="story-rules" data-beat="rules" data-toc="Rules from the prompt" data-toc-level="2"><div class="h" role="heading" aria-level="3">Learns made-up rules from the prompt</div><p>The prompt shows worked examples of an invented rule, here a made-up plural, and the model picks the answer for a new word. On these tests it scores .559, where 0 is chance and 1 is always right. Public models that spent the same training compute score lower: checkpoints taken partway through training reach at most .461, and the best fully trained one, Falcon3 3B, .536. Of 23 fully trained public base models up to 3.3B parameters, only Qwen3 1.7B, trained on 36T tokens, scores higher (.563).</p></div><div class="story-step" id="story-loop" data-beat="loop" data-toc="The second pass" data-toc-level="2"><div class="h" role="heading" aria-level="3">Rule learning leans on the second pass</div><p>On the made-up-rule tests, switching off 60 random attention heads in the second pass, a quarter of them, drops tsumugi's score from .546 to .414. The same cut costs .035 in the first pass and .019 in the layers before and after the loop. The damage is specific: fact recall in the same format falls only .025, from .919, and the gap holds after accounting for how much each cut hurts text prediction.</p></div><div class="story-step" id="story-you" data-beat="you" data-toc="Tracking “you”" data-toc-level="2"><div class="h" role="heading" aria-level="3">Tracks who “you” is as objects change hands</div><p>On the last line of this chat, “you” is Kurt, who now has the battery. Swap who says that line, and “you” is Steve, who has the lamp, so the battery should lose probability. Here it falls from .445 to .311, a larger move than most. Averaged over 180 chats the drop is .038, and tsumugi is the smallest public base model whose drop clears +.02 across its whole 95% interval.</p></div><div class="story-step" id="story-cheap" data-beat="cheap" data-toc="Benchmarks at its compute" data-toc-level="2"><div class="h" role="heading" aria-level="3">Ahead of Pythia 1.4B–6.9B and OLMo-1 1B at its compute</div><p>On nine standard benchmarks (HellaSwag, LAMBADA, ARC-Easy, ARC-Challenge, PIQA, SciQ, WinoGrande, COPA and BoolQ), with no examples in the prompt, tsumugi averages 64.1. Public models released checkpoints from partway through training, which show how much compute each needed to reach that score. Pythia 2.8B needed about 2.7× tsumugi's compute, Pythia 6.9B about 5× and OLMo-1 1B about 7×; Pythia 1.4B never got there. OLMo-2 1B got there at about the same compute as tsumugi.</p></div></div>
+<div class="story-steps"><div class="story-step" id="story-arch" data-beat="arch" data-toc="Four design choices" data-toc-level="2"><div class="h" role="heading" aria-level="3">Four design choices</div><p>Four design choices went into tsumugi's architecture. We spent its 1.4B parameters on depth instead of width: 52 layers, 1,536 wide. A block of 20 layers in the middle runs twice with the same weights, so the model computes through 72 layers. Then we added Moonshot AI's Attention Residuals<span class="cite"><button type="button" class="cite-mk" aria-expanded="false" aria-label="Reference 1">1</button><span class="cite-leaf" role="note">Kimi Team (Moonshot AI), <a href="https://arxiv.org/abs/2603.15031"><i>Attention Residuals</i></a>, arXiv:2603.15031, 2026.</span></span>, so each layer reads a learned mix of earlier blocks' outputs instead of a plain running sum. Finally, we pretrained a model without them and read its layer geometry (at snapshots through training, how spread out each layer's attention is, how uneven its hidden states are and how many directions its weights use) to find the natural seams where one block should end and the next begin.</p></div><div class="story-step" id="story-rules" data-beat="rules" data-toc="Rules from the prompt" data-toc-level="2"><div class="h" role="heading" aria-level="3">Learns made-up rules from the prompt</div><p>The prompt shows worked examples of an invented rule, here a made-up plural, and the model picks the answer for a new word. On these tests it scores .559, where 0 is chance and 1 is always right. Public models that spent the same training compute score lower: checkpoints taken partway through training reach at most .461, and the best fully trained one, Falcon3 3B, .536. Of 23 fully trained public base models up to 3.3B parameters, only Qwen3 1.7B, trained on 36T tokens, scores higher (.563).</p></div><div class="story-step" id="story-loop" data-beat="loop" data-toc="The second pass" data-toc-level="2"><div class="h" role="heading" aria-level="3">Rule learning leans on the second pass</div><p>On the benchmark's published test items, where tsumugi scores .546 (the .559 above uses freshly drawn items of the same tests), switching off 60 random attention heads in the second pass, a quarter of them, drops its score to .414. The same cut costs .035 in the first pass and .019 in the layers before and after the loop. The damage is specific: fact recall in the same format falls only .025, from .919, and the gap holds after accounting for how much each cut hurts text prediction.</p></div><div class="story-step" id="story-you" data-beat="you" data-toc="Tracking “you”" data-toc-level="2"><div class="h" role="heading" aria-level="3">Tracks who “you” is as objects change hands</div><p>The test “you”, after hand-offs: on the last line of this chat, “you” is Kurt, who now has the battery. Swap who says that line, and “you” is Steve, who has the lamp, so the battery should lose probability. Here it falls from .445 to .311, a larger move than most. Averaged over 180 chats the drop is .038, and tsumugi is the smallest public base model whose drop clears +.02, a bar fixed before any model was scored, across its whole 95% interval.</p></div><div class="story-step" id="story-cheap" data-beat="cheap" data-toc="Benchmarks at its compute" data-toc-level="2"><div class="h" role="heading" aria-level="3">Ahead of Pythia 1.4B–6.9B and OLMo-1 1B at its compute</div><p>On nine standard benchmarks (HellaSwag, LAMBADA, ARC-Easy, ARC-Challenge, PIQA, SciQ, WinoGrande, COPA and BoolQ), with no examples in the prompt, tsumugi averages 64.1% correct. Public models released checkpoints from partway through training, which show how much compute each needed to reach that score. Pythia 2.8B needed about 2.7× tsumugi's compute, Pythia 6.9B about 5× and OLMo-1 1B about 7×; Pythia 1.4B never got there. OLMo-2 1B got there at about the same compute as tsumugi.</p></div></div>
 <div class="story-stage" aria-hidden="true"><div class="story-frame"><div id="Larch" class="layer"><div class="rule"></div>
   <div class="title">Four design choices</div><div class="sub">Added one at a time.</div>
   <svg class="panel" id="aspire" style="left:96px;top:205px" width="520" height="660"></svg>
@@ -404,9 +406,11 @@ function stack(opts) {
     s += `<path d="M${bx - 14},${y(38) - pitch} H${bx - 34} V${y(19)} H${bx - 14}" fill="none" stroke="${FG}" stroke-width="2" opacity="${o}"/>`
        + `<text x="${bx - 44}" y="${(y(19) + y(38)) / 2 + 6}" text-anchor="end" fill="${FG}" font-size="22" font-family="${MONO}" opacity="${o}">×2</text>`; }
   if (bnd) {
+    let lastY = 1e9, col = 0;   // block-start labels at 21 px; labels closer than 20 px step out to a second column
     bnd.forEach((b0) => { const yy = y(b0);
+      col = lastY - yy < 26 ? 1 - col : 0; lastY = yy;
       s += `<line x1="${bx - 10}" x2="${bx + bw + 10}" y1="${yy}" y2="${yy}" stroke="#64c9ff" stroke-width="2.2" opacity="${bndOp}"/>`
-         + `<text x="${bx - 16}" y="${yy + 5}" text-anchor="end" fill="#64c9ff" font-size="16" font-family="${MONO}" opacity="${bndOp}">${Math.round(b0)}</text>`; });
+         + `<text x="${bx - 16 - col * 40}" y="${yy + 7}" text-anchor="end" fill="#64c9ff" font-size="21" font-family="${MONO}" opacity="${bndOp}">${Math.round(b0)}</text>`; });
     if (arc > 0) {   // one layer (position 50) reading earlier blocks: equal-weight arcs, drawn in order
       const yl = y(50) - pitch * .3;
       bnd.forEach((b0, i) => { const yy = y(b0) - pitch * .3, o = cl(arc * bnd.length - i);
@@ -526,8 +530,8 @@ DRAW.you = (t) => {
   const yb = 30 + D.dyn.length * 34 + 10, c = ramp(t, g1 + .4, g1 + .8);
   s += `<line x1="${x0}" x2="${x0}" y1="28" y2="${yb}" stroke="${FG}" stroke-width="2"/>`
      + `<text x="${x0-8}" y="${yb+28}" text-anchor="end" fill="${MUTED}" font-size="19">← takes “you” as the speaker</text><text x="${x0+8}" y="${yb+28}" fill="${MUTED}" font-size="19">tracks “you” →</text>`
-     + `<text class="dup" x="0" y="${yb+76}" fill="${FG}" font-size="22" opacity="${c}">the smallest public base model whose drop</text>`
-     + `<text class="dup" x="0" y="${yb+104}" fill="${FG}" font-size="22" opacity="${c}">clears +.02 across its whole 95% interval</text>`;
+     + `<text class="dup" x="0" y="${yb+76}" fill="${FG}" font-size="22" opacity="${c}">the smallest public base model whose whole 95% interval</text>`
+     + `<text class="dup" x="0" y="${yb+104}" fill="${FG}" font-size="22" opacity="${c}">clears +.02, a bar fixed before any model was scored</text>`;
   $("dyn").innerHTML = s;
 };
 
@@ -623,7 +627,7 @@ document.querySelectorAll(".story .cite").forEach(c => {
     better.</p>
   </div>
   <figure class="plate">
-    <a href="announce-data/figure.png"><img src="announce-data/figure.png" width="1600" height="900" alt="Three panels against training compute: new rules learned from the prompt, recall of facts in the same worked-example format, and held-out text in bits per byte. Filled dots are 36 public base models, open circles 15 public checkpoints taken partway through training at the same compute as kotodama-tsumugi. kotodama-tsumugi does better than the compute trend on all three, furthest on new rules (.559, against .536 for the best public model at the same compute and at most .461 for the checkpoints). An open orange diamond marks it before its final anneal (.436)."></a>
+    <a href="announce-data/figure.png"><img src="announce-data/figure.png" width="1600" height="900" alt="Three panels against training compute: new rules learned from the prompt, recall of facts in the same worked-example format, and held-out text in bits per byte. Filled dots are 36 public base models, open circles 15 public checkpoints taken partway through training at the same compute as kotodama-tsumugi. kotodama-tsumugi does better than the compute trend on all three, furthest on new rules (.559, against .536 for the best public model at the same compute and at most .461 for the checkpoints). An open orange diamond marks it before its final cooldown (.436)."></a>
     <figcaption>Filled dots: 36 public base models. Open circles: 15 public checkpoints, taken partway through training,
     that had spent the same compute as tsumugi. Dashed line: the trend of the fully trained public models. tsumugi, the orange diamond, does better
     than the trend on all three and furthest on new rules. It scores .559 there, against .536 for the best public model at the
@@ -636,13 +640,14 @@ document.querySelectorAll(".story .cite").forEach(c => {
   <h2>Results</h2>
   <div class="results">
     <section class="result" id="rules">
-      <div class="num">+1.07 SD<small>above the size trend on new rules · 95% interval +0.68 to +2.07</small></div>
+      <div class="num">+1.07 SD<small>above the trend for its size, on new rules · 95% interval +0.68 to +2.07</small></div>
       <div>
         <h3>Learns made-up rules from its prompt, beyond its size</h3>
         <p>On new rules, tsumugi scores .559. A trend line fitted to 37 public base models predicts less for a model of
         its size. The 37 are the 36 in the figure plus GPT-2 XL, which has no published token count. tsumugi sits 1.07 standard
         deviations above it, measured in the spread of the public models around the line. The interval comes from
-        resampling both the public models and tsumugi's test items. On recall and on held-out text, it sits on the trend.</p>
+        resampling both the public models and tsumugi's test items. On recall and on held-out text, it sits on that trend. Against training
+        compute, as in the figure above, the gap on new rules is about twice as large: +2.2 to +2.4 SD.</p>
         <p>This comparison was registered: the test and its three predictions were written down and committed before any
         score was computed, and all three hold. Among public bases under 4B parameters, only Qwen3 1.7B scores higher on
         new rules.</p>
@@ -658,29 +663,29 @@ document.querySelectorAll(".story .cite").forEach(c => {
         costs .035 in the first pass and .019 in the layers before and after the loop.</p>
         <p>This test was registered too, and its prediction holds. The cut also makes the model worse at predicting ordinary text, and the result
         holds after controlling for that loss.</p>
-        <p class="more"><a href="threads">Inside tsumugi: the neurons behind rule learning and recall, on Threads</a></p>
+        <p class="more"><a href="threads">Inside tsumugi: the neurons behind rule learning and recall</a></p>
       </div>
     </section>
     <section class="result" id="you">
-      <div class="num">+.038<small>“you” tracked after objects change hands, given three worked examples · 95% interval +.023 to +.055</small></div>
+      <div class="num">+.038<small>“you”, after hand-offs: “you” tracked as objects change hands, given three worked examples · 95% interval +.023 to +.055</small></div>
       <div>
         <h3>Tracks who “you” is as objects change hands</h3>
-        <p>In a two-person chat where objects pass between the speakers, a line like “Right now you're holding the ___”
+        <p>The test “you”, after hand-offs: in a two-person chat where objects pass between the speakers, a line like “Right now you're holding the ___”
         asks about the person being addressed. Swap who says that line, and “you” becomes the other person, so the old
         answer should lose probability. Given three worked examples, tsumugi's old answer loses .038 on average over 180
         chats. A model passes when its whole 95% interval is above .02, a bar that was fixed before
         any model was scored. tsumugi is the smallest public base model
         measured that passes. The next smallest is Qwen3-4B, trained on 36T tokens, about 300 times tsumugi's 110B.</p>
-        <p>On the simpler test with a fixed “you”, where nothing changes hands, it passes by 33B training tokens. OLMo-2 1B
-        passes that test somewhere between its 420B and 525B checkpoints.</p>
-        <p class="more"><a href="binding-atlas#tsumugi-you">The test and its threshold, on the Binding Atlas</a></p>
+        <p>The simpler test, “you”, nothing moves, states who holds what and never changes it. tsumugi passes it by 33B
+        training tokens. OLMo-2 1B passes it somewhere between its 420B and 525B checkpoints.</p>
+        <p class="more"><a href="binding-atlas#tsumugi-you">The test, its threshold and every public model's results</a></p>
       </div>
     </section>
     <section class="result" id="compute">
-      <div class="num">64.1<small>average over nine standard benchmarks: ahead of Pythia 1.4B, 2.8B and 6.9B and OLMo-1 1B at the same compute</small></div>
+      <div class="num">64.1%<small>average accuracy over nine standard benchmarks: ahead of Pythia 1.4B, 2.8B and 6.9B and OLMo-1 1B at the same compute</small></div>
       <div>
         <h3>Ahead of Pythia 1.4B–6.9B and OLMo-1 1B at its compute</h3>
-        <p>Its average over nine standard benchmarks is 64.1. Public models released checkpoints from partway through
+        <p>Its average over nine standard benchmarks is 64.1% correct. Public models released checkpoints from partway through
         training, which show how much compute each needed to reach that score: Pythia 2.8B about 2.7 times tsumugi's,
         Pythia 6.9B about 5 times and OLMo-1 1B about 7 times. Pythia 1.4B never got there: it ends at 61.4 after twice
         the compute. OLMo-2 1B got there at about the same compute as tsumugi. Those checkpoints are taken before any
@@ -690,10 +695,11 @@ document.querySelectorAll(".story .cite").forEach(c => {
       </div>
     </section>
   </div>
-  <p class="aside">Given only the start-of-document token, 128 times, tsumugi writes no chatbot transcripts, assistant
-  replies or machine-made training data. Claude sorted every run, after agreeing with 300 hand-labelled runs 98.7% of
-  the time. Many modern base models do write them. All 128 runs
-  can be read on the page <a href="empty-document">An Empty Document</a>.</p>
+  <div class="aside"><h3 class="aside-h">What it writes from an empty page</h3>
+  <p>Its training text was curated to leave out assistant replies and machine-written text, and it shows. Given only the
+  start-of-document token, 128 times, tsumugi writes no chatbot transcripts, assistant replies or machine-made training
+  data; many modern base models do. Claude sorted every run, after agreeing with 300 hand-labelled runs 98.7% of the
+  time. All 128 runs <a href="empty-document">can be read on their own page</a>.</p></div>
 
   <h2>Architecture</h2>
   <div class="prose">
@@ -702,7 +708,7 @@ document.querySelectorAll(".story .cite").forEach(c => {
     own layer geometry. Its 52 layers of weights run as 72: 19 input layers, a 20-layer middle block run twice with
     shared weights, and 13 output layers. Its hidden matrices were trained with the
     <a href="https://kellerjordan.github.io/posts/muon/">Muon</a> optimizer. It was trained on 110B tokens with the
-    SmolLM2 tokenizer and annealed at the end: the learning rate decayed over the final stretch of training.</p>
+    SmolLM2 tokenizer, and ended with a cooldown: the closing stretch of training, where the learning rate decays.</p>
     <p>The training data, the full architecture and how to run it are on the <a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b">model card</a>. A
     technical report will follow.</p>
   </div>
@@ -710,7 +716,7 @@ document.querySelectorAll(".story .cite").forEach(c => {
   <h2>What is open</h2>
   <ul class="open">
     <li><b>Weights</b><span><a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b">LuxiaSL/kotodama-tsumugi-1b</a>, with the model card.</span></li>
-    <li><b>The training run</b><span>Every checkpoint, plus the annealed versions as separate branches named
+    <li><b>The training run</b><span>Every checkpoint, plus the cooled-down versions, as separate branches named
       <code>anneal…</code>: seed 17, the release, to 110B (<a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b-trajectory">trajectory</a>),
       and a second seed, seed 7, to 11B (<a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b-seed7-trajectory">trajectory</a>).</span></li>
     <li><b>The training stack</b><span><a href="https://github.com/anima-research/kotodama">anima-research/kotodama</a>:
@@ -720,11 +726,11 @@ document.querySelectorAll(".story .cite").forEach(c => {
       cleaned text (<a href="https://huggingface.co/datasets/aethera-gp/kotodama-3b-corpus-open">kotodama-3b-corpus-open</a>);
       two small private sources are described by category only.</span></li>
     <li><b>The benchmark</b><span><a href="https://github.com/anima-research/binding-bench">anima-research/binding-bench</a>,
-      the tests above, with every public model's results on the <a href="binding-atlas">Binding Atlas</a>.</span></li>
+      the tests above, <a href="binding-atlas">with every public model's results</a>.</span></li>
     <li><b>The neuron graph</b><span>Every neuron of its feed-forward layers, and the strongest connections between them,
       for the release (<a href="https://huggingface.co/datasets/LuxiaSL/kotodama-tsumugi-1b-neuron-graph">kotodama-tsumugi-1b-neuron-graph</a>)
       and across training (<a href="https://huggingface.co/datasets/LuxiaSL/kotodama-tsumugi-1b-neuron-graph-trajectory">its trajectory</a>).
-      Explore it on <a href="threads">Threads</a>.</span></li>
+      <a href="threads">Explore it in your browser</a>.</span></li>
   </ul>
 
   <h2>Limitations</h2>
@@ -733,12 +739,12 @@ document.querySelectorAll(".story .cite").forEach(c => {
     <li>Without a repetition penalty it falls into self-copying loops in long generations. The model card gives sampling that avoids them.</li>
     <li>On held-out code, in bits per byte, it trails Pythia-1.4B and OLMo-2 1B; on held-out prose it is ahead of Pythia-1.4B.</li>
     <li>Like every ~1B model measured, it scores at chance on tracking who holds an object in a third-person story.</li>
-    <li>It is one anneal of one seed (seed 17), and its training data is mostly English.</li>
+    <li>It is one cooldown of one seed (seed 17), and its training data is mostly English.</li>
   </ul>
 </div>
 <footer><div class="wrap">
-  <span>Companion pages: <a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b">the model card</a> · <a href="binding-atlas">Binding Atlas</a>, every model against every referent-binding test · <a href="threads">Threads</a>, inside kotodama-tsumugi · <a href="empty-document">An Empty Document</a>.</span>
-  <span class="num" id="stamp">build 2026-11-06 09:30 UTC</span>
+  <span>Companion pages: <a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b">the model card</a> · <a href="binding-atlas">every public model's results on who-is-who tests</a> · <a href="threads">a map of tsumugi's neurons</a> · <a href="empty-document">what it writes from an empty page</a>.</span>
+  <span class="num" id="stamp">build 2026-11-06 22:56 UTC</span>
 </div></footer>
 </body>
 </html>
