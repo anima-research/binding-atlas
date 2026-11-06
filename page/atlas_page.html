@@ -471,7 +471,8 @@ table.levers td.cost { color: var(--muted); }
           each item cold, once, without options.</li>
         <li><b>Columns are grouped</b> by what the questions look like. Each column is its own test, and a collapsed group
           shows one named column, never an average. Rows are grouped by size, with kotodama-tsumugi's checkpoints in
-          training order at the foot.</li>
+          training order at the foot. The rule-learning suite has a fourth family, rebinding: it is the Many refills
+          column, under the story group. Click any cell to read its prompts.</li>
       </ul>
     </details>
 
@@ -664,7 +665,7 @@ const colById = Object.fromEntries(COLS.map(c => [c.id, c]));
 const rowById = Object.fromEntries(ROWS.map(r => [r.id, r]));
 const GROUPS = [...new Set(ROWS.map(r => r.group))];
 const COLGROUPS = [...new Set(COLS.map(c => c.group))];
-const OPEN_DEFAULT = COLGROUPS.filter(g => /\bI and you\b/.test(g));
+const OPEN_DEFAULT = COLGROUPS.filter(g => /\bI and you\b|rule from the examples/.test(g));
 const S = { quiz: false, view: "score", cond: "fair", mode: "all", q: "", sort: "", psz: "", hidden: new Set(), collapsed: new Set(), open: new Set(OPEN_DEFAULT), sel: null, col: null };
 const SIZE_SORTS = ["size-asc", "size-desc"], PSZ = ["0-2", "2-10", "10-100", "100-", "known"];
 function inSize(r) {   // rows without a published parameter count (closed APIs, the human reader) drop out of any size filter
