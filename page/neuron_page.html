@@ -652,7 +652,7 @@ footer .wrap { display: grid; gap: 8px }
     </div></div>
     <div class="step" data-step="T4"><div class="card">
       <span class="eyebrow" style="color:var(--plate-muted)">across training · 4 of 4</span>
-      <p>Along the way the wiring churns much faster than the meanings. Most of that churn is learning-rate noise: as the rate decays in the final anneal, it falls from <span data-v="graph:training.registered.anneal_change.0|abs2">.66</span> to <span data-v="graph:training.registered.anneal_change.1|abs3">.002</span> per step.</p>
+      <p>Along the way the wiring churns much faster than the meanings. Most of that churn is learning-rate noise: as the rate decays in the final anneal, the distance between consecutive checkpoints falls from <span data-v="graph:training.registered.anneal_change.0|abs2">.66</span> to <span data-v="graph:training.registered.anneal_change.1|abs3">.002</span> (mean squared, at position 9; the other layers alike).</p>
     </div></div>
     </div>
 <section class="read" id="training"><div class="wrap">

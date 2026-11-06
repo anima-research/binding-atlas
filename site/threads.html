@@ -656,7 +656,7 @@ footer .wrap { display: grid; gap: 8px }
     </div></div>
     <div class="step" data-step="T4"><div class="card">
       <span class="eyebrow" style="color:var(--plate-muted)">across training · 4 of 4</span>
-      <p>Along the way the wiring churns much faster than the meanings. Most of that churn is learning-rate noise: as the rate decays in the final anneal, it falls from <span data-v="graph:training.registered.anneal_change.0|abs2">.66</span> to <span data-v="graph:training.registered.anneal_change.1|abs3">.002</span> per step.</p>
+      <p>Along the way the wiring churns much faster than the meanings. Most of that churn is learning-rate noise: as the rate decays in the final anneal, the distance between consecutive checkpoints falls from <span data-v="graph:training.registered.anneal_change.0|abs2">.66</span> to <span data-v="graph:training.registered.anneal_change.1|abs3">.002</span> (mean squared, at position 9; the other layers alike).</p>
     </div></div>
     </div>
 <section class="read" id="training"><div class="wrap">
@@ -798,7 +798,7 @@ footer .wrap { display: grid; gap: 8px }
   <span><span class="kanji" style="font-size:15px">言霊 紬</span> Threads · model: kotodama-tsumugi.</span>
   <span>Companion pages: <a href="./">kotodama-tsumugi</a>, the announcement · <a href="binding-atlas">Binding Atlas</a>, every model against every referent-binding probe.</span>
   <span>Led by <a href="https://x.com/kataletheia">Luxia</a>, with <a href="https://animalabs.ai">Anima Labs</a> · built with <a href="https://www.anthropic.com/claude">Claude</a>. Set in Love Letter Typewriter (© 1994 Blake Haber, Dixie's Delights) with Courier Prime. Data CC-BY-4.0; code Apache-2.0.</span>
-  <span class="num" id="stamp">atlas build 2026-11-06 02:04 UTC</span>
+  <span class="num" id="stamp">atlas build 2026-11-06 02:10 UTC</span>
 </div></footer>
 
 <script>
