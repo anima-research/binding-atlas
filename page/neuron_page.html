@@ -321,7 +321,7 @@ footer .wrap { display: grid; gap: 8px }
   <p class="prose note">tsumugi learns rules from its prompt and recalls facts in the same prompt format with two different sets of neurons. Removing either set takes out its own skill and leaves the other one standing.</p>
   <div id="figDD"><p class="note">Loading the knock-outs…</p></div>
   <ul class="facts">
-    <li><b>The rule circuit:</b> 100 neurons, found by attribution on fresh made-up-operator items. Removing them at half dose cuts made-up operators by <span data-v="hero.rule_half.F2|abs3">.067</span>, a quarter of the score (AUC <span data-v="hero.base.F2|abs3">.294</span> → <span data-v="hero.rule_half_F2_after|abs3">.227</span>), and pattern completion by <span data-v="hero.rule_half.F4|abs3">.041</span>. Fact recall is unchanged (<span data-v="hero.rule_half.C0|sgn3">−.002</span>).</li>
+    <li><b>The rule circuit:</b> 100 neurons, found by attribution on fresh made-up-operator items. Removing them at half dose cuts made-up operators by <span data-v="hero.rule_half.F2|abs3">.067</span>, nearly a quarter of the score (AUC <span data-v="hero.base.F2|abs3">.294</span> → <span data-v="hero.rule_half_F2_after|abs3">.227</span>), and pattern completion by <span data-v="hero.rule_half.F4|abs3">.041</span>. Fact recall is unchanged (<span data-v="hero.rule_half.C0|sgn3">−.002</span>).</li>
     <li><b>The recall circuit:</b> 100 neurons, found the same way on fact items. Removing them at half dose cuts fact recall by <span data-v="hero.recall_half.C0|abs3">.030</span>, and leaves made-up operators unchanged (<span data-v="hero.recall_half.F2|sgn3">+.001</span>).</li>
     <li><b>The control:</b> random sets <span data-v="hero.matched.rule.m|int">32</span> times larger, chosen to do as much or more damage to next-token prediction, move neither score by more than <span data-v="hero.control_max_abs|abs3">.011</span>.</li>
     <li><b>How separate:</b> across all 294,912 neurons the two attribution maps are uncorrelated (Spearman <span data-v="hero.spearman|abs2">.01</span>), and the two top-100 sets share <span data-v="hero.shared|int">5</span> neurons.</li>
@@ -363,7 +363,7 @@ footer .wrap { display: grid; gap: 8px }
   <ul class="facts">
     <li><b>The interferers:</b> removing the 100 interferers raises the <a href="__ATLAS_LINK__#tsumugi-you">Atlas</a> cell from <span data-v="static_you.kappa.base|abs2">.49</span> to <span data-v="static_you.kappa.interf_out|abs2">.85</span>.</li>
     <li><b>The supporters:</b> removing the 100 supporters drops it to <span data-v="static_you.kappa.supp_out|abs2">.12</span>, and the static-<i>you</i> gauge falls from <span data-v="static_you.gauge.base|sgn3">+.192</span> to <span data-v="static_you.gauge.supp_out|sgn3">+.014</span>, below the binding line.</li>
-    <li><b>The control:</b> at half dose, both effects stand far outside random sets 32 times larger with matched damage. The interferers move κ by <span data-v="static_you.half.interf.dkappa|sgn3">+.234</span>, against <span data-v="static_you.matched.interf.hi|sgn3">−.013</span> to <span data-v="static_you.matched.interf.lo|sgn3">−.022</span> for the matched sets; the supporters by <span data-v="static_you.half.supp.dkappa|sgn3">−.312</span>, against <span data-v="static_you.matched.supp.hi|sgn3">−.029</span> to <span data-v="static_you.matched.supp.lo|sgn3">−.062</span>.</li>
+    <li><b>The control:</b> at half dose, both effects stand far outside random sets 32 times larger. The interferers move κ by <span data-v="static_you.half.interf.dkappa|sgn3">+.234</span>, against <span data-v="static_you.matched.interf.hi|sgn3">−.013</span> to <span data-v="static_you.matched.interf.lo|sgn3">−.022</span> for random sets that do the same damage. The supporters move it by <span data-v="static_you.half.supp.dkappa|sgn3">−.312</span>, against <span data-v="static_you.matched.supp.hi|sgn3">−.029</span> to <span data-v="static_you.matched.supp.lo|sgn3">−.062</span> for the largest random sets tried, which do a little less damage.</li>
     <li>This circuit is stable when the wording changes, but not under worked examples: with four examples in the prompt, a different set of neurons does the work (overlap <span data-v="static_you.format_overlap.supp|int">14</span> of 100).</li>
   </ul>
   <div class="figure fit" id="figStatic"></div>
@@ -1248,15 +1248,15 @@ function figFixes() {
     'Strengthened': [
       ['Speaker swap, short chat: “I”', 'two people, objects stated plainly; who is “I”?', shiftV('static_I'), [-0.1, 0.5], f3],
       ['Speaker swap, short chat: “you”', 'the same, for “you”', shiftV('static_you'), [-0.1, 0.5], f3],
-      ['Symbol algebra in context (F2)', 'new operators learned from three examples each', aucV('F2'), [0, 1], f3],
-      ['Rebinding (F3)', `a value reassigned in prose or code; stale picks ${pct(b.stale)} → ${pct(u.stale)}`, aucV('F3'), [0, 1], f3]],
+      ['Symbol algebra in context', 'new operators learned from example equations', aucV('F2'), [0, 1], f3],
+      ['Rebinding', `a value reassigned in prose or code; stale picks ${pct(b.stale)} → ${pct(u.stale)}`, aucV('F3'), [0, 1], f3]],
     'Unchanged': [
-      ['Nonce morphology (F1)', 'inflection rules for made-up words', aucV('F1'), [0, 1], f3],
-      ['Sequence induction (F4)', 'continue a made-up pattern', aucV('F4'), [0, 1], f3],
-      ['Stored knowledge (C0)', 'facts in the same few-shot frame', aucV('C0'), [0, 1], f3]],
-    'Not fixed': [
-      ['Speaker swap after objects change hands', 'the stage-5 test: “you” must be tracked through the conversation (0-shot)', shiftV('dyn_you_0shot'), [-0.1, 0.5], f3],
-      ['The same, with three examples', '3-shot', shiftV('dyn_you_3shot'), [-0.1, 0.5], f3]],
+      ['Nonce morphology', 'inflection rules for made-up words', aucV('F1'), [0, 1], f3],
+      ['Sequence induction', 'continue a made-up pattern', aucV('F4'), [0, 1], f3],
+      ['Stored knowledge', 'facts in the same few-shot frame', aucV('C0'), [0, 1], f3]],
+    'Stage 5': [
+      ['Speaker swap after objects change hands', 'the stage-5 test, 0-shot: “you” must be tracked through the conversation; not fixed', shiftV('dyn_you_0shot'), [-0.1, 0.5], f3],
+      ['The same, with three examples', '3-shot, where it already binds; it moves little', shiftV('dyn_you_3shot'), [-0.1, 0.5], f3]],
   };
   const track = (lo, hi, vb, vu, vr) => { const x = v => 4 + (v - lo) / (hi - lo) * 292;
     let t = `<svg viewBox="0 0 300 26" preserveAspectRatio="none" aria-hidden="true"><line x1="4" x2="296" y1="13" y2="13" stroke="var(--line)" stroke-width="2"/>`;
@@ -1272,8 +1272,8 @@ function figFixes() {
   // doses: attribute interferers moved part of the way to their mean
   const ds = [[0, b], [0.25, S['attr_neg100-dose0.25']], [0.5, S['attr_neg100-dose0.5']], [0.75, S['attr_neg100-dose0.75']], [1, S.attr_neg100]].filter(([, c]) => c);
   if (ds.length < 3) return;
-  document.getElementById('t-dose').innerHTML = `A partial dose moves each neuron only part of the way to its average. For the 100 attribute interferers, every gauge moves smoothly with the dose; at half strength the cost is +${dn(S['attr_neg100-dose0.5']).toFixed(4)} nats.`;
-  const panels = [['change in next-token loss (nats)', c => c.nll - b.nll, v => '+' + v.toFixed(4)], ['speaker swap, short chat: “I”', c => c.static_I.shift, f2], ['symbol algebra (F2)', c => c.F2, f3]];
+  document.getElementById('t-dose').innerHTML = `A partial dose moves each neuron only part of the way to its average. For the 100 attribute interferers, the loss cost and the speaker-swap gauge rise steadily with the dose, and symbol algebra rises up to three-quarter strength, then dips slightly; at half strength the cost is +${dn(S['attr_neg100-dose0.5']).toFixed(4)} nats.`;
+  const panels = [['change in next-token loss (nats)', c => c.nll - b.nll, v => '+' + v.toFixed(4)], ['speaker swap, short chat: “I”', c => c.static_I.shift, f2], ['symbol algebra', c => c.F2, f3]];
   const w = 1100, pw = 330, gap = 55, h = 200, m = { t: 28, b: 36, l: 8 };
   let t = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Damage and two gauges against the dose of the attribute-interferer knock-out">`;
   panels.forEach(([title, get, fm], k) => { const x0 = k * (pw + gap) + 20, vals = ds.map(([, c]) => get(c)), lo = Math.min(...vals), hi = Math.max(...vals), pad = (hi - lo) * 0.15 || 1e-3;
@@ -1293,11 +1293,11 @@ function figFluid() {
   document.getElementById('fluidh').hidden = false;
   const F = X.families, info = {
     F1: ['Nonce morphology', 'Inflect a made-up word by a rule shown in examples. A control: it needs no binding.'],
-    F2: ['Symbol algebra', 'New operators on made-up symbols, each defined only by three example equations; then a new equation, sometimes nested.'],
+    F2: ['Symbol algebra', 'New operators on made-up symbols, each defined only by example equations; then a new equation, sometimes nested.'],
     F3: ['Rebinding', 'Containers or variables are filled, then reassigned; which value is current? The stale (previous) value is the trap.'],
     F4: ['Sequence induction', 'Continue a made-up pattern from three examples. A control: it needs no binding.'] };
   const tot = k => Object.values(F).reduce((s, v) => s + v[k], 0);
-  document.getElementById('t-fluid').innerHTML = `Every fluid item scored before and after the knock-out (all ${B.suite.all_neg.n_neurons} interferers). Items that flip from wrong to right are counted as fixed, from right to wrong as broken. The two families that need binding flip mostly toward the right answer (symbol algebra ${F.F2.fixed} fixed, ${F.F2.broken} broken; rebinding ${F.F3.fixed} to ${F.F3.broken}). The two that do not need binding flip both ways about equally, which is what noise looks like here. The examples are the first and a middle fixed item of each family, as the battery generated them.`;
+  document.getElementById('t-fluid').innerHTML = `Every fluid item scored before and after the knock-out (all ${B.suite.all_neg.n_neurons} interferers). Items that flip from wrong to right are counted as fixed, from right to wrong as broken. The two families that need binding flip mostly toward the right answer (symbol algebra ${F.F2.fixed} fixed, ${F.F2.broken} broken; rebinding ${F.F3.fixed} to ${F.F3.broken}). The two that do not need binding flip both ways about equally, which is what noise looks like here. The examples are the first and a middle fixed item of each family, as the battery generated them${Object.values(F).some(v => !v.examples.length) ? '; sequence induction has none shown' : ''}.`;
   const lad = (f, v) => { const keys = Object.keys(v.ladder[X.base]).sort((a, b) => a - b), w = 520, h = 120, m = { l: 34, r: 8, t: 8, b: 22 };
     const xs = k => m.l + (keys.indexOf(k) + 0.5) / keys.length * (w - m.l - m.r), ys = y => m.t + (1 - y) * (h - m.t - m.b);
     let t = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="${info[f][0]}: accuracy per rung, before and after the knock-out">`;
@@ -1312,7 +1312,7 @@ function figFluid() {
     return `<div class="slip">${esc(e.prompt)}</div><div class="answers"><span>right answer <b>${esc(e.gold)}</b></span><span>before <b>${esc(e.before)}</b>${f === 'F3' ? role(e.before) : ''} · p(right) ${pct(e.p_gold_before)}</span><span>after <b class="ember">${esc(e.after)}</b> · p(right) ${pct(e.p_gold_after)}</span></div>`; };
   const el = document.getElementById('figFluid');
   el.innerHTML = ['F2', 'F3', 'F1', 'F4'].filter(f => F[f]).map(f => { const v = F[f], n = v.n;
-    return `<div class="fcard" data-f="${f}"><span class="eyebrow">${f} · ${v.fixed > 1.5 * v.broken ? 'needs binding' : 'control'}</span><h3>${info[f][0]}</h3><p class="what">${info[f][1]}</p>
+    return `<div class="fcard" data-f="${f}"><span class="eyebrow">${v.fixed > 1.5 * v.broken ? 'needs binding' : 'control'}</span><h3>${info[f][0]}</h3><p class="what">${info[f][1]}</p>
       <svg viewBox="0 0 520 22" aria-label="${v.fixed} fixed, ${v.broken} broken, of ${n} items"><rect x="0" y="4" width="${v.fixed / n * 520 * 4}" height="14" fill="var(--ember-ink)"/><rect x="${v.fixed / n * 520 * 4 + 3}" y="4" width="${v.broken / n * 520 * 4}" height="14" fill="var(--muted)"/></svg>
       <span style="font-size:13px;color:var(--fg2)"><b class="ember">${v.fixed} fixed</b> · ${v.broken} broken · of ${fmt(n)} items (bar ×4)</span>
       ${lad(f, v)}

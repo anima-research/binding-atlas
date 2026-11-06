@@ -18,7 +18,7 @@ from collections import defaultdict
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-BATTERIES = {"F1": "fluid-v1-morph", "F2": "fluid-v1-algebra", "F3": "fluid-v1-rebind", "F4": "fluid-v1-seqind"}
+BATTERIES = {"F1": "fluid-v1-morph", "F2": "fluid-v2-algebra", "F3": "fluid-v2-rebind", "F4": "fluid-v1-seqind"}
 KEEP = ("rung", "cell", "gold", "candidates", "roles", "register", "N", "R", "k_ops", "depth", "stale")
 
 
@@ -57,9 +57,13 @@ def main() -> None:
         ids = sorted(set(b) & set(af), key=lambda i: (b[i]["rung"], i))
         fixed = [i for i in ids if pick(b[i]) != b[i]["gold"] and pick(af[i]) == af[i]["gold"]]
         broken = [i for i in ids if pick(b[i]) == b[i]["gold"] and pick(af[i]) != af[i]["gold"]]
+        # an example is shown only when the prompt file's item is the one that was scored (same candidates, same gold):
+        # the scorer can render an item differently from its prompt row, and a mismatched example would misstate it
+        same = [i for i in fixed if i in prompts and prompts[i]["candidates"] == b[i]["candidates"]
+                and prompts[i]["gold"] == b[i]["gold"]]
         chosen = []
-        if fixed:
-            chosen = [fixed[0]] + ([fixed[len(fixed) // 2]] if len(fixed) > 1 else [])
+        if same:
+            chosen = [same[0]] + ([same[len(same) // 2]] if len(same) > 1 else [])
         examples = []
         for i in chosen[:a.per_family]:
             p = prompts[i]
@@ -68,7 +72,7 @@ def main() -> None:
                              "p_gold_before": round(2.718281828 ** b[i]["cand_lps"][p["gold"]], 4),
                              "p_gold_after": round(2.718281828 ** af[i]["cand_lps"][p["gold"]], 4)})
         out["families"][fam] = {
-            "battery": bat, "n": len(ids), "fixed": len(fixed), "broken": len(broken),
+            "battery": bat, "n": len(ids), "fixed": len(fixed), "broken": len(broken), "examples_eligible": len(same),
             "ladder": {m: {str(k): round(v[0] / v[1], 4) for k, v in sorted(ladder[m].items())} for m in models},
             "examples": examples}
     a.out.parent.mkdir(parents=True, exist_ok=True)
