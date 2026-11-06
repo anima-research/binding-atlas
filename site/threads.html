@@ -317,7 +317,7 @@ footer .wrap { display: grid; gap: 8px }
 </style>
 </head>
 <body>
-<nav id="toc" aria-label="Contents" data-reserve="1" data-sel="h1.toc-none" data-sel2=".read > .wrap > h2" data-skip=".reference .read"></nav>
+<nav id="toc" aria-label="Contents" data-reserve="1" data-plate=".step, .explore" data-sel="h1.toc-none" data-sel2=".read > .wrap > h2" data-skip=".reference .read"></nav>
 <!-- Contents rail: a sticky table of contents in the right gutter on wide screens, built from the page's own
 headings. A page opts in with <nav id="toc" ...></nav> followed by the TOC placeholder; render_hosting fills the placeholder
 with this file. Attributes on the nav:
@@ -326,6 +326,8 @@ with this file. Attributes on the nav:
   data-scope    where to look for them (default "body")
   data-skip     containers whose headings are left out
   data-hide     elements that, while they fill the middle of the screen, fade the rail out
+  data-plate    dark full-bleed elements: while one fills the middle of the screen, the reserved gutter and the rail take
+                its plate colours (--plate, --plate-fg, --plate-muted, --plate-line), so a light page has no light seam
   data-reserve  "1": on wide screens the page gives up a right gutter for the rail (pages without free margin)
   data-min      narrowest viewport, in px, that shows the full rail (default 1400)
   data-slim     narrowest viewport that shows the slim rail, a strip of ticks that opens on hover (default 900)
@@ -351,7 +353,10 @@ html.toc-full, html.toc-slim { --toc-w: 236px; }
 html.toc-slim { --toc-w: 34px; }
 html.toc-full #toc, html.toc-slim #toc { display: block; }
 html.toc-reserve body { padding-right: var(--toc-w, 0px); }
-html.toc-reserve { background: var(--bg, Canvas); }   /* the reserved gutter takes the page's own background */
+html.toc-reserve { background: var(--bg, Canvas); transition: background-color .3s; }   /* the reserved gutter takes the page's own background */
+html.toc-reserve.toc-plate { background: var(--plate, #0b0c0e); }
+html.toc-reserve.toc-plate body { background: linear-gradient(90deg, var(--bg, Canvas) calc(100% - var(--toc-w, 0px)), var(--plate, #0b0c0e) 0) fixed; }
+html.toc-plate #toc { --fg: var(--plate-fg, #eef0f2); --muted: var(--plate-muted, #8c95a0); --line: var(--plate-line, #262a31); --bg: var(--plate, #0b0c0e); }
 html.toc-slim #toc { width: 22px; right: 6px; }
 html.toc-slim #toc:not(:hover):not(:focus-within) .tt { visibility: hidden; }
 html.toc-slim #toc:not(:hover):not(:focus-within) a { color: transparent; height: 9px; padding: 0 0 0 9px;
@@ -453,6 +458,14 @@ const init = () => {
       nav.classList.toggle("away", on.size > 0);
     }, { rootMargin: "-45% 0px -45% 0px" });
     document.querySelectorAll(d.hide).forEach(el => io.observe(el));
+  }
+  if (d.plate && "IntersectionObserver" in window) {
+    const on = new Set();
+    const io = new IntersectionObserver(es => {
+      for (const e of es) e.isIntersecting ? on.add(e.target) : on.delete(e.target);
+      root.classList.toggle("toc-plate", on.size > 0);
+    }, { rootMargin: "-45% 0px -45% 0px" });
+    document.querySelectorAll(d.plate).forEach(el => io.observe(el));
   }
 };
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
@@ -940,7 +953,7 @@ if (document.readyState === "loading") document.addEventListener("DOMContentLoad
   <span><span class="kanji" style="font-size:15px">言霊 紬</span> Threads · model: kotodama-tsumugi.</span>
   <span>Companion pages: <a href="./">kotodama-tsumugi</a>, the announcement · <a href="binding-atlas">Binding Atlas</a>, every model against every referent-binding probe.</span>
   <span>Led by <a href="https://x.com/kataletheia">Luxia</a>, with <a href="https://animalabs.ai">Anima Labs</a> · built with <a href="https://www.anthropic.com/claude">Claude</a>. Set in Love Letter Typewriter (© 1994 Blake Haber, Dixie's Delights) with Courier Prime. Data CC-BY-4.0; code Apache-2.0.</span>
-  <span class="num" id="stamp">atlas build 2026-11-06 04:58 UTC</span>
+  <span class="num" id="stamp">atlas build 2026-11-06 05:05 UTC</span>
 </div></footer>
 
 <script>
