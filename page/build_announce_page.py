@@ -2,7 +2,7 @@
 
 Usage: python page/build_announce_page.py --out site/index.html [--config config/default.toml] [--stamp "YYYY-MM-DD HH:MM UTC"]
 The figure (announce-data/figure.png) and the link card (kotodama-tsumugi-card.png) are copied from
-data/inputs/announce/. Refuses to write if the page contains an internal hostname or path (public-page law).
+data/inputs/announce/, and the scroll-driven story (story.html there) is inlined at __STORY__. Refuses to write if the page contains an internal hostname or path (public-page law).
 """
 from __future__ import annotations
 
@@ -25,6 +25,7 @@ from siteconfig import CLEAN, PAGE, render_hosting  # noqa: E402
 CARD_FILE, DATA_DIR, FIGURE = "kotodama-tsumugi-card.png", "announce-data", "figure.png"
 MODEL_CARD = "https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b"
 SRC = REPO / "data" / "inputs" / "announce"
+STORY = "story.html"   # the scroll-driven four-result story (generated with the animated card; same beats, same numbers)
 
 
 def main() -> None:
@@ -35,7 +36,7 @@ def main() -> None:
     ap.add_argument("--out", type=Path, required=True)
     a = ap.parse_args()
     cfg = load_config(a.config)
-    for f in (SRC / FIGURE, SRC / "card.png"):
+    for f in (SRC / FIGURE, SRC / "card.png", SRC / STORY):
         if not f.exists():
             raise SystemExit(f"missing input: {f}")
     canonical = cfg.base_url or ""
@@ -47,7 +48,8 @@ def main() -> None:
                 .replace("__EMPTY_LINK__", EMPTY_CLEAN if cfg.clean_urls else EMPTY_PAGE)
                 .replace("__CARD_LINK__", MODEL_CARD)
                 .replace("__FIGURE__", f"{DATA_DIR}/{FIGURE}")
-                .replace("__STAMP__", build_stamp(a.stamp)))
+                .replace("__STAMP__", build_stamp(a.stamp))
+                .replace("__STORY__", (SRC / STORY).read_text()))
     left = sorted({w for w in page.split("__")[1::2] if w.isupper() and w.replace("_", "").isalpha()})
     if left:
         raise SystemExit(f"unfilled placeholders: {left}")
