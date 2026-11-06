@@ -135,12 +135,12 @@ def main() -> None:
       "kotodama-tsumugi release reads −.014 zero-shot and +.038 with three examples, which binds; its second anneal "
       "reads +.022 with examples, just short of the line.")
     P("")
-    P("**The binding test.** A swap shift binds when its whole 95% interval lies above +.02. The bar is a fixed "
-      "convention, set before any of these models was read. Under it, kotodama-tsumugi binds with three worked "
+    P("**The +.02 bar.** A model passes when the whole 95% interval of its swap shift is above +.02. The bar is a fixed "
+      "convention, set before any of these models was read. Under it, kotodama-tsumugi passes with three worked "
       "examples (+.038, interval +.023 to +.055). It is the only base at 3B or below that does; the next is Qwen3 4B "
       "(+.055). The finding depends on the bar. With the bar at +.01 it still holds. With the bar at 0, Pythia-160M and Pythia-2.8B "
-      "also pass, and at +.03 kotodama-tsumugi no longer does. The bench's roadmap derives the bar from each "
-      "battery's own noise, registered before any model is read.")
+      "also pass, and at +.03 kotodama-tsumugi no longer does. A later version of the benchmark will set the bar from each "
+      "test's own noise, registered before any model is read.")
     P("")
     P("### Training tokens until each stage appears (the range spans the checkpoints that bracket the stage)")
     P("")

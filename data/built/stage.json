@@ -3,48 +3,48 @@
  "stages": [
   {
    "n": 1,
-   "name": "I binds",
-   "gloss": "\"I\" resolves to whoever is speaking.",
+   "name": "I = the speaker",
+   "gloss": "\"I\" means whoever is speaking.",
    "ex": "Jack: I'm holding the ___",
-   "ok": "every base ≥ 0.5B",
+   "ok": "every base of 0.5B parameters or more",
    "olmo1b": "~21–63B tokens",
    "ours": "~3–3.75B tokens"
   },
   {
    "n": 2,
-   "name": "you = me",
+   "name": "you = the speaker (a mistake)",
    "gloss": "\"you\" is read as the speaker too: the pronoun-reversal phase young children go through.",
    "ex": "Jack: you're holding the ___  → Jack's object",
-   "ok": "transient in every trajectory",
+   "ok": "every training run measured passes through it",
    "olmo1b": "~63B → ~500B tokens",
-   "ours": "transient, ~4–20B"
+   "ours": "passes through it at ~4–20B tokens"
   },
   {
    "n": 3,
-   "name": "static you binds",
-   "gloss": "\"you\" resolves to the addressee, when ownership is simply stated.",
+   "name": "you = the person spoken to",
+   "gloss": "\"you\" means the addressee, when who holds what is simply stated.",
    "ex": "Carol has the onion. … Jack: you're holding the ___",
-   "ok": "every base ≥ 0.6B trained on trillions of tokens, except Bamba 9B",
+   "ok": "every base of 0.6B or more trained on trillions of tokens, except Bamba 9B",
    "olmo1b": "420–525B tokens",
-   "ours": "by 33B tokens annealed (trunk: 40B); +.192 at 110B"
+   "ours": "by 33B tokens with a cooldown (40B without one); +.192 at 110B"
   },
   {
    "n": 4,
-   "name": "you = me, again",
-   "gloss": "once objects change hands in the scene, \"you\" collapses back onto the speaker.",
+   "name": "you = the speaker again",
+   "gloss": "once objects change hands in the chat, \"you\" slides back onto the speaker.",
    "ex": "Erin gives Paul her cup. … Paul: now you're holding the ___",
-   "ok": "where every base up to 4B stops",
+   "ok": "every base up to 4B parameters, and they stop here",
    "olmo1b": "from ~63B, still there at 4T",
-   "ours": "from ~4B; at 110B no longer inverted under the gauge rule (−.027 at 11B → −.014)"
+   "ours": "from ~4B tokens; by 110B no longer reliably reversed (−.027 at 11B → −.014)"
   },
   {
    "n": 5,
-   "name": "dynamic you binds",
-   "gloss": "\"you\" tracked through transfers. In-context first (3-shot), zero-shot last.",
+   "name": "you followed through hand-offs",
+   "gloss": "\"you\" is tracked as objects change hands: first with three worked examples, later with none.",
    "ex": "same scene, answered correctly without examples",
-   "ok": "zero-shot: from about 7B (OLMo-2 7B, Qwen2.5 7B), and every base from 13B up; with three worked examples: from Qwen3 4B",
+   "ok": "with no examples: from about 7B (OLMo-2 7B, Qwen2.5 7B), and every base from 13B up; with three worked examples: from Qwen3 4B",
    "olmo1b": "never (flat to 4T)",
-   "ours": "zero-shot: not reached by 110B; with three worked examples it binds at 110B (+.038), the smallest base measured that does under the +.02 rule"
+   "ours": "with no examples: not reached by 110B tokens; with three worked examples it passes at 110B (+.038), the smallest base measured that does"
   }
  ],
  "threshold": {
@@ -295,7 +295,7 @@
   "_note": "tokens at which each stage first binds (gauge CI rule), OLMo-2 family (one data recipe) + kotodama-tsumugi (1.4B, 72 effective layers). [lo, hi] = bracketing checkpoints.",
   "rows": [
    {
-    "stage": "1 · I",
+    "stage": "1 · I = speaker",
     "pts": [
      {
       "m": "OLMo-2 1B",
@@ -321,7 +321,7 @@
     ]
    },
    {
-    "stage": "3 · static you",
+    "stage": "3 · you = person spoken to",
     "pts": [
      {
       "m": "OLMo-2 1B",
@@ -347,7 +347,7 @@
     ]
    },
    {
-    "stage": "5 · dynamic you",
+    "stage": "5 · you through hand-offs",
     "pts": [
      {
       "m": "OLMo-2 1B",
@@ -376,7 +376,7 @@
    }
   ]
  },
- "lead": "Base language models learn to look things up long before they learn to track change. In the box puzzle, the median model under 1B already finds a box's declared contents above chance, and scores zero on the boxes changed by an operation. With worked examples, updating climbs steadily with size, to .77 for the 70B models and above .8 for most of the largest. The referent of *you* follows five ordered stages. Every base of 0.6B parameters or more trained on trillions of tokens reaches the first three, except Bamba 9B. The fifth stage is tracking *you* after objects change hands. Zero-shot, it appears from about 7B (OLMo-2 7B, Qwen2.5 7B), and every base measured from 13B up reaches it. **kotodama-tsumugi**, a 1.4B model run as 72 effective layers, reaches stage 3 by **33B tokens**, in the range where OLMo-2 13B gets there; OLMo-2 1B needs 420–525B. Given three worked examples, it is the smallest base measured that tracks *you* after objects change hands. It reads +.038, with its whole 95% interval above the +.02 line. The next is Qwen3 4B.",
+ "lead": "Base language models learn to look things up long before they learn to track change. In the box puzzle, items go into boxes and are then swapped, moved or refilled, and the model is asked what one box holds. The median model under 1B already finds what a box was said to hold, and scores zero on the boxes that a later step changed. With worked examples, updating climbs steadily with size, to .77 for the 70B models and above .8 for most of the largest. In a chat, *you* means the person being spoken to. Models get this right in five stages, in the same order in every training run measured. To read a stage, the speaker's name on the chat's last line is swapped: a model that follows *you* moves its answer to the other person's object. The swap shift is how much probability leaves the first answer; a model passes when the whole 95% interval of that shift is above +.02. Every base of 0.6B parameters or more trained on trillions of tokens reaches the third stage (*you* is the person spoken to), except Bamba 9B. The fifth stage is following *you* as objects change hands. With no examples in the prompt, it appears from about 7B (OLMo-2 7B, Qwen2.5 7B), and every base measured from 13B up reaches it. **kotodama-tsumugi** is a 1.4B model whose middle 20 layers run twice, so each token passes through 72 layers. It reaches the third stage by **33B tokens**, in the range where OLMo-2 13B gets there; OLMo-2 1B needs 420–525B. Given three worked examples, it is the smallest base measured that passes the fifth stage: +.038, with its whole 95% interval above +.02. The next is Qwen3 4B.",
  "tsumugi": {
   "_note": "kotodama-tsumugi s17 trunk (constant LR, to 100B) and cooldown branches (annealed), stage gauges = P2 speaker swap (static I, static you) and dynamic swap (addressee, 0-shot / 3-shot). Seed 7 = the seed replicate to 11B. Values from the synthesis table.",
   "traj": {
@@ -786,22 +786,22 @@
   "cols": [
    {
     "k": "third",
-    "name": "transfer, narrated",
+    "name": "story, no I or you",
     "ex": "Erin gives the cup to Paul. … Right now Paul is holding the"
    },
    {
     "k": "deictic",
-    "name": "transfer, spoken",
+    "name": "chat (the test itself)",
     "ex": "Erin: Here, take my cup. … Paul: Right now I'm holding the"
    },
    {
     "k": "named_transfer",
-    "name": "spoken, transfer narrated",
+    "name": "chat, hand-off as a stage direction",
     "ex": "[Erin gives the cup to Paul.] … deictic query"
    },
    {
     "k": "vocative",
-    "name": "spoken + vocative",
+    "name": "chat, addressee named",
     "ex": "Erin: Paul, right now you're holding the"
    }
   ],
@@ -1148,7 +1148,7 @@
    "33B",
    "55B",
    "88B",
-   "110B · 2nd anneal",
+   "110B · 2nd cooldown",
    "110B · release",
    "OLMo-2 1B · 4T",
    "SmolLM2 1.7B · 11T",
@@ -1166,7 +1166,7 @@
   ],
   "rows": [
    [
-    "static I (swap shift)",
+    "I = speaker (swap shift)",
     [
      0.221,
      0.228,
@@ -1180,7 +1180,7 @@
     true
    ],
    [
-    "static you (swap shift)",
+    "you = person spoken to (swap shift)",
     [
      0.065,
      0.122,
@@ -1194,7 +1194,7 @@
     true
    ],
    [
-    "dynamic you, 0-shot (swap shift)",
+    "you through hand-offs, no examples (swap shift)",
     [
      -0.018,
      -0.028,
@@ -1208,7 +1208,7 @@
     true
    ],
    [
-    "dynamic you, 3-shot (swap shift)",
+    "you through hand-offs, three examples (swap shift)",
     [
      0.01,
      0.03,
@@ -1222,7 +1222,7 @@
     true
    ],
    [
-    "binding capacity K50 (chance .04)",
+    "name–task pairs held: K50",
     [
      3.364,
      4.07,
@@ -1236,7 +1236,7 @@
     false
    ],
    [
-    "one binding past 256 filler tokens",
+    "one name–task pair past 256 filler tokens (accuracy, chance .04)",
     [
      0.852,
      0.988,
@@ -1250,7 +1250,7 @@
     false
    ],
    [
-    "deixis v2, deictic, 0-shot (acc)",
+    "who has what, said with I and you (accuracy, chance ≈ .33)",
     [
      0.27,
      0.302,
@@ -1264,7 +1264,7 @@
     false
    ],
    [
-    "deixis v2, third person, 0-shot (acc)",
+    "who has what, third person (accuracy, chance ≈ .33)",
     [
      0.418,
      0.404,

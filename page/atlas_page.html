@@ -249,72 +249,92 @@ table.levers td.cost { color: var(--muted); }
 .tblwrap { overflow-x: auto; }
 .sect { display: grid; gap: 10px; border-top: 2px solid var(--rule); padding-top: 14px; }
 .sect > h2 { margin: 0; }
+.colkey { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 10px 22px; font-size: 13px; line-height: 1.45; }
+.colkey h3 { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 400; margin: 0 0 4px; }
+.colkey ul { margin: 0; padding-left: 16px; } .colkey li { margin: 2px 0; }
 .sect > .cap { font-size: 13.5px; color: var(--muted); margin: 0; max-width: 80ch; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header class="paper" style="gap:14px">
-    <div class="eyebrow"><span>kotodama · referent binding</span>
+    <div class="eyebrow"><span>kotodama · who is who, in base language models</span>
       <button class="iconbtn" id="theme" aria-label="toggle light / dark theme">light / dark</button></div>
     <h1>Binding Atlas</h1>
     <p class="credit">Led by <a href="https://x.com/kataletheia">Luxia</a>, with <a href="https://animalabs.ai">Anima Labs</a> · built with <a href="https://www.anthropic.com/claude">Claude</a></p>
     <p class="claim">This atlas scores <b>__N_MODELS__ base models and checkpoints</b>, plus one human reader, on
-      <b>__N_TESTS__ tests</b>. The tests ask who holds what, who holds it after things move, who <i>I</i> and <i>you</i>
-      refer to, and whether a model learns a new rule from examples. Click any cell in the <a href="#atlas">full atlas</a> to read
-      the exact prompt that the model was given.</p>
+      <b>__N_TESTS__ tests</b> of keeping track of who is who. Each test is a short text that ends in a blank, with a
+      fixed list of possible answers. The tests ask who holds which object, who holds it after things change hands, who
+      <i>I</i> and <i>you</i> refer to in a chat, and what a made-up rule gives for a new case. A model's answer is the
+      option it finds most likely. Click any cell in the <a href="#atlas">full atlas</a> to read the exact prompt that
+      the model was given.</p>
     <p class="claim">Base language models learn to look things up long before they learn to track change. In the
-      box puzzle (Table 4), the median model under 1B already finds a box's declared contents, and scores zero on the
-      boxes changed by an operation. With worked examples, updating climbs steadily with size, to .77 for the 70B
-      models and above .8 for most of the largest. The referent of <i>you</i> follows five ordered stages. Every base
-      of 0.6B parameters or more trained on trillions of tokens reaches the first three, except Bamba 9B. The fifth
-      stage is tracking <i>you</i> after objects change hands. <b>Zero-shot, it appears from about 7B, and every base
-      measured from 13B up reaches it</b> (Figure 2). <b>kotodama-tsumugi</b>, a 1.4B model run as 72 effective layers,
-      reaches stage 3 by <b>33B tokens</b>, in the range where OLMo-2 13B gets there; OLMo-2 1B needs 420–525B.
-      Given three worked examples, it is the smallest base measured that tracks <i>you</i> after objects change
-      hands. It reads +.038, with its whole 95% interval above the +.02 line (<a href="#tsumugi-you">the test</a>). The next is
-      Qwen3 4B.</p>
+      box puzzle (Table 4), items go into boxes and are then swapped, moved or refilled, and the model is asked what one
+      box holds. The median model under 1B already finds what a box was said to hold, and scores zero on the boxes that
+      a later step changed (0 is guessing, 1 is always right). With worked examples in the prompt, updating climbs
+      steadily with size, to .77 for the 70B models and above .8 for most of the largest.</p>
+    <p class="claim">In a chat, <i>you</i> means the person being spoken to. Models get this right in five stages, in the
+      same order in every training run measured (Figure 1). To read a stage, the speaker's name on the chat's last line
+      is swapped: in "Jack: you're holding the ___", a model that follows <i>you</i> moves its answer to the other
+      person's object. The <b>swap shift</b> is how much probability leaves the first answer. A model passes a stage
+      when the whole 95% interval of its swap shift is above +.02, and reads <i>you</i> backwards when the interval
+      is below −.02. Every base of 0.6B parameters or more trained on trillions of tokens reaches the third stage,
+      <i>you</i> as the person spoken to, except Bamba 9B. The fifth stage is following <i>you</i> as objects change
+      hands. <b>With no examples in the prompt, it appears from about 7B, and every base measured from 13B up reaches
+      it</b> (Figure 2).</p>
+    <p class="claim"><b>kotodama-tsumugi</b> is our 1.4B model. Its middle 20 layers run twice with the same weights,
+      so each token passes through 72 layers. It reaches the third stage by <b>33B tokens</b> of training, in the range
+      where OLMo-2 13B gets there; OLMo-2 1B needs 420–525B. Given three worked examples, it is the smallest base
+      measured that passes the fifth stage. Its swap shift is +.038, with the whole 95% interval above +.02
+      (<a href="#tsumugi-you">the test</a>). The next is Qwen3 4B.</p>
     <div class="byline"><span>kotodama · 2026</span><span>__N_BASES__ public bases in the atlas · 29 public bases and 5 public training trajectories in the figures · kotodama-tsumugi (seed 17 to 110B tokens; seed 7 to 11B)</span>
-      <a href="#atlas">full atlas ↓</a><a href="binding-atlas.md">agent view (markdown)</a><a href="__THREADS_LINK__">tsumugi's neurons: Threads</a>__BACK_LINK__</div>
+      <a href="#atlas">full atlas ↓</a><a href="binding-atlas.md">plain-text version, for language models</a><a href="__THREADS_LINK__">Threads: a map of tsumugi's neurons</a>__BACK_LINK__</div>
   </header>
 
   <div class="part"><span class="no">Part I</span><h2>Where base models fail</h2></div>
   <div class="paper">
     <section class="fig" aria-labelledby="f1h">
       <div class="fh"><span class="no">Figure 1</span><h2 id="f1h">The staircase</h2></div>
+      <p class="cap lead">The five stages of <i>you</i>, in the order models reach them. Each card gives an example
+        prompt, which public models reach the stage, and how many training tokens OLMo-2 1B and kotodama-tsumugi take to
+        reach it. Every stage is read with the speaker swap described above.</p>
       <div class="stairs" id="stairs"></div>
-      <p class="cap"><b>The stages appear in the same order in every trajectory measured</b>: OLMo-2 1B, 7B and 13B;
-        SmolLM3 3B; Pythia 410M to 6.9B; kotodama-tsumugi (Part II). Each stage is read with a speaker swap, and the
-        hatched stage is where most bases stop. <a href="#tsumugi-you">The binding test</a> below defines the swap.</p>
+      <p class="cap"><b>The stages appear in the same order in every training run measured</b>: OLMo-2 1B, 7B and 13B;
+        SmolLM3 3B; Pythia 410M to 6.9B; kotodama-tsumugi (Part II). The hatched stage is where most models stop.</p>
     </section>
 
     <div class="figrow">
       <section class="fig" aria-labelledby="f2h">
-        <div class="fh"><span class="no">Figure 2</span><h2 id="f2h">Zero-shot from about 7B; every base from 13B up</h2></div>
+        <div class="fh"><span class="no">Figure 2</span><h2 id="f2h">Following <i>you</i> through hand-offs: from about 7B, and at every size from 13B</h2></div>
+        <p class="cap lead">Each point is one model's swap shift on the fifth stage, at its final checkpoint, against its
+          parameter count. Filled points have no examples in the prompt; hollow points have three worked examples.
+          Above +.02 a model follows <i>you</i>; below −.02 it reads <i>you</i> as the speaker.</p>
         <div id="thresh"></div>
-        <p class="cap"><b>Dynamic <i>you</i> at each model's final checkpoint (OLMo-2 1B: its 4T pre-anneal checkpoint).</b>
-          A positive swap shift means <i>you</i> follows the addressee; a negative one means <i>you</i> resolves to the
-          speaker. Zero-shot (filled), no model up to 4B binds, and four of the small Qwen models invert. At 7B,
-          OLMo-2 7B (+.055) and Qwen2.5 7B (+.047) bind; Qwen3 8B and Gemma-2 9B do not yet. From 13B up, every base
-          binds: all 19 measured, here and in the full atlas, from OLMo-2 13B to DeepSeek-V4 Pro at 1.6T. The largest
-          readings are DeepSeek-V3 (+.216), DeepSeek-V4 Flash (+.177) and MiMo-V2.5 Pro (+.162). Static <i>you</i>
-          reads +.27 to +.89 across these 19. With three worked examples (hollow), binding starts at Qwen3 4B (+.055)
-          and reaches +.32 for Qwen3 14B. The kotodama-tsumugi release (diamond; 1.4B at 110B tokens) reads −.014
-          zero-shot and +.038 with three examples, which binds. Its second anneal reads +.022 with examples, just
-          short of the line (Table 3 gives the spread between the two).</p>
-        <p class="cap" id="tsumugi-you"><b>The binding test.</b> A swap shift binds when its whole 95% interval lies
-          above +.02. The bar is a fixed convention, set before any of these models was read. Under it, kotodama-tsumugi binds with three
-          worked examples (+.038, interval +.023 to +.055). It is the only base at 3B or below that does; the next is
+        <p class="cap"><b>With no examples (filled), no model up to 4B passes</b> (OLMo-2 1B is shown at its 4T
+          checkpoint before its final cooldown), and four of the small Qwen models read <i>you</i> backwards. At 7B,
+          OLMo-2 7B (+.055) and Qwen2.5 7B (+.047) pass; Qwen3 8B and Gemma-2 9B do not yet. From 13B up, every base
+          passes: all 19 measured, here and in the full atlas, from OLMo-2 13B to DeepSeek-V4 Pro at 1.6T. The largest
+          readings are DeepSeek-V3 (+.216), DeepSeek-V4 Flash (+.177) and MiMo-V2.5 Pro (+.162). On the third stage
+          (<i>you</i> as the person spoken to), these 19 read +.27 to +.89. With three worked examples (hollow), passing
+          starts at Qwen3 4B (+.055) and reaches +.32 for Qwen3 14B. The kotodama-tsumugi release (diamond; 1.4B at 110B
+          tokens) reads −.014 with no examples and +.038 with three, which passes. A second cooldown of the same model,
+          from the same checkpoint, reads +.022 with examples, just short of the bar (Table 3 gives the spread between
+          the two).</p>
+        <p class="cap" id="tsumugi-you"><b>The +.02 bar.</b> A model passes when the whole 95% interval of its swap
+          shift is above +.02. The bar is a fixed convention, set before any of these models was read. Under it,
+          kotodama-tsumugi passes with three worked examples (+.038, interval +.023 to +.055). It is the only base at 3B or below that does; the next is
           Qwen3 4B (+.055). The finding depends on the bar. With the bar at +.01 it
-          still holds. With the bar at 0, Pythia-160M and Pythia-2.8B also pass, and at +.03 kotodama-tsumugi no longer does. The
-          bench's roadmap derives the bar from each battery's own noise, registered before any model is read.</p>
+          still holds. With the bar at 0, Pythia-160M and Pythia-2.8B also pass, and at +.03 kotodama-tsumugi no longer does. A later
+          version of the benchmark will set the bar from each test's own noise, registered before any model is read.</p>
       </section>
       <section class="fig" aria-labelledby="f3h">
-        <div class="fh"><span class="no">Figure 3</span><h2 id="f3h">Stage cost by model size</h2></div>
+        <div class="fh"><span class="no">Figure 3</span><h2 id="f3h">Training tokens until each stage appears</h2></div>
+        <p class="cap lead">For one training recipe (OLMo-2) at three sizes, and for kotodama-tsumugi: how many training
+          tokens pass before each stage first passes. Each line spans the two saved checkpoints on either side of that
+          point.</p>
         <div id="cost"></div>
-        <p class="cap"><b>Training tokens until each stage appears, for one data recipe (OLMo-2) at three sizes.</b>
-          Stage 1 costs about the same at 1B, 7B and 13B (17–63B tokens). Stage 3 takes at least ten times fewer
-          tokens at 13B (17–42B) than at 1B (420–525B). At 7B and 13B, zero-shot stage 5 appears somewhere between
+        <p class="cap">Stage 1 costs about the same at 1B, 7B and 13B (17–63B tokens). Stage 3 takes at least ten times fewer
+          tokens at 13B (17–42B) than at 1B (420–525B). At 7B and 13B, stage 5 with no examples appears somewhere between
           the last early checkpoint measured and the 4–5T endpoint. At 1B it never appears, up to 4T. kotodama-tsumugi, at 1.4B
           parameters, reaches stage 1 between 3B and 3.75B tokens and stage 3 between 30B and 33B: the 13B model's
           token cost at a tenth of its size.</p>
@@ -322,20 +342,22 @@ table.levers td.cost { color: var(--muted); }
     </div>
 
     <section class="fig" aria-labelledby="t1h">
-      <div class="fh"><span class="no">Table 1</span><h2 id="t1h">Stage 5, taken apart</h2></div>
+      <div class="fh"><span class="no">Table 1</span><h2 id="t1h">Why stage 5 is hard: the same chats, changed one thing at a time</h2></div>
+      <p class="cap lead">Each stage-5 chat is rewritten four ways, with no examples in the prompt. Scores are accuracy
+        (chance ≈ .29, about ±.024 per cell), pooled over questions about the speaker's and the addressee's objects.
+        <i>Story, no I or you</i> tells the whole scene in the third person. <i>Chat</i> is the test itself.
+        <i>Chat, hand-off as a stage direction</i> keeps the chat but writes the hand-off as narration ("[Erin gives
+        the cup to Paul.]"). <i>Chat, addressee named</i> puts the listener's name in the question ("Paul, right now
+        you're holding the").</p>
       <div class="tblwrap"><table class="levers" id="decomp"></table></div>
-      <p class="cap"><b>The dynamic-<i>you</i> items, rewritten along one axis at a time</b> (accuracy at 0-shot, self
-        and addressee queries pooled; chance ≈ .29; about ±.024 per cell). <i>Narrated</i> removes deixis from the
-        whole scene. <i>Spoken</i> is the gauge item itself. <i>Spoken, transfer narrated</i> keeps the chat but
-        states the hand-off as a stage direction. <i>Spoken + vocative</i> names the addressee in the query. Three
-        layers show. (1) <b>Possession transfer itself.</b> The 1.4–1.5B models sit near chance (.28–.38) even when the
-        scene is narrated. These are Pythia-1.4B, OLMo-2 1B at 4T, and kotodama-tsumugi at every checkpoint through
+      <p class="cap">Three layers show. (1) <b>Following a hand-off at all.</b> The 1.4–1.5B models sit near chance (.28–.38) even when the
+        scene is told as a story. These are Pythia-1.4B, OLMo-2 1B at 4T, and kotodama-tsumugi at every checkpoint through
         110B tokens. SmolLM2 1.7B at 11T (.40)
-        and Qwen3 1.7B at 36T (.48) lift off chance; from 4B the narrated version is easy (.53–.79). (2) <b>The
+        and Qwen3 1.7B at 36T (.48) lift off chance; from 4B the story version is easy (.53–.79). (2) <b>The
         transfer as a speech act</b> (“here, take my cup”) is the mid-size wall. Models from 4B to 30B stay at .37–.47
         when it is spoken, and Llama-3.1 70B reaches .56. Narrating only the hand-off recovers part of that gap for
-        every model from 4B up, and all of it for Llama-3.1 70B. (3) <b>Naming the addressee does not help</b>: the
-        vocative variant is never more than .01 above the spoken one, and below it for every model from 4B up.</p>
+        every model from 4B up, and all of it for Llama-3.1 70B. (3) <b>Naming the addressee does not help</b>: that
+        version is never more than .01 above the chat itself, and below it for every model from 4B up.</p>
     </section>
 
   </div>
@@ -343,10 +365,11 @@ table.levers td.cost { color: var(--muted); }
   <section class="sect" id="atlas" aria-labelledby="ah">
     <h2 id="ah">Full atlas</h2>
     <p class="cap">Every base model, scored by one scorer on one set of tests. A score of 0 means guessing, 1 means always
-      right, and below 0 means reliably wrong. Each column is read with worked examples first; <i>Cold</i> shows the items
-      alone. Columns are grouped by what the questions look like, and each column is read on its own. Click a cell to read
+      right, and below 0 means reliably wrong. By default each item comes after four worked examples; the <i>Cold</i> view shows
+      the items alone. Columns are grouped by what the questions look like, and each column is read on its own. Click a cell to read
       the exact text that the model was given.</p>
     <div class="stats" id="stats"></div>
+    <div class="colkey" id="colkey"></div>
   </section>
 
   <section class="panel" aria-label="controls">
@@ -377,73 +400,86 @@ table.levers td.cost { color: var(--muted); }
   <div class="gridwrap" id="gridwrap"><table class="atlas" id="grid"></table></div>
 
   <div class="part"><span class="no">Part II</span><h2><span class="kanji">言霊 紬</span> kotodama-tsumugi</h2>
-    <p class="gloss">言霊 kotodama, word-spirit: language as a thing with a life of its own. 紬 tsumugi, spun thread: words woven into more than the sum of their parts. Every neuron of this model, the circuits behind these probes on items with no worked examples, and which parts of them hold when the format changes: <a href="__THREADS_LINK__">Threads</a>.</p></div>
+    <p class="gloss">言霊 kotodama, word-spirit: language as a thing with a life of its own. 紬 tsumugi, spun thread: words woven into more than the sum of their parts. A companion page, <a href="__THREADS_LINK__">Threads</a>, maps every neuron of this model and the circuits behind these tests.</p></div>
   <div class="paper">
-    <p class="cap" style="max-width:none">A 1.42B-parameter model with a looped core, run as 72 effective layers. Its
-      trunk trains at a constant learning rate to 100B tokens, and annealed reads are cooldown branches forked from its
-      checkpoints; the release is the 110B branch from the 100B fork. The architecture and training run are described
-      on the <a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b">model card</a>, and Table 3 gives the spread between two anneals.</p>
+    <p class="cap" style="max-width:none">kotodama-tsumugi has 1.42B parameters. Its middle 20 layers run twice with
+      the same weights, so each token passes through 72 layers. Its main run trains at a constant learning rate to 100B
+      tokens. To read a checkpoint fairly, a short cooldown is branched off it: a closing stretch of training where the
+      learning rate decays, also called an anneal. Those cooled-down reads are the hollow markers below. The release is
+      the cooldown from the 100B-token checkpoint, ending at 110B. The <a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b">model card</a>
+      describes the architecture and the training run, and Table 3 gives the spread between two cooldowns of the same
+      checkpoint.</p>
     <section class="fig" aria-labelledby="f4h">
-      <div class="fh"><span class="no">Figure 4</span><h2 id="f4h">The staircase in one run</h2></div>
+      <div class="fh"><span class="no">Figure 4</span><h2 id="f4h">The stages during kotodama-tsumugi's training</h2></div>
+      <p class="cap lead">Swap shift against training tokens on three stages: <i>I</i> as the speaker (stage 1),
+        <i>you</i> as the person spoken to (stage 3), and <i>you</i> through hand-offs with no examples (stage 5). Filled
+        markers are the main run (seed 17) at a constant learning rate; hollow markers are its cooled-down reads; small
+        grey markers are a second run from another random start (seed 7), to 11B tokens.</p>
       <div id="moontraj"></div>
-      <p class="cap"><b>Swap shift against training tokens for the three stage gauges</b>, seed 17's trunk (filled
-        markers, constant LR to 100B) and its annealed branches (hollow), with seed 7 (small grey markers, to 11B).
-        Static <i>I</i> starts to bind at 3.75B tokens and levels off at +.16 to +.25 from about 40B. Static
-        <i>you</i> first dips below zero, the stage where the model treats <i>you</i> as <i>me</i>. It first binds at
-        33B tokens in an annealed read (+.065) and at 40B on the trunk itself (+.068), and reaches +.192 at the 110B
-        release. The second anneal from the same fork reads +.127 (Table 3 gives the anneal-to-anneal spread).
-        On seed 17, dynamic <i>you</i> (0-shot) sits just below zero from about 4B (−.015 to −.034) and never binds. At 110B the
-        two anneals read −.014 and −.012, not inverted under the gauge rule. The markers along the top show where
+      <p class="cap"><i>I</i> as the speaker starts to pass at 3.75B tokens and levels off at +.16 to +.25 from about 40B. <i>You</i>
+        as the person spoken to first dips below zero, the stage where the model treats <i>you</i> as <i>me</i>. It
+        first passes at 33B tokens in a cooled-down read (+.065) and at 40B on the main run itself (+.068), and reaches
+        +.192 at the 110B release. The second cooldown from the same checkpoint reads +.127 (Table 3 gives the spread).
+        On seed 17, <i>you</i> through hand-offs with no examples sits just below zero from about 4B (−.015 to −.034) and
+        never passes. At 110B the two cooldowns read −.014 and −.012, not reliably backwards. The markers along the top show where
         OLMo-2 reaches stage 3 at 13B, 7B and 1B parameters.</p>
     </section>
     <section class="fig" aria-labelledby="f5h">
       <div class="fh"><span class="no">Figure 5</span><h2 id="f5h">The run against its peers</h2></div>
       <div class="f5ctl">
-        <div class="seg" id="f5m" role="group" aria-label="metric"><button data-k="avg9" aria-pressed="true">9-task average</button><button data-k="ubpb" aria-pressed="false">held-out text</button><button data-k="I" aria-pressed="false">static <i>I</i></button><button data-k="you" aria-pressed="false">static <i>you</i></button></div>
+        <div class="seg" id="f5m" role="group" aria-label="metric"><button data-k="avg9" aria-pressed="true">benchmark average</button><button data-k="ubpb" aria-pressed="false">unseen text</button><button data-k="I" aria-pressed="false"><i>I</i> = speaker</button><button data-k="you" aria-pressed="false"><i>you</i> = person spoken to</button></div>
         <div class="seg" id="f5x" role="group" aria-label="x axis"><button data-k="tok" aria-pressed="true">tokens</button><button data-k="flops" aria-pressed="false">training FLOPs</button></div>
       </div>
+      <p class="cap lead">kotodama-tsumugi's checkpoints against public checkpoints of similar models, all scored the same
+        way, on one of four measures: the average of nine standard benchmarks with no examples (HellaSwag, ARC, PIQA and
+        six more); unseen text, in bits per byte on text published after the training data was collected; and the swap
+        shifts for stages 1 and 3. The x-axis is training tokens or training compute.</p>
       <div id="f5"></div>
-      <p class="cap"><b>Every same-harness checkpoint of kotodama-tsumugi and its peers, matched on the x-axis.</b>
-        The white line is tsumugi's constant-LR trunk; hollow markers are its annealed reads, the 110B release among them.
-        Grey lines are public checkpoints of Pythia-1.4B, OLMo-2 1B, OLMo-1 1B and SmolLM2-1.7B. Held-out text is
-        bits per byte, drawn with lower (better) at the top. On the FLOPs axis tsumugi pays for its looped depth
+      <p class="cap">The white line is tsumugi's main run; hollow markers are its cooled-down reads, the 110B release among them.
+        Grey lines are public checkpoints of Pythia-1.4B, OLMo-2 1B, OLMo-1 1B and SmolLM2-1.7B. Unseen text is
+        drawn with lower (better) at the top. On the compute axis tsumugi pays for its repeated layers
         (1.13e10 FLOPs per token, about 1.3× the 1–2B bases).</p>
     </section>
     <section class="fig" aria-labelledby="t3h">
-      <div class="fh"><span class="no">Table 2</span><h2 id="t3h">The headline tests across the annealed reads</h2></div>
+      <div class="fh"><span class="no">Table 2</span><h2 id="t3h">kotodama-tsumugi's checkpoints on the main tests</h2></div>
+      <p class="cap lead">Each cooled-down checkpoint of kotodama-tsumugi on the full atlas's main tests, with the
+        atlas's own values (0 is guessing, 1 is always right). S17 is the main run and S7 the second run, at the
+        training tokens shown. Tests that have worked examples are read with them, the others alone. Each rule-learning
+        row averages the score over versions of the test that get steadily harder.</p>
       <div class="tblwrap"><table class="levers" id="moonbat"></table></div>
-      <p class="cap"><b>kotodama-tsumugi's checkpoints on the grid's headline tests.</b> Each test is read as the grid reads
-        it. Columns with worked examples use them, the others are read cold, and the rule-learning rows are AUC over
-        the example ladder. The values are the grid's own cells. Lookup rises from .69 at 5B tokens to .98 by 55B, level
+      <p class="cap"> Lookup rises from .69 at 5B tokens to .98 by 55B, level
         with the 7–9B bases (.97 to 1.00). The update tests (many refills, variable chains, shared lists) stay at
         chance through 33B and lift from 55B on (.04 to .22). Static <i>you</i> climbs from .08 at 5B to .49 at the
         release. Pattern completion reaches .55, second of 12 models at 1–2B parameters. The two seeds differ at 5B
-        (seed 7 forms lookup and set binding earlier) and agree within .05 on all ten rows at 11B.</p>
+        (the second run learns lookup and set binding earlier) and agree within .05 on all ten rows at 11B.</p>
     </section>
     <section class="fig" aria-labelledby="t4h">
       <div class="fh"><span class="no">Table 3</span><h2 id="t4h">The release against its trajectory and its class</h2></div>
+      <p class="cap lead">The release beside its own earlier checkpoints and three public models of its size. The table
+        has three kinds of row. The first four are swap shifts on the stages, and above +.02 passes. The next two test
+        how many name–task pairs ("Ana: plumbing") a model can hold in its prompt, following a published capacity study
+        (arXiv 2609.30634). K50 is how
+        many pairs fit before recall falls halfway to chance. Each trial is written four ways (a list or inline, two
+        question wordings), and K50 is read over all four. The second of the two is recall of one pair across 256 tokens
+        of filler. The last two are accuracies on who-has-what questions (chance ≈ .33).</p>
       <div class="tblwrap"><table class="levers" id="reltab"></table></div>
-      <p class="cap">The table has three kinds of column. The stage gauges are swap shifts, and a shift above +.02
-        counts as binding. The capacity columns follow arXiv 2609.30634. K50 is how many name–task pairs fit in context
-        before recall falls halfway to chance. Each capacity trial is rendered four ways (a list or inline, two query
-        leads), and K50 is read over all four. The last capacity row is the recall of one binding across 256 tokens
-        of filler. The deixis-v2 columns are accuracies (chance ≈ .33). The two 110B columns are two anneals
-        from the same fork with the same training loss. The spread between them is the measured anneal-to-anneal variance.
-        It is .127 vs .192 on static <i>you</i> and .022 vs .038 on dynamic <i>you</i> with examples. K50 reads 4.6 vs
+      <p class="cap">The two 110B columns are two cooldowns from the same checkpoint, with the same training loss. The spread between them is the measured cooldown-to-cooldown variance.
+        It is .127 vs .192 on <i>you</i> as the person spoken to, and .022 vs .038 on <i>you</i> through hand-offs with examples. K50 reads 4.6 vs
         5.1, and held-out text differs by .025 bits/byte. Every
-        single-anneal number on this page carries that spread, so a difference between neighbouring checkpoints on
-        one axis is not a trend. A second initialization seed (seed 7, same data order) was trained to 11B. deixis v2 has no SmolLM2 or Qwen3 grid. Capacity tracks recipe and
-        tokens more than parameters on this harness (Pythia is flat from 160M to 6.9B), so no parameter-equivalent
+        single-cooldown number on this page carries that spread, so a difference between neighbouring checkpoints on
+        one axis is not a trend. A second run from another random start (seed 7, same data order) was trained to 11B. The who-has-what test has no SmolLM2 or Qwen3 reading. Capacity tracks training recipe and
+        tokens more than parameters on this test (Pythia is flat from 160M to 6.9B), so no parameter-equivalent
         size is read from it.</p>
     </section>
     <section class="fig" aria-labelledby="t5h">
       <div class="fh"><span class="no">Table 4</span><h2 id="t5h">Object tracking: lookup early, updating later</h2></div>
+      <p class="cap lead">The box puzzle, split by what the question needs (score: 0 is guessing, 1 is always right).
+        Boxes go through swaps, moves and refills, written as code, prose, a script or a chat, and one box is asked
+        about. On <i>lookup</i> items, that box still holds what it was first said to hold; on <i>update</i> items, a
+        later step changed it. Each cell averages the four formats, and each public row is the median model of its size
+        band (hover for the list).</p>
       <div class="tblwrap"><table class="levers" id="riders"></table></div>
-      <p class="cap"><b>The box puzzle, split by what the query needs</b> (κ: 0 is guessing, 1 is always right).
-        Boxes go through swaps, moves and refills, written as code, prose, a script or chat, and one box is queried. On
-        <i>lookup</i> items, the queried box ends with its declared contents; on <i>update</i> items, an
-        operation changed it. Each cell averages the four formats, and each public row is the median model of its size
-        band (hover for the list). Lookup is above chance at every size. The median model updates at chance below 2B.
+      <p class="cap"> Lookup is above chance at every size. The median model updates at chance below 2B.
         With worked examples, updating climbs with size, from .20 at 2–5B and .40 at 7–10B to .77 at 70B and .87 from
         284B up. A few small models update early, each with examples: Qwen3 4B (.43), Falcon-H1 3B (.37) and
         Falcon-H1 1.5B-Deep (.28). kotodama-tsumugi's lookup with examples (.61) is second of 12 models at 1–2B,
@@ -471,8 +507,8 @@ table.levers td.cost { color: var(--muted); }
           each item cold, once, without options.</li>
         <li><b>Columns are grouped</b> by what the questions look like. Each column is its own test, and a collapsed group
           shows one named column, never an average. Rows are grouped by size, with kotodama-tsumugi's checkpoints in
-          training order at the foot. The rule-learning suite has a fourth family, rebinding: it is the Many refills
-          column, under the story group. Click any cell to read its prompts.</li>
+          training order at the foot. The rule-learning suite has a fourth family, rebinding, where one name is
+          reassigned again and again: it is the Many refills column, under the story group. Click any cell to read its prompts.</li>
       </ul>
     </details>
 
@@ -500,7 +536,7 @@ document.getElementById("stairs").innerHTML = G.stages.map(st => `
     <div class="riser" aria-hidden="true"><div class="step"></div></div>
     <div class="n">STAGE ${st.n}</div><div class="name">${esc(st.name)}</div>
     <div class="gloss">${esc(st.gloss)}</div><code>${esc(st.ex)}</code>
-    <div class="who">${esc(st.ok)}<br>OLMo-2 1B: ${esc(st.olmo1b)}<br>kotodama-tsumugi 1.4B: ${esc(st.ours)}</div></div>`).join("");
+    <div class="who">Reached by: ${esc(st.ok)}<br>OLMo-2 1B, in training: ${esc(st.olmo1b)}<br>kotodama-tsumugi 1.4B, in training: ${esc(st.ours)}</div></div>`).join("");
 // marker shapes: zero-shot = filled square, 3-shot = hollow square, ours = filled diamond
 const sq = (x, y, fill, r = 4) => `<rect x="${(x - r).toFixed(1)}" y="${(y - r).toFixed(1)}" width="${2 * r}" height="${2 * r}" fill="${fill ? "var(--fg)" : "var(--bg)"}" stroke="var(--fg)" stroke-width="1.3"/>`;
 const dia = (x, y, r = 6) => `<path d="M${x} ${y - r}L${x + r} ${y}L${x} ${y + r}L${x - r} ${y}Z" fill="var(--fg)" stroke="var(--bg)" stroke-width="1.5"/>`;
@@ -521,8 +557,8 @@ const dia = (x, y, r = 6) => `<path d="M${x} ${y - r}L${x + r} ${y}L${x} ${y + r
   }
   const o = T.ours; s += `<g><title>${esc(o.m)}: 0-shot ${f3(o.z)} · 3-shot ${f3(o.t)}</title>${dia(X(o.p), Y(o.z))}</g><text class="lbl" x="${X(o.p)}" y="${Y(o.z) + 20}" text-anchor="middle">kotodama</text>`;
   for (const [name, dx, anchor] of [["Qwen3 14B", 9, "start"], ["Llama-3.1 405B", -8, "end"]]) { const m = M.find(q => q.m === name); if (m) s += `<text class="lbl" x="${X(m.p) + dx}" y="${Y(m.t) + 4}" text-anchor="${anchor}">${esc(name.replace("Llama-3.1 ", "Llama "))}</text>`; }
-  s += `</svg><div class="plotkey"><span class="k"><svg viewBox="0 0 14 14">${sq(7, 7, true)}</svg>zero-shot</span><span class="k"><svg viewBox="0 0 14 14">${sq(7, 7, false)}</svg>3-shot</span><span class="k"><svg viewBox="0 0 14 14">${dia(7, 7, 5)}</svg>kotodama-tsumugi 1.4B at 110B tokens (release)</span></div>`;
-  if (T.unsized.length) s += `<p class="cap" style="font-size:12.5px">Also measured, parameter count not public: ${T.unsized.map(u => `${esc(u.m)} ${f3(u.z)} / ${f3(u.t)}`).join(" · ")} (0-shot / 3-shot).</p>`;
+  s += `</svg><div class="plotkey"><span class="k"><svg viewBox="0 0 14 14">${sq(7, 7, true)}</svg>no examples</span><span class="k"><svg viewBox="0 0 14 14">${sq(7, 7, false)}</svg>three worked examples</span><span class="k"><svg viewBox="0 0 14 14">${dia(7, 7, 5)}</svg>kotodama-tsumugi 1.4B at 110B tokens (release)</span></div>`;
+  if (T.unsized.length) s += `<p class="cap" style="font-size:12.5px">Also measured, parameter count not public: ${T.unsized.map(u => `${esc(u.m)} ${f3(u.z)} / ${f3(u.t)}`).join(" · ")} (no examples / three examples).</p>`;
   document.getElementById("thresh").innerHTML = s;
 })();
 // Figure 3: tokens to each stage, OLMo-2 1B/7B/13B (+ ours)
@@ -554,30 +590,30 @@ const dia = (x, y, r = 6) => `<path d="M${x} ${y - r}L${x + r} ${y}L${x} ${y + r
   const M = G.tsumugi, W = 720, H = 320, L = 56, R = 120, Tp = 14, B = 44;
   const x0 = Math.log10(0.8), x1 = Math.log10(700), y0 = -0.07, y1 = 0.34;
   const X = t => L + (Math.log10(t) - x0) / (x1 - x0) * (W - L - R), Y = v => Tp + (y1 - v) / (y1 - y0) * (H - Tp - B);
-  const ser = [["I", "static I", ""], ["you", "static you", "6 3"], ["dyn0", "dynamic you (0-shot)", "2 3"]];
+  const ser = [["I", "I = speaker", ""], ["you", "you = person spoken to", "6 3"], ["dyn0", "you through hand-offs, no examples", "2 3"]];
   let s = `<svg class="plot" viewBox="0 0 ${W} ${H}" role="img" aria-label="kotodama-tsumugi stage gauges against training tokens">`;
   for (const t of [1, 3, 10, 30, 100, 300]) s += `<line class="ax" x1="${X(t)}" x2="${X(t)}" y1="${Tp}" y2="${H - B}"/><text x="${X(t)}" y="${H - B + 16}" text-anchor="middle">${t}B</text>`;
   for (const v of [-0.05, 0, 0.1, 0.2]) s += `<text x="${L - 7}" y="${Y(v) + 4}" text-anchor="end">${v ? f3(v).slice(0, -1) : "0"}</text>`;
   s += `<line class="zero" x1="${L}" x2="${W - R}" y1="${Y(0)}" y2="${Y(0)}"/>`;
-  s += `<line x1="${L}" x2="${W - R}" y1="${Y(0.02)}" y2="${Y(0.02)}" stroke="var(--line)" stroke-dasharray="2 4"/><text x="${W - R + 4}" y="${Y(0.02) + 4}" class="lbl">binds (+.02)</text>`;
+  s += `<line x1="${L}" x2="${W - R}" y1="${Y(0.02)}" y2="${Y(0.02)}" stroke="var(--line)" stroke-dasharray="2 4"/><text x="${W - R + 4}" y="${Y(0.02) + 4}" class="lbl">passes (+.02)</text>`;
   for (const [oi, o] of M.olmo_stage3.entries()) s += `<g><title>${esc(o.m)} reaches stage 3 at ~${o.tok}B tokens</title><line x1="${X(o.tok)}" x2="${X(o.tok)}" y1="${Tp}" y2="${H - B}" stroke="var(--line)" stroke-dasharray="1 3"/><path d="M${X(o.tok) - 5} ${Tp}L${X(o.tok) + 5} ${Tp}L${X(o.tok)} ${Tp + 7}Z" fill="var(--fg)"/><text class="lbl" x="${X(o.tok)}" y="${Tp + 20 + (oi % 2) * 13}" text-anchor="middle">${esc(o.m)}</text></g>`;
   s += `<text x="${(L + W - R) / 2}" y="${H - 6}" text-anchor="middle">training tokens (log) · ▾ = where OLMo-2 reaches stage 3 at 13B / 7B / 1B parameters</text><text x="12" y="${(Tp + H - B) / 2}" text-anchor="middle" transform="rotate(-90 12 ${(Tp + H - B) / 2})">swap shift</text>`;
   const pts = (seed, kind) => M.traj[seed].filter(p => p.kind === kind);
   for (const [k, name, dash] of ser) {
     const c = pts("s17", "constant"), path = c.map((p, i) => `${i ? "L" : "M"}${X(p.tok).toFixed(1)} ${Y(p[k]).toFixed(1)}`).join("");
     s += `<path d="${path}" fill="none" stroke="var(--fg)" stroke-width="1.8" stroke-dasharray="${dash}"/>`;
-    for (const p of c) s += `<g><title>seed 17 trunk · ${p.tok}B · ${esc(name)} ${f3(p[k])}</title>${sq(X(p.tok), Y(p[k]), true, 3.5)}</g>`;
-    for (const p of pts("s17", "annealed")) s += `<g><title>seed 17 annealed${p.note ? " (" + esc(p.note) + ")" : ""} · ${p.tok}B · ${esc(name)} ${f3(p[k])}</title>${sq(X(p.tok), Y(p[k]), false, 4.5)}</g>`;
-    for (const p of pts("s7", "constant").concat(pts("s7", "annealed"))) s += `<g><title>seed 7 ${p.kind} · ${p.tok}B · ${esc(name)} ${f3(p[k])}</title><circle cx="${X(p.tok)}" cy="${Y(p[k])}" r="2.4" fill="var(--line)"/></g>`;
+    for (const p of c) s += `<g><title>main run · ${p.tok}B · ${esc(name)} ${f3(p[k])}</title>${sq(X(p.tok), Y(p[k]), true, 3.5)}</g>`;
+    for (const p of pts("s17", "annealed")) s += `<g><title>main run, cooled down${p.note ? " (" + esc(p.note) + ")" : ""} · ${p.tok}B · ${esc(name)} ${f3(p[k])}</title>${sq(X(p.tok), Y(p[k]), false, 4.5)}</g>`;
+    for (const p of pts("s7", "constant").concat(pts("s7", "annealed"))) s += `<g><title>second run${p.kind === "annealed" ? ", cooled down" : ""} · ${p.tok}B · ${esc(name)} ${f3(p[k])}</title><circle cx="${X(p.tok)}" cy="${Y(p[k])}" r="2.4" fill="var(--line)"/></g>`;
     const last = c[c.length - 1]; s += `<text class="lbl" x="${X(last.tok) + 26}" y="${Y(last[k]) + 4}">${esc(name)}</text>`;
   }
-  s += `</svg><div class="plotkey"><span class="k"><svg viewBox="0 0 14 14">${sq(7, 7, true, 3.5)}</svg>seed 17 trunk (constant LR)</span><span class="k"><svg viewBox="0 0 14 14">${sq(7, 7, false, 4.5)}</svg>seed 17 annealed branch</span><span class="k"><svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="2.4" fill="var(--line)"/></svg>seed 7</span><span>line style: solid = static I · dashed = static you · dotted = dynamic you</span></div>`;
+  s += `</svg><div class="plotkey"><span class="k"><svg viewBox="0 0 14 14">${sq(7, 7, true, 3.5)}</svg>main run (seed 17, constant learning rate)</span><span class="k"><svg viewBox="0 0 14 14">${sq(7, 7, false, 4.5)}</svg>main run, cooled down</span><span class="k"><svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="2.4" fill="var(--line)"/></svg>second run (seed 7)</span><span>line style: solid = I as speaker · dashed = you as person spoken to · dotted = you through hand-offs</span></div>`;
   document.getElementById("moontraj").innerHTML = s;
 })();
 // Figure 5: the run against its peers (metric x axis toggles)
 (() => {
   const RUN = G.run.models, el = document.getElementById("f5"), st = {k: "avg9", x: "tok"};
-  const NAMES = {avg9: "9-task average (lm-eval, 0-shot)", ubpb: "held-out bits per byte (Uncheatable)", I: "static I swap shift", you: "static you swap shift"};
+  const NAMES = {avg9: "benchmark average (9 tasks, no examples)", ubpb: "unseen text, bits per byte", I: "I = speaker, swap shift", you: "you = person spoken to, swap shift"};
   const DASH = {ours: "", dash: "6 4", solid: "", dot: "1.5 3", dashdot: "7 3 1.5 3"};
   function draw() {
     const W = 720, H = 330, L = 58, R = 128, Tp = 14, B = 46, k = st.k, inv = k === "ubpb";
@@ -594,14 +630,14 @@ const dia = (x, y, r = 6) => `<path d="M${x} ${y - r}L${x + r} ${y}L${x} ${y + r
       s += `<line class="ax" x1="${X(v)}" x2="${X(v)}" y1="${Tp}" y2="${H - B}"/><text x="${X(v)}" y="${H - B + 16}" text-anchor="middle">${lab}</text>`;
     }
     const nt = 5; for (let i = 0; i <= nt; i++) { const v = y0 + (y1 - y0) * i / nt; s += `<text x="${L - 7}" y="${Y(v) + 4}" text-anchor="end">${k === "avg9" ? v.toFixed(0) : k === "ubpb" ? v.toFixed(2) : f3(v).slice(0, -1)}</text>`; }
-    if (k === "I" || k === "you") s += `<line class="zero" x1="${L}" x2="${W - R}" y1="${Y(0)}" y2="${Y(0)}"/><line x1="${L}" x2="${W - R}" y1="${Y(0.02)}" y2="${Y(0.02)}" stroke="var(--line)" stroke-dasharray="2 4"/><text x="${W - R + 4}" y="${Y(0.02) + 4}" class="lbl">binds (+.02)</text>`;
+    if (k === "I" || k === "you") s += `<line class="zero" x1="${L}" x2="${W - R}" y1="${Y(0)}" y2="${Y(0)}"/><line x1="${L}" x2="${W - R}" y1="${Y(0.02)}" y2="${Y(0.02)}" stroke="var(--line)" stroke-dasharray="2 4"/><text x="${W - R + 4}" y="${Y(0.02) + 4}" class="lbl">passes (+.02)</text>`;
     s += `<text x="${(L + W - R) / 2}" y="${H - 8}" text-anchor="middle">${st.x === "tok" ? "training tokens (log)" : "training FLOPs (log)"}</text><text x="12" y="${(Tp + H - B) / 2}" text-anchor="middle" transform="rotate(-90 12 ${(Tp + H - B) / 2})">${esc(NAMES[k])}${inv ? " ↑ better" : ""}</text>`;
     for (const m of ser) {
       const ours = m.style === "ours", line = ours ? m.pts.filter(p => p.kind === "trunk") : m.pts;
       const path = line.map((p, i) => `${i ? "L" : "M"}${X(p[st.x]).toFixed(1)} ${Y(p[k]).toFixed(1)}`).join("");
       if (line.length > 1) s += `<path d="${path}" fill="none" stroke="${ours ? "var(--fg)" : "var(--muted)"}" stroke-width="${ours ? 2.2 : 1.3}" stroke-dasharray="${DASH[m.style]}"/>`;
       for (const p of m.pts) {
-        const tip = `${esc(m.m)} · ${p.tok >= 1000 ? (p.tok / 1000).toFixed(1) + "T" : p.tok + "B"} tokens${p.note ? " (" + p.note + ")" : ours && p.kind === "annealed" ? " (annealed)" : ""} · ${esc(NAMES[k])} ${k === "avg9" ? p[k].toFixed(1) : k === "ubpb" ? p[k].toFixed(3) : f3(p[k])}`;
+        const tip = `${esc(m.m)} · ${p.tok >= 1000 ? (p.tok / 1000).toFixed(1) + "T" : p.tok + "B"} tokens${p.note ? " (" + p.note + ")" : ours && p.kind === "annealed" ? " (cooled down)" : ""} · ${esc(NAMES[k])} ${k === "avg9" ? p[k].toFixed(1) : k === "ubpb" ? p[k].toFixed(3) : f3(p[k])}`;
         const mark = ours ? sq(X(p[st.x]), Y(p[k]), p.kind === "trunk", p.note ? 5.5 : 3.6) : `<circle cx="${X(p[st.x])}" cy="${Y(p[k])}" r="2.6" fill="var(--muted)"/>`;
         s += `<g><title>${tip}</title>${mark}</g>`;
         if (p.note) s += `<text class="lbl" x="${X(p[st.x]) + 9}" y="${Y(p[k]) - 8}" style="fill:var(--fg)">release</text>`;
@@ -620,7 +656,7 @@ const dia = (x, y, r = 6) => `<path d="M${x} ${y - r}L${x + r} ${y}L${x} ${y + r
 // Table 2: kotodama-tsumugi's battery across the annealed reads
 (() => {
   const T = G.tsumugi.battery;
-  let h = `<thead><tr><th>Probe</th>${T.cols.map(c => `<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>`;
+  let h = `<thead><tr><th>Test</th>${T.cols.map(c => `<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>`;
   for (const g of T.groups) {
     h += `<tr><td colspan="${T.cols.length + 1}" class="eff" style="text-align:left;font-style:italic">${esc(g.name)}</td></tr>`;
     for (const [name, vals] of g.rows) h += `<tr><td>${esc(name)}</td>${vals.map(v => `<td class="cost">${T.signed ? f3(v) : v.toFixed(3).replace(/^0/, "")}</td>`).join("")}</tr>`;
@@ -638,7 +674,7 @@ const pend = v => v == null ? `<span title="not yet scored on this checkpoint">p
 // Table 3: the release against its trajectory and class
 (() => {
   const T = G.release;
-  let h = `<thead><tr><th>Probe</th>${T.cols.map(c => `<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>`;
+  let h = `<thead><tr><th>Test</th>${T.cols.map(c => `<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>`;
   for (const [name, vals, signed] of T.rows) h += `<tr><td>${esc(name)}</td>${vals.map((v, i) => `<td class="cost"${T.cols[i].includes("release") ? ' style="font-weight:700;color:var(--fg)"' : ""}>${v == null ? "—" : signed ? f3(v) : v >= 1 ? v.toFixed(1) : v.toFixed(3).replace(/^0/, "")}</td>`).join("")}</tr>`;
   document.getElementById("reltab").innerHTML = h + `</tbody>`;
 })();
@@ -661,6 +697,9 @@ const META = JSON.parse(document.getElementById("atlas-meta").textContent);
 const $ = (s, el = document) => el.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
 const COLS = D.cols, ROWS = D.rows, CELLS = D.cells, EX = D.examples;
+{ const by = new Map(); for (const c of COLS) { if (!by.has(c.group)) by.set(c.group, []); by.get(c.group).push(c); }
+  document.getElementById("colkey").innerHTML = `<p class="cap" style="grid-column:1/-1;margin:0">What each column asks:</p>` +
+    [...by].map(([g, cs]) => `<div><h3>${esc(g)}</h3><ul>${cs.map(c => `<li><b>${esc(c.label)}</b>: ${esc(c.what)}</li>`).join("")}</ul></div>`).join(""); }
 const colById = Object.fromEntries(COLS.map(c => [c.id, c]));
 const rowById = Object.fromEntries(ROWS.map(r => [r.id, r]));
 const GROUPS = [...new Set(ROWS.map(r => r.group))];

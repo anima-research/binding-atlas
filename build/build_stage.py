@@ -188,6 +188,9 @@ for row in new["cost"]["rows"]:
             q["lo"], q["hi"] = bracket("OLMo-2-1124-13B", "17B tokens", "42B tokens", "static I shift", "fig3 OLMo-2-13B stage 1")
         if q["m"] == "OLMo-2 13B" and row["stage"].startswith("3"):
             q["lo"], q["hi"] = bracket("OLMo-2-1124-13B", "17B tokens", "42B tokens", "static you shift", "fig3 OLMo-2-13B stage 3")
+COST_LABELS = {"1": "1 · I = speaker", "3": "3 · you = person spoken to", "5": "5 · you through hand-offs"}
+for row in new["cost"]["rows"]:
+    row["stage"] = COST_LABELS[row["stage"][0]]
 new["cost"]["_note"] = ("tokens at which each stage first binds (gauge CI rule), OLMo-2 family (one data recipe) + "
                         "kotodama-tsumugi (1.4B, 72 effective layers). [lo, hi] = bracketing checkpoints.")
 
@@ -196,27 +199,45 @@ S = {s["n"]: s for s in new["stages"]}
 dyn11 = F.get(T, "anneal-11B", "dyn-you 0shot shift", tag="stage4 tsumugi dyn0 anneal-11B")
 you_rel = F.get(T, REL, "static you shift", tag="stage3 tsumugi static you release")
 pyth28 = F.row("Pythia-2.8B", "main/final (via step300B branch)", "static you shift", tag="stage3 Pythia-2.8B static you (does not bind)")
+NAMES = {1: ("I = the speaker", "\"I\" means whoever is speaking."),
+         2: ("you = the speaker (a mistake)",
+             "\"you\" is read as the speaker too: the pronoun-reversal phase young children go through."),
+         3: ("you = the person spoken to", "\"you\" means the addressee, when who holds what is simply stated."),
+         4: ("you = the speaker again", "once objects change hands in the chat, \"you\" slides back onto the speaker."),
+         5: ("you followed through hand-offs",
+             "\"you\" is tracked as objects change hands: first with three worked examples, later with none.")}
+for n, (name, gloss) in NAMES.items():
+    S[n]["name"], S[n]["gloss"] = name, gloss
+S[1]["ok"] = "every base of 0.5B parameters or more"
+S[2]["ok"] = "every training run measured passes through it"
+S[4]["ok"] = "every base up to 4B parameters, and they stop here"
 S[1]["ours"] = "~3–3.75B tokens"
-S[2]["ours"] = "transient, ~4–20B"
-S[3]["ok"] = "every base ≥ 0.6B trained on trillions of tokens, except Bamba 9B"
+S[2]["ours"] = "passes through it at ~4–20B tokens"
+S[3]["ok"] = "every base of 0.6B or more trained on trillions of tokens, except Bamba 9B"
 S[3]["olmo1b"] = "420–525B tokens"
-S[3]["ours"] = f"by 33B tokens annealed (trunk: 40B); {fmt3(you_rel, True)} at 110B"
-S[4]["ours"] = f"from ~4B; at 110B no longer inverted under the gauge rule ({fmt3(dyn11)} at 11B → {fmt3(rel_g['dyn0'])})"
-S[5]["ok"] = ("zero-shot: from about 7B (OLMo-2 7B, Qwen2.5 7B), and every base from 13B up; "
+S[3]["ours"] = f"by 33B tokens with a cooldown (40B without one); {fmt3(you_rel, True)} at 110B"
+S[4]["ours"] = (f"from ~4B tokens; by 110B no longer reliably reversed ({fmt3(dyn11)} at 11B → "
+                f"{fmt3(rel_g['dyn0'])})")
+S[5]["ok"] = ("with no examples: from about 7B (OLMo-2 7B, Qwen2.5 7B), and every base from 13B up; "
               "with three worked examples: from Qwen3 4B")
-S[5]["ours"] = (f"zero-shot: not reached by 110B; with three worked examples it binds at 110B ({fmt3(rel_g['dyn3'], True)}), "
-                "the smallest base measured that does under the +.02 rule")
+S[5]["ours"] = (f"with no examples: not reached by 110B tokens; with three worked examples it passes at 110B "
+                f"({fmt3(rel_g['dyn3'], True)}), the smallest base measured that does")
 new["lead"] = (
-    "Base language models learn to look things up long before they learn to track change. In the box puzzle, the "
-    "median model under 1B already finds a box's declared contents above chance, and scores zero on the boxes "
-    "changed by an operation. With worked examples, updating climbs steadily with size, to .77 for the 70B models and "
-    "above .8 for most of the largest. The referent of *you* follows five ordered stages. Every base of 0.6B parameters or more trained "
-    "on trillions of tokens reaches the first three, except Bamba 9B. The fifth stage is tracking *you* after objects change hands. "
-    "Zero-shot, it appears from about 7B (OLMo-2 7B, Qwen2.5 7B), and every base measured from 13B up reaches it. "
-    "**kotodama-tsumugi**, a 1.4B model run as 72 effective layers, reaches stage 3 by **33B tokens**, in the range "
-    "where OLMo-2 13B gets there; OLMo-2 1B needs 420–525B. Given three worked examples, it is the smallest base "
-    f"measured that tracks *you* after objects change hands. It reads {fmt3(rel_g['dyn3'], True)}, with its whole 95% "
-    "interval above the +.02 line. The next is Qwen3 4B.")
+    "Base language models learn to look things up long before they learn to track change. In the box puzzle, items go "
+    "into boxes and are then swapped, moved or refilled, and the model is asked what one box holds. The median model "
+    "under 1B already finds what a box was said to hold, and scores zero on the boxes that a later step changed. With "
+    "worked examples, updating climbs steadily with size, to .77 for the 70B models and above .8 for most of the "
+    "largest. In a chat, *you* means the person being spoken to. Models get this right in five stages, in the same order "
+    "in every training run measured. To read a stage, the speaker's name on the chat's last line is swapped: a model "
+    "that follows *you* moves its answer to the other person's object. The swap shift is how much probability leaves "
+    "the first answer; a model passes when the whole 95% interval of that shift is above +.02. Every base of 0.6B "
+    "parameters or more trained on trillions of tokens reaches the third stage (*you* is the person spoken to), "
+    "except Bamba 9B. The fifth stage is following *you* as objects change hands. With no examples in the prompt, it "
+    "appears from about 7B (OLMo-2 7B, Qwen2.5 7B), and every base measured from 13B up reaches it. "
+    "**kotodama-tsumugi** is a 1.4B model whose middle 20 layers run twice, so each token passes through 72 layers. It "
+    "reaches the third stage by **33B tokens**, in the range where OLMo-2 13B gets there; OLMo-2 1B needs 420–525B. "
+    "Given three worked examples, it is the smallest base measured that passes the fifth stage: "
+    f"{fmt3(rel_g['dyn3'], True)}, with its whole 95% interval above +.02. The next is Qwen3 4B.")
 
 # ------------------------------------------------------------------ NEW: stage-5 decomposition (endpoints, full battery)
 DEC_COLS = [("third", "third/0shot acc (self+addressee)"), ("deictic", "deictic/0shot acc (self+addressee)"),
@@ -245,10 +266,10 @@ for label, model, ck, p, tok, ours in DEC_ROWS:
 new["decomp"] = {
     "_note": ("stage5-decomp-v1: each dynamic-you gauge item rewritten along one axis. Accuracy pooled over self + "
               "addressee queries, 0-shot, 360 items per cell (SE ≈ .024); chance ≈ .29. Endpoints only."),
-    "cols": [{"k": "third", "name": "transfer, narrated", "ex": "Erin gives the cup to Paul. … Right now Paul is holding the"},
-             {"k": "deictic", "name": "transfer, spoken", "ex": "Erin: Here, take my cup. … Paul: Right now I'm holding the"},
-             {"k": "named_transfer", "name": "spoken, transfer narrated", "ex": "[Erin gives the cup to Paul.] … deictic query"},
-             {"k": "vocative", "name": "spoken + vocative", "ex": "Erin: Paul, right now you're holding the"}],
+    "cols": [{"k": "third", "name": "story, no I or you", "ex": "Erin gives the cup to Paul. … Right now Paul is holding the"},
+             {"k": "deictic", "name": "chat (the test itself)", "ex": "Erin: Here, take my cup. … Paul: Right now I'm holding the"},
+             {"k": "named_transfer", "name": "chat, hand-off as a stage direction", "ex": "[Erin gives the cup to Paul.] … deictic query"},
+             {"k": "vocative", "name": "chat, addressee named", "ex": "Erin: Paul, right now you're holding the"}],
     "chance": 0.287,
     "rows": dec_rows,
 }
@@ -300,17 +321,18 @@ new["riders"] = {
 }
 
 # ------------------------------------------------------------------ NEW: the release against its trajectory and class
-REL_COLS = [("33B", T, "anneal-33B"), ("55B", T, "anneal-55B"), ("88B", T, "anneal-88B"), ("110B · 2nd anneal", T, AN1),
+REL_COLS = [("33B", T, "anneal-33B"), ("55B", T, "anneal-55B"), ("88B", T, "anneal-88B"), ("110B · 2nd cooldown", T, AN1),
             ("110B · release", T, REL), ("OLMo-2 1B · 4T", "OLMo-2-0425-1B", "main/final"),
             ("SmolLM2 1.7B · 11T", "SmolLM2-1.7B", "main/final"), ("Qwen3 1.7B · 36T", "Qwen3-1.7B-Base", "main/final")]
 GAUGE_CK = {"OLMo-2-0425-1B": "main/final", "SmolLM2-1.7B": "11000B tokens", "Qwen3-1.7B-Base": "36000B tokens"}
-REL_ROWS = [("static I (swap shift)", "static I shift", "gauge"), ("static you (swap shift)", "static you shift", "gauge"),
-            ("dynamic you, 0-shot (swap shift)", "dyn-you 0shot shift", "gauge"),
-            ("dynamic you, 3-shot (swap shift)", "dyn-you 3shot shift", "gauge"),
-            ("binding capacity K50 (chance .04)", "K50 (D=0)", "capacity"),
-            ("one binding past 256 filler tokens", "ceiling C (K=1, D=256)", "capacity"),
-            ("deixis v2, deictic, 0-shot (acc)", "dx2 deixis/deictic/0shot acc", "bindprobes"),
-            ("deixis v2, third person, 0-shot (acc)", "dx2 deixis/third/0shot acc", "bindprobes")]
+REL_ROWS = [("I = speaker (swap shift)", "static I shift", "gauge"),
+            ("you = person spoken to (swap shift)", "static you shift", "gauge"),
+            ("you through hand-offs, no examples (swap shift)", "dyn-you 0shot shift", "gauge"),
+            ("you through hand-offs, three examples (swap shift)", "dyn-you 3shot shift", "gauge"),
+            ("name–task pairs held: K50", "K50 (D=0)", "capacity"),
+            ("one name–task pair past 256 filler tokens (accuracy, chance .04)", "ceiling C (K=1, D=256)", "capacity"),
+            ("who has what, said with I and you (accuracy, chance ≈ .33)", "dx2 deixis/deictic/0shot acc", "bindprobes"),
+            ("who has what, third person (accuracy, chance ≈ .33)", "dx2 deixis/third/0shot acc", "bindprobes")]
 rel_tab = []
 for label, metric, harness in REL_ROWS:
     vals = []
