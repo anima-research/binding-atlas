@@ -16,7 +16,7 @@ STAMP := $(shell date -u '+%Y-%m-%d %H:%M UTC')
 endif
 # the build the kotodama.animalabs.ai deployment serves (config/animalabs.sha256)
 VERIFY_CONFIG := animalabs
-VERIFY_STAMP := 2026-11-06 22:51 UTC
+VERIFY_STAMP := 2026-11-06 23:05 UTC
 VERIFY_STAMP_EMPTY := 2026-11-06 22:56 UTC
 VERIFY_STAMP_ANNOUNCE := 2026-11-06 22:56 UTC
 
