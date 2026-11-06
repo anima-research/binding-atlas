@@ -101,7 +101,8 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: s
 __STORY__
 
   <div class="prose">
-    <p>The figure compares tsumugi with public base models on three measures, against the compute that each spent in training.
+    <p>The figure below compares tsumugi with public base models on three measures, against the compute that each spent in
+    training. Compute is about 6 × parameters × tokens, with tsumugi's repeated layers counted twice.
     <b>New rules:</b> the prompt shows worked examples of an invented rule, such as an invented word ending, invented
     operators or a nonsense pattern. The model then picks the answer to a new case. The score runs from 0 (chance) to 1 (always right).
     <b>Recall:</b> questions about real facts, in the same worked-example format and scored the same way. <b>Held-out
@@ -126,7 +127,8 @@ __STORY__
         <h3>It learns new rules from its prompt beyond its size</h3>
         <p>On new rules, tsumugi scores .559. A trend line fitted to 37 public base models predicts less for a model of
         its size. The 37 are the 36 in the figure plus GPT-2 XL, which has no published token count. tsumugi sits 1.07 standard
-        deviations of that fit above it. On recall and on held-out text, it sits on the trend.</p>
+        deviations above it, measured in the spread of the public models around the line. The interval comes from
+        resampling both the public models and tsumugi's test items. On recall and on held-out text, it sits on the trend.</p>
         <p>This comparison was registered: the test and its three predictions were written down and committed before any
         score was computed, and all three hold. Among public bases under 4B parameters, only Qwen3 1.7B scores higher on
         new rules.</p>
@@ -140,7 +142,7 @@ __STORY__
         <p>tsumugi runs one block of 20 layers twice, with the same weights. Switching off a quarter of the attention in
         the second pass lowers its new-rules score by .13 on the same 0-to-1 scale, while recall falls .025. The same cut
         costs .035 in the first pass and .019 in the layers before and after the loop.</p>
-        <p>This test was registered too. The cut also makes the model worse at predicting ordinary text, and the result
+        <p>This test was registered too, and its prediction holds. The cut also makes the model worse at predicting ordinary text, and the result
         holds after controlling for that loss.</p>
         <p class="more"><a href="__THREADS_LINK__">Inside tsumugi: the neurons behind rule learning and recall, on Threads</a></p>
       </div>
@@ -152,15 +154,16 @@ __STORY__
         <p>In a two-person chat where objects pass between the speakers, a line like “Right now you're holding the ___”
         asks about the person being addressed. Swap who says that line, and “you” becomes the other person, so the old
         answer should lose probability. Given three worked examples, tsumugi's old answer loses .038 on average over 180
-        chats. A model passes when its whole 95% interval is above .02. tsumugi is the smallest public base model
+        chats. A model passes when its whole 95% interval is above .02, a bar that was fixed before
+        any model was scored. tsumugi is the smallest public base model
         measured that passes. The next smallest is Qwen3-4B, trained on 36T tokens, about 300 times tsumugi's 110B.</p>
-        <p>With a fixed “you”, where nothing changes hands, it passes by 33B training tokens. OLMo-2 1B passes somewhere
-        between its 420B and 525B checkpoints.</p>
+        <p>On the simpler test with a fixed “you”, where nothing changes hands, it passes by 33B training tokens. OLMo-2 1B
+        passes that test somewhere between its 420B and 525B checkpoints.</p>
         <p class="more"><a href="__ATLAS_LINK__#tsumugi-you">The test and its threshold, on the Binding Atlas</a></p>
       </div>
     </section>
     <section class="result" id="compute">
-      <div class="num">¼<small>of Pythia-2.8B's training compute, for nearly the same benchmark average</small></div>
+      <div class="num">¼<small>of Pythia-2.8B's training compute, for a benchmark average within a point of it</small></div>
       <div>
         <h3>It is cheap for what it scores</h3>
         <p>Its average over nine standard benchmarks is 64.1, half a point below Pythia-2.8B's 64.7, at a quarter of the
@@ -170,8 +173,9 @@ __STORY__
       </div>
     </section>
   </div>
-  <p class="aside">Given an empty document 128 times, tsumugi writes no chatbot transcripts, assistant replies or
-  machine-made training data; a language model sorted every run. Many modern base models do write them. All 128 runs
+  <p class="aside">Given only the start-of-document token, 128 times, tsumugi writes no chatbot transcripts, assistant
+  replies or machine-made training data. Claude sorted every run, after agreeing with 300 hand-labelled runs 98.7% of
+  the time. Many modern base models do write them. All 128 runs
   can be read on the page <a href="__EMPTY_LINK__">An Empty Document</a>.</p>
 
   <h2>How it is built</h2>
