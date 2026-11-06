@@ -142,7 +142,7 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: s
       <span><i class="sw c-x"></i>synthetic instruction data</span>
       <span><i class="sw c-h"></i>human-written Q&amp;A (not counted)</span>
       <span><i class="sw c-p"></i>ordinary text</span>
-      <span><i class="sw omit"></i>omitted for content</span>
+      <span><i class="sw omit"></i>omitted: not fit to show (black)</span>
     </div>
     <div class="controls" role="group" aria-label="Order of squares">
       <span>Order squares</span>
@@ -181,7 +181,7 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: s
   </section>
 </div>
 <footer><div class="wrap">
-  <span>Companion pages: <a href="./">kotodama-tsumugi</a>, the announcement · <a href="__ATLAS_LINK__">Binding Atlas</a>, every model against every referent-binding test · <a href="__THREADS_LINK__">Threads</a>, inside kotodama-tsumugi.</span>
+  <span>Companion pages: <a href="./">the kotodama-tsumugi announcement</a> · <a href="__ATLAS_LINK__">every public model's results on who-is-who tests</a> · <a href="__THREADS_LINK__">a map of tsumugi's neurons</a>.</span>
   <span class="num" id="stamp">build __STAMP__</span>
 </div></footer>
 <div class="tip" id="tip" hidden></div>
@@ -278,10 +278,10 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: s
     var clean = modern.filter(function (m) { return m.assistant_era === 0; }).length;
     var top = modern[modern.length - 1];
     var fig = document.getElementById("figures");
-    [[hero.assistant_era + " of " + hero.n, "kotodama-tsumugi runs that are assistant-era"],
-     [anchors.reduce(function (s, m) { return s + m.assistant_era; }, 0) + " of " + anchors.reduce(function (s, m) { return s + m.n; }, 0), "for the five models trained before ChatGPT"],
-     [clean + " of " + modern.length, "modern base models with none"],
-     [top.assistant_era + " of " + top.n, "for " + top.label + ", the most"]].forEach(function (f) {
+    [[hero.assistant_era + " of " + hero.n, "kotodama-tsumugi's runs are assistant-era"],
+     [anchors.reduce(function (s, m) { return s + m.assistant_era; }, 0) + " of " + anchors.reduce(function (s, m) { return s + m.n; }, 0), "runs from the five models trained before ChatGPT"],
+     [clean + " of " + modern.length, "modern base models write none"],
+     [top.assistant_era + " of " + top.n, "runs from " + top.label + ", the most"]].forEach(function (f) {
       var d = el("div"); d.appendChild(el("b", null, f[0])); d.appendChild(el("span", null, f[1])); fig.appendChild(d);
     });
     var v = D.meta.validation;
