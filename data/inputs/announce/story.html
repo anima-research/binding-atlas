@@ -170,9 +170,7 @@ DRAW.arch = (t) => {
     const last = i === P.length - 1, inn = ramp(t, t0 + P[i][0], t0 + P[i][0] + .4);
     let e = inn * (1 - ramp(t, t0 + P[i][1], t0 + P[i][1] + .5)); // this step's explanation, collapsing smoothly
     let fo = last ? inn : Math.max(e, done), op = inn * (.45 + .55 * Math.max(e, done, last ? inn : 0));
-    // a brought-back step opens its explanation; the others dim but keep their formula line, so nothing above the
-    // focused step moves and the pointer stays on it
-    if (foc >= 0) { e = i === foc ? 1 : 0; fo = 1; op = i === foc ? 1 : .35; }
+    if (foc >= 0) { e = i === foc ? 1 : 0; fo = i === foc ? 1 : 0; op = i === foc ? 1 : .35; }
     h += `<div class="ah" data-i="${i}" style="opacity:${op}"><b>${i + 1}. ${head}</b>`
        + `<div class="body" style="opacity:${e};max-height:${(e * 220).toFixed(1)}px;margin-top:${(e * 8).toFixed(1)}px;overflow:hidden">${body}</div>`
        + `<div class="f" style="opacity:${fo};max-height:${(fo * 140).toFixed(1)}px;margin-top:${(fo * 10).toFixed(1)}px;overflow:hidden">${f}</div></div>`;
