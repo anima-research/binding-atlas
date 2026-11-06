@@ -29,6 +29,11 @@
 
 [allow]
 
+# The Threads training chapter's closeness inputs are untracked by design (large); closeness.sha256, tracked beside
+# them in data/inputs/threads-graph/, pins both. Their names in build_threads_graph.py are inputs, not pointers.
+\bcloseness-f16\.npy\b
+\bcloseness\.json\b
+
 # The file names of the published-weights layout (Hugging Face repos: model.safetensors, aliases.json, config.json)
 # name files inside a downloaded repo, not paths in this tree; kotodama.ckpt.load_hf_layout reads them.
 \b(?:model\.safetensors|aliases\.json)\b
