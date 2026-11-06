@@ -80,9 +80,9 @@ for label, m, ck in olmo_onset:
     olmo_stage3.append({"m": label, "tok": int(r["tokens_B"])})
 
 GRID = json.loads((REPO / "data" / "built" / "atlas.json").read_text())
-BAT_CKS = [("s17 · 5B", "tsumugi-s17-a5B"), ("s17 · 11B", "tsumugi-s17-a11B"), ("s17 · 33B", "tsumugi-s17-a33B"),
-           ("s17 · 55B", "tsumugi-s17-a55B"), ("s17 · 88B", "tsumugi-s17-a88B"), ("110B · release", "tsumugi"),
-           ("s7 · 5B", "tsumugi-s7-a5B"), ("s7 · 11B", "tsumugi-s7-a11B")]
+BAT_CKS = [("main · 5B", "tsumugi-s17-a5B"), ("main · 11B", "tsumugi-s17-a11B"), ("main · 33B", "tsumugi-s17-a33B"),
+           ("main · 55B", "tsumugi-s17-a55B"), ("main · 88B", "tsumugi-s17-a88B"), ("110B · release", "tsumugi"),
+           ("second run · 5B", "tsumugi-s7-a5B"), ("second run · 11B", "tsumugi-s7-a11B")]
 
 
 def battery_from_grid() -> dict[str, Any]:
@@ -230,10 +230,13 @@ new["lead"] = (
     "largest. In a chat, *you* means the person being spoken to. Models get this right in five stages, in the same order "
     "in every training run measured. To read a stage, the speaker's name on the chat's last line is swapped: a model "
     "that follows *you* moves its answer to the other person's object. The swap shift is how much probability leaves "
-    "the first answer; a model passes when the whole 95% interval of that shift is above +.02. Every base of 0.6B "
+    "the first answer; a model passes when the whole 95% interval of that shift is above +.02, a bar fixed before any "
+    "model was scored. Every base of 0.6B "
     "parameters or more trained on trillions of tokens reaches the third stage (*you* is the person spoken to), "
     "except Bamba 9B. The fifth stage is following *you* as objects change hands. With no examples in the prompt, it "
-    "appears from about 7B (OLMo-2 7B, Qwen2.5 7B), and every base measured from 13B up reaches it. "
+    "appears from about 7B (OLMo-2 7B, Qwen2.5 7B), and every base measured from 13B up reaches it.")
+# kotodama-tsumugi's own paragraph: the lead of its page beside the atlas
+new["tsumugi"]["lead"] = (
     "**kotodama-tsumugi** is a 1.4B model whose middle 20 layers run twice, so each token passes through 72 layers. It "
     "reaches the third stage by **33B tokens**, in the range where OLMo-2 13B gets there; OLMo-2 1B needs 420–525B. "
     "Given three worked examples, it is the smallest base measured that passes the fifth stage: "

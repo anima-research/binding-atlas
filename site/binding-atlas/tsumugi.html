@@ -1,0 +1,708 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>kotodama-tsumugi on the benchmark</title>
+<meta name="typeface" content="Love Letter Typewriter (Love Letter TW Luxia build), © 1994 Blake Haber for Dixie's Delights; fallback Courier Prime (OFL)">
+<meta name="description" content="How kotodama-tsumugi, a 1.4B base model, learned the Binding Atlas tests over training: the stages of “you” against training tokens, its checkpoints on the main tests, and the release beside its own trajectory and three public models of its size.">
+<link rel="canonical" href="https://kotodama.animalabs.ai/binding-atlas/tsumugi">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="kotodama.animalabs.ai">
+<meta property="og:title" content="kotodama-tsumugi on the benchmark">
+<meta property="og:description" content="How kotodama-tsumugi, a 1.4B base model, learned the Binding Atlas tests over training: the stages of “you” against training tokens, its checkpoints on the main tests, and the release beside its own trajectory and three public models of its size.">
+<meta property="og:url" content="https://kotodama.animalabs.ai/binding-atlas/tsumugi">
+<meta property="og:image" content="https://kotodama.animalabs.ai/binding-atlas-card.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Binding Atlas: the swap shift for “you” after hand-offs against parameter count for 29 public base models; with no examples, models pass from about 7B, and every base from 13B up passes.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="kotodama-tsumugi on the benchmark">
+<meta name="twitter:description" content="How kotodama-tsumugi, a 1.4B base model, learned the Binding Atlas tests over training: the stages of “you” against training tokens, its checkpoints on the main tests, and the release beside its own trajectory and three public models of its size.">
+<meta name="twitter:image" content="https://kotodama.animalabs.ai/binding-atlas-card.png">
+<meta name="twitter:image:alt" content="Dynamic “you” swap shift against parameter count for 29 public base models.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;700&text=%E8%A8%80%E9%9C%8A%E7%B4%AC%E7%B4%A1&display=swap">
+<style>
+/* Love Letter TW Luxia (self-hosted next to the page); Courier Prime fills the glyphs it lacks (→ × ≈ ≥ “ ” …). */
+@font-face { font-family: "LL Luxia"; src: url("../fonts/LoveLetterTWLuxia-Regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "LL Luxia"; src: url("../fonts/LoveLetterTWLuxia-Bold.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "LL Luxia"; src: url("../fonts/LoveLetterTWLuxia-Italic.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: "LL Luxia"; src: url("../fonts/LoveLetterTWLuxia-BoldItalic.woff2") format("woff2"); font-weight: 700; font-style: italic; font-display: swap; }
+:root {
+  --bg: #ffffff; --surface: #ffffff; --surface2: #f3f4f6; --fg: #0b0c0e; --muted: #5a626d; --line: #d5d9de; --rule: #0b0c0e;
+  --pos: #1c2531; --neg: #9aa4b1; --mid: #eceef1; --hatch: #c9ced5; --accent: #0b0c0e; --human: #3d4652;
+  --chip: #f3f4f6; --gold-bg: #e3e7ec; --gold-fg: #0b0c0e; --warn: #3d4652; --shadow: 0 10px 40px rgba(11,12,14,.16);
+  --hatch-neg: rgba(11,12,14,.32); --below: #a8322d; --below-bg: #f6e3e1;
+  --f-display: "LL Luxia", "Courier Prime", "Courier New", ui-monospace, monospace;
+  --f-body: "LL Luxia", "Courier Prime", "Courier New", ui-monospace, monospace;
+  --f-mono: "Courier Prime", "LL Luxia", "Courier New", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0b0c0e; --surface: #0b0c0e; --surface2: #15181c; --fg: #f2f3f5; --muted: #9aa3ad; --line: #2b3038; --rule: #f2f3f5;
+  --pos: #e9ecf0; --neg: #5d6672; --mid: #1b1f25; --hatch: #39404a; --accent: #f2f3f5; --human: #b9c1cb;
+  --chip: #15181c; --gold-bg: #262c34; --gold-fg: #f2f3f5; --warn: #b9c1cb; --shadow: 0 10px 40px rgba(0,0,0,.6);
+  --hatch-neg: rgba(242,243,245,.30); --below: #ef8a83; --below-bg: #3a1d1c; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0b0c0e; --surface: #0b0c0e; --surface2: #15181c; --fg: #f2f3f5; --muted: #9aa3ad; --line: #2b3038; --rule: #f2f3f5;
+  --pos: #e9ecf0; --neg: #5d6672; --mid: #1b1f25; --hatch: #39404a; --accent: #f2f3f5; --human: #b9c1cb;
+  --chip: #15181c; --gold-bg: #262c34; --gold-fg: #f2f3f5; --warn: #b9c1cb; --shadow: 0 10px 40px rgba(0,0,0,.6);
+  --hatch-neg: rgba(242,243,245,.30); --below: #ef8a83; --below-bg: #3a1d1c; color-scheme: dark }
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 15px; line-height: 1.55; }
+a { color: var(--fg); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+.wrap { padding: 36px max(16px, env(safe-area-inset-right, 0px)) 72px max(16px, env(safe-area-inset-left, 0px)); max-width: 1560px; margin: 0 auto; display: grid; gap: 22px; grid-template-columns: minmax(0, 1fr); }
+.wrap > * { min-width: 0; }
+header.top { display: grid; gap: 10px; }
+.eyebrow { font-size: 12px; overflow-wrap: anywhere; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(30px, 4.2vw, 46px); line-height: 1.08; margin: 0; letter-spacing: 0; text-wrap: balance; }
+h2 { font-family: var(--f-display); font-weight: 700; font-size: 21px; margin: 0 0 8px; text-wrap: balance; }
+h3 { font-family: var(--f-display); font-weight: 700; font-size: 16.5px; margin: 0 0 6px; }
+.lede { max-width: 78ch; margin: 0; font-size: 16.5px; }
+.lede b { font-weight: 600; }
+.stats { display: flex; gap: 22px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+.stats b { font-family: var(--f-display); font-size: 22px; color: var(--fg); font-weight: 700; display: block; line-height: 1.1; }
+.iconbtn { font: inherit; font-size: 13px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 8px; padding: 5px 10px; cursor: pointer; }
+.iconbtn:hover { border-color: var(--muted); }
+/* controls */
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 3px; padding: 14px 16px; }
+.controls { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: end; }
+.ctl { display: grid; grid-template-columns: minmax(0, 1fr); gap: 5px; min-width: 0; max-width: 100%; }
+.ctl > span { font-size: 12px; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+.seg { display: inline-flex; flex-wrap: wrap; max-width: 100%; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.seg button { font: inherit; font-size: 14px; border: 0; background: transparent; color: var(--fg); padding: 6px 12px; cursor: pointer; white-space: nowrap; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
+.seg button:disabled { opacity: .4; cursor: not-allowed; }
+.f5ctl { display: flex; flex-wrap: wrap; gap: 8px 14px; margin: 6px 0 12px; }
+input[type=search] { font: inherit; font-size: 14px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--fg); width: 210px; }
+select { max-width: 100%; font: inherit; font-size: 14px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--fg); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.chip { font: inherit; font-size: 12.5px; border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; cursor: pointer; background: var(--chip); color: var(--fg); }
+.chip[aria-pressed="false"] { background: transparent; color: var(--muted); text-decoration: line-through; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+/* legend */
+.legend { display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center; font-size: 13px; color: var(--muted); margin-top: 12px; }
+.ramp { display: flex; align-items: center; gap: 8px; }
+.ramp canvas { width: 220px; height: 12px; border-radius: 3px; border: 1px solid var(--line); }
+.sw { display: inline-block; width: 16px; height: 12px; border-radius: 3px; vertical-align: -2px; margin-right: 6px; border: 1px solid var(--line); }
+.sw.hatch { background: repeating-linear-gradient(135deg, var(--hatch) 0 2px, transparent 2px 5px); }
+.sw.small { border: 1.5px dashed var(--muted); background: var(--mid); }
+.sw.st-at { border: 1px solid var(--muted); background: transparent; }
+.sw.st-below { background: repeating-linear-gradient(135deg, var(--below) 0 2px, transparent 2px 4px), var(--below-bg); }
+.cellbtn.st-at { background: transparent !important; color: var(--muted) !important; box-shadow: inset 0 0 0 1px var(--line); }
+.cellbtn.st-below { color: var(--below) !important; font-weight: 700; }
+.cellbtn { position: relative; }
+.cellbtn.only::after { content: "°"; position: absolute; top: 0; right: 2px; font-size: 10px; line-height: 1; }
+.atlas thead th.cg button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-transform: inherit; letter-spacing: inherit; }
+/* grid */
+.gridwrap { isolation: isolate; width: fit-content; max-width: 100%; overflow: auto; max-height: 78vh; border: 1px solid var(--line); border-radius: 3px; background: var(--surface); }
+table.atlas { border-collapse: separate; border-spacing: 2px; font-variant-numeric: tabular-nums; padding: 0 112px 10px 0; }
+.atlas thead th { position: sticky; z-index: 3; background: var(--surface); }
+.atlas thead tr.r1 th { top: 0; }
+.atlas thead tr.r2 th { top: 22px; }
+.atlas th.corner { position: sticky; left: 0; z-index: 300; background: var(--surface); box-shadow: 2px 0 0 var(--surface); }
+.atlas tr.grp th .grpbtn { position: sticky; left: 12px; }
+.atlas th.rowh { position: sticky; left: 0; z-index: 2; background: var(--surface); box-shadow: 2px 0 0 var(--surface); text-align: right; font-weight: 400; font-size: 13px; padding: 0 10px 0 12px; white-space: nowrap; cursor: pointer; }
+.atlas th.rowh:hover { color: var(--accent); }
+.atlas th.rowh small { color: var(--muted); font-size: 11px; }
+.atlas th.rowh small.tag { font-size: 10.5px; letter-spacing: .03em; border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; margin-left: 4px; }
+.atlas tr.rowsel th.rowh { color: var(--accent); font-weight: 600; }
+.atlas tr.grp th { background: var(--surface); text-align: left; font-family: var(--f-display); font-weight: 500; font-size: 15px; padding: 14px 12px 4px; white-space: nowrap; cursor: pointer; z-index: 2; }
+.grpbtn, .rowbtn { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-align: inherit; }
+.atlas tr.grp th .caret { display: inline-block; width: 14px; color: var(--muted); }
+.atlas thead th.cg { font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 600; text-align: left; padding: 2px 4px; border-bottom: 2px solid var(--line); white-space: nowrap; height: 22px; }
+/* column names run up and to the right at 45°, starting over their score cell (19px = half a cell): readable without turning the head, and still compact. Each header sits
+   above its right-hand neighbour (z-index set per column), so a long name stays visible over the next header. */
+.atlas thead th.cl { height: 118px; vertical-align: bottom; padding: 0; }
+.atlas thead th.cl button { position: absolute; left: 19px; bottom: 6px; transform-origin: 0 100%; transform: rotate(-45deg); font: inherit; font-size: 12px; color: var(--fg); background: none; border: 0; cursor: pointer; padding: 0 2px; white-space: nowrap; text-align: left; }
+.atlas thead th.cl button[aria-pressed="true"] { color: var(--accent); font-weight: 600; }
+.atlas thead th.cl button .srt { color: var(--accent); }
+.atlas td { padding: 0; }
+.cellbtn { width: 38px; height: 26px; border: 0; border-radius: 3px; font-family: var(--f-mono); font-size: 10.5px; cursor: pointer; display: grid; place-items: center; padding: 0; }
+.cellbtn.na { background: repeating-linear-gradient(135deg, var(--hatch) 0 2px, transparent 2px 5px); cursor: default; }
+.cellbtn.small { box-shadow: inset 0 0 0 1.5px var(--muted); font-style: italic; }
+.cellbtn.sel { box-shadow: inset 0 0 0 2.5px var(--fg); }
+.colsel .cellbtn:not(.na) { outline: 1px solid var(--accent); }
+.tip { position: fixed; z-index: 40; pointer-events: none; background: var(--fg); color: var(--bg); font-size: 12.5px; padding: 8px 10px; border-radius: 6px; max-width: 320px; line-height: 1.4; display: none; }
+/* drawer */
+.drawer { position: fixed; top: 0; right: 0; height: 100vh; width: min(560px, 100vw); background: var(--surface); border-left: 1px solid var(--line); box-shadow: var(--shadow); transform: translateX(105%); transition: transform .18s ease; z-index: 30; display: flex; flex-direction: column; }
+.drawer.open { transform: none; }
+.drawer .dh { padding: 16px 52px 10px 18px; border-bottom: 1px solid var(--line); display: grid; gap: 4px; }
+.drawer .db { padding: 14px 18px 40px; overflow: auto; overscroll-behavior: contain; display: grid; gap: 16px; align-content: start; }
+.drawer .close { position: absolute; top: 12px; right: 12px; }
+@media (max-width: 720px) {
+  .drawer { top: auto; bottom: 0; height: 82vh; width: 100vw; border-left: 0; border-top: 1px solid var(--line); border-radius: 14px 14px 0 0; transform: translateY(105%); }
+  .drawer.open { transform: none; }
+  input[type=search] { width: 100%; font-size: 16px; }
+  .quiz input { font-size: 16px; }
+  .atlas th.rowh { max-width: 132px; white-space: normal; font-size: 12px; line-height: 1.2; }
+  .atlas thead th.cl button { padding: 0 2px; }
+  .chip { padding: 6px 12px; }
+  .cellbtn { height: 32px; }
+  details.panel summary { padding: 6px 0; }
+}
+.big { display: flex; gap: 22px; flex-wrap: wrap; align-items: baseline; }
+.big .n { font-family: var(--f-display); font-size: 34px; line-height: 1; }
+.big .n small { font-size: 14px; color: var(--muted); font-family: var(--f-body); }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 3px 14px; font-size: 13.5px; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; }
+.note { font-size: 13.5px; color: var(--muted); }
+.warnnote { font-size: 13px; color: var(--warn); }
+pre.ctx { font-family: var(--f-mono); font-size: 12.5px; line-height: 1.55; white-space: pre-wrap; word-break: break-word; background: var(--surface2); border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin: 0; max-height: 46vh; overflow: auto; }
+pre.ctx .q { background: var(--gold-bg); color: var(--gold-fg); border-radius: 3px; padding: 0 2px; }
+.cands { display: flex; flex-wrap: wrap; gap: 6px; font-family: var(--f-mono); font-size: 12.5px; }
+.cands span { border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; background: var(--chip); }
+.cands span.gold { background: var(--gold-bg); color: var(--gold-fg); border-color: var(--gold-fg); font-weight: 600; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.mtabs { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; margin-bottom: 10px; }
+.mtabs button { font: inherit; font-size: 14px; border: 0; background: transparent; color: var(--fg); padding: 6px 14px; cursor: pointer; }
+.mtabs button + button { border-left: 1px solid var(--line); }
+.mtabs button[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
+.iconbtn[aria-pressed="true"] { border-color: var(--fg); font-weight: 600; }
+.quiz { display: grid; gap: 10px; }
+.quiz form { display: flex; gap: 8px; flex-wrap: wrap; }
+.quiz input { font: inherit; font-family: var(--f-mono); font-size: 14px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--fg); flex: 1 1 180px; }
+.verdict { border-radius: 8px; padding: 10px 12px; font-size: 14px; }
+.verdict.ok { background: var(--gold-bg); color: var(--gold-fg); }
+.verdict.no { background: color-mix(in srgb, var(--neg) 18%, var(--surface)); color: var(--fg); }
+.verdict b { font-size: 16px; }
+.tally { font-size: 12.5px; color: var(--muted); }
+.strip { position: relative; height: 66px; border-top: 1px solid var(--line); margin-top: 22px; overflow-x: clip; }
+.strip .dot { position: absolute; top: -5px; width: 9px; height: 9px; border-radius: 50%; transform: translateX(-50%); background: var(--muted); opacity: .55; }
+.strip .dot.me { background: var(--accent); opacity: 1; width: 13px; height: 13px; top: -7px; box-shadow: 0 0 0 2px var(--surface); }
+.strip .dot.hum { background: var(--human); opacity: 1; }
+.strip .lab { position: absolute; top: 10px; font-size: 11px; color: var(--muted); transform: translateX(-50%); white-space: nowrap; }
+.strip .lab.me { color: var(--accent); top: 30px; font-weight: 600; }
+.strip .tick { position: absolute; top: -9px; height: 18px; width: 1px; background: var(--line); }
+svg.scatter { width: 100%; height: auto; display: block; }
+svg.scatter text { font-family: var(--f-body); fill: var(--muted); font-size: 11px; }
+svg.scatter .ax { stroke: var(--line); }
+svg.scatter .zero { stroke: var(--muted); stroke-dasharray: 3 3; }
+.anat { display: grid; gap: 6px; }
+.anat .bar { display: flex; height: 14px; border-radius: 4px; overflow: hidden; background: var(--mid); }
+.anat .bar span { display: block; height: 100%; }
+.anat .bar span + span { box-shadow: -2px 0 0 var(--surface); }
+.anat .keys { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12.5px; color: var(--muted); }
+.anat .keys i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+.rank { display: grid; gap: 2px; font-size: 13px; }
+.rank div { display: grid; grid-template-columns: 1fr 44px 120px; gap: 8px; align-items: center; cursor: pointer; padding: 1px 4px; border-radius: 4px; }
+.rank div:hover { background: var(--surface2); }
+.rank .bar { height: 8px; border-radius: 0 3px 3px 0; }
+.rank .bar.negb { border-radius: 3px 0 0 3px; }
+/* prose sections */
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px; }
+.prose p, .prose li { max-width: 72ch; font-size: 14.5px; }
+.prose ul { padding-left: 20px; margin: 6px 0; }
+details.panel summary { cursor: pointer; font-family: var(--f-display); font-weight: 700; font-size: 16.5px; }
+details.panel[open] summary { margin-bottom: 8px; }
+.log { font-size: 14px; display: grid; gap: 6px; }
+.log time { font-family: var(--f-mono); font-size: 12px; color: var(--muted); margin-right: 8px; }
+footer { color: var(--muted); font-size: 13px; display: flex; gap: 16px; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 14px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+/* ── paper front section ─────────────────────────────────────────── */
+.paper { display: grid; gap: 34px; max-width: 1080px; }
+.paper .claim { font-size: clamp(17px, 2vw, 20px); line-height: 1.5; max-width: 62ch; margin: 0; text-wrap: pretty; }
+.paper .credit { font-size: 14px; color: var(--muted); margin: -4px 0 0; letter-spacing: .02em; }
+.paper .credit a { color: inherit; }
+.paper .byline { font-size: 13px; color: var(--muted); display: flex; gap: 6px 18px; flex-wrap: wrap; letter-spacing: .02em; }
+.paper .byline a { color: var(--muted); }
+.kanji { font-family: "Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif; font-weight: 700; letter-spacing: .06em; }
+.part .gloss { font-size: 13px; color: var(--muted); margin: 4px 0 0; }
+.fig { display: grid; gap: 12px; border-top: 2px solid var(--rule); padding-top: 14px; }
+.fig > * { min-width: 0; }
+.fig .fh { display: flex; gap: 10px 16px; align-items: baseline; flex-wrap: wrap; }
+.fig .fh .no { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.fig .fh h2 { margin: 0; }
+.part { display: flex; gap: 10px 16px; align-items: baseline; flex-wrap: wrap; max-width: 1080px; margin: 46px 0 -8px; padding-top: 18px; border-top: 2px solid var(--fg); }
+.part .no { font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+.part h2 { margin: 0; font-size: clamp(22px, 2.6vw, 28px); text-wrap: balance; }
+.fig .cap { font-size: 13.5px; color: var(--muted); max-width: 80ch; margin: 0; }
+.fig .cap b { color: var(--fg); }
+.stairs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; align-items: start; }
+.stairs .st { border-left: 1px solid var(--line); padding: 0 12px; display: grid; gap: 6px; align-content: start; min-width: 0; }
+.stairs .st:first-child { border-left: 0; padding-left: 0; }
+.stairs .riser { height: 76px; display: flex; align-items: flex-end; margin-bottom: 6px; }
+.stairs .step { height: calc(var(--k) * 14px); width: 100%; background: var(--pos); }
+.stairs .st.stop .step { background: repeating-linear-gradient(135deg, var(--pos) 0 2px, transparent 2px 5px); border: 1px solid var(--pos); }
+.stairs .n { font-size: 12px; letter-spacing: .12em; color: var(--muted); }
+.stairs .name { font-weight: 700; font-size: 15.5px; line-height: 1.25; }
+.stairs .gloss { font-size: 13px; line-height: 1.45; }
+.stairs code { font-family: var(--f-mono); font-size: 12px; background: var(--surface2); padding: 4px 6px; display: block; white-space: normal; overflow-wrap: anywhere; }
+.stairs .who { font-size: 12px; color: var(--muted); }
+@media (max-width: 860px) { .stairs { grid-template-columns: minmax(0, 1fr); gap: 14px; } .stairs .st { border-left: 0; padding: 0; border-top: 1px solid var(--line); padding-top: 10px; } .stairs .riser { height: auto; } .stairs .step { height: 6px; width: calc(var(--k) * 20%); } }
+.figrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr)); gap: 26px; }
+.figrow > * { min-width: 0; }
+svg.plot { width: 100%; height: auto; display: block; overflow: visible; }
+svg.plot text { font-family: var(--f-mono); fill: var(--muted); font-size: 11px; }
+svg.plot .ax { stroke: var(--line); }
+svg.plot .zero { stroke: var(--fg); stroke-width: 1; }
+svg.plot .band { fill: var(--surface2); }
+svg.plot .lbl { fill: var(--fg); }
+.plotkey { display: flex; gap: 6px 18px; flex-wrap: wrap; font-size: 12.5px; color: var(--muted); }
+.plotkey .k { display: inline-flex; align-items: center; gap: 6px; }
+.plotkey svg { width: 14px; height: 14px; }
+table.levers { border-collapse: collapse; width: 100%; font-size: 14px; }
+table.levers th, table.levers td { text-align: left; padding: 8px 10px 8px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+table.levers th { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 400; border-bottom: 1px solid var(--rule); }
+table.levers td.eff { font-family: var(--f-mono); font-weight: 700; white-space: nowrap; width: 3.5em; }
+table.levers td.cost { color: var(--muted); }
+.tblwrap { overflow-x: auto; }
+.sect { display: grid; gap: 10px; border-top: 2px solid var(--rule); padding-top: 14px; }
+.sect > h2 { margin: 0; }
+.colkey { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 10px 22px; font-size: 13px; line-height: 1.45; }
+.colkey h3 { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 400; margin: 0 0 4px; }
+.colkey ul { margin: 0; padding-left: 16px; } .colkey li { margin: 2px 0; }
+.sect > .cap { font-size: 13.5px; color: var(--muted); margin: 0; max-width: 80ch; }
+</style>
+</head>
+<body>
+<nav id="toc" aria-label="Contents" data-sel=".fh h2" data-skip="details" data-reserve="1"></nav>
+<!-- Contents rail: a sticky table of contents in the right gutter on wide screens, built from the page's own
+headings. A page opts in with <nav id="toc" ...></nav> followed by the TOC placeholder; render_hosting fills the placeholder
+with this file. Attributes on the nav:
+  data-sel      top-level entries (default "h2"); data-sel2: the entries nested under them (default "h3");
+                elements with data-toc="Label" are entries too, at the level in data-toc-level (default 1)
+  data-scope    where to look for them (default "body")
+  data-skip     containers whose headings are left out
+  data-hide     elements that, while they fill the middle of the screen, fade the rail out
+  data-plate    dark full-bleed elements: while one fills the middle of the screen, the reserved gutter and the rail take
+                its plate colours (--plate, --plate-fg, --plate-muted, --plate-line), so a light page has no light seam
+  data-reserve  "1": on wide screens the page gives up a right gutter for the rail (pages without free margin)
+  data-min      narrowest viewport, in px, that shows the full rail (default 1400)
+  data-slim     narrowest viewport that shows the slim rail, a strip of ticks that opens on hover (default 900)
+Level-2 entries show only under the active level-1 entry. Below the slim width a "Contents" button opens the list.
+While the rail is on, --toc-w on the root element holds the width it takes, for full-width blocks to make room. -->
+<style>
+#toc { display: none; position: fixed; top: 84px; right: 18px; width: 214px; max-height: calc(100vh - 120px);
+  overflow: auto; z-index: 30; font-size: 12.5px; line-height: 1.35; transition: opacity .25s;
+  scrollbar-width: thin; }
+#toc.away { opacity: 0; pointer-events: none; }
+#toc .tt { font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted, #8a8f98);
+  margin: 0 0 8px 12px; }
+#toc ol { list-style: none; margin: 0; padding: 0; border-left: 1px solid var(--line, #3a3f47); }
+#toc li { margin: 0; }
+#toc a { display: block; padding: 4px 0 4px 11px; margin-left: -1px; border-left: 2px solid transparent;
+  color: var(--muted, #8a8f98); text-decoration: none; overflow-wrap: anywhere; }
+#toc a:hover { color: var(--fg, #e8eaed); }
+#toc li.l2 a { padding-left: 23px; font-size: 12px; }
+#toc li.l2 { display: none; }
+#toc li.l2.open { display: block; }
+#toc a[aria-current] { color: var(--fg, #e8eaed); border-left-color: var(--fg, #e8eaed); }
+html.toc-full, html.toc-slim { --toc-w: 236px; }
+html.toc-slim { --toc-w: 34px; }
+html.toc-full #toc, html.toc-slim #toc { display: block; }
+html.toc-reserve body { padding-right: var(--toc-w, 0px); }
+html.toc-reserve { background: var(--bg, Canvas); transition: background-color .3s; }   /* the reserved gutter takes the page's own background */
+html.toc-reserve.toc-plate { background: var(--plate, #0b0c0e); }
+html.toc-reserve.toc-plate body { background: linear-gradient(90deg, var(--bg, Canvas) calc(100% - var(--toc-w, 0px)), var(--plate, #0b0c0e) 0) fixed; }
+html.toc-plate #toc { --fg: var(--plate-fg, #eef0f2); --muted: var(--plate-muted, #8c95a0); --line: var(--plate-line, #262a31); --bg: var(--plate, #0b0c0e); }
+html.toc-slim #toc { width: 22px; right: 6px; }
+html.toc-slim #toc:not(:hover):not(:focus-within) .tt { visibility: hidden; }
+html.toc-slim #toc:not(:hover):not(:focus-within) a { color: transparent; height: 9px; padding: 0 0 0 9px;
+  overflow: hidden; white-space: nowrap; border-left-color: var(--line, #3a3f47); }
+html.toc-slim #toc:not(:hover):not(:focus-within) a[aria-current] { border-left-color: var(--fg, #e8eaed); }
+html.toc-slim #toc:not(:hover):not(:focus-within) li.l2 { display: none; }
+html.toc-slim #toc:hover, html.toc-slim #toc:focus-within { width: 236px; background: var(--bg, #0b0c0e);
+  padding: 10px 10px 10px 0; border: 1px solid var(--line, #3a3f47); border-radius: 8px; }
+#toc-btn { display: none; position: fixed; right: 12px; bottom: 14px; z-index: 31; font: inherit; font-size: 12.5px;
+  padding: 7px 12px; border-radius: 999px; border: 1px solid var(--line, #3a3f47); background: var(--bg, #0b0c0e);
+  color: var(--fg, #e8eaed); cursor: pointer; }
+html.toc-btn #toc-btn { display: block; }
+html.toc-btn #toc.open { display: block; top: auto; bottom: 58px; right: 12px; width: min(84vw, 320px);
+  max-height: 62vh; background: var(--bg, #0b0c0e); border: 1px solid var(--line, #3a3f47); border-radius: 10px;
+  padding: 12px 12px 12px 0; box-shadow: 0 8px 28px rgba(0,0,0,.35); }
+@media (prefers-reduced-motion: reduce) { #toc { transition: none; } }
+@media print { #toc { display: none !important; } }
+</style>
+<script>
+(() => {
+"use strict";
+const init = () => {
+  const nav = document.getElementById("toc");
+  if (!nav) return;
+  const d = nav.dataset, root = document.documentElement;
+  const MIN = +(d.min || 1400), SLIM = +(d.slim || 900);
+  if (d.reserve === "1") root.classList.add("toc-reserve");
+  const scope = document.querySelector(d.scope || "body") || document.body;
+  const skip = d.skip ? `#toc, ${d.skip}` : "#toc";
+  const used = new Set([...document.querySelectorAll("[id]")].map(e => e.id));
+  const slug = t => {
+    let s = "s-" + t.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48), k = s, n = 2;
+    while (used.has(k)) k = `${s}-${n++}`;
+    used.add(k);
+    return k;
+  };
+  const S1 = d.sel || "h2", S2 = d.sel2 || "h3";
+  const els = [...scope.querySelectorAll(`[data-toc], ${S1}, ${S2}`)].filter(el =>
+    !el.closest(skip) && !el.closest("[hidden]") && (el.dataset.toc || el.textContent.trim()));
+  if (els.length < 2) return;
+  const items = els.map(el => {
+    const label = (el.dataset.toc || el.textContent).replace(/\s+/g, " ").trim();
+    const lv = el.dataset.toc ? +(el.dataset.tocLevel || 1) : (el.matches(S2) && !el.matches(S1) ? 2 : 1);
+    if (!el.id) el.id = slug(label);
+    return { el, label, lv };
+  });
+  let parent = -1;
+  items.forEach((it, i) => {
+    if (it.lv === 2 && parent < 0) it.lv = 1;            // a nested entry with nothing above it stands alone
+    if (it.lv === 1) parent = i;
+    it.parent = it.lv === 1 ? i : parent;
+  });
+  const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  nav.innerHTML = `<p class="tt">Contents</p><ol>${items.map((it, i) =>
+    `<li class="l${it.lv}" data-i="${i}"><a href="#${esc(it.el.id)}">${esc(it.label)}</a></li>`).join("")}</ol>`;
+  const lis = [...nav.querySelectorAll("li")], links = lis.map(li => li.querySelector("a"));
+  let cur = -2;
+  const spy = () => {
+    const line = innerHeight * 0.3;
+    let a = -1;
+    for (let i = 0; i < items.length; i++) { if (items[i].el.getBoundingClientRect().top <= line) a = i; else break; }
+    if (a === cur) return;
+    cur = a;
+    const top = a < 0 ? -1 : items[a].parent;
+    links.forEach((l, i) => i === a ? l.setAttribute("aria-current", "true") : l.removeAttribute("aria-current"));
+    lis.forEach((li, i) => li.classList.toggle("open", items[i].lv === 2 && items[i].parent === top));
+    if (a >= 0) {
+      const r = links[a].getBoundingClientRect(), n = nav.getBoundingClientRect();
+      if (r.top < n.top || r.bottom > n.bottom) links[a].scrollIntoView({ block: "nearest" });
+    }
+  };
+  let raf = 0;
+  addEventListener("scroll", () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; spy(); }); }, { passive: true });
+  const btn = document.createElement("button");
+  btn.id = "toc-btn"; btn.type = "button"; btn.textContent = "Contents";
+  btn.setAttribute("aria-controls", "toc"); btn.setAttribute("aria-expanded", "false");
+  nav.after(btn);
+  const close = () => { nav.classList.remove("open"); btn.setAttribute("aria-expanded", "false"); };
+  btn.addEventListener("click", () => {
+    const o = nav.classList.toggle("open"); btn.setAttribute("aria-expanded", String(o));
+    if (o) { cur = -2; spy(); }
+  });
+  nav.addEventListener("click", e => { if (e.target.closest("a") && root.classList.contains("toc-btn")) close(); });
+  addEventListener("keydown", e => { if (e.key === "Escape") close(); });
+  const fit = () => {
+    const w = innerWidth;
+    root.classList.toggle("toc-full", w >= MIN);
+    root.classList.toggle("toc-slim", w >= SLIM && w < MIN);
+    root.classList.toggle("toc-btn", w < SLIM);
+    if (w >= SLIM) close();
+    spy();
+  };
+  addEventListener("resize", fit);
+  fit();
+  if (d.hide && "IntersectionObserver" in window) {
+    const on = new Set();
+    const io = new IntersectionObserver(es => {
+      for (const e of es) e.isIntersecting ? on.add(e.target) : on.delete(e.target);
+      nav.classList.toggle("away", on.size > 0);
+    }, { rootMargin: "-45% 0px -45% 0px" });
+    document.querySelectorAll(d.hide).forEach(el => io.observe(el));
+  }
+  if (d.plate && "IntersectionObserver" in window) {
+    const on = new Set();
+    const io = new IntersectionObserver(es => {
+      for (const e of es) e.isIntersecting ? on.add(e.target) : on.delete(e.target);
+      root.classList.toggle("toc-plate", on.size > 0);
+    }, { rootMargin: "-45% 0px -45% 0px" });
+    document.querySelectorAll(d.plate).forEach(el => io.observe(el));
+  }
+};
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
+})();
+</script>
+
+<div class="wrap">
+  <header class="paper" style="gap:14px">
+    <div class="eyebrow"><span>who is who, in base language models</span>
+      <button class="iconbtn" id="theme" aria-label="toggle light / dark theme">light / dark</button></div>
+    <h1>kotodama-tsumugi on the benchmark</h1>
+    <p class="credit">Led by <a href="https://x.com/kataletheia">Luxia</a>, with <a href="https://animalabs.ai">Anima Labs</a> · built with <a href="https://www.anthropic.com/claude">Claude</a></p>
+    <p class="claim">This page follows one model through the benchmark's tests of who is who. The
+      <a href="../binding-atlas">benchmark's own page</a> explains the tests, the five stages of <i>you</i> and the swap
+      shift, and scores every public model on them.</p>
+    <p class="claim"><b>kotodama-tsumugi</b> is our 1.4B model. Its middle 20 layers run twice with the same weights,
+      so each token passes through 72 layers. It reaches the third stage by <b>33B tokens</b> of training, in the range
+      where OLMo-2 13B gets there; OLMo-2 1B needs 420–525B. Given three worked examples, it is the smallest base
+      measured that passes the fifth stage. Its swap shift is +.038, with the whole 95% interval above +.02
+      (<a href="../binding-atlas#tsumugi-you">the test</a>). The next is Qwen3 4B.</p>
+    <p class="cap"><span class="kanji">言霊</span> kotodama, word-spirit: language as a thing with a life of its own.
+      <span class="kanji">紬</span> tsumugi, spun thread: words woven into more than the sum of their parts.
+      <a href="../threads">A map of every neuron in this model</a> shows the circuits behind these tests.</p>
+    <p class="claim">Its main run trains at a constant learning rate to 100B tokens. To read a checkpoint fairly, a short
+      cooldown is branched off it: a closing stretch of training where the learning rate decays. Those cooled-down
+      reads are the hollow markers below. Two cooldowns were run from the 100B checkpoint with the same data and
+      settings. The release is one, ending at 110B. The other shows how far a cooldown alone moves a reading, and
+      Table 2 compares them. The <a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b">model card</a> describes
+      the architecture and the training run.</p>
+    <div class="byline"><span>kotodama · 2026</span><a href="../binding-atlas">the benchmark: every public model on every test</a><a href="../take">take the tests yourself</a><a href="../threads">a map of tsumugi's neurons</a><a href="https://kotodama.animalabs.ai/">kotodama-tsumugi</a></div>
+  </header>
+
+
+  <div class="paper">
+    <section class="fig" aria-labelledby="f4h">
+      <div class="fh"><span class="no">Figure 1</span><h2 id="f4h">The stages during kotodama-tsumugi's training</h2></div>
+      <p class="cap lead">Swap shift against training tokens on three stages: <i>I</i> as the speaker (stage 1),
+        <i>you</i> as the person spoken to (stage 3), and <i>you</i> through hand-offs with no examples (stage 5). Filled
+        markers are the main run at a constant learning rate; hollow markers are its cooled-down reads; small
+        grey markers are a second run from another random start, to 11B tokens.</p>
+      <div id="moontraj"></div>
+      <p class="cap"><i>I</i> as the speaker starts to pass at 3.75B tokens and levels off at +.16 to +.25 from about 40B. <i>You</i>
+        as the person spoken to first dips below zero, the stage where the model treats <i>you</i> as <i>me</i>. It
+        first passes at 33B tokens in a cooled-down read (+.065) and at 40B on the main run itself (+.068), and reaches
+        +.192 at the 110B release. The other cooldown from the same checkpoint reads +.127 (Table 2 gives the spread).
+        On the main run, <i>you</i> through hand-offs with no examples sits just below zero from about 4B (−.015 to −.034) and
+        never passes. At 110B the two cooldowns read −.014 and −.012, not reliably backwards. The markers along the top show where
+        OLMo-2 13B, 7B and 1B reach stage 3.</p>
+    </section>
+    <section class="fig" aria-labelledby="f5h">
+      <div class="fh"><span class="no">Figure 2</span><h2 id="f5h">The run against its peers</h2></div>
+      <div class="f5ctl">
+        <div class="seg" id="f5m" role="group" aria-label="metric"><button data-k="avg9" aria-pressed="true">benchmark average</button><button data-k="ubpb" aria-pressed="false">unseen text</button><button data-k="I" aria-pressed="false"><i>I</i> = speaker</button><button data-k="you" aria-pressed="false"><i>you</i> = person spoken to</button></div>
+        <div class="seg" id="f5x" role="group" aria-label="x axis"><button data-k="tok" aria-pressed="true">tokens</button><button data-k="flops" aria-pressed="false">training FLOPs</button></div>
+      </div>
+      <p class="cap lead">kotodama-tsumugi's checkpoints against public checkpoints of similar models, all scored the same
+        way, on one of four measures: the average of nine standard benchmarks with no examples (HellaSwag, ARC, PIQA and
+        six more); unseen text, in bits per byte on text published after the training data was collected; and the swap
+        shifts for stages 1 and 3. The x-axis is training tokens or training compute.</p>
+      <div id="f5"></div>
+      <p class="cap">The white line is tsumugi's main run; hollow markers are its cooled-down reads, the 110B release among them.
+        Grey lines are public checkpoints of Pythia-1.4B, OLMo-2 1B, OLMo-1 1B and SmolLM2-1.7B. On unseen text,
+        lower is better. On the compute axis tsumugi pays for its repeated layers
+        (1.13e10 FLOPs per token, about 1.3× the 1–2B bases).</p>
+    </section>
+    <section class="fig" aria-labelledby="t3h">
+      <div class="fh"><span class="no">Table 1</span><h2 id="t3h">kotodama-tsumugi's checkpoints on the main tests</h2></div>
+      <p class="cap lead">Each cooled-down checkpoint of kotodama-tsumugi on the full atlas's main tests, with the
+        atlas's own values (0 is guessing, 1 is always right). Each column names the run (the main run or the second
+        run) and its training tokens. Tests that have worked examples are read with them, the others alone. Each rule-learning
+        row averages the score over versions of the test that get steadily harder.</p>
+      <div class="tblwrap"><table class="levers" id="moonbat"></table></div>
+      <p class="cap"> Lookup rises from .69 at 5B tokens to .98 by 55B, level
+        with the 7–9B bases (.97 to 1.00). The update tests (many refills, variable chains, shared lists) stay at
+        chance through 33B and lift from 55B on (.04 to .22). Static <i>you</i> climbs from .08 at 5B to .49 at the
+        release. Pattern completion reaches .55, second of 12 models at 1–2B parameters. The two seeds differ at 5B
+        (the second run learns lookup and set binding earlier) and agree within .05 on all ten rows at 11B.</p>
+    </section>
+    <section class="fig" aria-labelledby="t4h">
+      <div class="fh"><span class="no">Table 2</span><h2 id="t4h">The release against its trajectory and its class</h2></div>
+      <p class="cap lead">The release beside its own earlier checkpoints and three public models of its size. The table
+        has three kinds of row. The first four are swap shifts on the stages, and above +.02 passes. The next two test
+        how many name–task pairs ("Ana: plumbing") a model can hold in its prompt, following a published capacity study
+        (Ravulapalli 2026, <a href="https://arxiv.org/abs/2609.30634"><i>In-context binding capacity in language models</i></a>). K50 is how
+        many pairs fit before recall falls halfway to chance. Each trial is written four ways (a list or inline, two
+        question wordings), and K50 is read over all four. The second of the two is recall of one pair across 256 tokens
+        of filler. The last two are accuracies on who-has-what questions (chance ≈ .33).</p>
+      <div class="tblwrap"><table class="levers" id="reltab"></table></div>
+      <p class="cap">The two 110B columns are two cooldowns from the same checkpoint, with the same training loss. The spread between them is the measured cooldown-to-cooldown variance.
+        It is .127 vs .192 on <i>you</i> as the person spoken to, and .022 vs .038 on <i>you</i> through hand-offs with examples. K50 reads 4.6 vs
+        5.1, and held-out text differs by .025 bits/byte. Every
+        single-cooldown number on this page carries that spread, so a difference between neighbouring checkpoints on
+        one axis is not a trend. A second run from another random start (same data order) was trained to 11B. The who-has-what test has no SmolLM2 or Qwen3 reading. Capacity tracks training recipe and
+        tokens more than parameters on this test (Pythia-160M through Pythia-6.9B read about the same), so no parameter-equivalent
+        size is read from it.</p>
+    </section>
+    <p class="cap" style="max-width:none">On the benchmark's page, kotodama-tsumugi is one row: the release. Its other
+      checkpoints come from two training runs. The main run was cooled down and read at 5B, 11B, 33B, 55B and 88B
+      tokens on its way to the 110B release. A second run, from another random start on the same data order, was read
+      at 5B and 11B. Table 1 gives each of them on the benchmark's main tests.</p>
+    <p class="cap"><a href="../binding-atlas">Back to the benchmark: every public model on every test</a></p>
+  </div>
+
+
+  <footer><span>Built from the kotodama binding research (2026). Numbers are point estimates.</span><span>Set in Love Letter Typewriter (© 1994 Blake Haber, Dixie's Delights) with Courier Prime.</span></footer>
+</div>
+
+
+<script type="application/json" id="stage-data">{"_source":"Stage gauges of the binding battery. Swap shift = mean[p(gold|orig) - p(gold|swap)] over the candidates; > +.02 binds, < -.02 inverts. dyn = dynamic 'you' (ownership changes hands in the scene); 0-shot and 3-shot.","stages":[{"n":1,"name":"I = the speaker","gloss":"\"I\" means whoever is speaking.","ex":"Jack: I'm holding the ___","ok":"every base of 0.5B parameters or more","olmo1b":"~21–63B tokens","ours":"~3–3.75B tokens"},{"n":2,"name":"you = the speaker (a mistake)","gloss":"\"you\" is read as the speaker too: the pronoun-reversal phase young children go through.","ex":"Jack: you're holding the ___  → Jack's object","ok":"every training run measured passes through it","olmo1b":"~63B → ~500B tokens","ours":"passes through it at ~4–20B tokens"},{"n":3,"name":"you = the person spoken to","gloss":"\"you\" means the addressee, when who holds what is simply stated.","ex":"Carol has the onion. … Jack: you're holding the ___","ok":"every base of 0.6B or more trained on trillions of tokens, except Bamba 9B","olmo1b":"420–525B tokens","ours":"by 33B tokens with a cooldown (40B without one); +.192 at 110B"},{"n":4,"name":"you = the speaker again","gloss":"once objects change hands in the chat, \"you\" slides back onto the speaker.","ex":"Erin gives Paul her cup. … Paul: now you're holding the ___","ok":"every base up to 4B parameters, and they stop here","olmo1b":"from ~63B, still there at 4T","ours":"from ~4B tokens; by 110B no longer reliably reversed (−.027 at 11B → −.014)"},{"n":5,"name":"you followed through hand-offs","gloss":"\"you\" is tracked as objects change hands: first with three worked examples, later with none.","ex":"same scene, answered correctly without examples","ok":"with no examples: from about 7B (OLMo-2 7B, Qwen2.5 7B), and every base from 13B up; with three worked examples: from Qwen3 4B","olmo1b":"never (flat to 4T)","ours":"with no examples: not reached by 110B tokens; with three worked examples it passes at 110B (+.038), the smallest base measured that does"}],"threshold":{"_note":"endpoint dynamic-you swap shift vs total parameters (B). MoE = total params. Models without a public param count are listed in 'unsized'.","models":[{"m":"OLMo-2 1B (4T, pre-anneal)","p":1.5,"tok":"4T","fam":"OLMo","z":-0.029,"t":-0.024},{"m":"SmolLM2 1.7B","p":1.7,"tok":"11T","fam":"other","z":0.01,"t":0.006},{"m":"SmolLM3 3B","p":3.1,"tok":"11T","fam":"other","z":-0.01,"t":0.027},{"m":"Qwen3 0.6B","p":0.6,"tok":"36T","fam":"Qwen3","z":-0.058,"t":0.0},{"m":"Qwen3 1.7B","p":1.7,"tok":"36T","fam":"Qwen3","z":-0.054,"t":0.026},{"m":"Qwen3 4B","p":4.0,"tok":"36T","fam":"Qwen3","z":-0.029,"t":0.055},{"m":"Qwen3 8B","p":8.2,"tok":"36T","fam":"Qwen3","z":0.022,"t":0.08},{"m":"Qwen3 14B","p":14.8,"tok":"36T","fam":"Qwen3","z":0.121,"t":0.321},{"m":"Qwen2.5 0.5B","p":0.5,"tok":"18T","fam":"Qwen2.5","z":-0.052,"t":0.012},{"m":"Qwen2.5 1.5B","p":1.5,"tok":"18T","fam":"Qwen2.5","z":-0.074,"t":-0.036},{"m":"Qwen2.5 3B","p":3.1,"tok":"18T","fam":"Qwen2.5","z":-0.022,"t":-0.006},{"m":"Qwen2.5 7B","p":7.6,"tok":"18T","fam":"Qwen2.5","z":0.047,"t":0.073},{"m":"Qwen2.5 14B","p":14.7,"tok":"18T","fam":"Qwen2.5","z":0.093,"t":0.295},{"m":"OLMo-2 7B","p":7.3,"tok":"4T","fam":"OLMo","z":0.055,"t":-0.015},{"m":"OLMo-2 13B","p":13.7,"tok":"5T","fam":"OLMo","z":0.07,"t":-0.016},{"m":"Gemma-2 9B","p":9.2,"tok":"8T","fam":"other","z":0.017,"t":0.034},{"m":"Qwen3 30B-A3B","p":30.5,"tok":"36T","fam":"Qwen3","z":0.084,"t":0.079},{"m":"GLM-4 32B","p":32,"tok":"15T","fam":"other","z":0.106,"t":0.032},{"m":"OLMo-3 32B","p":32,"tok":"6T","fam":"OLMo","z":0.051,"t":0.087},{"m":"Llama-3.1 70B","p":70.6,"tok":"15T","fam":"Llama","z":0.108,"t":0.064},{"m":"Qwen2.5 72B","p":72.7,"tok":"18T","fam":"Qwen2.5","z":0.121,"t":0.046},{"m":"Llama-3.1 405B","p":405,"tok":"15T","fam":"Llama","z":0.129,"t":0.169},{"m":"Nemotron-3 Ultra","p":550,"tok":"20T","fam":"other","z":0.089,"t":0.119},{"m":"DeepSeek-V3","p":671,"tok":"15T","fam":"DeepSeek","z":0.216,"t":0.102},{"m":"Kimi-K2","p":1040,"tok":"15T","fam":"other","z":0.155,"t":0.117},{"m":"DeepSeek-V4 Flash","p":284,"tok":"≥32T","z":0.177,"t":0.13,"fam":"DeepSeek"},{"m":"DeepSeek-V4 Pro","p":1600,"tok":"≥32T","z":0.066,"t":0.051,"fam":"DeepSeek"},{"m":"Trinity-Large (base)","p":398,"tok":"17T","z":0.091,"t":0.16,"fam":"other"},{"m":"MiMo-V2.5 Pro (base)","p":1020,"tok":"27T","z":0.162,"t":0.184,"fam":"other"}],"unsized":[],"ours":{"m":"kotodama-tsumugi 1.4B @ 110B tokens (release)","p":1.42,"z":-0.014,"t":0.038}},"cost":{"_note":"tokens at which each stage first binds (gauge CI rule), OLMo-2 family (one data recipe) + kotodama-tsumugi (1.4B, 72 effective layers). [lo, hi] = bracketing checkpoints.","rows":[{"stage":"1 · I = speaker","pts":[{"m":"OLMo-2 1B","lo":21.0,"hi":63.0},{"m":"OLMo-2 7B","lo":21.0,"hi":42.0},{"m":"OLMo-2 13B","lo":17.0,"hi":42.0},{"m":"kotodama-tsumugi","lo":3.0,"hi":3.75,"ours":true}]},{"stage":"3 · you = person spoken to","pts":[{"m":"OLMo-2 1B","lo":420.0,"hi":525.0},{"m":"OLMo-2 7B","lo":105.0,"hi":210.0},{"m":"OLMo-2 13B","lo":17.0,"hi":42.0},{"m":"kotodama-tsumugi","lo":30.0,"hi":33.0,"ours":true}]},{"stage":"5 · you through hand-offs","pts":[{"m":"OLMo-2 1B","lo":4000,"hi":null,"note":"never, to 4T"},{"m":"OLMo-2 7B","lo":210.0,"hi":3896.0},{"m":"OLMo-2 13B","lo":42.0,"hi":5000.0},{"m":"kotodama-tsumugi","lo":110,"hi":null,"ours":true,"note":"0-shot not reached by 110B; with three examples it binds at 110B"}]}]},"lead":"Base language models learn to look things up long before they learn to track change. In the box puzzle, items go into boxes and are then swapped, moved or refilled, and the model is asked what one box holds. The median model under 1B already finds what a box was said to hold, and scores zero on the boxes that a later step changed. With worked examples, updating climbs steadily with size, to .77 for the 70B models and above .8 for most of the largest. In a chat, *you* means the person being spoken to. Models get this right in five stages, in the same order in every training run measured. To read a stage, the speaker's name on the chat's last line is swapped: a model that follows *you* moves its answer to the other person's object. The swap shift is how much probability leaves the first answer; a model passes when the whole 95% interval of that shift is above +.02, a bar fixed before any model was scored. Every base of 0.6B parameters or more trained on trillions of tokens reaches the third stage (*you* is the person spoken to), except Bamba 9B. The fifth stage is following *you* as objects change hands. With no examples in the prompt, it appears from about 7B (OLMo-2 7B, Qwen2.5 7B), and every base measured from 13B up reaches it.","tsumugi":{"_note":"kotodama-tsumugi s17 trunk (constant LR, to 100B) and cooldown branches (annealed), stage gauges = P2 speaker swap (static I, static you) and dynamic swap (addressee, 0-shot / 3-shot). Seed 7 = the seed replicate to 11B. Values from the synthesis table.","traj":{"s17":[{"tok":1.0,"kind":"constant","I":0.003,"you":-0.002,"dyn0":-0.003,"dyn3":-0.003},{"tok":2.0,"kind":"constant","I":-0.0,"you":-0.002,"dyn0":-0.001,"dyn3":0.016},{"tok":3.0,"kind":"constant","I":0.007,"you":-0.007,"dyn0":0.004,"dyn3":0.01},{"tok":3.75,"kind":"constant","I":0.031,"you":-0.02,"dyn0":-0.019,"dyn3":0.01},{"tok":10.0,"kind":"constant","I":0.066,"you":-0.01,"dyn0":-0.034,"dyn3":-0.003},{"tok":20.0,"kind":"constant","I":0.114,"you":-0.001,"dyn0":-0.026,"dyn3":0.019},{"tok":30.0,"kind":"constant","I":0.129,"you":0.019,"dyn0":-0.015,"dyn3":0.045},{"tok":40.0,"kind":"constant","I":0.158,"you":0.068,"dyn0":-0.018,"dyn3":0.024},{"tok":50.0,"kind":"constant","I":0.25,"you":0.031,"dyn0":-0.024,"dyn3":0.023},{"tok":60.0,"kind":"constant","I":0.191,"you":0.058,"dyn0":-0.015,"dyn3":0.069},{"tok":80.0,"kind":"constant","I":0.185,"you":0.074,"dyn0":-0.026,"dyn3":0.035},{"tok":100.0,"kind":"constant","I":0.169,"you":0.08,"dyn0":-0.027,"dyn3":0.016},{"tok":5.0,"kind":"annealed","I":0.031,"you":-0.021,"dyn0":-0.022,"dyn3":-0.013},{"tok":11.0,"kind":"annealed","I":0.071,"you":-0.023,"dyn0":-0.027,"dyn3":0.002},{"tok":33.0,"kind":"annealed","I":0.221,"you":0.065,"dyn0":-0.018,"dyn3":0.01},{"tok":55.0,"kind":"annealed","I":0.228,"you":0.122,"dyn0":-0.028,"dyn3":0.03},{"tok":88.0,"kind":"annealed","I":0.156,"you":0.181,"dyn0":-0.016,"dyn3":0.021},{"tok":110.0,"kind":"annealed","note":"release","I":0.178,"you":0.192,"dyn0":-0.014,"dyn3":0.038},{"tok":110.0,"kind":"annealed","note":"the other cooldown from the same 100B checkpoint","I":0.195,"you":0.127,"dyn0":-0.012,"dyn3":0.022}],"s7":[{"tok":5.0,"kind":"annealed","I":0.021,"you":-0.007,"dyn0":-0.01,"dyn3":0.002},{"tok":11.0,"kind":"annealed","I":0.102,"you":-0.01,"dyn0":-0.031,"dyn3":0.027},{"tok":1.0,"kind":"constant","I":0.004,"you":-0.005,"dyn0":-0.003,"dyn3":-0.002},{"tok":2.0,"kind":"constant","I":0.004,"you":-0.004,"dyn0":-0.006,"dyn3":0.012},{"tok":3.0,"kind":"constant","I":0.007,"you":-0.005,"dyn0":-0.009,"dyn3":0.021},{"tok":3.75,"kind":"constant","I":0.007,"you":-0.007,"dyn0":-0.026,"dyn3":0.029},{"tok":10.0,"kind":"constant","I":0.095,"you":-0.008,"dyn0":-0.057,"dyn3":0.014}]},"olmo_stage3":[{"m":"OLMo-2 13B","tok":42},{"m":"OLMo-2 7B","tok":210},{"m":"OLMo-2 1B","tok":420}],"battery":{"cols":["main · 5B","main · 11B","main · 33B","main · 55B","main · 88B","110B · release","second run · 5B","second run · 11B"],"groups":[{"name":"Nothing moves","rows":[["Simple lookup",[0.692,0.897,0.941,0.977,0.988,0.987,0.811,0.906]]]},{"name":"Moves: story","rows":[["Hand-offs in a story",[0.26,0.282,0.281,0.363,0.385,0.399,0.278,0.329]],["Sets after hand-offs",[0.297,0.461,0.496,0.488,0.552,0.547,0.407,0.454]],["Many refills (cold)",[-0.003,-0.013,0.013,0.09,0.224,0.137,-0.035,0.026]]]},{"name":"Moves: code","rows":[["Variable chains",[-0.018,-0.028,0.013,0.067,0.128,0.042,-0.047,0.007]],["Shared lists",[0.013,0.034,0.013,0.084,0.155,0.149,0.041,0.057]]]},{"name":"I and you","rows":[["'You', nothing moves (cold)",[0.077,0.05,0.333,0.327,0.403,0.492,0.036,0.084]],["'You', after hand-offs",[0.007,-0.017,0.105,0.023,0.106,0.036,-0.035,0.013]]]},{"name":"New rules","rows":[["Pattern completion (AUC)",[0.458,0.402,0.475,0.438,0.507,0.553,0.426,0.434]],["Known facts (control) (AUC)",[0.64,0.713,0.892,0.892,0.925,0.948,0.651,0.765]]]}],"signed":true},"desc":"A 1.42B-parameter model with a looped core, run as 72 effective layers. Its trunk trains at a constant learning rate to 100B tokens. Annealed reads are cooldown branches forked from its checkpoints (cosine decay to zero over about 10% of the tokens so far). The release is the 110B branch from the 100B fork. The architecture and training run are described on the model card (huggingface.co/LuxiaSL/kotodama-tsumugi-1b), and the release table below gives the spread between two anneals.","lead":"**kotodama-tsumugi** is a 1.4B model whose middle 20 layers run twice, so each token passes through 72 layers. It reaches the third stage by **33B tokens**, in the range where OLMo-2 13B gets there; OLMo-2 1B needs 420–525B. Given three worked examples, it is the smallest base measured that passes the fifth stage: +.038, with its whole 95% interval above +.02. The next is Qwen3 4B."},"decomp":{"_note":"stage5-decomp-v1: each dynamic-you gauge item rewritten along one axis. Accuracy pooled over self + addressee queries, 0-shot, 360 items per cell (SE ≈ .024); chance ≈ .29. Endpoints only.","cols":[{"k":"third","name":"story, no I or you","ex":"Erin gives the cup to Paul. … Right now Paul is holding the"},{"k":"deictic","name":"chat (the test itself)","ex":"Erin: Here, take my cup. … Paul: Right now I'm holding the"},{"k":"named_transfer","name":"chat, hand-off as a stage direction","ex":"[Erin gives the cup to Paul.] … deictic query"},{"k":"vocative","name":"chat, addressee named","ex":"Erin: Paul, right now you're holding the"}],"chance":0.287,"rows":[{"m":"Pythia-1.4B","p":1.41,"tok":"134B","ours":false,"third":0.283,"deictic":0.3,"named_transfer":0.281,"vocative":0.267},{"m":"kotodama-tsumugi · 33B","p":1.42,"tok":"33B","ours":true,"third":0.319,"deictic":0.269,"named_transfer":0.328,"vocative":0.25},{"m":"kotodama-tsumugi · 55B","p":1.42,"tok":"55B","ours":true,"third":0.314,"deictic":0.286,"named_transfer":0.297,"vocative":0.283},{"m":"kotodama-tsumugi · 88B","p":1.42,"tok":"88B","ours":true,"third":0.331,"deictic":0.322,"named_transfer":0.317,"vocative":0.269},{"m":"kotodama-tsumugi · 110B, other cooldown","p":1.42,"tok":"110B","ours":true,"third":0.375,"deictic":0.331,"named_transfer":0.364,"vocative":0.3},{"m":"kotodama-tsumugi · 110B, release","p":1.42,"tok":"110B","ours":true,"third":0.336,"deictic":0.303,"named_transfer":0.336,"vocative":0.286},{"m":"OLMo-2 1B","p":1.48,"tok":"4T","ours":false,"third":0.3,"deictic":0.278,"named_transfer":0.3,"vocative":0.258},{"m":"SmolLM2 1.7B","p":1.71,"tok":"11T","ours":false,"third":0.4,"deictic":0.3,"named_transfer":0.294,"vocative":0.303},{"m":"Qwen3 1.7B","p":1.72,"tok":"36T","ours":false,"third":0.481,"deictic":0.358,"named_transfer":0.267,"vocative":0.272},{"m":"Qwen3 4B","p":4.02,"tok":"36T","ours":false,"third":0.575,"deictic":0.367,"named_transfer":0.417,"vocative":0.35},{"m":"Qwen2.5 7B","p":7.62,"tok":"18T","ours":false,"third":0.533,"deictic":0.458,"named_transfer":0.497,"vocative":0.411},{"m":"Llama-3.1 8B","p":8.03,"tok":"15T","ours":false,"third":0.572,"deictic":0.419,"named_transfer":0.486,"vocative":0.372},{"m":"Qwen3 8B","p":8.19,"tok":"36T","ours":false,"third":0.575,"deictic":0.414,"named_transfer":0.45,"vocative":0.411},{"m":"Qwen2.5 14B","p":14.77,"tok":"18T","ours":false,"third":0.7,"deictic":0.442,"named_transfer":0.661,"vocative":0.439},{"m":"Qwen3 14B","p":14.77,"tok":"36T","ours":false,"third":0.694,"deictic":0.467,"named_transfer":0.661,"vocative":0.431},{"m":"Qwen3 30B-A3B","p":30.53,"tok":"36T","ours":false,"third":0.583,"deictic":0.428,"named_transfer":0.578,"vocative":0.397},{"m":"Llama-3.1 70B","p":70.6,"tok":"15T","ours":false,"third":0.794,"deictic":0.558,"named_transfer":0.853,"vocative":0.483}]},"riders":{"_note":"riders ladder, the box puzzle in four registers (code, narrative, screenplay, chat), items with 1-4 operations. Lookup = the queried box ends with its declared contents; update = an operation changed it. kappa, mean over the four registers; public rows = the median model of each size band (total parameters). One model's cell: 68 lookup or 82 update items per register, 272 or 328 in all, about ±.08 at 95%.","cols":[{"k":"l0","name":"lookup, cold"},{"k":"u0","name":"update, cold"},{"k":"lf","name":"lookup, with examples"},{"k":"uf","name":"update, with examples"}],"rows":[{"m":"under 1B (5 models)","ours":false,"models":["falcon-h1-0.5b","pythia-160m","qwen2.5-0.5b","qwen3-0.6b","smollm2-360m"],"l0":0.401,"u0":0.001,"lf":0.394,"uf":-0.001},{"m":"1–2B (11 models)","ours":false,"models":["falcon-h1-1.5b","falcon-h1-1.5b-deep","gpt2-xl","llama3.2-1b","olmo1-1b","olmo2-1b","pythia-1.4b","pythia-1b","qwen2.5-1.5b","qwen3-1.7b","smollm2-1.7b"],"l0":0.406,"u0":0.064,"lf":0.486,"uf":0.058},{"m":"2–5B (8 models)","ours":false,"models":["falcon-h1-3b","falcon3-3b","gemma-2b","gemma2-2b","pythia-2.8b","pythia-2.8b-deduped","qwen2.5-3b","qwen3-4b"],"l0":0.542,"u0":0.129,"lf":0.708,"uf":0.204},{"m":"7–10B (13 models)","ours":false,"models":["bamba-9b","falcon-h1-7b","falcon-mamba-7b","falcon3-7b","gemma-7b","gemma2-9b","llama3-8b","llama3.1-8b","nemotron-h-8b","olmo2-7b","pythia-6.9b","qwen2.5-7b","recurrentgemma-9b"],"l0":0.549,"u0":0.212,"lf":0.597,"uf":0.4},{"m":"13–34B (6 models)","ours":false,"models":["falcon-h1-34b","gemma4-31b-base","glm4-32b-base","olmo2-13b","olmo3-32b","qwen3-30b-a3b"],"l0":0.665,"u0":0.52,"lf":0.762,"uf":0.571},{"m":"70–72B (2 models)","ours":false,"models":["llama3.1-70b","qwen2.5-72b"],"l0":0.62,"u0":0.592,"lf":0.825,"uf":0.769},{"m":"284B–1.6T (9 models)","ours":false,"models":["dsv3-base","dsv4-flash-base","dsv4-pro-base","kimi-k2-base","llama3.1-405b","mimo-v25-base","mimo-v25-pro-base","nemotron3-ultra-550b-base","trinity-base"],"l0":0.719,"u0":0.721,"lf":0.811,"uf":0.87},{"m":"kotodama-tsumugi 1.4B · release","ours":true,"l0":0.436,"u0":0.121,"lf":0.611,"uf":-0.044},{"m":"kotodama-tsumugi 1.4B · other cooldown","ours":true,"l0":0.481,"u0":0.088,"lf":0.486,"uf":0.001}],"signed":true},"release":{"cols":["33B","55B","88B","110B · other cooldown","110B · release","OLMo-2 1B · 4T","SmolLM2 1.7B · 11T","Qwen3 1.7B · 36T"],"ours":[true,true,true,true,true,false,false,false],"rows":[["I = speaker (swap shift)",[0.221,0.228,0.156,0.195,0.178,0.312,0.363,0.595],true],["you = person spoken to (swap shift)",[0.065,0.122,0.181,0.127,0.192,0.114,0.207,0.137],true],["you through hand-offs, no examples (swap shift)",[-0.018,-0.028,-0.016,-0.012,-0.014,-0.04,0.01,-0.054],true],["you through hand-offs, three examples (swap shift)",[0.01,0.03,0.021,0.022,0.038,-0.018,0.006,0.026],true],["name–task pairs held: K50",[3.364,4.07,5.417,4.621,5.083,3.819,10.226,33.129],false],["one name–task pair past 256 filler tokens (accuracy, chance .04)",[0.852,0.988,0.927,0.912,0.906,0.738,0.819,0.942],false],["who has what, said with I and you (accuracy, chance ≈ .33)",[0.27,0.302,0.319,0.354,0.314,0.32,null,null],false],["who has what, third person (accuracy, chance ≈ .33)",[0.418,0.404,0.446,0.467,0.441,0.461,null,null],false]]},"run":{"_note":"same-harness points per checkpoint (synthesis table): lm-eval avg9, Uncheatable bits/byte, stage-gauge swap shifts. tsumugi trunk = constant LR (trunk-*), annealed = cooldown branches (anneal-*), release = anneal-110B-release. FLOPs = tokens x FLOPs/token (tsumugi 1.13e10 with looped depth; public 6N).","models":[{"m":"kotodama-tsumugi","style":"ours","fpt":11300000000.0,"pts":[{"ck":"trunk-1.0B","tok":1.0,"kind":"trunk","I":0.003,"you":-0.0019,"flops":1.13e+19},{"ck":"trunk-2.0B","tok":2.0,"kind":"trunk","I":-0.0002,"you":-0.0022,"flops":2.26e+19},{"ck":"trunk-3.0B","tok":3.0,"kind":"trunk","I":0.0068,"you":-0.0071,"flops":3.39e+19},{"ck":"trunk-3.75B","tok":3.75,"kind":"trunk","I":0.0308,"you":-0.0201,"flops":4.2375e+19},{"ck":"anneal-5B","tok":5.0,"kind":"annealed","I":0.0314,"you":-0.021,"flops":5.65e+19},{"ck":"trunk-10B","tok":10.0,"kind":"trunk","avg9":56.056,"ubpb":0.939,"I":0.0662,"you":-0.0104,"flops":1.13e+20},{"ck":"anneal-11B","tok":11.0,"kind":"annealed","I":0.0712,"you":-0.0232,"flops":1.243e+20},{"ck":"trunk-20B","tok":20.0,"kind":"trunk","avg9":57.708,"ubpb":0.8983,"I":0.1143,"you":-0.0014,"flops":2.26e+20},{"ck":"trunk-30B","tok":30.0,"kind":"trunk","avg9":59.112,"ubpb":0.889,"I":0.1292,"you":0.0186,"flops":3.39e+20},{"ck":"anneal-33B","tok":33.0,"kind":"annealed","avg9":61.257,"ubpb":0.8194,"I":0.2211,"you":0.0651,"flops":3.729e+20},{"ck":"trunk-40B","tok":40.0,"kind":"trunk","avg9":59.512,"ubpb":0.8951,"I":0.1576,"you":0.0679,"flops":4.52e+20},{"ck":"trunk-50B","tok":50.0,"kind":"trunk","avg9":59.868,"ubpb":0.8774,"I":0.2503,"you":0.0309,"flops":5.65e+20},{"ck":"anneal-55B","tok":55.0,"kind":"annealed","avg9":62.033,"ubpb":0.8008,"I":0.2282,"you":0.1217,"flops":6.215e+20},{"ck":"trunk-60B","tok":60.0,"kind":"trunk","avg9":59.354,"ubpb":0.8839,"I":0.1905,"you":0.0577,"flops":6.78e+20},{"ck":"trunk-70B","tok":70.0,"kind":"trunk","avg9":60.699,"ubpb":0.8708,"flops":7.91e+20},{"ck":"trunk-80B","tok":80.0,"kind":"trunk","avg9":59.984,"ubpb":0.8682,"I":0.1848,"you":0.0742,"flops":9.04e+20},{"ck":"anneal-88B","tok":88.0,"kind":"annealed","avg9":63.882,"ubpb":0.7744,"I":0.1557,"you":0.1809,"flops":9.944e+20},{"ck":"trunk-90B","tok":90.0,"kind":"trunk","avg9":60.665,"ubpb":0.8952,"flops":1.017e+21},{"ck":"trunk-100B","tok":100.0,"kind":"trunk","avg9":60.216,"ubpb":0.8653,"I":0.169,"you":0.0804,"flops":1.13e+21},{"ck":"anneal-110B-release","tok":110.0,"kind":"annealed","avg9":64.149,"ubpb":0.7683,"I":0.1778,"you":0.1918,"flops":1.243e+21,"note":"release"}]},{"m":"Pythia-1.4B","style":"dash","fpt":8459999999.999999,"pts":[{"ck":"2B tokens","tok":2.0,"kind":"base","I":0.0028,"you":0.0008,"flops":1.6919999999999998e+19},{"ck":"10B tokens","tok":10.0,"kind":"base","I":0.011,"you":-0.0072,"flops":8.459999999999998e+19},{"ck":"step5000 (7ca9aa97)","tok":10.5,"kind":"base","avg9":50.541,"ubpb":0.9907,"flops":8.882999999999998e+19},{"ck":"step14000 (5178dde4)","tok":29.4,"kind":"base","avg9":54.809,"ubpb":0.8937,"flops":2.4872399999999997e+20},{"ck":"step16000 (rescored)","tok":33.6,"kind":"base","avg9":54.514,"ubpb":0.8839,"flops":2.8425599999999997e+20},{"ck":"34B tokens","tok":34.0,"kind":"base","I":0.0356,"you":-0.0229,"flops":2.8763999999999997e+20},{"ck":"step19000 (c36825d4)","tok":39.8,"kind":"base","avg9":55.247,"ubpb":0.8729,"flops":3.3670799999999993e+20},{"ck":"step29000 (e14c9106)","tok":60.8,"kind":"base","avg9":56.309,"ubpb":0.8503,"flops":5.1436799999999993e+20},{"ck":"step38000 (3094ff04)","tok":79.7,"kind":"base","avg9":57.798,"ubpb":0.8359,"flops":6.742619999999999e+20},{"ck":"step48000 (b5d0b108)","tok":100.7,"kind":"base","avg9":59.033,"ubpb":0.8262,"flops":8.51922e+20},{"ck":"134B tokens","tok":134.0,"kind":"base","I":0.1596,"you":-0.0039,"flops":1.1336399999999999e+21},{"ck":"main (fedc38a1)","tok":299.9,"kind":"base","avg9":61.353,"ubpb":0.7781,"flops":2.5371539999999997e+21},{"ck":"main/final","tok":299.9,"kind":"base","I":0.2211,"you":0.008,"flops":2.5371539999999997e+21}]},{"m":"OLMo-2 1B","style":"solid","fpt":8879999999.999998,"pts":[{"ck":"1B tokens","tok":1.0,"kind":"base","I":-0.0001,"you":-0.0002,"flops":8.879999999999998e+18},{"ck":"21B tokens","tok":21.0,"kind":"base","I":0.0102,"you":-0.0053,"flops":1.8647999999999997e+20},{"ck":"stage1-step10000-tokens21B (22f7d18a)","tok":21.0,"kind":"base","avg9":56.468,"ubpb":0.9859,"flops":1.8647999999999997e+20},{"ck":"stage1-step20000-tokens42B (555c6099)","tok":42.0,"kind":"base","avg9":58.556,"ubpb":0.9232,"flops":3.7295999999999993e+20},{"ck":"63B tokens","tok":63.0,"kind":"base","I":0.1409,"you":-0.0189,"flops":5.594399999999999e+20},{"ck":"stage1-step30000-tokens63B (rescored)","tok":63.0,"kind":"base","avg9":61.043,"ubpb":0.8972,"flops":5.594399999999999e+20},{"ck":"105B tokens","tok":105.0,"kind":"base","I":0.1409,"you":-0.0067,"flops":9.323999999999997e+20},{"ck":"stage1-step50000-tokens105B (5d0cce11)","tok":105.0,"kind":"base","avg9":61.776,"ubpb":0.8729,"flops":9.323999999999997e+20},{"ck":"210B tokens","tok":210.0,"kind":"base","I":0.2164,"you":-0.0093,"flops":1.8647999999999995e+21},{"ck":"294B tokens","tok":294.0,"kind":"base","I":0.2447,"you":-0.0063,"flops":2.6107199999999995e+21},{"ck":"420B tokens","tok":420.0,"kind":"base","I":0.3042,"you":0.0288,"flops":3.729599999999999e+21},{"ck":"525B tokens","tok":525.0,"kind":"base","I":0.28,"you":0.0416,"flops":4.661999999999999e+21},{"ck":"755B tokens","tok":755.0,"kind":"base","I":0.2704,"you":0.0717,"flops":6.704399999999998e+21},{"ck":"1049B tokens","tok":1049.0,"kind":"base","I":0.3013,"you":0.0834,"flops":9.315119999999998e+21},{"ck":"1510B tokens","tok":1510.0,"kind":"base","I":0.2974,"you":0.1191,"flops":1.3408799999999997e+22},{"ck":"2098B tokens","tok":2098.0,"kind":"base","I":0.2969,"you":0.0992,"flops":1.8630239999999997e+22},{"ck":"2999B tokens","tok":2999.0,"kind":"base","I":0.4034,"you":0.1796,"flops":2.6631119999999995e+22},{"ck":"3503B tokens","tok":3503.0,"kind":"base","I":0.324,"you":0.1632,"flops":3.1106639999999995e+22},{"ck":"4001B tokens","tok":4001.0,"kind":"base","I":0.369,"you":0.1552,"flops":3.5528879999999992e+22},{"ck":"main (a1847dff)","tok":4050.0,"kind":"base","avg9":69.923,"ubpb":0.7563,"flops":3.5963999999999993e+22},{"ck":"main/final","tok":4050.0,"kind":"base","I":0.3124,"you":0.1142,"flops":3.5963999999999993e+22}]},{"m":"OLMo-1 1B","style":"dot","fpt":7680000000.0,"pts":[{"ck":"step14000-tokens29B (e60a63f3)","tok":29.0,"kind":"base","avg9":51.831,"ubpb":0.9682,"flops":2.2272e+20},{"ck":"step16000-tokens33B (cb65fb32)","tok":33.0,"kind":"base","avg9":52.571,"ubpb":0.9526,"flops":2.5344e+20},{"ck":"main (d7cbab74)","tok":3050.0,"kind":"base","avg9":66.095,"ubpb":0.715,"flops":2.3424e+22},{"ck":"main/final","tok":3050.0,"kind":"base","I":0.1766,"you":0.0757,"flops":2.3424e+22}]},{"m":"SmolLM2-1.7B","style":"dashdot","fpt":10260000000.0,"pts":[{"ck":"262B tokens","tok":262.0,"kind":"base","I":0.1217,"you":-0.0323,"flops":2.68812e+21},{"ck":"525B tokens","tok":525.0,"kind":"base","I":0.1221,"you":0.0011,"flops":5.3865e+21},{"ck":"1050B tokens","tok":1050.0,"kind":"base","I":0.1679,"you":0.0059,"flops":1.0773e+22},{"ck":"2100B tokens","tok":2100.0,"kind":"base","I":0.1875,"you":0.0128,"flops":2.1546e+22},{"ck":"4200B tokens","tok":4200.0,"kind":"base","I":0.2147,"you":0.0236,"flops":4.3092e+22},{"ck":"6300B tokens","tok":6300.0,"kind":"base","I":0.2831,"you":0.0692,"flops":6.4638e+22},{"ck":"8400B tokens","tok":8400.0,"kind":"base","I":0.3171,"you":0.0895,"flops":8.6184e+22},{"ck":"10500B tokens","tok":10500.0,"kind":"base","I":0.3242,"you":0.1225,"flops":1.0773e+23},{"ck":"11000B tokens","tok":11000.0,"kind":"base","I":0.3627,"you":0.2074,"flops":1.1286e+23},{"ck":"main (effd688a)","tok":11000.0,"kind":"base","avg9":72.87,"ubpb":0.6909,"flops":1.1286e+23}]}]}}</script>
+<script>
+(() => {
+"use strict";
+const G = JSON.parse(document.getElementById("stage-data").textContent);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+const f3 = v => (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(3).replace(/^0/, "");
+// Atlas Figure 1: the staircase
+if (document.getElementById("stairs")) document.getElementById("stairs").innerHTML = G.stages.map(st => `
+  <div class="st${st.n === 4 ? " stop" : ""}" style="--k:${st.n}">
+    <div class="riser" aria-hidden="true"><div class="step"></div></div>
+    <div class="n">STAGE ${st.n}</div><div class="name">${esc(st.name)}</div>
+    <div class="gloss">${esc(st.gloss)}</div><code>${esc(st.ex)}</code>
+    <div class="who">Reached by: ${esc(st.ok)}<br>OLMo-2 1B, in training: ${esc(st.olmo1b)}<br>kotodama-tsumugi 1.4B, in training: ${esc(st.ours)}</div></div>`).join("");
+// marker shapes: zero-shot = filled square, 3-shot = hollow square, ours = filled diamond
+const sq = (x, y, fill, r = 4) => `<rect x="${(x - r).toFixed(1)}" y="${(y - r).toFixed(1)}" width="${2 * r}" height="${2 * r}" fill="${fill ? "var(--fg)" : "var(--bg)"}" stroke="var(--fg)" stroke-width="1.3"/>`;
+const dia = (x, y, r = 6) => `<path d="M${x} ${y - r}L${x + r} ${y}L${x} ${y + r}L${x - r} ${y}Z" fill="var(--fg)" stroke="var(--bg)" stroke-width="1.5"/>`;
+// Atlas Figure 2: dynamic-you vs params
+(() => {
+  if (!document.getElementById("thresh")) return;
+  const T = G.threshold, M = T.models, W = 520, H = 300, L = 54, R = 14, Tp = 14, B = 40;
+  const x0 = Math.log10(0.4), x1 = Math.log10(2500), y0 = -0.1, y1 = 0.36;
+  const X = p => L + (Math.log10(p) - x0) / (x1 - x0) * (W - L - R), Y = v => Tp + (y1 - v) / (y1 - y0) * (H - Tp - B);
+  let s = `<svg class="plot" viewBox="0 0 ${W} ${H}" role="img" aria-label="dynamic you swap shift against parameter count">`;
+  for (const t of [1, 10, 100, 1000]) s += `<line class="ax" x1="${X(t)}" x2="${X(t)}" y1="${Tp}" y2="${H - B}"/><text x="${X(t)}" y="${H - B + 16}" text-anchor="middle">${t >= 1000 ? "1T" : t + "B"}</text>`;
+  for (const v of [-0.1, 0, 0.1, 0.2, 0.3]) s += `<text x="${L - 7}" y="${Y(v) + 4}" text-anchor="end">${v ? f3(v).slice(0, -1) : "0"}</text>`;
+  s += `<line class="zero" x1="${L}" x2="${W - R}" y1="${Y(0)}" y2="${Y(0)}"/>`;
+  s += `<line x1="${L}" x2="${W - R}" y1="${Y(0.02)}" y2="${Y(0.02)}" stroke="var(--muted)" stroke-dasharray="4 4"/><text class="lbl" x="${W - R - 4}" y="${Y(0.02) - 5}" text-anchor="end">passes (+.02)</text>`;
+  s += `<text x="${W - R}" y="${H - B + 30}" text-anchor="end">parameters (log)</text><text x="12" y="${(Tp + H - B) / 2}" text-anchor="middle" transform="rotate(-90 12 ${(Tp + H - B) / 2})">swap shift</text>`;
+  for (const m of M) {
+    const x = X(m.p);
+    s += `<line x1="${x}" x2="${x}" y1="${Y(m.z)}" y2="${Y(m.t)}" stroke="var(--line)"/>`;
+    s += `<g><title>${esc(m.m)} · ${m.tok} tokens · no examples ${f3(m.z)} · three examples ${f3(m.t)}</title>${sq(x, Y(m.t), false)}${sq(x, Y(m.z), true)}</g>`;
+  }
+  const o = T.ours, ox = X(o.p), dh = (y, r = 6) => `<path d="M${ox} ${y - r}L${ox + r} ${y}L${ox} ${y + r}L${ox - r} ${y}Z" fill="var(--bg)" stroke="var(--fg)" stroke-width="1.6"/>`;
+  s += `<g><title>${esc(o.m)}: no examples ${f3(o.z)} · three examples ${f3(o.t)}</title><line x1="${ox}" x2="${ox}" y1="${Y(o.z)}" y2="${Y(o.t)}" stroke="var(--fg)" stroke-width="1.4"/>${dia(ox, Y(o.z))}${dh(Y(o.t))}</g><text class="lbl" x="${ox}" y="${Y(o.t) - 12}" text-anchor="middle">tsumugi</text>`;
+  for (const [name, dx, anchor] of [["Qwen3 14B", 9, "start"]]) { const m = M.find(q => q.m === name); if (m) s += `<text class="lbl" x="${X(m.p) + dx}" y="${Y(m.t) + 4}" text-anchor="${anchor}">${esc(name.replace("Llama-3.1 ", "Llama "))}</text>`; }
+  s += `</svg><div class="plotkey"><span class="k"><svg viewBox="0 0 14 14">${sq(7, 7, true)}</svg>no examples</span><span class="k"><svg viewBox="0 0 14 14">${sq(7, 7, false)}</svg>three worked examples</span><span class="k"><svg viewBox="0 0 14 14">${dia(7, 7, 5)}</svg><svg viewBox="0 0 14 14"><path d="M7 2L12 7L7 12L2 7Z" fill="var(--bg)" stroke="var(--fg)" stroke-width="1.4"/></svg>kotodama-tsumugi 1.4B at 110B tokens (release): no examples / three examples</span></div>`;
+  if (T.unsized.length) s += `<p class="cap" style="font-size:12.5px">Also measured, parameter count not public: ${T.unsized.map(u => `${esc(u.m)} ${f3(u.z)} / ${f3(u.t)}`).join(" · ")} (no examples / three examples).</p>`;
+  document.getElementById("thresh").innerHTML = s;
+})();
+// Atlas Figure 3: tokens to each stage, OLMo-2 1B/7B/13B (+ ours)
+(() => {
+  if (!document.getElementById("cost")) return;
+  const rows = G.cost.rows, W = 580, H = 70 + rows.length * 64, L = 210, R = 18, Tp = 10, B = 40;
+  const x0 = Math.log10(1), x1 = Math.log10(10000), X = t => L + (Math.log10(t) - x0) / (x1 - x0) * (W - L - R);
+  const lanes = ["OLMo-2 1B", "OLMo-2 7B", "OLMo-2 13B", "kotodama-tsumugi"], off = {"OLMo-2 1B": -15, "OLMo-2 7B": -5, "OLMo-2 13B": 5, "kotodama-tsumugi": 15};
+  let s = `<svg class="plot" viewBox="0 0 ${W} ${H}" role="img" aria-label="tokens until each stage appears">`;
+  for (const t of [1, 10, 100, 1000, 10000]) s += `<line class="ax" x1="${X(t)}" x2="${X(t)}" y1="${Tp}" y2="${H - B}"/><text x="${X(t)}" y="${H - B + 16}" text-anchor="middle">${t >= 1000 ? t / 1000 + "T" : t + "B"}</text>`;
+  s += `<text x="${(L + W - R) / 2}" y="${H - 6}" text-anchor="middle">training tokens (log)</text>`;
+  rows.forEach((r, i) => {
+    const yc = Tp + 34 + i * 64;
+    s += `<text class="lbl" x="${L - 12}" y="${yc + 4}" text-anchor="end">${esc(r.stage)}</text>`;
+    for (const p of r.pts) {
+      const y = yc + off[p.m], a = X(p.lo), open = p.hi == null, b = open ? Math.min(W - R, X(p.lo * 2.5)) : X(p.hi);
+      const dash = open ? ` stroke-dasharray="3 3"` : "", w = p.ours ? 2.5 : 1.6;
+      s += `<g><title>${esc(p.m)}: ${p.lo}${open ? "+ (" + esc(p.note || "not reached") + ")" : "–" + p.hi}B tokens</title>`;
+      s += `<line x1="${a}" x2="${b}" y1="${y}" y2="${y}" stroke="var(--fg)" stroke-width="${w}"${dash}/>`;
+      s += p.ours ? dia(a, y, 5) : `<rect x="${a - 3}" y="${y - 3}" width="6" height="6" fill="var(--fg)"/>`;
+      if (open) s += `<path d="M${b - 4} ${y - 3}L${b} ${y}L${b - 4} ${y + 3}" fill="none" stroke="var(--fg)" stroke-width="1.3"/>`;
+      s += `</g>`;
+    }
+  });
+  s += `</svg><div class="plotkey"><span>each line spans the checkpoints that bracket the stage; rows top → bottom = OLMo-2 1B · 7B · 13B · kotodama-tsumugi 1.4B; dashed arrow = not reached by the last checkpoint</span><span class="k"><svg viewBox="0 0 14 14">${dia(7, 7, 5)}</svg>kotodama-tsumugi 1.4B</span></div>`;
+  document.getElementById("cost").innerHTML = s;
+})();
+// tsumugi page Figure 1: kotodama-tsumugi's stage gauges against tokens
+(() => {
+  if (!document.getElementById("moontraj")) return;
+  const M = G.tsumugi, W = 720, H = 320, L = 56, R = 120, Tp = 14, B = 44;
+  const x0 = Math.log10(0.8), x1 = Math.log10(700), y0 = -0.07, y1 = 0.34;
+  const X = t => L + (Math.log10(t) - x0) / (x1 - x0) * (W - L - R), Y = v => Tp + (y1 - v) / (y1 - y0) * (H - Tp - B);
+  const ser = [["I", "I = speaker", ""], ["you", "you = person spoken to", "6 3"], ["dyn0", "you through hand-offs, no examples", "2 3"]];
+  let s = `<svg class="plot" viewBox="0 0 ${W} ${H}" role="img" aria-label="kotodama-tsumugi stage gauges against training tokens">`;
+  for (const t of [1, 3, 10, 30, 100, 300]) s += `<line class="ax" x1="${X(t)}" x2="${X(t)}" y1="${Tp}" y2="${H - B}"/><text x="${X(t)}" y="${H - B + 16}" text-anchor="middle">${t}B</text>`;
+  for (const v of [-0.05, 0, 0.1, 0.2]) s += `<text x="${L - 7}" y="${Y(v) + 4}" text-anchor="end">${v ? f3(v).slice(0, -1) : "0"}</text>`;
+  s += `<line class="zero" x1="${L}" x2="${W - R}" y1="${Y(0)}" y2="${Y(0)}"/>`;
+  s += `<line x1="${L}" x2="${W - R}" y1="${Y(0.02)}" y2="${Y(0.02)}" stroke="var(--line)" stroke-dasharray="2 4"/><text x="${W - R + 4}" y="${Y(0.02) + 4}" class="lbl">passes (+.02)</text>`;
+  for (const [oi, o] of M.olmo_stage3.entries()) s += `<g><title>${esc(o.m)} reaches stage 3 at ~${o.tok}B tokens</title><line x1="${X(o.tok)}" x2="${X(o.tok)}" y1="${Tp}" y2="${H - B}" stroke="var(--line)" stroke-dasharray="1 3"/><path d="M${X(o.tok) - 5} ${Tp}L${X(o.tok) + 5} ${Tp}L${X(o.tok)} ${Tp + 7}Z" fill="var(--fg)"/><text class="lbl" x="${X(o.tok)}" y="${Tp + 20 + (oi % 2) * 13}" text-anchor="middle">${esc(o.m)}</text></g>`;
+  s += `<text x="${(L + W - R) / 2}" y="${H - 6}" text-anchor="middle">training tokens (log) · ▾ = where OLMo-2 13B / 7B / 1B reach stage 3</text><text x="12" y="${(Tp + H - B) / 2}" text-anchor="middle" transform="rotate(-90 12 ${(Tp + H - B) / 2})">swap shift</text>`;
+  const pts = (seed, kind) => M.traj[seed].filter(p => p.kind === kind);
+  for (const [k, name, dash] of ser) {
+    const c = pts("s17", "constant"), path = c.map((p, i) => `${i ? "L" : "M"}${X(p.tok).toFixed(1)} ${Y(p[k]).toFixed(1)}`).join("");
+    s += `<path d="${path}" fill="none" stroke="var(--fg)" stroke-width="1.8" stroke-dasharray="${dash}"/>`;
+    for (const p of c) s += `<g><title>main run · ${p.tok}B · ${esc(name)} ${f3(p[k])}</title>${sq(X(p.tok), Y(p[k]), true, 3.5)}</g>`;
+    for (const p of pts("s17", "annealed")) s += `<g><title>main run, cooled down${p.note ? " (" + esc(p.note) + ")" : ""} · ${p.tok}B · ${esc(name)} ${f3(p[k])}</title>${sq(X(p.tok), Y(p[k]), false, 4.5)}</g>`;
+    for (const p of pts("s7", "constant").concat(pts("s7", "annealed"))) s += `<g><title>second run${p.kind === "annealed" ? ", cooled down" : ""} · ${p.tok}B · ${esc(name)} ${f3(p[k])}</title><circle cx="${X(p.tok)}" cy="${Y(p[k])}" r="2.4" fill="var(--line)"/></g>`;
+    const last = c[c.length - 1]; s += `<text class="lbl" x="${X(last.tok) + 26}" y="${Y(last[k]) + 4}">${esc(name)}</text>`;
+  }
+  s += `</svg><div class="plotkey"><span class="k"><svg viewBox="0 0 14 14">${sq(7, 7, true, 3.5)}</svg>main run (constant learning rate)</span><span class="k"><svg viewBox="0 0 14 14">${sq(7, 7, false, 4.5)}</svg>main run, cooled down</span><span class="k"><svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="2.4" fill="var(--line)"/></svg>second run (another random start, to 11B)</span><span>line style: solid = I as speaker · dashed = you as person spoken to · dotted = you through hand-offs</span></div>`;
+  document.getElementById("moontraj").innerHTML = s;
+})();
+// tsumugi page Figure 2: the run against its peers (metric x axis toggles)
+(() => {
+  if (!document.getElementById("f5")) return;
+  const RUN = G.run.models, el = document.getElementById("f5"), st = {k: "avg9", x: "tok"};
+  const NAMES = {avg9: "benchmark average (9 tasks, no examples)", ubpb: "unseen text, bits per byte (lower is better)", I: "I = speaker, swap shift", you: "you = person spoken to, swap shift"};
+  const DASH = {ours: "", dash: "6 4", solid: "", dot: "1.5 3", dashdot: "7 3 1.5 3"};
+  function draw() {
+    const W = 720, H = 330, L = 58, R = 128, Tp = 14, B = 46, k = st.k, inv = false;
+    const ser = RUN.map(m => ({...m, pts: m.pts.filter(p => p[k] != null)})).filter(m => m.pts.length);
+    const xs = ser.flatMap(m => m.pts.map(p => p[st.x])), ys = ser.flatMap(m => m.pts.map(p => p[k]));
+    const x0 = Math.log10(Math.min(...xs)) - 0.08, x1 = Math.log10(Math.max(...xs)) + 0.08;
+    let y0 = Math.min(...ys), y1 = Math.max(...ys); const pad = (y1 - y0) * 0.08 || 0.01; y0 -= pad; y1 += pad;
+    if (k === "I" || k === "you") y0 = Math.min(y0, -0.03);
+    const X = v => L + (Math.log10(v) - x0) / (x1 - x0) * (W - L - R);
+    const Y = v => inv ? Tp + (v - y0) / (y1 - y0) * (H - Tp - B) : Tp + (y1 - v) / (y1 - y0) * (H - Tp - B);
+    let s = `<svg class="plot" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(NAMES[k])} against ${st.x === "tok" ? "training tokens" : "training FLOPs"}">`;
+    for (let e = Math.ceil(x0); e <= Math.floor(x1); e++) {
+      const v = 10 ** e, lab = st.x === "tok" ? (v >= 1000 ? v / 1000 + "T" : v + "B") : "1e" + (e);
+      s += `<line class="ax" x1="${X(v)}" x2="${X(v)}" y1="${Tp}" y2="${H - B}"/><text x="${X(v)}" y="${H - B + 16}" text-anchor="middle">${lab}</text>`;
+    }
+    const nt = 5; for (let i = 0; i <= nt; i++) { const v = y0 + (y1 - y0) * i / nt; s += `<text x="${L - 7}" y="${Y(v) + 4}" text-anchor="end">${k === "avg9" ? v.toFixed(0) : k === "ubpb" ? v.toFixed(2) : f3(v).slice(0, -1)}</text>`; }
+    if (k === "I" || k === "you") s += `<line class="zero" x1="${L}" x2="${W - R}" y1="${Y(0)}" y2="${Y(0)}"/><line x1="${L}" x2="${W - R}" y1="${Y(0.02)}" y2="${Y(0.02)}" stroke="var(--line)" stroke-dasharray="2 4"/><text x="${W - R + 4}" y="${Y(0.02) + 4}" class="lbl">passes (+.02)</text>`;
+    s += `<text x="${(L + W - R) / 2}" y="${H - 8}" text-anchor="middle">${st.x === "tok" ? "training tokens (log)" : "training FLOPs (log)"}</text><text x="12" y="${(Tp + H - B) / 2}" text-anchor="middle" transform="rotate(-90 12 ${(Tp + H - B) / 2})">${esc(NAMES[k])}${inv ? " ↑ better" : ""}</text>`;
+    for (const m of ser) {
+      const ours = m.style === "ours", line = ours ? m.pts.filter(p => p.kind === "trunk") : m.pts;
+      const path = line.map((p, i) => `${i ? "L" : "M"}${X(p[st.x]).toFixed(1)} ${Y(p[k]).toFixed(1)}`).join("");
+      if (line.length > 1) s += `<path d="${path}" fill="none" stroke="${ours ? "var(--fg)" : "var(--muted)"}" stroke-width="${ours ? 2.2 : 1.3}" stroke-dasharray="${DASH[m.style]}"/>`;
+      for (const p of m.pts) {
+        const tip = `${esc(m.m)} · ${p.tok >= 1000 ? (p.tok / 1000).toFixed(1) + "T" : p.tok + "B"} tokens${p.note ? " (" + p.note + ")" : ours && p.kind === "annealed" ? " (cooled down)" : ""} · ${esc(NAMES[k])} ${k === "avg9" ? p[k].toFixed(1) : k === "ubpb" ? p[k].toFixed(3) : f3(p[k])}`;
+        const mark = ours ? sq(X(p[st.x]), Y(p[k]), p.kind === "trunk", p.note ? 5.5 : 3.6) : `<circle cx="${X(p[st.x])}" cy="${Y(p[k])}" r="2.6" fill="var(--muted)"/>`;
+        s += `<g><title>${tip}</title>${mark}</g>`;
+        if (p.note) s += `<text class="lbl" x="${X(p[st.x]) + 9}" y="${Y(p[k]) - 8}" style="fill:var(--fg)">release</text>`;
+      }
+      const last = line[line.length - 1] || m.pts[m.pts.length - 1];
+      s += `<text class="lbl" x="${Math.min(X(last[st.x]) + 8, W - R + 6)}" y="${Y(last[k]) + 4}"${ours ? ' style="fill:var(--fg);font-weight:700"' : ""}>${esc(m.m)}</text>`;
+    }
+    el.innerHTML = s + "</svg>";
+    for (const b of document.querySelectorAll("#f5m button")) b.setAttribute("aria-pressed", b.dataset.k === st.k);
+    for (const b of document.querySelectorAll("#f5x button")) b.setAttribute("aria-pressed", b.dataset.k === st.x);
+  }
+  for (const b of document.querySelectorAll("#f5m button")) b.addEventListener("click", () => { st.k = b.dataset.k; draw(); });
+  for (const b of document.querySelectorAll("#f5x button")) b.addEventListener("click", () => { st.x = b.dataset.k === "flops" ? "flops" : "tok"; draw(); });
+  draw();
+})();
+// tsumugi page Table 1: kotodama-tsumugi's battery across the cooled-down reads
+(() => {
+  if (!document.getElementById("moonbat")) return;
+  const T = G.tsumugi.battery;
+  let h = `<thead><tr><th>Test</th>${T.cols.map(c => `<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>`;
+  for (const g of T.groups) {
+    h += `<tr><td colspan="${T.cols.length + 1}" class="eff" style="text-align:left;font-style:italic">${esc(g.name)}</td></tr>`;
+    for (const [name, vals] of g.rows) h += `<tr><td>${esc(name)}</td>${vals.map(v => `<td class="cost">${T.signed ? f3(v) : v.toFixed(3).replace(/^0/, "")}</td>`).join("")}</tr>`;
+  }
+  document.getElementById("moonbat").innerHTML = h + `</tbody>`;
+})();
+const pend = v => v == null ? `<span title="not yet scored on this checkpoint">pending</span>` : v.toFixed(3).replace(/^0/, "");
+// Atlas Table 1: stage-5 decomposition
+(() => {
+  if (!document.getElementById("decomp")) return;
+  const D = G.decomp;
+  let h = `<thead><tr><th>Model</th><th>Tokens</th>${D.cols.map(c => `<th title="${esc(c.ex)}">${esc(c.name)}</th>`).join("")}</tr></thead><tbody>`;
+  for (const r of D.rows) h += `<tr${r.ours ? ' style="font-weight:700"' : ""}><td>${esc(r.m)}</td><td class="cost">${esc(r.tok)}</td>${D.cols.map(c => `<td class="cost">${pend(r[c.k])}</td>`).join("")}</tr>`;
+  document.getElementById("decomp").innerHTML = h + `</tbody>`;
+})();
+// tsumugi page Table 2: the release against its trajectory and class
+(() => {
+  if (!document.getElementById("reltab")) return;
+  const T = G.release;
+  let h = `<thead><tr><th>Test</th>${T.cols.map(c => `<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>`;
+  for (const [name, vals, signed] of T.rows) h += `<tr><td>${esc(name)}</td>${vals.map((v, i) => `<td class="cost"${T.cols[i].includes("release") ? ' style="font-weight:700;color:var(--fg)"' : ""}>${v == null ? "—" : signed ? f3(v) : v >= 1 ? v.toFixed(1) : v.toFixed(3).replace(/^0/, "")}</td>`).join("")}</tr>`;
+  document.getElementById("reltab").innerHTML = h + `</tbody>`;
+})();
+// Atlas Table 2: riders, lookup vs update, by size
+(() => {
+  if (!document.getElementById("riders")) return;
+  const T = G.riders;
+  let h = `<thead><tr><th>Models</th>${T.cols.map(c => `<th>${esc(c.name)}</th>`).join("")}</tr></thead><tbody>`;
+  for (const r of T.rows) h += `<tr${r.ours ? ' style="font-weight:700"' : ""}><td${r.models ? ` title="${esc(r.models.join(", "))}"` : ""}>${esc(r.m)}</td>${T.cols.map(c => `<td class="cost">${r[c.k] == null ? "—" : f3(r[c.k])}</td>`).join("")}</tr>`;
+  document.getElementById("riders").innerHTML = h + `</tbody>`;
+})();
+})();
+</script>
+<script>
+(() => {
+"use strict";
+try { const t = localStorage.getItem("atlas-theme"); if (t) document.documentElement.dataset.theme = t; } catch {}
+document.getElementById("theme").onclick = () => {
+  const r = document.documentElement, cur = r.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  r.dataset.theme = cur === "dark" ? "light" : "dark";
+  try { localStorage.setItem("atlas-theme", r.dataset.theme); } catch {}
+};
+})();
+</script>
+</body>
+</html>

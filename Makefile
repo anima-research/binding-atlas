@@ -58,6 +58,7 @@ page: html md card
 
 html:
 	$(PY) page/build_page.py $(PAGE_ARGS) --out $(SITE)/binding-atlas.html
+	$(PY) page/build_page.py $(PAGE_ARGS) --page tsumugi --out $(SITE)/binding-atlas/tsumugi.html
 
 md:
 	$(PY) page/build_md.py $(PAGE_ARGS) --out $(SITE)/binding-atlas.md

@@ -35,17 +35,22 @@ TOC = Path(__file__).resolve().parent / "toc.html"   # the contents rail a page 
 # Row groups the published grid leaves out. The human row is one reader on small samples; it returns as a range drawn
 # from everyone's scores on the take-the-tests page.
 HIDDEN_ROW_GROUPS: frozenset[str] = frozenset({"Human"})
+# Row groups shown on kotodama-tsumugi's own page instead of the grid: its training checkpoints. The release stays in
+# the grid as one model among the rest.
+ELSEWHERE_ROW_GROUPS: frozenset[str] = frozenset({"kotodama-tsumugi, by training tokens"})
 
 
 def without_hidden_rows(atlas: dict) -> dict:
-    """The atlas as published: rows in HIDDEN_ROW_GROUPS and their cells removed."""
-    hidden = {r["id"] for r in atlas["rows"] if r["group"] in HIDDEN_ROW_GROUPS}
+    """The atlas as published: rows in HIDDEN_ROW_GROUPS and ELSEWHERE_ROW_GROUPS, and their cells, removed."""
+    hidden = {r["id"] for r in atlas["rows"] if r["group"] in HIDDEN_ROW_GROUPS | ELSEWHERE_ROW_GROUPS}
     return {**atlas, "rows": [r for r in atlas["rows"] if r["id"] not in hidden],
             "cells": {k: v for k, v in atlas["cells"].items() if k.split("|", 1)[0] not in hidden}}
 PAGE = "binding-atlas.html"
 CLEAN = "binding-atlas"
 MARKDOWN = "binding-atlas.md"
 CARD = "binding-atlas-card.png"
+TSUMUGI_PAGE = "binding-atlas/tsumugi.html"     # kotodama-tsumugi on the benchmark, one folder below the atlas
+TSUMUGI_CLEAN = "binding-atlas/tsumugi"
 PLACEHOLDERS = ("__CANONICAL_URL__", "__SITE_NAME__", "__CARD_URL__", "__BACK_LINK__", "__FONT_FACES__", "__FONT__",
                 "__FONT_META__", "__FONT_CREDIT__")
 INLINE = ("__BACK_LINK__", "__FONT__")          # may render empty without dropping their line
@@ -139,26 +144,29 @@ class SiteConfig:
         return [f'@font-face {{ font-family: "{self.font_family}"; src: url("{u}{self.font_stem}-{style}.woff2") '
                 f'format("woff2"); font-weight: {w}; font-style: {fs}; font-display: swap; }}' for style, w, fs in FACES]
 
-    def placeholder_values(self) -> dict[str, str]:
-        back = (f'<a href="{html.escape(self.back_url)}">{html.escape(self.back_label)}</a>' if self.back_url else "")
+    def placeholder_values(self, up: str = "") -> dict[str, str]:
+        """Placeholder values for a page `up` (e.g. "../") from the directory the site config describes: relative
+        URLs (font files, card, back link) get that prefix; absolute ones are left alone."""
+        rel = lambda u: u if (not u or "://" in u or u.startswith("/")) else up + u  # noqa: E731
+        back = (f'<a href="{html.escape(rel(self.back_url))}">{html.escape(self.back_label)}</a>' if self.back_url else "")
         faces = ""
         if self.font_family:
             where = "self-hosted next to the page" if "://" not in self.font_url and not self.font_url.startswith("/") \
                 else f"from {self.font_url}"
             faces = "\n".join([f"/* {self.font_name or self.font_family} ({where}); Courier Prime fills the glyphs it "
-                                f"lacks (→ × ≈ ≥ “ ” …). */"] + self.font_faces())
+                                f"lacks (→ × ≈ ≥ “ ” …). */"] + self.font_faces(rel(self.font_url)))
         return {"__CANONICAL_URL__": html.escape(self.canonical_url), "__SITE_NAME__": html.escape(self.name),
-                "__CARD_URL__": html.escape(self.card_url), "__BACK_LINK__": back, "__FONT_FACES__": faces,
+                "__CARD_URL__": html.escape(rel(self.card_url)), "__BACK_LINK__": back, "__FONT_FACES__": faces,
                 "__FONT__": f'"{self.font_family}", ' if self.font_family else "",
                 "__FONT_META__": html.escape(self.font_meta or DEFAULT_FONT_META, quote=False).replace('"', "&quot;"),
                 "__FONT_CREDIT__": html.escape(self.font_credit or DEFAULT_FONT_CREDIT, quote=False)}
 
 
-def render_hosting(template: str, cfg: SiteConfig, overrides: dict[str, str] | None = None) -> str:
+def render_hosting(template: str, cfg: SiteConfig, overrides: dict[str, str] | None = None, up: str = "") -> str:
     """Fill the hosting placeholders. A line holding a placeholder whose value is empty is dropped, except for the
     inline ones (__BACK_LINK__, __FONT__), which simply vanish. `overrides` replaces values (another page's canonical
-    and card URLs)."""
-    vals = cfg.placeholder_values() | (overrides or {})
+    and card URLs); `up` prefixes relative URLs for a page in a subfolder (see SiteConfig.placeholder_values)."""
+    vals = cfg.placeholder_values(up) | (overrides or {})
     out: list[str] = []
     for line in template.splitlines(keepends=True):
         drop = False

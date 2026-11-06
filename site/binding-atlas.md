@@ -1,16 +1,18 @@
 # Binding Atlas — agent view
 
-Plain-text twin of the [Binding Atlas page](https://kotodama.animalabs.ai/binding-atlas). Same data, same build. Built 2026-11-06 22:51 UTC: 64 rows (models and checkpoints), 24 columns, 2,432 cells, 1,905,920 scored items.
+Plain-text twin of the [Binding Atlas page](https://kotodama.animalabs.ai/binding-atlas). Same data, same build. Built 2026-11-06 23:03 UTC: 57 rows (models and checkpoints), 24 columns, 2,166 cells, 1,697,460 scored items.
 
 ## Summary
 
-This atlas scores 64 models and checkpoints on 24 tests of tracking who *I* and *you* refer to. "Example items per column" quotes the exact prompts that the models were given.
+This atlas scores 56 public base models and kotodama-tsumugi on 24 tests of tracking who *I* and *you* refer to. "Example items per column" quotes the exact prompts that the models were given.
 
-Base language models learn to look things up long before they learn to track change. In the box puzzle, items go into boxes and are then swapped, moved or refilled, and the model is asked what one box holds. The median model under 1B already finds what a box was said to hold, and scores zero on the boxes that a later step changed. With worked examples, updating climbs steadily with size, to .77 for the 70B models and above .8 for most of the largest. In a chat, *you* means the person being spoken to. Models get this right in five stages, in the same order in every training run measured. To read a stage, the speaker's name on the chat's last line is swapped: a model that follows *you* moves its answer to the other person's object. The swap shift is how much probability leaves the first answer; a model passes when the whole 95% interval of that shift is above +.02. Every base of 0.6B parameters or more trained on trillions of tokens reaches the third stage (*you* is the person spoken to), except Bamba 9B. The fifth stage is following *you* as objects change hands. With no examples in the prompt, it appears from about 7B (OLMo-2 7B, Qwen2.5 7B), and every base measured from 13B up reaches it. **kotodama-tsumugi** is a 1.4B model whose middle 20 layers run twice, so each token passes through 72 layers. It reaches the third stage by **33B tokens**, in the range where OLMo-2 13B gets there; OLMo-2 1B needs 420–525B. Given three worked examples, it is the smallest base measured that passes the fifth stage: +.038, with its whole 95% interval above +.02. The next is Qwen3 4B.
+Base language models learn to look things up long before they learn to track change. In the box puzzle, items go into boxes and are then swapped, moved or refilled, and the model is asked what one box holds. The median model under 1B already finds what a box was said to hold, and scores zero on the boxes that a later step changed. With worked examples, updating climbs steadily with size, to .77 for the 70B models and above .8 for most of the largest. In a chat, *you* means the person being spoken to. Models get this right in five stages, in the same order in every training run measured. To read a stage, the speaker's name on the chat's last line is swapped: a model that follows *you* moves its answer to the other person's object. The swap shift is how much probability leaves the first answer; a model passes when the whole 95% interval of that shift is above +.02, a bar fixed before any model was scored. Every base of 0.6B parameters or more trained on trillions of tokens reaches the third stage (*you* is the person spoken to), except Bamba 9B. The fifth stage is following *you* as objects change hands. With no examples in the prompt, it appears from about 7B (OLMo-2 7B, Qwen2.5 7B), and every base measured from 13B up reaches it.
+
+kotodama-tsumugi, our 1.4B model, is one row among them. How it learned these tests over training (its stages against training tokens, its checkpoints on the main tests, and the release beside its own trajectory and three public models of its size) is on its own page: https://kotodama.animalabs.ai/binding-atlas/tsumugi
 
 Swap shift = mean[p(gold | original) − p(gold | speaker swapped)] over the candidates. Above +.02, a pronoun binds: its answer moves with the speaker. Below −.02, it inverts: it resolves to the speaker.
 
-## Part I · Where base models fail
+## Where base models fail
 
 ### The staircase
 
@@ -103,82 +105,6 @@ Each dynamic-*you* gauge item is rewritten along one axis: **story, no I or you*
 | Llama-3.1 70B | 15T | .794 | .558 | .853 | .483 |
 
 The rewrites show three layers. (1) The first is possession transfer itself. The 1.4–1.5B models sit near chance (.28–.38) even when the scene is narrated. These are Pythia-1.4B, OLMo-2 1B at 4T, and kotodama-tsumugi at every checkpoint through 110B tokens. SmolLM2 1.7B at 11T (.40) and Qwen3 1.7B at 36T (.48) lift off chance; from 4B the narrated version is easy (.53–.79). (2) The transfer as a speech act is the mid-size wall. Models from 4B to 30B stay at .37–.47 when it is spoken, and Llama-3.1 70B reaches .56. Narrating only the hand-off recovers part of that gap for every model from 4B up, and all of it for Llama-3.1 70B. (3) Naming the addressee does not help: the vocative variant is never more than .01 above the spoken one, and below it for every model from 4B up.
-
-## Part II · kotodama-tsumugi
-
-A 1.42B-parameter model with a looped core, run as 72 effective layers. Its trunk trains at a constant learning rate to 100B tokens. Annealed reads are cooldown branches forked from its checkpoints (cosine decay to zero over about 10% of the tokens so far). The release is the 110B branch from the 100B fork. The architecture and training run are described on the model card (huggingface.co/LuxiaSL/kotodama-tsumugi-1b), and the release table below gives the spread between two anneals.
-
-### Stage gauges against training tokens
-
-`kind` = constant (the trunk, constant learning rate) or annealed (a cooldown branch ending at that token count). Columns are swap shifts: static *I*, static *you*, dynamic *you* 0-shot and 3-shot.
-
-| seed | kind | tokens (B) | static I | static you | dynamic you 0-shot | dynamic you 3-shot |
-|---|---|---|---|---|---|---|
-| s17 | constant | 1 | +.003 | −.002 | −.003 | −.003 |
-| s17 | constant | 2 | .000 | −.002 | −.001 | +.016 |
-| s17 | constant | 3 | +.007 | −.007 | +.004 | +.010 |
-| s17 | constant | 3.75 | +.031 | −.020 | −.019 | +.010 |
-| s17 | constant | 10 | +.066 | −.010 | −.034 | −.003 |
-| s17 | constant | 20 | +.114 | −.001 | −.026 | +.019 |
-| s17 | constant | 30 | +.129 | +.019 | −.015 | +.045 |
-| s17 | constant | 40 | +.158 | +.068 | −.018 | +.024 |
-| s17 | constant | 50 | +.250 | +.031 | −.024 | +.023 |
-| s17 | constant | 60 | +.191 | +.058 | −.015 | +.069 |
-| s17 | constant | 80 | +.185 | +.074 | −.026 | +.035 |
-| s17 | constant | 100 | +.169 | +.080 | −.027 | +.016 |
-| s17 | annealed | 5 | +.031 | −.021 | −.022 | −.013 |
-| s17 | annealed | 11 | +.071 | −.023 | −.027 | +.002 |
-| s17 | annealed | 33 | +.221 | +.065 | −.018 | +.010 |
-| s17 | annealed | 55 | +.228 | +.122 | −.028 | +.030 |
-| s17 | annealed | 88 | +.156 | +.181 | −.016 | +.021 |
-| s17 | annealed (release) | 110 | +.178 | +.192 | −.014 | +.038 |
-| s17 | annealed (the other cooldown from the same 100B checkpoint) | 110 | +.195 | +.127 | −.012 | +.022 |
-| s7 | constant | 1 | +.004 | −.005 | −.003 | −.002 |
-| s7 | constant | 2 | +.004 | −.004 | −.006 | +.012 |
-| s7 | constant | 3 | +.007 | −.005 | −.009 | +.021 |
-| s7 | constant | 3.75 | +.007 | −.007 | −.026 | +.029 |
-| s7 | constant | 10 | +.095 | −.008 | −.057 | +.014 |
-| s7 | annealed | 5 | +.021 | −.007 | −.010 | +.002 |
-| s7 | annealed | 11 | +.102 | −.010 | −.031 | +.027 |
-
-For reference, OLMo-2 reaches stage 3 at about 42B tokens (OLMo-2 13B), 210B tokens (OLMo-2 7B), 420B tokens (OLMo-2 1B).
-
-### The grid's headline tests across kotodama-tsumugi's checkpoints
-
-| probe | s17 · 5B | s17 · 11B | s17 · 33B | s17 · 55B | s17 · 88B | 110B · release | s7 · 5B | s7 · 11B |
-|---|---|---|---|---|---|---|---|---|
-| *Nothing moves* | | | | | | | | |
-| Simple lookup | +.692 | +.897 | +.941 | +.977 | +.988 | +.987 | +.811 | +.906 |
-| *Moves: story* | | | | | | | | |
-| Hand-offs in a story | +.260 | +.282 | +.281 | +.363 | +.385 | +.399 | +.278 | +.329 |
-| Sets after hand-offs | +.297 | +.461 | +.496 | +.488 | +.552 | +.547 | +.407 | +.454 |
-| Many refills (cold) | −.003 | −.013 | +.013 | +.090 | +.224 | +.137 | −.035 | +.026 |
-| *Moves: code* | | | | | | | | |
-| Variable chains | −.018 | −.028 | +.013 | +.067 | +.128 | +.042 | −.047 | +.007 |
-| Shared lists | +.013 | +.034 | +.013 | +.084 | +.155 | +.149 | +.041 | +.057 |
-| *I and you* | | | | | | | | |
-| 'You', nothing moves (cold) | +.077 | +.050 | +.333 | +.327 | +.403 | +.492 | +.036 | +.084 |
-| 'You', after hand-offs | +.007 | −.017 | +.105 | +.023 | +.106 | +.036 | −.035 | +.013 |
-| *New rules* | | | | | | | | |
-| Pattern completion (AUC) | +.458 | +.402 | +.475 | +.438 | +.507 | +.553 | +.426 | +.434 |
-| Known facts (control) (AUC) | +.640 | +.713 | +.892 | +.892 | +.925 | +.948 | +.651 | +.765 |
-
-The values are the grid's own cells. Each test is read as the grid reads it. Columns with worked examples use them, the others are read with no examples, and the rule-learning rows are AUC over the example ladder. Lookup rises from .69 at 5B tokens to .98 by 55B, level with the 7–9B bases (.97 to 1.00). The update tests (many refills, variable chains, shared lists) stay at chance through 33B and lift from 55B on (.04 to .22). Static *you* climbs from .08 at 5B to .49 at the release. Pattern completion reaches .55, second of 12 models at 1–2B parameters. The two seeds differ at 5B (seed 7 forms lookup and set binding earlier) and agree within .05 on all ten rows at 11B.
-
-### The release against its trajectory and its class
-
-| probe | 33B | 55B | 88B | 110B · other cooldown | 110B · release | OLMo-2 1B · 4T | SmolLM2 1.7B · 11T | Qwen3 1.7B · 36T |
-|---|---|---|---|---|---|---|---|---|
-| I = speaker (swap shift) | +.221 | +.228 | +.156 | +.195 | +.178 | +.312 | +.363 | +.595 |
-| you = person spoken to (swap shift) | +.065 | +.122 | +.181 | +.127 | +.192 | +.114 | +.207 | +.137 |
-| you through hand-offs, no examples (swap shift) | −.018 | −.028 | −.016 | −.012 | −.014 | −.040 | +.010 | −.054 |
-| you through hand-offs, three examples (swap shift) | +.010 | +.030 | +.021 | +.022 | +.038 | −.018 | +.006 | +.026 |
-| name–task pairs held: K50 | 3.4 | 4.1 | 5.4 | 4.6 | 5.1 | 3.8 | 10.2 | 33.1 |
-| one name–task pair past 256 filler tokens (accuracy, chance .04) | .852 | .988 | .927 | .912 | .906 | .738 | .819 | .942 |
-| who has what, said with I and you (accuracy, chance ≈ .33) | .270 | .302 | .319 | .354 | .314 | .320 | — | — |
-| who has what, third person (accuracy, chance ≈ .33) | .418 | .404 | .446 | .467 | .441 | .461 | — | — |
-
-The two 110B columns are two anneals from the same fork with the same training loss. Their spread is the measured anneal-to-anneal variance. It is .127 vs .192 on static *you* and .022 vs .038 on dynamic *you* with examples. K50 reads 4.6 vs 5.1, and held-out text differs by .025 bits/byte. Every single-anneal number here carries it. A second initialization seed (seed 7, same data order) was trained to 11B. Capacity (K50, after Ravulapalli 2026, *In-context binding capacity in language models*, arXiv 2609.30634) is how many name–task pairs fit in context before recall falls halfway to chance. On this harness it tracks recipe and tokens more than parameters, so no parameter-equivalent size is read from it.
 
 ### Object tracking: lookup early, updating later (the box puzzle; κ, mean over code, prose, script and chat)
 
@@ -829,13 +755,6 @@ Belgium →
 | `llama3.1-70b` | Llama-3.1 70B | 10B and up | 70.554 | 70.554 | ≈ 15T |  |
 | `qwen2.5-72b` | Qwen2.5 72B | 10B and up | 72.706 | 72.706 | ≤ 18T |  |
 | `llama3.1-405b` | Llama-3.1 405B | 10B and up | 405.853 | 405.853 | 15.6T | Scored with vLLM across several GPUs: the same prompts, candidates and split-tie rule. On two check models, its scores match the standard scorer's within .03. |
-| `tsumugi-s17-a5B` | kotodama-tsumugi · 5B tokens | kotodama-tsumugi, by training tokens | 1.425 | 1.425 | 5B |  |
-| `tsumugi-s7-a5B` | kotodama-tsumugi, seed 7 · 5B tokens | kotodama-tsumugi, by training tokens | 1.425 | 1.425 | 5B |  |
-| `tsumugi-s17-a11B` | kotodama-tsumugi · 11B tokens | kotodama-tsumugi, by training tokens | 1.425 | 1.425 | 11B |  |
-| `tsumugi-s7-a11B` | kotodama-tsumugi, seed 7 · 11B tokens | kotodama-tsumugi, by training tokens | 1.425 | 1.425 | 11B |  |
-| `tsumugi-s17-a33B` | kotodama-tsumugi · 33B tokens | kotodama-tsumugi, by training tokens | 1.425 | 1.425 | 33B |  |
-| `tsumugi-s17-a55B` | kotodama-tsumugi · 55B tokens | kotodama-tsumugi, by training tokens | 1.425 | 1.425 | 55B |  |
-| `tsumugi-s17-a88B` | kotodama-tsumugi · 88B tokens | kotodama-tsumugi, by training tokens | 1.425 | 1.425 | 88B |  |
 
 ## Tables by group
 
@@ -906,14 +825,6 @@ Score (0 = guessing, 1 = always right), with worked examples where the column ha
 | Llama-3.1 70B | +1.00 | +0.99° | +1.00 | +0.99° | +0.95° |
 | Qwen2.5 72B | +1.00 | +0.99° | +1.00 | +0.99° | +0.95° |
 | Llama-3.1 405B | +1.00 | +0.98° | +1.00 | +0.99° | +0.96° |
-| **kotodama-tsumugi, by training tokens** | | | | | |
-| kotodama-tsumugi · 5B tokens | +0.69 | +0.48° | +0.57 | +0.38° | +0.21° |
-| kotodama-tsumugi, seed 7 · 5B tokens | +0.81 | +0.50° | +0.60 | +0.45° | +0.11° |
-| kotodama-tsumugi · 11B tokens | +0.90 | +0.51° | +0.64 | +0.40° | +0.30° |
-| kotodama-tsumugi, seed 7 · 11B tokens | +0.91 | +0.51° | +0.65 | +0.45° | +0.32° |
-| kotodama-tsumugi · 33B tokens | +0.94 | +0.59° | +0.71 | +0.51° | +0.65° |
-| kotodama-tsumugi · 55B tokens | +0.98 | +0.65° | +0.68 | +0.59° | +0.55° |
-| kotodama-tsumugi · 88B tokens | +0.99 | +0.67° | +0.54 | +0.64° | +0.65° |
 
 ### Who has what after things move: told as a story
 
@@ -980,14 +891,6 @@ Score (0 = guessing, 1 = always right), with worked examples where the column ha
 | Llama-3.1 70B | +0.97 | +0.97 | +0.54° | +0.58° |
 | Qwen2.5 72B | +0.98 | +0.94 | +0.62° | +0.60° |
 | Llama-3.1 405B | +1.00 | +0.99 | +0.74° | +0.75° |
-| **kotodama-tsumugi, by training tokens** | | | | |
-| kotodama-tsumugi · 5B tokens | +0.26 | +0.30 | +0.08° | -0.00° |
-| kotodama-tsumugi, seed 7 · 5B tokens | +0.28 | +0.41 | +0.08° | -0.04° |
-| kotodama-tsumugi · 11B tokens | +0.28 | +0.46 | -0.02° | -0.01° |
-| kotodama-tsumugi, seed 7 · 11B tokens | +0.33 | +0.45 | -0.00° | +0.03° |
-| kotodama-tsumugi · 33B tokens | +0.28 | +0.50 | +0.08° | +0.01° |
-| kotodama-tsumugi · 55B tokens | +0.36 | +0.49 | +0.22° | +0.09° |
-| kotodama-tsumugi · 88B tokens | +0.38 | +0.55 | +0.29° | +0.22° |
 
 ### Who has what after things move: written as code
 
@@ -1054,14 +957,6 @@ Score (0 = guessing, 1 = always right), with worked examples where the column ha
 | Llama-3.1 70B | +0.84 | +0.65 |
 | Qwen2.5 72B | +0.82 | +0.88 |
 | Llama-3.1 405B | +0.92 | +0.97 |
-| **kotodama-tsumugi, by training tokens** | | |
-| kotodama-tsumugi · 5B tokens | -0.02 | +0.01 |
-| kotodama-tsumugi, seed 7 · 5B tokens | -0.05↓ | +0.04 |
-| kotodama-tsumugi · 11B tokens | -0.03 | +0.03 |
-| kotodama-tsumugi, seed 7 · 11B tokens | +0.01 | +0.06 |
-| kotodama-tsumugi · 33B tokens | +0.01 | +0.01 |
-| kotodama-tsumugi · 55B tokens | +0.07 | +0.08 |
-| kotodama-tsumugi · 88B tokens | +0.13 | +0.15 |
 
 ### One box puzzle, four formats
 
@@ -1128,14 +1023,6 @@ Score (0 = guessing, 1 = always right), with worked examples where the column ha
 | Llama-3.1 70B | +0.84 | +0.85 | +0.88 | +0.82 |
 | Qwen2.5 72B | +0.90 | +0.86 | +0.80 | +0.75 |
 | Llama-3.1 405B | +0.86 | +0.89 | +0.83 | +0.90 |
-| **kotodama-tsumugi, by training tokens** | | | | |
-| kotodama-tsumugi · 5B tokens | +0.08 | +0.18 | +0.20 | +0.23 |
-| kotodama-tsumugi, seed 7 · 5B tokens | +0.14 | +0.21 | +0.29 | +0.24 |
-| kotodama-tsumugi · 11B tokens | +0.34 | +0.43 | +0.35 | +0.35 |
-| kotodama-tsumugi, seed 7 · 11B tokens | +0.33 | +0.31 | +0.42 | +0.34 |
-| kotodama-tsumugi · 33B tokens | +0.31 | +0.29 | +0.48 | +0.36 |
-| kotodama-tsumugi · 55B tokens | +0.29 | +0.34 | +0.51 | +0.43 |
-| kotodama-tsumugi · 88B tokens | +0.27 | +0.32 | +0.50 | +0.35 |
 
 ### Who are I and you?
 
@@ -1202,14 +1089,6 @@ Score (0 = guessing, 1 = always right), with worked examples where the column ha
 | Llama-3.1 70B | +0.99° | +0.39 | +0.13 | +0.45 | +0.68 |
 | Qwen2.5 72B | +0.90° | +0.57 | +0.31 | +0.61 | +0.67 |
 | Llama-3.1 405B | +0.98° | +0.66 | +0.41 | +0.49 | +0.73 |
-| **kotodama-tsumugi, by training tokens** | | | | | |
-| kotodama-tsumugi · 5B tokens | +0.08° | -0.03 | +0.01 | +0.01 | +0.04 |
-| kotodama-tsumugi, seed 7 · 5B tokens | +0.04° | -0.06 | -0.04 | +0.05 | +0.09 |
-| kotodama-tsumugi · 11B tokens | +0.05° | +0.03 | -0.02 | +0.02 | +0.05 |
-| kotodama-tsumugi, seed 7 · 11B tokens | +0.08° | -0.01 | +0.01 | +0.15 | +0.04 |
-| kotodama-tsumugi · 33B tokens | +0.33° | -0.03 | +0.10 | +0.03 | +0.07 |
-| kotodama-tsumugi · 55B tokens | +0.33° | +0.01 | +0.02 | +0.04 | +0.07 |
-| kotodama-tsumugi · 88B tokens | +0.40° | +0.01 | +0.11 | +0.00 | +0.11 |
 
 ### Learning a rule from the examples
 
@@ -1276,14 +1155,6 @@ Score (0 = guessing, 1 = always right), with worked examples where the column ha
 | Llama-3.1 70B | +0.85° | +0.31° | +0.91° | +1.00° |
 | Qwen2.5 72B | +0.87° | +0.24° | +0.92° | +1.00° |
 | Llama-3.1 405B | +0.90° | +0.23° | +0.99° | +1.00° |
-| **kotodama-tsumugi, by training tokens** | | | | |
-| kotodama-tsumugi · 5B tokens | +0.65° | +0.26° | +0.46° | +0.64° |
-| kotodama-tsumugi, seed 7 · 5B tokens | +0.64° | +0.23° | +0.43° | +0.65° |
-| kotodama-tsumugi · 11B tokens | +0.74° | +0.26° | +0.40° | +0.71° |
-| kotodama-tsumugi, seed 7 · 11B tokens | +0.77° | +0.22° | +0.43° | +0.76° |
-| kotodama-tsumugi · 33B tokens | +0.78° | +0.29° | +0.47° | +0.89° |
-| kotodama-tsumugi · 55B tokens | +0.76° | +0.28° | +0.44° | +0.89° |
-| kotodama-tsumugi · 88B tokens | +0.81° | +0.30° | +0.51° | +0.93° |
 
 ## Rows (CSV)
 
@@ -1346,13 +1217,6 @@ nemotron3-ultra-550b-base,"Nemotron-3-Ultra (MoE)","10B and up",550.0,55.0,20000
 llama3.1-70b,"Llama-3.1 70B","10B and up",70.554,70.554,15000000000000.0,logprob
 qwen2.5-72b,"Qwen2.5 72B","10B and up",72.706,72.706,18000000000000.0,logprob
 llama3.1-405b,"Llama-3.1 405B","10B and up",405.853,405.853,15600000000000.0,logprob
-tsumugi-s17-a5B,"kotodama-tsumugi · 5B tokens","kotodama-tsumugi, by training tokens",1.425,1.425,5000000000.0,logprob
-tsumugi-s7-a5B,"kotodama-tsumugi, seed 7 · 5B tokens","kotodama-tsumugi, by training tokens",1.425,1.425,5000000000.0,logprob
-tsumugi-s17-a11B,"kotodama-tsumugi · 11B tokens","kotodama-tsumugi, by training tokens",1.425,1.425,11000000000.0,logprob
-tsumugi-s7-a11B,"kotodama-tsumugi, seed 7 · 11B tokens","kotodama-tsumugi, by training tokens",1.425,1.425,11000000000.0,logprob
-tsumugi-s17-a33B,"kotodama-tsumugi · 33B tokens","kotodama-tsumugi, by training tokens",1.425,1.425,33000000000.0,logprob
-tsumugi-s17-a55B,"kotodama-tsumugi · 55B tokens","kotodama-tsumugi, by training tokens",1.425,1.425,55000000000.0,logprob
-tsumugi-s17-a88B,"kotodama-tsumugi · 88B tokens","kotodama-tsumugi, by training tokens",1.425,1.425,88000000000.0,logprob
 ```
 
 ## All cells (CSV)
@@ -3527,270 +3391,4 @@ llama3.1-405b,grammar,ladder,,1080,,0.897,0.883,0.913,above
 llama3.1-405b,operators,ladder,,1080,,0.227,0.201,0.261,above
 llama3.1-405b,patterns,ladder,,1080,,0.987,0.980,0.993,above
 llama3.1-405b,facts,ladder,,768,,1.000,1.000,1.000,above
-tsumugi-s17-a5B,lookup,0shot,0.467,1210,0.169,0.356,0.321,0.390,above
-tsumugi-s17-a5B,lookup,fair,0.743,1210,0.169,0.692,0.662,0.720,above
-tsumugi-s17-a5B,shortlist,0shot,0.501,3840,0.040,0.480,0.463,0.497,above
-tsumugi-s17-a5B,pairs,0shot,0.418,256,0.125,0.335,0.263,0.397,above
-tsumugi-s17-a5B,pairs,fair,0.625,256,0.125,0.571,0.504,0.638,above
-tsumugi-s17-a5B,noise,0shot,0.505,720,0.200,0.381,0.338,0.425,above
-tsumugi-s17-a5B,now,0shot,0.440,300,0.292,0.208,0.127,0.282,above
-tsumugi-s17-a5B,handoffs,0shot,0.378,1200,0.312,0.094,0.056,0.130,above
-tsumugi-s17-a5B,handoffs,fair,0.494,1200,0.312,0.260,0.223,0.296,above
-tsumugi-s17-a5B,sets,0shot,0.418,1280,0.275,0.207,0.170,0.245,above
-tsumugi-s17-a5B,sets,fair,0.483,1280,0.275,0.297,0.258,0.337,above
-tsumugi-s17-a5B,refilled,0shot,0.264,720,0.200,0.080,0.043,0.120,above
-tsumugi-s17-a5B,refills,0shot,0.198,600,0.200,-0.003,-0.041,0.034,at
-tsumugi-s17-a5B,codevar,0shot,0.258,1200,0.267,-0.008,-0.042,0.026,at
-tsumugi-s17-a5B,codevar,fair,0.256,1200,0.267,-0.018,-0.051,0.016,at
-tsumugi-s17-a5B,sharedlists,0shot,0.265,600,0.200,0.081,0.038,0.127,above
-tsumugi-s17-a5B,sharedlists,fair,0.210,600,0.200,0.013,-0.026,0.051,at
-tsumugi-s17-a5B,box-narrative,0shot,0.343,200,0.253,0.107,0.017,0.195,above
-tsumugi-s17-a5B,box-narrative,fair,0.323,200,0.253,0.075,-0.020,0.164,at
-tsumugi-s17-a5B,box-screenplay,0shot,0.412,200,0.253,0.217,0.125,0.308,above
-tsumugi-s17-a5B,box-screenplay,fair,0.393,200,0.253,0.181,0.085,0.278,above
-tsumugi-s17-a5B,box-code,0shot,0.290,200,0.253,0.061,-0.025,0.149,at
-tsumugi-s17-a5B,box-code,fair,0.412,200,0.253,0.197,0.099,0.292,above
-tsumugi-s17-a5B,box-chat,0shot,0.378,200,0.253,0.158,0.065,0.257,above
-tsumugi-s17-a5B,box-chat,fair,0.439,200,0.253,0.234,0.134,0.328,above
-tsumugi-s17-a5B,you-static,0shot,0.348,300,0.292,0.077,0.008,0.153,above
-tsumugi-s17-a5B,i-moves,0shot,0.292,180,0.287,-0.001,-0.092,0.096,at
-tsumugi-s17-a5B,i-moves,fair,0.269,180,0.287,-0.030,-0.115,0.056,at
-tsumugi-s17-a5B,you-moves,0shot,0.228,180,0.287,-0.089,-0.185,0.006,at
-tsumugi-s17-a5B,you-moves,fair,0.294,180,0.287,0.007,-0.086,0.104,at
-tsumugi-s17-a5B,you-named,0shot,0.300,180,0.287,0.018,-0.077,0.114,at
-tsumugi-s17-a5B,you-named,fair,0.294,180,0.287,0.006,-0.084,0.098,at
-tsumugi-s17-a5B,answer-self,0shot,0.287,2560,0.250,0.049,0.026,0.072,above
-tsumugi-s17-a5B,answer-self,fair,0.279,2560,0.250,0.038,0.016,0.062,above
-tsumugi-s17-a5B,grammar,ladder,,1080,,0.648,0.620,0.677,above
-tsumugi-s17-a5B,operators,ladder,,1080,,0.255,0.229,0.286,above
-tsumugi-s17-a5B,patterns,ladder,,1080,,0.458,0.424,0.490,above
-tsumugi-s17-a5B,facts,ladder,,768,,0.640,0.598,0.676,above
-tsumugi-s7-a5B,lookup,0shot,0.452,1210,0.169,0.332,0.299,0.365,above
-tsumugi-s7-a5B,lookup,fair,0.844,1210,0.169,0.811,0.786,0.836,above
-tsumugi-s7-a5B,shortlist,0shot,0.521,3840,0.040,0.501,0.485,0.516,above
-tsumugi-s7-a5B,pairs,0shot,0.340,256,0.125,0.245,0.176,0.306,above
-tsumugi-s7-a5B,pairs,fair,0.646,256,0.125,0.596,0.527,0.663,above
-tsumugi-s7-a5B,noise,0shot,0.558,720,0.200,0.448,0.402,0.496,above
-tsumugi-s7-a5B,now,0shot,0.372,300,0.292,0.114,0.042,0.193,above
-tsumugi-s7-a5B,handoffs,0shot,0.337,1200,0.312,0.034,-0.004,0.073,at
-tsumugi-s7-a5B,handoffs,fair,0.507,1200,0.312,0.278,0.237,0.318,above
-tsumugi-s7-a5B,sets,0shot,0.423,1280,0.275,0.213,0.175,0.248,above
-tsumugi-s7-a5B,sets,fair,0.561,1280,0.275,0.407,0.371,0.446,above
-tsumugi-s7-a5B,refilled,0shot,0.265,720,0.200,0.081,0.041,0.122,above
-tsumugi-s7-a5B,refills,0shot,0.172,600,0.200,-0.035,-0.073,0.001,at
-tsumugi-s7-a5B,codevar,0shot,0.276,1200,0.267,0.012,-0.023,0.047,at
-tsumugi-s7-a5B,codevar,fair,0.236,1200,0.267,-0.047,-0.081,-0.014,below
-tsumugi-s7-a5B,sharedlists,0shot,0.249,600,0.200,0.061,0.018,0.104,above
-tsumugi-s7-a5B,sharedlists,fair,0.233,600,0.200,0.041,-0.004,0.085,at
-tsumugi-s7-a5B,box-narrative,0shot,0.300,200,0.253,0.038,-0.052,0.127,at
-tsumugi-s7-a5B,box-narrative,fair,0.365,200,0.253,0.136,0.042,0.227,above
-tsumugi-s7-a5B,box-screenplay,0shot,0.445,200,0.253,0.264,0.172,0.357,above
-tsumugi-s7-a5B,box-screenplay,fair,0.422,200,0.253,0.209,0.112,0.300,above
-tsumugi-s7-a5B,box-code,0shot,0.340,200,0.253,0.131,0.037,0.220,above
-tsumugi-s7-a5B,box-code,fair,0.477,200,0.253,0.289,0.189,0.383,above
-tsumugi-s7-a5B,box-chat,0shot,0.438,200,0.253,0.238,0.146,0.330,above
-tsumugi-s7-a5B,box-chat,fair,0.445,200,0.253,0.237,0.137,0.332,above
-tsumugi-s7-a5B,you-static,0shot,0.317,300,0.292,0.036,-0.036,0.110,at
-tsumugi-s7-a5B,i-moves,0shot,0.250,180,0.287,-0.057,-0.140,0.029,at
-tsumugi-s7-a5B,i-moves,fair,0.247,180,0.287,-0.064,-0.154,0.025,at
-tsumugi-s7-a5B,you-moves,0shot,0.286,180,0.287,-0.006,-0.095,0.093,at
-tsumugi-s7-a5B,you-moves,fair,0.261,180,0.287,-0.035,-0.126,0.050,at
-tsumugi-s7-a5B,you-named,0shot,0.347,180,0.287,0.087,-0.013,0.180,at
-tsumugi-s7-a5B,you-named,fair,0.322,180,0.287,0.051,-0.044,0.144,at
-tsumugi-s7-a5B,answer-self,0shot,0.280,2560,0.250,0.041,0.018,0.064,above
-tsumugi-s7-a5B,answer-self,fair,0.319,2560,0.250,0.092,0.067,0.116,above
-tsumugi-s7-a5B,grammar,ladder,,1080,,0.641,0.615,0.667,above
-tsumugi-s7-a5B,operators,ladder,,1080,,0.226,0.197,0.256,above
-tsumugi-s7-a5B,patterns,ladder,,1080,,0.426,0.392,0.457,above
-tsumugi-s7-a5B,facts,ladder,,768,,0.651,0.616,0.689,above
-tsumugi-s17-a11B,lookup,0shot,0.505,1210,0.169,0.399,0.366,0.435,above
-tsumugi-s17-a11B,lookup,fair,0.916,1210,0.169,0.897,0.879,0.916,above
-tsumugi-s17-a11B,shortlist,0shot,0.528,3840,0.040,0.508,0.491,0.524,above
-tsumugi-s17-a11B,pairs,0shot,0.342,256,0.125,0.248,0.181,0.310,above
-tsumugi-s17-a11B,pairs,fair,0.685,256,0.125,0.641,0.576,0.703,above
-tsumugi-s17-a11B,noise,0shot,0.519,720,0.200,0.399,0.352,0.446,above
-tsumugi-s17-a11B,now,0shot,0.503,300,0.292,0.301,0.225,0.377,above
-tsumugi-s17-a11B,handoffs,0shot,0.407,1200,0.312,0.135,0.095,0.174,above
-tsumugi-s17-a11B,handoffs,fair,0.509,1200,0.312,0.282,0.240,0.321,above
-tsumugi-s17-a11B,sets,0shot,0.461,1280,0.275,0.262,0.224,0.299,above
-tsumugi-s17-a11B,sets,fair,0.599,1280,0.275,0.461,0.421,0.498,above
-tsumugi-s17-a11B,refilled,0shot,0.185,720,0.200,-0.019,-0.056,0.016,at
-tsumugi-s17-a11B,refills,0shot,0.189,600,0.200,-0.013,-0.051,0.027,at
-tsumugi-s17-a11B,codevar,0shot,0.267,1200,0.267,-0.003,-0.039,0.032,at
-tsumugi-s17-a11B,codevar,fair,0.250,1200,0.267,-0.028,-0.063,0.006,at
-tsumugi-s17-a11B,sharedlists,0shot,0.231,600,0.200,0.038,-0.004,0.078,at
-tsumugi-s17-a11B,sharedlists,fair,0.228,600,0.200,0.034,-0.005,0.080,at
-tsumugi-s17-a11B,box-narrative,0shot,0.430,200,0.253,0.220,0.120,0.315,above
-tsumugi-s17-a11B,box-narrative,fair,0.517,200,0.253,0.345,0.254,0.442,above
-tsumugi-s17-a11B,box-screenplay,0shot,0.555,200,0.253,0.393,0.296,0.493,above
-tsumugi-s17-a11B,box-screenplay,fair,0.590,200,0.253,0.433,0.333,0.529,above
-tsumugi-s17-a11B,box-code,0shot,0.287,200,0.253,0.054,-0.030,0.143,at
-tsumugi-s17-a11B,box-code,fair,0.535,200,0.253,0.346,0.234,0.441,above
-tsumugi-s17-a11B,box-chat,0shot,0.458,200,0.253,0.252,0.148,0.341,above
-tsumugi-s17-a11B,box-chat,fair,0.535,200,0.253,0.349,0.243,0.443,above
-tsumugi-s17-a11B,you-static,0shot,0.330,300,0.292,0.050,-0.021,0.126,at
-tsumugi-s17-a11B,i-moves,0shot,0.241,180,0.287,-0.073,-0.153,0.019,at
-tsumugi-s17-a11B,i-moves,fair,0.314,180,0.287,0.033,-0.066,0.129,at
-tsumugi-s17-a11B,you-moves,0shot,0.253,180,0.287,-0.049,-0.134,0.037,at
-tsumugi-s17-a11B,you-moves,fair,0.275,180,0.287,-0.017,-0.100,0.069,at
-tsumugi-s17-a11B,you-named,0shot,0.242,180,0.287,-0.067,-0.159,0.027,at
-tsumugi-s17-a11B,you-named,fair,0.300,180,0.287,0.016,-0.069,0.108,at
-tsumugi-s17-a11B,answer-self,0shot,0.329,2560,0.250,0.105,0.082,0.130,above
-tsumugi-s17-a11B,answer-self,fair,0.291,2560,0.250,0.055,0.031,0.077,above
-tsumugi-s17-a11B,grammar,ladder,,1080,,0.742,0.714,0.764,above
-tsumugi-s17-a11B,operators,ladder,,1080,,0.258,0.225,0.287,above
-tsumugi-s17-a11B,patterns,ladder,,1080,,0.402,0.366,0.438,above
-tsumugi-s17-a11B,facts,ladder,,768,,0.713,0.674,0.741,above
-tsumugi-s7-a11B,lookup,0shot,0.500,1210,0.169,0.390,0.359,0.425,above
-tsumugi-s7-a11B,lookup,fair,0.922,1210,0.169,0.906,0.887,0.923,above
-tsumugi-s7-a11B,shortlist,0shot,0.532,3840,0.040,0.513,0.497,0.530,above
-tsumugi-s7-a11B,pairs,0shot,0.430,256,0.125,0.348,0.283,0.413,above
-tsumugi-s7-a11B,pairs,fair,0.693,256,0.125,0.650,0.587,0.714,above
-tsumugi-s7-a11B,noise,0shot,0.562,720,0.200,0.452,0.408,0.496,above
-tsumugi-s7-a11B,now,0shot,0.522,300,0.292,0.322,0.245,0.400,above
-tsumugi-s7-a11B,handoffs,0shot,0.400,1200,0.312,0.125,0.086,0.165,above
-tsumugi-s7-a11B,handoffs,fair,0.541,1200,0.312,0.329,0.288,0.370,above
-tsumugi-s7-a11B,sets,0shot,0.462,1280,0.275,0.274,0.239,0.311,above
-tsumugi-s7-a11B,sets,fair,0.592,1280,0.275,0.454,0.416,0.491,above
-tsumugi-s7-a11B,refilled,0shot,0.199,720,0.200,-0.002,-0.036,0.037,at
-tsumugi-s7-a11B,refills,0shot,0.221,600,0.200,0.026,-0.015,0.071,at
-tsumugi-s7-a11B,codevar,0shot,0.307,1200,0.267,0.057,0.025,0.094,above
-tsumugi-s7-a11B,codevar,fair,0.275,1200,0.267,0.007,-0.029,0.043,at
-tsumugi-s7-a11B,sharedlists,0shot,0.270,600,0.200,0.087,0.046,0.133,above
-tsumugi-s7-a11B,sharedlists,fair,0.246,600,0.200,0.057,0.016,0.100,above
-tsumugi-s7-a11B,box-narrative,0shot,0.463,200,0.253,0.264,0.167,0.357,above
-tsumugi-s7-a11B,box-narrative,fair,0.512,200,0.253,0.329,0.229,0.426,above
-tsumugi-s7-a11B,box-screenplay,0shot,0.570,200,0.253,0.434,0.340,0.524,above
-tsumugi-s7-a11B,box-screenplay,fair,0.500,200,0.253,0.308,0.202,0.413,above
-tsumugi-s7-a11B,box-code,0shot,0.393,200,0.253,0.181,0.090,0.272,above
-tsumugi-s7-a11B,box-code,fair,0.580,200,0.253,0.416,0.313,0.506,above
-tsumugi-s7-a11B,box-chat,0shot,0.565,200,0.253,0.416,0.324,0.510,above
-tsumugi-s7-a11B,box-chat,fair,0.527,200,0.253,0.342,0.232,0.439,above
-tsumugi-s7-a11B,you-static,0shot,0.355,300,0.292,0.084,0.005,0.165,above
-tsumugi-s7-a11B,i-moves,0shot,0.281,180,0.287,-0.015,-0.111,0.086,at
-tsumugi-s7-a11B,i-moves,fair,0.283,180,0.287,-0.010,-0.097,0.087,at
-tsumugi-s7-a11B,you-moves,0shot,0.222,180,0.287,-0.098,-0.183,-0.010,below
-tsumugi-s7-a11B,you-moves,fair,0.297,180,0.287,0.013,-0.080,0.102,at
-tsumugi-s7-a11B,you-named,0shot,0.300,180,0.287,0.018,-0.072,0.112,at
-tsumugi-s7-a11B,you-named,fair,0.394,180,0.287,0.148,0.051,0.244,above
-tsumugi-s7-a11B,answer-self,0shot,0.313,2560,0.250,0.084,0.061,0.108,above
-tsumugi-s7-a11B,answer-self,fair,0.282,2560,0.250,0.043,0.018,0.064,above
-tsumugi-s7-a11B,grammar,ladder,,1080,,0.773,0.749,0.797,above
-tsumugi-s7-a11B,operators,ladder,,1080,,0.224,0.195,0.259,above
-tsumugi-s7-a11B,patterns,ladder,,1080,,0.434,0.402,0.469,above
-tsumugi-s7-a11B,facts,ladder,,768,,0.765,0.727,0.799,above
-tsumugi-s17-a33B,lookup,0shot,0.700,1210,0.169,0.630,0.595,0.663,above
-tsumugi-s17-a33B,lookup,fair,0.950,1210,0.169,0.941,0.926,0.957,above
-tsumugi-s17-a33B,shortlist,0shot,0.610,3840,0.040,0.594,0.577,0.610,above
-tsumugi-s17-a33B,pairs,0shot,0.570,256,0.125,0.509,0.435,0.574,above
-tsumugi-s17-a33B,pairs,fair,0.748,256,0.125,0.712,0.654,0.777,above
-tsumugi-s17-a33B,noise,0shot,0.607,720,0.200,0.509,0.465,0.551,above
-tsumugi-s17-a33B,now,0shot,0.752,300,0.292,0.648,0.577,0.716,above
-tsumugi-s17-a33B,handoffs,0shot,0.439,1200,0.312,0.179,0.140,0.219,above
-tsumugi-s17-a33B,handoffs,fair,0.508,1200,0.312,0.281,0.240,0.322,above
-tsumugi-s17-a33B,sets,0shot,0.573,1280,0.275,0.421,0.384,0.458,above
-tsumugi-s17-a33B,sets,fair,0.629,1280,0.275,0.496,0.460,0.531,above
-tsumugi-s17-a33B,refilled,0shot,0.265,720,0.200,0.081,0.041,0.121,above
-tsumugi-s17-a33B,refills,0shot,0.210,600,0.200,0.013,-0.028,0.053,at
-tsumugi-s17-a33B,codevar,0shot,0.315,1200,0.267,0.057,0.019,0.092,above
-tsumugi-s17-a33B,codevar,fair,0.282,1200,0.267,0.013,-0.025,0.050,at
-tsumugi-s17-a33B,sharedlists,0shot,0.200,600,0.200,0.000,-0.040,0.043,at
-tsumugi-s17-a33B,sharedlists,fair,0.211,600,0.200,0.013,-0.029,0.058,at
-tsumugi-s17-a33B,box-narrative,0shot,0.552,200,0.253,0.397,0.301,0.489,above
-tsumugi-s17-a33B,box-narrative,fair,0.500,200,0.253,0.313,0.211,0.409,above
-tsumugi-s17-a33B,box-screenplay,0shot,0.595,200,0.253,0.446,0.349,0.540,above
-tsumugi-s17-a33B,box-screenplay,fair,0.492,200,0.253,0.289,0.186,0.389,above
-tsumugi-s17-a33B,box-code,0shot,0.435,200,0.253,0.253,0.162,0.347,above
-tsumugi-s17-a33B,box-code,fair,0.635,200,0.253,0.483,0.386,0.572,above
-tsumugi-s17-a33B,box-chat,0shot,0.485,200,0.253,0.282,0.178,0.374,above
-tsumugi-s17-a33B,box-chat,fair,0.535,200,0.253,0.365,0.270,0.459,above
-tsumugi-s17-a33B,you-static,0shot,0.535,300,0.292,0.333,0.250,0.409,above
-tsumugi-s17-a33B,i-moves,0shot,0.239,180,0.287,-0.074,-0.158,0.017,at
-tsumugi-s17-a33B,i-moves,fair,0.264,180,0.287,-0.030,-0.115,0.055,at
-tsumugi-s17-a33B,you-moves,0shot,0.292,180,0.287,0.003,-0.092,0.097,at
-tsumugi-s17-a33B,you-moves,fair,0.361,180,0.287,0.105,0.009,0.200,above
-tsumugi-s17-a33B,you-named,0shot,0.244,180,0.287,-0.065,-0.145,0.021,at
-tsumugi-s17-a33B,you-named,fair,0.306,180,0.287,0.025,-0.061,0.114,at
-tsumugi-s17-a33B,answer-self,0shot,0.300,2560,0.250,0.066,0.042,0.089,above
-tsumugi-s17-a33B,answer-self,fair,0.300,2560,0.250,0.066,0.044,0.090,above
-tsumugi-s17-a33B,grammar,ladder,,1080,,0.781,0.758,0.809,above
-tsumugi-s17-a33B,operators,ladder,,1080,,0.287,0.252,0.320,above
-tsumugi-s17-a33B,patterns,ladder,,1080,,0.475,0.446,0.513,above
-tsumugi-s17-a33B,facts,ladder,,768,,0.892,0.864,0.914,above
-tsumugi-s17-a55B,lookup,0shot,0.701,1210,0.169,0.632,0.597,0.662,above
-tsumugi-s17-a55B,lookup,fair,0.981,1210,0.169,0.977,0.966,0.985,above
-tsumugi-s17-a55B,shortlist,0shot,0.662,3840,0.040,0.648,0.632,0.663,above
-tsumugi-s17-a55B,pairs,0shot,0.672,256,0.125,0.625,0.556,0.685,above
-tsumugi-s17-a55B,pairs,fair,0.723,256,0.125,0.683,0.625,0.741,above
-tsumugi-s17-a55B,noise,0shot,0.670,720,0.200,0.588,0.544,0.630,above
-tsumugi-s17-a55B,now,0shot,0.682,300,0.292,0.550,0.476,0.622,above
-tsumugi-s17-a55B,handoffs,0shot,0.514,1200,0.312,0.288,0.247,0.332,above
-tsumugi-s17-a55B,handoffs,fair,0.565,1200,0.312,0.363,0.321,0.404,above
-tsumugi-s17-a55B,sets,0shot,0.526,1280,0.275,0.357,0.320,0.396,above
-tsumugi-s17-a55B,sets,fair,0.617,1280,0.275,0.488,0.453,0.526,above
-tsumugi-s17-a55B,refilled,0shot,0.373,720,0.200,0.216,0.173,0.261,above
-tsumugi-s17-a55B,refills,0shot,0.272,600,0.200,0.090,0.045,0.134,above
-tsumugi-s17-a55B,codevar,0shot,0.301,1200,0.267,0.041,0.007,0.079,above
-tsumugi-s17-a55B,codevar,fair,0.321,1200,0.267,0.067,0.030,0.102,above
-tsumugi-s17-a55B,sharedlists,0shot,0.221,600,0.200,0.027,-0.013,0.067,at
-tsumugi-s17-a55B,sharedlists,fair,0.268,600,0.200,0.084,0.042,0.130,above
-tsumugi-s17-a55B,box-narrative,0shot,0.583,200,0.253,0.443,0.352,0.535,above
-tsumugi-s17-a55B,box-narrative,fair,0.490,200,0.253,0.291,0.190,0.381,above
-tsumugi-s17-a55B,box-screenplay,0shot,0.660,200,0.253,0.547,0.458,0.641,above
-tsumugi-s17-a55B,box-screenplay,fair,0.530,200,0.253,0.344,0.238,0.437,above
-tsumugi-s17-a55B,box-code,0shot,0.470,200,0.253,0.285,0.195,0.377,above
-tsumugi-s17-a55B,box-code,fair,0.652,200,0.253,0.505,0.403,0.598,above
-tsumugi-s17-a55B,box-chat,0shot,0.595,200,0.253,0.454,0.355,0.546,above
-tsumugi-s17-a55B,box-chat,fair,0.590,200,0.253,0.433,0.331,0.523,above
-tsumugi-s17-a55B,you-static,0shot,0.526,300,0.292,0.327,0.244,0.404,above
-tsumugi-s17-a55B,i-moves,0shot,0.311,180,0.287,0.025,-0.075,0.120,at
-tsumugi-s17-a55B,i-moves,fair,0.292,180,0.287,0.006,-0.086,0.096,at
-tsumugi-s17-a55B,you-moves,0shot,0.264,180,0.287,-0.042,-0.130,0.056,at
-tsumugi-s17-a55B,you-moves,fair,0.303,180,0.287,0.023,-0.062,0.118,at
-tsumugi-s17-a55B,you-named,0shot,0.300,180,0.287,0.014,-0.075,0.109,at
-tsumugi-s17-a55B,you-named,fair,0.319,180,0.287,0.044,-0.046,0.143,at
-tsumugi-s17-a55B,answer-self,0shot,0.336,2560,0.250,0.115,0.091,0.138,above
-tsumugi-s17-a55B,answer-self,fair,0.306,2560,0.250,0.074,0.050,0.097,above
-tsumugi-s17-a55B,grammar,ladder,,1080,,0.761,0.736,0.790,above
-tsumugi-s17-a55B,operators,ladder,,1080,,0.276,0.241,0.309,above
-tsumugi-s17-a55B,patterns,ladder,,1080,,0.438,0.405,0.470,above
-tsumugi-s17-a55B,facts,ladder,,768,,0.892,0.866,0.917,above
-tsumugi-s17-a88B,lookup,0shot,0.636,1210,0.169,0.554,0.520,0.590,above
-tsumugi-s17-a88B,lookup,fair,0.990,1210,0.169,0.988,0.981,0.994,above
-tsumugi-s17-a88B,shortlist,0shot,0.682,3840,0.040,0.668,0.653,0.684,above
-tsumugi-s17-a88B,pairs,0shot,0.615,256,0.125,0.560,0.491,0.623,above
-tsumugi-s17-a88B,pairs,fair,0.598,256,0.125,0.540,0.480,0.600,above
-tsumugi-s17-a88B,noise,0shot,0.715,720,0.200,0.644,0.603,0.683,above
-tsumugi-s17-a88B,now,0shot,0.757,300,0.292,0.652,0.580,0.714,above
-tsumugi-s17-a88B,handoffs,0shot,0.485,1200,0.312,0.248,0.205,0.290,above
-tsumugi-s17-a88B,handoffs,fair,0.579,1200,0.312,0.385,0.344,0.424,above
-tsumugi-s17-a88B,sets,0shot,0.496,1280,0.275,0.315,0.278,0.352,above
-tsumugi-s17-a88B,sets,fair,0.664,1280,0.275,0.552,0.516,0.588,above
-tsumugi-s17-a88B,refilled,0shot,0.432,720,0.200,0.290,0.249,0.335,above
-tsumugi-s17-a88B,refills,0shot,0.379,600,0.200,0.224,0.175,0.271,above
-tsumugi-s17-a88B,codevar,0shot,0.350,1200,0.267,0.108,0.069,0.147,above
-tsumugi-s17-a88B,codevar,fair,0.365,1200,0.267,0.128,0.091,0.165,above
-tsumugi-s17-a88B,sharedlists,0shot,0.258,600,0.200,0.072,0.029,0.116,above
-tsumugi-s17-a88B,sharedlists,fair,0.324,600,0.200,0.155,0.110,0.205,above
-tsumugi-s17-a88B,box-narrative,0shot,0.555,200,0.253,0.404,0.308,0.496,above
-tsumugi-s17-a88B,box-narrative,fair,0.470,200,0.253,0.265,0.165,0.364,above
-tsumugi-s17-a88B,box-screenplay,0shot,0.614,200,0.253,0.478,0.386,0.571,above
-tsumugi-s17-a88B,box-screenplay,fair,0.512,200,0.253,0.322,0.224,0.413,above
-tsumugi-s17-a88B,box-code,0shot,0.510,200,0.253,0.343,0.250,0.436,above
-tsumugi-s17-a88B,box-code,fair,0.650,200,0.253,0.496,0.398,0.590,above
-tsumugi-s17-a88B,box-chat,0shot,0.579,200,0.253,0.421,0.325,0.516,above
-tsumugi-s17-a88B,box-chat,fair,0.520,200,0.253,0.354,0.251,0.444,above
-tsumugi-s17-a88B,you-static,0shot,0.578,300,0.292,0.403,0.318,0.481,above
-tsumugi-s17-a88B,i-moves,0shot,0.300,180,0.287,0.013,-0.080,0.104,at
-tsumugi-s17-a88B,i-moves,fair,0.292,180,0.287,0.006,-0.083,0.100,at
-tsumugi-s17-a88B,you-moves,0shot,0.331,180,0.287,0.057,-0.040,0.151,at
-tsumugi-s17-a88B,you-moves,fair,0.364,180,0.287,0.106,0.014,0.199,above
-tsumugi-s17-a88B,you-named,0shot,0.300,180,0.287,0.016,-0.074,0.113,at
-tsumugi-s17-a88B,you-named,fair,0.289,180,0.287,0.003,-0.081,0.094,at
-tsumugi-s17-a88B,answer-self,0shot,0.323,2560,0.250,0.097,0.075,0.120,above
-tsumugi-s17-a88B,answer-self,fair,0.330,2560,0.250,0.106,0.080,0.129,above
-tsumugi-s17-a88B,grammar,ladder,,1080,,0.806,0.784,0.830,above
-tsumugi-s17-a88B,operators,ladder,,1080,,0.301,0.268,0.331,above
-tsumugi-s17-a88B,patterns,ladder,,1080,,0.507,0.477,0.546,above
-tsumugi-s17-a88B,facts,ladder,,768,,0.925,0.905,0.947,above
 ```

@@ -20,7 +20,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 from build_page import FORBIDDEN, build_stamp, common_args, load_config  # noqa: E402  (one table of forbidden names)
-from siteconfig import without_hidden_rows  # noqa: E402
+from siteconfig import TSUMUGI_CLEAN, TSUMUGI_PAGE, without_hidden_rows  # noqa: E402
 
 N_POOL = 1                                   # extra example items per column (the page has up to 8)
 SMALL_N = 20                                 # cells with fewer items get a dagger in the wide tables
@@ -77,6 +77,8 @@ def main() -> None:
     args = ap.parse_args()
     cfg = load_config(args.config)
     PAGE_URL = cfg.page_link
+    # kotodama-tsumugi's own page, one folder below the atlas
+    TSUMUGI_URL = (cfg.base_url + (TSUMUGI_CLEAN if cfg.clean_urls else TSUMUGI_PAGE)) if cfg.base_url else TSUMUGI_PAGE
     SWAP_PROMPTS = args.swap_prompts
     atlas = without_hidden_rows(json.loads(args.atlas.read_text()))
     out = args.out
@@ -98,16 +100,21 @@ def main() -> None:
     f3 = lambda v: ("+" if v > 0 else "−" if v < 0 else "") + f"{abs(v):.3f}".lstrip("0")
     P("## Summary")
     P("")
-    P(f"This atlas scores {sum(1 for r in rows if r['group'] != 'Human')} models and checkpoints "
+    n_bases = sum(1 for r in rows if r.get("family") not in (None, "kotodama"))
+    P(f"This atlas scores {n_bases} public base models and kotodama-tsumugi "
       f"on {len(cols)} tests of tracking who *I* and *you* refer to. \"Example items per column\" quotes the exact prompts "
       "that the models were given.")
     P("")
     P(stage["lead"])
     P("")
+    P(f"kotodama-tsumugi, our 1.4B model, is one row among them. How it learned these tests over training (its stages "
+      f"against training tokens, its checkpoints on the main tests, and the release beside its own trajectory and "
+      f"three public models of its size) is on its own page: {TSUMUGI_URL}")
+    P("")
     P("Swap shift = mean[p(gold | original) − p(gold | speaker swapped)] over the candidates. Above +.02, a pronoun "
       "binds: its answer moves with the speaker. Below −.02, it inverts: it resolves to the speaker.")
     P("")
-    P("## Part I · Where base models fail")
+    P("## Where base models fail")
     P("")
     P("### The staircase")
     P("")
@@ -171,57 +178,6 @@ def main() -> None:
       "is spoken, and Llama-3.1 70B reaches .56. Narrating only the hand-off recovers part of that gap for every model "
       "from 4B up, and all of it for Llama-3.1 70B. (3) Naming the addressee does not help: the vocative variant is "
       "never more than .01 above the spoken one, and below it for every model from 4B up.")
-    P("")
-    P("## Part II · kotodama-tsumugi")
-    P("")
-    P(stage["tsumugi"]["desc"])
-    P("")
-    P("### Stage gauges against training tokens")
-    P("")
-    P("`kind` = constant (the trunk, constant learning rate) or annealed (a cooldown branch ending at that token count). "
-      "Columns are swap shifts: static *I*, static *you*, dynamic *you* 0-shot and 3-shot.")
-    P("")
-    P("| seed | kind | tokens (B) | static I | static you | dynamic you 0-shot | dynamic you 3-shot |")
-    P("|---|---|---|---|---|---|---|")
-    for seed, pts in stage["tsumugi"]["traj"].items():
-        for q in sorted(pts, key=lambda q: (q["kind"] != "constant", q["tok"])):
-            kind = q["kind"] + (f" ({q['note']})" if q.get("note") else "")
-            P(f"| {seed} | {kind} | {q['tok']:g} | {f3(q['I'])} | {f3(q['you'])} | {f3(q['dyn0'])} | {f3(q['dyn3'])} |")
-    P("")
-    P("For reference, OLMo-2 reaches stage 3 at about " + ", ".join(f"{o['tok']}B tokens ({o['m']})" for o in stage["tsumugi"]["olmo_stage3"]) + ".")
-    P("")
-    P("### The grid's headline tests across kotodama-tsumugi's checkpoints")
-    P("")
-    bat = stage["tsumugi"]["battery"]
-    P("| probe | " + " | ".join(bat["cols"]) + " |")
-    P("|---|" + "---|" * len(bat["cols"]))
-    for g in bat["groups"]:
-        P(f"| *{g['name']}* |" + " |" * len(bat["cols"]))
-        for name, vals in g["rows"]:
-            P(f"| {name} | " + " | ".join(f3(v) for v in vals) + " |")
-    P("")
-    P("The values are the grid's own cells. Each test is read as the grid reads it. Columns with worked examples use "
-      "them, the others are read with no examples, and the rule-learning rows are AUC over the example ladder. Lookup rises from .69 at 5B tokens to "
-      ".98 by 55B, level with the 7–9B bases (.97 to 1.00). The update tests (many refills, variable chains, shared "
-      "lists) stay at chance through 33B and lift from 55B on (.04 to .22). Static *you* climbs from .08 at 5B to .49 "
-      "at the release. Pattern completion reaches .55, second of 12 models at 1–2B parameters. The two seeds differ at "
-      "5B (seed 7 forms lookup and set binding earlier) and agree within .05 on all ten rows at 11B.")
-    P("")
-    rel = stage["release"]
-    P("### The release against its trajectory and its class")
-    P("")
-    P("| probe | " + " | ".join(rel["cols"]) + " |")
-    P("|---|" + "---|" * len(rel["cols"]))
-    for name, vals, signed in rel["rows"]:
-        P(f"| {name} | " + " | ".join("—" if v is None else f3(v) if signed else (f"{v:.1f}" if v >= 1 else f"{v:.3f}".lstrip("0")) for v in vals) + " |")
-    P("")
-    P("The two 110B columns are two anneals from the same fork with the same training loss. Their spread is "
-      "the measured anneal-to-anneal variance. It is .127 vs .192 on static *you* and .022 vs .038 on dynamic *you* "
-      "with examples. K50 reads 4.6 vs 5.1, and held-out text differs by .025 bits/byte. "
-      "Every single-anneal number here carries it. A second initialization seed (seed 7, same data order) was "
-      "trained to 11B. Capacity (K50, after Ravulapalli 2026, *In-context binding capacity in language models*, arXiv 2609.30634) is how many name–task pairs fit in context before recall "
-      "falls halfway to chance. On this harness it tracks recipe and tokens more than parameters, so no "
-      "parameter-equivalent size is read from it.")
     P("")
     rid = stage["riders"]
     P("### Object tracking: lookup early, updating later (the box puzzle; κ, mean over code, prose, script and chat)")

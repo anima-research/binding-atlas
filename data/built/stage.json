@@ -376,7 +376,7 @@
    }
   ]
  },
- "lead": "Base language models learn to look things up long before they learn to track change. In the box puzzle, items go into boxes and are then swapped, moved or refilled, and the model is asked what one box holds. The median model under 1B already finds what a box was said to hold, and scores zero on the boxes that a later step changed. With worked examples, updating climbs steadily with size, to .77 for the 70B models and above .8 for most of the largest. In a chat, *you* means the person being spoken to. Models get this right in five stages, in the same order in every training run measured. To read a stage, the speaker's name on the chat's last line is swapped: a model that follows *you* moves its answer to the other person's object. The swap shift is how much probability leaves the first answer; a model passes when the whole 95% interval of that shift is above +.02. Every base of 0.6B parameters or more trained on trillions of tokens reaches the third stage (*you* is the person spoken to), except Bamba 9B. The fifth stage is following *you* as objects change hands. With no examples in the prompt, it appears from about 7B (OLMo-2 7B, Qwen2.5 7B), and every base measured from 13B up reaches it. **kotodama-tsumugi** is a 1.4B model whose middle 20 layers run twice, so each token passes through 72 layers. It reaches the third stage by **33B tokens**, in the range where OLMo-2 13B gets there; OLMo-2 1B needs 420–525B. Given three worked examples, it is the smallest base measured that passes the fifth stage: +.038, with its whole 95% interval above +.02. The next is Qwen3 4B.",
+ "lead": "Base language models learn to look things up long before they learn to track change. In the box puzzle, items go into boxes and are then swapped, moved or refilled, and the model is asked what one box holds. The median model under 1B already finds what a box was said to hold, and scores zero on the boxes that a later step changed. With worked examples, updating climbs steadily with size, to .77 for the 70B models and above .8 for most of the largest. In a chat, *you* means the person being spoken to. Models get this right in five stages, in the same order in every training run measured. To read a stage, the speaker's name on the chat's last line is swapped: a model that follows *you* moves its answer to the other person's object. The swap shift is how much probability leaves the first answer; a model passes when the whole 95% interval of that shift is above +.02, a bar fixed before any model was scored. Every base of 0.6B parameters or more trained on trillions of tokens reaches the third stage (*you* is the person spoken to), except Bamba 9B. The fifth stage is following *you* as objects change hands. With no examples in the prompt, it appears from about 7B (OLMo-2 7B, Qwen2.5 7B), and every base measured from 13B up reaches it.",
  "tsumugi": {
   "_note": "kotodama-tsumugi s17 trunk (constant LR, to 100B) and cooldown branches (annealed), stage gauges = P2 speaker swap (static I, static you) and dynamic swap (addressee, 0-shot / 3-shot). Seed 7 = the seed replicate to 11B. Values from the synthesis table.",
   "traj": {
@@ -611,14 +611,14 @@
   ],
   "battery": {
    "cols": [
-    "s17 · 5B",
-    "s17 · 11B",
-    "s17 · 33B",
-    "s17 · 55B",
-    "s17 · 88B",
+    "main · 5B",
+    "main · 11B",
+    "main · 33B",
+    "main · 55B",
+    "main · 88B",
     "110B · release",
-    "s7 · 5B",
-    "s7 · 11B"
+    "second run · 5B",
+    "second run · 11B"
    ],
    "groups": [
     {
@@ -779,7 +779,8 @@
    ],
    "signed": true
   },
-  "desc": "A 1.42B-parameter model with a looped core, run as 72 effective layers. Its trunk trains at a constant learning rate to 100B tokens. Annealed reads are cooldown branches forked from its checkpoints (cosine decay to zero over about 10% of the tokens so far). The release is the 110B branch from the 100B fork. The architecture and training run are described on the model card (huggingface.co/LuxiaSL/kotodama-tsumugi-1b), and the release table below gives the spread between two anneals."
+  "desc": "A 1.42B-parameter model with a looped core, run as 72 effective layers. Its trunk trains at a constant learning rate to 100B tokens. Annealed reads are cooldown branches forked from its checkpoints (cosine decay to zero over about 10% of the tokens so far). The release is the 110B branch from the 100B fork. The architecture and training run are described on the model card (huggingface.co/LuxiaSL/kotodama-tsumugi-1b), and the release table below gives the spread between two anneals.",
+  "lead": "**kotodama-tsumugi** is a 1.4B model whose middle 20 layers run twice, so each token passes through 72 layers. It reaches the third stage by **33B tokens**, in the range where OLMo-2 13B gets there; OLMo-2 1B needs 420–525B. Given three worked examples, it is the smallest base measured that passes the fifth stage: +.038, with its whole 95% interval above +.02. The next is Qwen3 4B."
  },
  "decomp": {
   "_note": "stage5-decomp-v1: each dynamic-you gauge item rewritten along one axis. Accuracy pooled over self + addressee queries, 0-shot, 360 items per cell (SE ≈ .024); chance ≈ .29. Endpoints only.",

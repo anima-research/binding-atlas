@@ -3,22 +3,52 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!--only:atlas-->
 <title>Binding Atlas</title>
+<!--/only:atlas-->
+<!--only:tsumugi-->
+<title>kotodama-tsumugi on the benchmark</title>
+<!--/only:tsumugi-->
 <meta name="typeface" content="__FONT_META__">
+<!--only:atlas-->
 <meta name="description" content="Base language models learn to look things up long before they learn to track change. The Binding Atlas scores 56 public base models, 160M to 1.6T parameters, on who holds what and who “you” refers to, with the exact prompt behind every cell.">
+<!--/only:atlas-->
+<!--only:tsumugi-->
+<meta name="description" content="How kotodama-tsumugi, a 1.4B base model, learned the Binding Atlas tests over training: the stages of “you” against training tokens, its checkpoints on the main tests, and the release beside its own trajectory and three public models of its size.">
+<!--/only:tsumugi-->
 <link rel="canonical" href="__CANONICAL_URL__">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="__SITE_NAME__">
+<!--only:atlas-->
 <meta property="og:title" content="Binding Atlas">
+<!--/only:atlas-->
+<!--only:tsumugi-->
+<meta property="og:title" content="kotodama-tsumugi on the benchmark">
+<!--/only:tsumugi-->
+<!--only:atlas-->
 <meta property="og:description" content="Base language models learn to look things up long before they learn to track change. 56 public base models, 160M to 1.6T parameters, one scorer.">
+<!--/only:atlas-->
+<!--only:tsumugi-->
+<meta property="og:description" content="How kotodama-tsumugi, a 1.4B base model, learned the Binding Atlas tests over training: the stages of “you” against training tokens, its checkpoints on the main tests, and the release beside its own trajectory and three public models of its size.">
+<!--/only:tsumugi-->
 <meta property="og:url" content="__CANONICAL_URL__">
 <meta property="og:image" content="__CARD_URL__">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Binding Atlas: the swap shift for “you” after hand-offs against parameter count for 29 public base models; with no examples, models pass from about 7B, and every base from 13B up passes.">
 <meta name="twitter:card" content="summary_large_image">
+<!--only:atlas-->
 <meta name="twitter:title" content="Binding Atlas">
+<!--/only:atlas-->
+<!--only:tsumugi-->
+<meta name="twitter:title" content="kotodama-tsumugi on the benchmark">
+<!--/only:tsumugi-->
+<!--only:atlas-->
 <meta name="twitter:description" content="Base language models learn to look things up long before they learn to track change. 56 public base models, 160M to 1.6T parameters, one scorer.">
+<!--/only:atlas-->
+<!--only:tsumugi-->
+<meta name="twitter:description" content="How kotodama-tsumugi, a 1.4B base model, learned the Binding Atlas tests over training: the stages of “you” against training tokens, its checkpoints on the main tests, and the release beside its own trajectory and three public models of its size.">
+<!--/only:tsumugi-->
 <meta name="twitter:image" content="__CARD_URL__">
 <meta name="twitter:image:alt" content="Dynamic “you” swap shift against parameter count for 29 public base models.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -258,22 +288,28 @@ table.levers td.cost { color: var(--muted); }
 </style>
 </head>
 <body>
+<!--only:atlas-->
 <nav id="toc" aria-label="Contents" data-sel=".part h2, #ah" data-sel2=".fh h2" data-skip="#drawer, details" data-reserve="1"></nav>
+<!--/only:atlas-->
+<!--only:tsumugi-->
+<nav id="toc" aria-label="Contents" data-sel=".fh h2" data-skip="details" data-reserve="1"></nav>
+<!--/only:tsumugi-->
 __TOC__
 <div class="wrap">
+<!--only:atlas-->
   <header class="paper" style="gap:14px">
     <div class="eyebrow"><span>who is who, in base language models</span>
       <button class="iconbtn" id="theme" aria-label="toggle light / dark theme">light / dark</button></div>
     <h1>Binding Atlas</h1>
     <p class="credit">Led by <a href="https://x.com/kataletheia">Luxia</a>, with <a href="https://animalabs.ai">Anima Labs</a> · built with <a href="https://www.anthropic.com/claude">Claude</a></p>
-    <p class="claim">This atlas scores <b>__N_MODELS__ base models and checkpoints</b> on
+    <p class="claim">This atlas scores <b>__N_BASES__ public base models and kotodama-tsumugi</b> on
       <b>__N_TESTS__ tests</b> of keeping track of who is who. Each test is a short text that ends in a blank, with a
       fixed list of possible answers. The tests ask who holds which object, who holds it after things change hands, who
       <i>I</i> and <i>you</i> refer to in a chat, and what a made-up rule gives for a new case. A model's answer is the
       option it finds most likely. Click any cell in the <a href="#atlas">full atlas</a> to read the exact prompt that
       the model was given.</p>
     <p class="claim">Base language models learn to look things up long before they learn to track change. In the
-      box puzzle (Table 4), items go into boxes and are then swapped, moved or refilled, and the model is asked what one
+      box puzzle (Table 2), items go into boxes and are then swapped, moved or refilled, and the model is asked what one
       box holds. The median model under 1B already finds what a box was said to hold, and scores zero on the boxes that
       a later step changed (0 is guessing, 1 is always right). With worked examples in the prompt, updating climbs
       steadily with size, to .77 for the 70B models and above .8 for most of the largest.</p>
@@ -286,16 +322,41 @@ __TOC__
       <i>you</i> as the person spoken to, except Bamba 9B. The fifth stage is following <i>you</i> as objects change
       hands. <b>With no examples in the prompt, it appears from about 7B, and every base measured from 13B up reaches
       it</b> (Figure 2).</p>
+    <p class="claim">kotodama-tsumugi, our 1.4B model, is one row among them. How it learned these tests over training
+      is on <a href="__TSUMUGI_LINK__">its own page</a>.</p>
+    <div class="byline"><span>kotodama · 2026</span><span>__N_BASES__ public base models and kotodama-tsumugi in the atlas · __N_FIG_BASES__ public bases and __N_FIG_RUNS__ public training trajectories in the figures</span>
+      <a href="#atlas">full atlas ↓</a><a href="binding-atlas.md">plain-text version, for language models</a><a href="__TAKE_LINK__">take the tests yourself</a><a href="__TSUMUGI_LINK__">kotodama-tsumugi on the benchmark</a><a href="__THREADS_LINK__">a map of tsumugi's neurons</a>__BACK_LINK__</div>
+  </header>
+<!--/only:atlas-->
+<!--only:tsumugi-->
+  <header class="paper" style="gap:14px">
+    <div class="eyebrow"><span>who is who, in base language models</span>
+      <button class="iconbtn" id="theme" aria-label="toggle light / dark theme">light / dark</button></div>
+    <h1>kotodama-tsumugi on the benchmark</h1>
+    <p class="credit">Led by <a href="https://x.com/kataletheia">Luxia</a>, with <a href="https://animalabs.ai">Anima Labs</a> · built with <a href="https://www.anthropic.com/claude">Claude</a></p>
+    <p class="claim">This page follows one model through the benchmark's tests of who is who. The
+      <a href="__ATLAS_LINK__">benchmark's own page</a> explains the tests, the five stages of <i>you</i> and the swap
+      shift, and scores every public model on them.</p>
     <p class="claim"><b>kotodama-tsumugi</b> is our 1.4B model. Its middle 20 layers run twice with the same weights,
       so each token passes through 72 layers. It reaches the third stage by <b>33B tokens</b> of training, in the range
       where OLMo-2 13B gets there; OLMo-2 1B needs 420–525B. Given three worked examples, it is the smallest base
       measured that passes the fifth stage. Its swap shift is +.038, with the whole 95% interval above +.02
-      (<a href="#tsumugi-you">the test</a>). The next is Qwen3 4B.</p>
-    <div class="byline"><span>kotodama · 2026</span><span>__N_BASES__ public bases in the atlas · 29 public bases and 5 public training trajectories in the figures · kotodama-tsumugi (seed 17 to 110B tokens; seed 7 to 11B)</span>
-      <a href="#atlas">full atlas ↓</a><a href="binding-atlas.md">plain-text version, for language models</a><a href="take">take the tests yourself</a><a href="__THREADS_LINK__">a map of tsumugi's neurons</a>__BACK_LINK__</div>
+      (<a href="__ATLAS_LINK__#tsumugi-you">the test</a>). The next is Qwen3 4B.</p>
+    <p class="cap"><span class="kanji">言霊</span> kotodama, word-spirit: language as a thing with a life of its own.
+      <span class="kanji">紬</span> tsumugi, spun thread: words woven into more than the sum of their parts.
+      <a href="__THREADS_LINK__">A map of every neuron in this model</a> shows the circuits behind these tests.</p>
+    <p class="claim">Its main run trains at a constant learning rate to 100B tokens. To read a checkpoint fairly, a short
+      cooldown is branched off it: a closing stretch of training where the learning rate decays. Those cooled-down
+      reads are the hollow markers below. Two cooldowns were run from the 100B checkpoint with the same data and
+      settings. The release is one, ending at 110B. The other shows how far a cooldown alone moves a reading, and
+      Table 2 compares them. The <a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b">model card</a> describes
+      the architecture and the training run.</p>
+    <div class="byline"><span>kotodama · 2026</span><a href="__ATLAS_LINK__">the benchmark: every public model on every test</a><a href="__TAKE_LINK__">take the tests yourself</a><a href="__THREADS_LINK__">a map of tsumugi's neurons</a>__BACK_LINK__</div>
   </header>
+<!--/only:tsumugi-->
 
-  <div class="part"><span class="no">Part I</span><h2>Where base models fail</h2></div>
+<!--only:atlas-->
+  <div class="part"><h2>Where base models fail</h2></div>
   <div class="paper">
     <section class="fig" aria-labelledby="f1h">
       <div class="fh"><span class="no">Figure 1</span><h2 id="f1h">The staircase</h2></div>
@@ -304,7 +365,7 @@ __TOC__
         reach it. Every stage is read with the speaker swap described above.</p>
       <div class="stairs" id="stairs"></div>
       <p class="cap"><b>The stages appear in the same order in every training run measured</b>: OLMo-2 1B, 7B and 13B;
-        SmolLM3 3B; Pythia 410M, 1B, 1.4B and 6.9B; kotodama-tsumugi (Part II). The hatched stage is where most models stop.</p>
+        SmolLM3 3B; Pythia 410M, 1B, 1.4B and 6.9B; kotodama-tsumugi (<a href="__TSUMUGI_LINK__">its own page</a>). The hatched stage is where most models stop.</p>
     </section>
 
     <div class="figrow">
@@ -322,7 +383,7 @@ __TOC__
           (<i>you</i> as the person spoken to), these 19 read +.27 to +.89. With three worked examples (hollow), passing
           starts at Qwen3 4B (+.055) and reaches +.32 for Qwen3 14B. The kotodama-tsumugi release (diamond; 1.4B at 110B
           tokens) reads −.014 with no examples and +.038 with three, which passes. The other cooldown from the same 100B
-          checkpoint reads +.022 with examples, just short of the bar (Table 3 compares the two).</p>
+          checkpoint reads +.022 with examples, just short of the bar (<a href="__TSUMUGI_LINK__">its own page</a> compares the two).</p>
         <p class="cap" id="tsumugi-you"><b>The +.02 bar.</b> A model passes when the whole 95% interval of its swap
           shift is above +.02. The bar is a fixed convention, set before any of these models was read. Under it,
           kotodama-tsumugi passes with three worked examples (+.038, interval +.023 to +.055). It is the only base at 3B or below that does; the next is
@@ -362,6 +423,21 @@ __TOC__
         every model from 4B up, and all of it for Llama-3.1 70B. (3) <b>Naming the addressee does not help</b>: that
         version is never more than .01 above the chat itself, and below it for every model from 4B up.</p>
     </section>
+    <section class="fig" aria-labelledby="t5h">
+      <div class="fh"><span class="no">Table 2</span><h2 id="t5h">Object tracking: lookup early, updating later</h2></div>
+      <p class="cap lead">The box puzzle, split by what the question needs (score: 0 is guessing, 1 is always right).
+        Boxes go through swaps, moves and refills, written as code, prose, a script or a chat, and one box is asked
+        about. On <i>lookup</i> items, that box still holds what it was first said to hold; on <i>update</i> items, a
+        later step changed it. Each cell averages the four formats, and each public row is the median model of its size
+        band (hover for the list).</p>
+      <div class="tblwrap"><table class="levers" id="riders"></table></div>
+      <p class="cap"> Lookup is above chance at every size. The median model updates at chance below 2B.
+        With worked examples, updating climbs with size, from .20 at 2–5B and .40 at 7–10B to .77 at 70B and .87 from
+        284B up. A few small models update early, each with examples: Qwen3 4B (.43), Falcon-H1 3B (.37) and
+        Falcon-H1 1.5B-Deep (.28). kotodama-tsumugi's lookup with examples (.61) is second of 12 models at 1–2B,
+        behind Llama-3.2 1B (.83); like most models its size, it does not yet update (−.04). One model's cell averages
+        272 lookup or 328 update items (68 or 82 per format), about ±.08 at 95%.</p>
+    </section>
 
   </div>
 
@@ -392,8 +468,7 @@ __TOC__
           holding the", "So Box G contains the". The wording therefore never signals a change.</li>
         <li><b>Each model</b> is scored by the log-probability that it gives each candidate answer.</li>
         <li><b>Columns are grouped</b> by what the questions look like. Each column is its own test, and a collapsed group
-          shows one named column, never an average. Rows are grouped by size, with kotodama-tsumugi's checkpoints in
-          training order at the foot. The rule-learning suite has a fourth family, rebinding, where one name is
+          shows one named column, never an average. Rows are grouped by size. The rule-learning suite has a fourth family, rebinding, where one name is
           reassigned again and again: it is the Many refills column, under the story group. Click any cell to read its prompts.</li>
       </ul>
     </details>
@@ -424,34 +499,27 @@ __TOC__
   </section>
 
   <div class="gridwrap" id="gridwrap"><table class="atlas" id="grid"></table></div>
+<!--/only:atlas-->
 
-  <div class="part"><span class="no">Part II</span><h2><span class="kanji">言霊 紬</span> kotodama-tsumugi</h2>
-    <p class="gloss">言霊 kotodama, word-spirit: language as a thing with a life of its own. 紬 tsumugi, spun thread: words woven into more than the sum of their parts. A companion page, <a href="__THREADS_LINK__">Threads</a>, maps every neuron of this model and the circuits behind these tests.</p></div>
+<!--only:tsumugi-->
   <div class="paper">
-    <p class="cap" style="max-width:none">kotodama-tsumugi has 1.42B parameters. Its middle 20 layers run twice with
-      the same weights, so each token passes through 72 layers. Its main run trains at a constant learning rate to 100B
-      tokens. To read a checkpoint fairly, a short cooldown is branched off it: a closing stretch of training where the
-      learning rate decays, also called an anneal. Those cooled-down reads are the hollow markers below. The release is
-      the cooldown from the 100B-token checkpoint, ending at 110B. The <a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b">model card</a>
-      describes the architecture and the training run, and Table 3 gives the spread between two cooldowns of the same
-      checkpoint.</p>
     <section class="fig" aria-labelledby="f4h">
-      <div class="fh"><span class="no">Figure 4</span><h2 id="f4h">The stages during kotodama-tsumugi's training</h2></div>
+      <div class="fh"><span class="no">Figure 1</span><h2 id="f4h">The stages during kotodama-tsumugi's training</h2></div>
       <p class="cap lead">Swap shift against training tokens on three stages: <i>I</i> as the speaker (stage 1),
         <i>you</i> as the person spoken to (stage 3), and <i>you</i> through hand-offs with no examples (stage 5). Filled
-        markers are the main run (seed 17) at a constant learning rate; hollow markers are its cooled-down reads; small
-        grey markers are a second run from another random start (seed 7), to 11B tokens.</p>
+        markers are the main run at a constant learning rate; hollow markers are its cooled-down reads; small
+        grey markers are a second run from another random start, to 11B tokens.</p>
       <div id="moontraj"></div>
       <p class="cap"><i>I</i> as the speaker starts to pass at 3.75B tokens and levels off at +.16 to +.25 from about 40B. <i>You</i>
         as the person spoken to first dips below zero, the stage where the model treats <i>you</i> as <i>me</i>. It
         first passes at 33B tokens in a cooled-down read (+.065) and at 40B on the main run itself (+.068), and reaches
-        +.192 at the 110B release. The other cooldown from the same checkpoint reads +.127 (Table 3 gives the spread).
-        On seed 17, <i>you</i> through hand-offs with no examples sits just below zero from about 4B (−.015 to −.034) and
+        +.192 at the 110B release. The other cooldown from the same checkpoint reads +.127 (Table 2 gives the spread).
+        On the main run, <i>you</i> through hand-offs with no examples sits just below zero from about 4B (−.015 to −.034) and
         never passes. At 110B the two cooldowns read −.014 and −.012, not reliably backwards. The markers along the top show where
         OLMo-2 13B, 7B and 1B reach stage 3.</p>
     </section>
     <section class="fig" aria-labelledby="f5h">
-      <div class="fh"><span class="no">Figure 5</span><h2 id="f5h">The run against its peers</h2></div>
+      <div class="fh"><span class="no">Figure 2</span><h2 id="f5h">The run against its peers</h2></div>
       <div class="f5ctl">
         <div class="seg" id="f5m" role="group" aria-label="metric"><button data-k="avg9" aria-pressed="true">benchmark average</button><button data-k="ubpb" aria-pressed="false">unseen text</button><button data-k="I" aria-pressed="false"><i>I</i> = speaker</button><button data-k="you" aria-pressed="false"><i>you</i> = person spoken to</button></div>
         <div class="seg" id="f5x" role="group" aria-label="x axis"><button data-k="tok" aria-pressed="true">tokens</button><button data-k="flops" aria-pressed="false">training FLOPs</button></div>
@@ -467,10 +535,10 @@ __TOC__
         (1.13e10 FLOPs per token, about 1.3× the 1–2B bases).</p>
     </section>
     <section class="fig" aria-labelledby="t3h">
-      <div class="fh"><span class="no">Table 2</span><h2 id="t3h">kotodama-tsumugi's checkpoints on the main tests</h2></div>
+      <div class="fh"><span class="no">Table 1</span><h2 id="t3h">kotodama-tsumugi's checkpoints on the main tests</h2></div>
       <p class="cap lead">Each cooled-down checkpoint of kotodama-tsumugi on the full atlas's main tests, with the
-        atlas's own values (0 is guessing, 1 is always right). S17 is the main run and S7 the second run, at the
-        training tokens shown. Tests that have worked examples are read with them, the others alone. Each rule-learning
+        atlas's own values (0 is guessing, 1 is always right). Each column names the run (the main run or the second
+        run) and its training tokens. Tests that have worked examples are read with them, the others alone. Each rule-learning
         row averages the score over versions of the test that get steadily harder.</p>
       <div class="tblwrap"><table class="levers" id="moonbat"></table></div>
       <p class="cap"> Lookup rises from .69 at 5B tokens to .98 by 55B, level
@@ -480,7 +548,7 @@ __TOC__
         (the second run learns lookup and set binding earlier) and agree within .05 on all ten rows at 11B.</p>
     </section>
     <section class="fig" aria-labelledby="t4h">
-      <div class="fh"><span class="no">Table 3</span><h2 id="t4h">The release against its trajectory and its class</h2></div>
+      <div class="fh"><span class="no">Table 2</span><h2 id="t4h">The release against its trajectory and its class</h2></div>
       <p class="cap lead">The release beside its own earlier checkpoints and three public models of its size. The table
         has three kinds of row. The first four are swap shifts on the stages, and above +.02 passes. The next two test
         how many name–task pairs ("Ana: plumbing") a model can hold in its prompt, following a published capacity study
@@ -493,38 +561,36 @@ __TOC__
         It is .127 vs .192 on <i>you</i> as the person spoken to, and .022 vs .038 on <i>you</i> through hand-offs with examples. K50 reads 4.6 vs
         5.1, and held-out text differs by .025 bits/byte. Every
         single-cooldown number on this page carries that spread, so a difference between neighbouring checkpoints on
-        one axis is not a trend. A second run from another random start (seed 7, same data order) was trained to 11B. The who-has-what test has no SmolLM2 or Qwen3 reading. Capacity tracks training recipe and
+        one axis is not a trend. A second run from another random start (same data order) was trained to 11B. The who-has-what test has no SmolLM2 or Qwen3 reading. Capacity tracks training recipe and
         tokens more than parameters on this test (Pythia-160M through Pythia-6.9B read about the same), so no parameter-equivalent
         size is read from it.</p>
     </section>
-    <section class="fig" aria-labelledby="t5h">
-      <div class="fh"><span class="no">Table 4</span><h2 id="t5h">Object tracking: lookup early, updating later</h2></div>
-      <p class="cap lead">The box puzzle, split by what the question needs (score: 0 is guessing, 1 is always right).
-        Boxes go through swaps, moves and refills, written as code, prose, a script or a chat, and one box is asked
-        about. On <i>lookup</i> items, that box still holds what it was first said to hold; on <i>update</i> items, a
-        later step changed it. Each cell averages the four formats, and each public row is the median model of its size
-        band (hover for the list).</p>
-      <div class="tblwrap"><table class="levers" id="riders"></table></div>
-      <p class="cap"> Lookup is above chance at every size. The median model updates at chance below 2B.
-        With worked examples, updating climbs with size, from .20 at 2–5B and .40 at 7–10B to .77 at 70B and .87 from
-        284B up. A few small models update early, each with examples: Qwen3 4B (.43), Falcon-H1 3B (.37) and
-        Falcon-H1 1.5B-Deep (.28). kotodama-tsumugi's lookup with examples (.61) is second of 12 models at 1–2B,
-        behind Llama-3.2 1B (.83); like most models its size, it does not yet update (−.04). One model's cell averages
-        272 lookup or 328 update items (68 or 82 per format), about ±.08 at 95%.</p>
-    </section>
+    <p class="cap" style="max-width:none">On the benchmark's page, kotodama-tsumugi is one row: the release. Its other
+      checkpoints come from two training runs. The main run was cooled down and read at 5B, 11B, 33B, 55B and 88B
+      tokens on its way to the 110B release. A second run, from another random start on the same data order, was read
+      at 5B and 11B. Table 1 gives each of them on the benchmark's main tests.</p>
+    <p class="cap"><a href="__ATLAS_LINK__">Back to the benchmark: every public model on every test</a></p>
   </div>
+<!--/only:tsumugi-->
 
 
+<!--only:atlas-->
   <footer><span id="updated"></span><span id="foot"></span><span>Built from the kotodama binding research (2026). Numbers are point
     estimates; hover a cell for n and ± standard error.</span><span>__FONT_CREDIT__</span><span><a href="binding-atlas.md">Agent view (Markdown)</a>: the same data as plain text, with example prompts and every cell as CSV.</span></footer>
+<!--/only:atlas-->
+<!--only:tsumugi-->
+  <footer><span>Built from the kotodama binding research (2026). Numbers are point estimates.</span><span>__FONT_CREDIT__</span></footer>
+<!--/only:tsumugi-->
 </div>
 
+<!--only:atlas-->
 <div class="tip" id="tip" role="tooltip"></div>
 <aside class="drawer" id="drawer" role="dialog" aria-modal="false" aria-label="details" inert>
   <button class="iconbtn close" id="dclose" aria-label="close">✕</button>
   <div class="dh" id="dh"></div>
   <div class="db" id="db"></div>
 </aside>
+<!--/only:atlas-->
 
 <script type="application/json" id="stage-data">__STAGE_DATA__</script>
 <script>
@@ -533,8 +599,8 @@ __TOC__
 const G = JSON.parse(document.getElementById("stage-data").textContent);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
 const f3 = v => (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(3).replace(/^0/, "");
-// Figure 1: the staircase
-document.getElementById("stairs").innerHTML = G.stages.map(st => `
+// Atlas Figure 1: the staircase
+if (document.getElementById("stairs")) document.getElementById("stairs").innerHTML = G.stages.map(st => `
   <div class="st${st.n === 4 ? " stop" : ""}" style="--k:${st.n}">
     <div class="riser" aria-hidden="true"><div class="step"></div></div>
     <div class="n">STAGE ${st.n}</div><div class="name">${esc(st.name)}</div>
@@ -543,8 +609,9 @@ document.getElementById("stairs").innerHTML = G.stages.map(st => `
 // marker shapes: zero-shot = filled square, 3-shot = hollow square, ours = filled diamond
 const sq = (x, y, fill, r = 4) => `<rect x="${(x - r).toFixed(1)}" y="${(y - r).toFixed(1)}" width="${2 * r}" height="${2 * r}" fill="${fill ? "var(--fg)" : "var(--bg)"}" stroke="var(--fg)" stroke-width="1.3"/>`;
 const dia = (x, y, r = 6) => `<path d="M${x} ${y - r}L${x + r} ${y}L${x} ${y + r}L${x - r} ${y}Z" fill="var(--fg)" stroke="var(--bg)" stroke-width="1.5"/>`;
-// Figure 2: dynamic-you vs params
+// Atlas Figure 2: dynamic-you vs params
 (() => {
+  if (!document.getElementById("thresh")) return;
   const T = G.threshold, M = T.models, W = 520, H = 300, L = 54, R = 14, Tp = 14, B = 40;
   const x0 = Math.log10(0.4), x1 = Math.log10(2500), y0 = -0.1, y1 = 0.36;
   const X = p => L + (Math.log10(p) - x0) / (x1 - x0) * (W - L - R), Y = v => Tp + (y1 - v) / (y1 - y0) * (H - Tp - B);
@@ -566,8 +633,9 @@ const dia = (x, y, r = 6) => `<path d="M${x} ${y - r}L${x + r} ${y}L${x} ${y + r
   if (T.unsized.length) s += `<p class="cap" style="font-size:12.5px">Also measured, parameter count not public: ${T.unsized.map(u => `${esc(u.m)} ${f3(u.z)} / ${f3(u.t)}`).join(" · ")} (no examples / three examples).</p>`;
   document.getElementById("thresh").innerHTML = s;
 })();
-// Figure 3: tokens to each stage, OLMo-2 1B/7B/13B (+ ours)
+// Atlas Figure 3: tokens to each stage, OLMo-2 1B/7B/13B (+ ours)
 (() => {
+  if (!document.getElementById("cost")) return;
   const rows = G.cost.rows, W = 580, H = 70 + rows.length * 64, L = 210, R = 18, Tp = 10, B = 40;
   const x0 = Math.log10(1), x1 = Math.log10(10000), X = t => L + (Math.log10(t) - x0) / (x1 - x0) * (W - L - R);
   const lanes = ["OLMo-2 1B", "OLMo-2 7B", "OLMo-2 13B", "kotodama-tsumugi"], off = {"OLMo-2 1B": -15, "OLMo-2 7B": -5, "OLMo-2 13B": 5, "kotodama-tsumugi": 15};
@@ -590,8 +658,9 @@ const dia = (x, y, r = 6) => `<path d="M${x} ${y - r}L${x + r} ${y}L${x} ${y + r
   s += `</svg><div class="plotkey"><span>each line spans the checkpoints that bracket the stage; rows top → bottom = OLMo-2 1B · 7B · 13B · kotodama-tsumugi 1.4B; dashed arrow = not reached by the last checkpoint</span><span class="k"><svg viewBox="0 0 14 14">${dia(7, 7, 5)}</svg>kotodama-tsumugi 1.4B</span></div>`;
   document.getElementById("cost").innerHTML = s;
 })();
-// Figure 4: kotodama-tsumugi's stage gauges against tokens
+// tsumugi page Figure 1: kotodama-tsumugi's stage gauges against tokens
 (() => {
+  if (!document.getElementById("moontraj")) return;
   const M = G.tsumugi, W = 720, H = 320, L = 56, R = 120, Tp = 14, B = 44;
   const x0 = Math.log10(0.8), x1 = Math.log10(700), y0 = -0.07, y1 = 0.34;
   const X = t => L + (Math.log10(t) - x0) / (x1 - x0) * (W - L - R), Y = v => Tp + (y1 - v) / (y1 - y0) * (H - Tp - B);
@@ -612,11 +681,12 @@ const dia = (x, y, r = 6) => `<path d="M${x} ${y - r}L${x + r} ${y}L${x} ${y + r
     for (const p of pts("s7", "constant").concat(pts("s7", "annealed"))) s += `<g><title>second run${p.kind === "annealed" ? ", cooled down" : ""} · ${p.tok}B · ${esc(name)} ${f3(p[k])}</title><circle cx="${X(p.tok)}" cy="${Y(p[k])}" r="2.4" fill="var(--line)"/></g>`;
     const last = c[c.length - 1]; s += `<text class="lbl" x="${X(last.tok) + 26}" y="${Y(last[k]) + 4}">${esc(name)}</text>`;
   }
-  s += `</svg><div class="plotkey"><span class="k"><svg viewBox="0 0 14 14">${sq(7, 7, true, 3.5)}</svg>main run (seed 17, constant learning rate)</span><span class="k"><svg viewBox="0 0 14 14">${sq(7, 7, false, 4.5)}</svg>main run, cooled down</span><span class="k"><svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="2.4" fill="var(--line)"/></svg>second run (seed 7)</span><span>line style: solid = I as speaker · dashed = you as person spoken to · dotted = you through hand-offs</span></div>`;
+  s += `</svg><div class="plotkey"><span class="k"><svg viewBox="0 0 14 14">${sq(7, 7, true, 3.5)}</svg>main run (constant learning rate)</span><span class="k"><svg viewBox="0 0 14 14">${sq(7, 7, false, 4.5)}</svg>main run, cooled down</span><span class="k"><svg viewBox="0 0 14 14"><circle cx="7" cy="7" r="2.4" fill="var(--line)"/></svg>second run (another random start, to 11B)</span><span>line style: solid = I as speaker · dashed = you as person spoken to · dotted = you through hand-offs</span></div>`;
   document.getElementById("moontraj").innerHTML = s;
 })();
-// Figure 5: the run against its peers (metric x axis toggles)
+// tsumugi page Figure 2: the run against its peers (metric x axis toggles)
 (() => {
+  if (!document.getElementById("f5")) return;
   const RUN = G.run.models, el = document.getElementById("f5"), st = {k: "avg9", x: "tok"};
   const NAMES = {avg9: "benchmark average (9 tasks, no examples)", ubpb: "unseen text, bits per byte (lower is better)", I: "I = speaker, swap shift", you: "you = person spoken to, swap shift"};
   const DASH = {ours: "", dash: "6 4", solid: "", dot: "1.5 3", dashdot: "7 3 1.5 3"};
@@ -658,8 +728,9 @@ const dia = (x, y, r = 6) => `<path d="M${x} ${y - r}L${x + r} ${y}L${x} ${y + r
   for (const b of document.querySelectorAll("#f5x button")) b.addEventListener("click", () => { st.x = b.dataset.k === "flops" ? "flops" : "tok"; draw(); });
   draw();
 })();
-// Table 2: kotodama-tsumugi's battery across the annealed reads
+// tsumugi page Table 1: kotodama-tsumugi's battery across the cooled-down reads
 (() => {
+  if (!document.getElementById("moonbat")) return;
   const T = G.tsumugi.battery;
   let h = `<thead><tr><th>Test</th>${T.cols.map(c => `<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>`;
   for (const g of T.groups) {
@@ -669,22 +740,25 @@ const dia = (x, y, r = 6) => `<path d="M${x} ${y - r}L${x + r} ${y}L${x} ${y + r
   document.getElementById("moonbat").innerHTML = h + `</tbody>`;
 })();
 const pend = v => v == null ? `<span title="not yet scored on this checkpoint">pending</span>` : v.toFixed(3).replace(/^0/, "");
-// Table 1: stage-5 decomposition
+// Atlas Table 1: stage-5 decomposition
 (() => {
+  if (!document.getElementById("decomp")) return;
   const D = G.decomp;
   let h = `<thead><tr><th>Model</th><th>Tokens</th>${D.cols.map(c => `<th title="${esc(c.ex)}">${esc(c.name)}</th>`).join("")}</tr></thead><tbody>`;
   for (const r of D.rows) h += `<tr${r.ours ? ' style="font-weight:700"' : ""}><td>${esc(r.m)}</td><td class="cost">${esc(r.tok)}</td>${D.cols.map(c => `<td class="cost">${pend(r[c.k])}</td>`).join("")}</tr>`;
   document.getElementById("decomp").innerHTML = h + `</tbody>`;
 })();
-// Table 3: the release against its trajectory and class
+// tsumugi page Table 2: the release against its trajectory and class
 (() => {
+  if (!document.getElementById("reltab")) return;
   const T = G.release;
   let h = `<thead><tr><th>Test</th>${T.cols.map(c => `<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>`;
   for (const [name, vals, signed] of T.rows) h += `<tr><td>${esc(name)}</td>${vals.map((v, i) => `<td class="cost"${T.cols[i].includes("release") ? ' style="font-weight:700;color:var(--fg)"' : ""}>${v == null ? "—" : signed ? f3(v) : v >= 1 ? v.toFixed(1) : v.toFixed(3).replace(/^0/, "")}</td>`).join("")}</tr>`;
   document.getElementById("reltab").innerHTML = h + `</tbody>`;
 })();
-// Table 4: riders, lookup vs update, by size
+// Atlas Table 2: riders, lookup vs update, by size
 (() => {
+  if (!document.getElementById("riders")) return;
   const T = G.riders;
   let h = `<thead><tr><th>Models</th>${T.cols.map(c => `<th>${esc(c.name)}</th>`).join("")}</tr></thead><tbody>`;
   for (const r of T.rows) h += `<tr${r.ours ? ' style="font-weight:700"' : ""}><td${r.models ? ` title="${esc(r.models.join(", "))}"` : ""}>${esc(r.m)}</td>${T.cols.map(c => `<td class="cost">${r[c.k] == null ? "—" : f3(r[c.k])}</td>`).join("")}</tr>`;
@@ -692,6 +766,7 @@ const pend = v => v == null ? `<span title="not yet scored on this checkpoint">p
 })();
 })();
 </script>
+<!--only:atlas-->
 <script type="application/json" id="atlas-data">__ATLAS_DATA__</script>
 <script type="application/json" id="atlas-meta">__ATLAS_META__</script>
 <script>
@@ -1138,7 +1213,7 @@ $("#sort").innerHTML = `<option value="">by group (default)</option><option valu
 $("#groups").innerHTML = GROUPS.map(g => `<button class="chip" data-g="${esc(g)}" aria-pressed="true">${esc(g)} <span style="color:var(--muted)">${ROWS.filter(r => r.group === g).length}</span></button>`).join("");
 $("#groups").addEventListener("click", e => { const b = e.target.closest(".chip"); if (!b) return; S.hidden.has(b.dataset.g) ? S.hidden.delete(b.dataset.g) : S.hidden.add(b.dataset.g); render(); });
 $("#updated").textContent = "updated " + META.updated;
-$("#stats").innerHTML = [[ROWS.length, "models & checkpoints"], [COLS.length, "eval columns"], [Object.keys(CELLS).length.toLocaleString(), "cells"], [META.items.toLocaleString(), "scored items"]].map(([n, l]) => `<span><b>${n}</b>${l}</span>`).join("");
+$("#stats").innerHTML = [[ROWS.length, "base models"], [COLS.length, "eval columns"], [Object.keys(CELLS).length.toLocaleString(), "cells"], [META.items.toLocaleString(), "scored items"]].map(([n, l]) => `<span><b>${n}</b>${l}</span>`).join("");
 $("#foot").textContent = `atlas build ${META.build}`;
 render();
 if (S.sel) openCell(S.sel.r, S.sel.c); else if (S.col) openCol(S.col);
@@ -1150,5 +1225,19 @@ window.addEventListener("hashchange", () => {
 });
 })();
 </script>
+<!--/only:atlas-->
+<!--only:tsumugi-->
+<script>
+(() => {
+"use strict";
+try { const t = localStorage.getItem("atlas-theme"); if (t) document.documentElement.dataset.theme = t; } catch {}
+document.getElementById("theme").onclick = () => {
+  const r = document.documentElement, cur = r.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  r.dataset.theme = cur === "dark" ? "light" : "dark";
+  try { localStorage.setItem("atlas-theme", r.dataset.theme); } catch {}
+};
+})();
+</script>
+<!--/only:tsumugi-->
 </body>
 </html>
