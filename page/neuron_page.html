@@ -242,7 +242,7 @@ td.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowra
 .answers b { font-family: var(--f-mono) }
 .fcard .tog { justify-self: start; font: inherit; font-size: 12.5px; border: 1px solid var(--line); background: transparent; color: var(--fg2); border-radius: 4px; padding: 3px 9px; cursor: pointer }
 .steps2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px }
-.steps2 div { border-left: 2px solid var(--line); padding-left: 12px; display: grid; gap: 4px; min-width: 0 }
+.steps2 div { border-left: 2px solid var(--line); padding-left: 12px; display: grid; gap: 4px; align-content: start; min-width: 0 }
 .steps2 span { font-size: 14px; color: var(--fg2) }
 /* ---------- the page header and the rule-vs-recall sections */
 .hero .figs div { max-width: 26ch }
@@ -257,14 +257,26 @@ td.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowra
 .chapters button:hover, .chapters button:focus-visible, .chapters button.lit { border-color: #8c95a0; background: rgba(255,255,255,.06); color: #ffffff }
 .chapters button:focus-visible { outline: 2px solid var(--ice); outline-offset: 2px }
 .chapters i { width: 10px; height: 10px; border-radius: 50% }
-details.reference { border-top: 1px solid var(--line) }
-details.reference > summary { list-style: none; cursor: pointer; padding-block: 44px }
-details.reference > summary::-webkit-details-marker { display: none }
-details.reference > summary .wrap { display: grid; gap: 8px }
-details.reference > summary .h { font-family: var(--f-display); font-weight: 700; font-size: clamp(22px, 2.8vw, 30px); line-height: 1.15 }
-details.reference > summary .h::before { content: "▸ "; color: var(--muted) }
-details.reference[open] > summary .h::before { content: "▾ " }
-details.reference > summary .note { max-width: 74ch }
+/* the method footer: collapsed, small, at the end of the page */
+details.howmade { border-top: 1px solid var(--line) }
+details.howmade > summary { list-style: none; cursor: pointer; padding-block: 22px }
+details.howmade > summary::-webkit-details-marker { display: none }
+details.howmade > summary .wrap { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px }
+details.howmade > summary .h { font-family: var(--f-display); font-weight: 700; font-size: 17px; line-height: 1.2 }
+details.howmade > summary .h::before { content: "▸ "; color: var(--muted) }
+details.howmade[open] > summary .h::before { content: "▾ " }
+details.howmade > .wrap { display: grid; gap: 16px; padding-bottom: 34px }
+/* evidence folded into a chapter: a figure, its caption and its key stacked tightly */
+.stack { display: grid; gap: 10px; min-width: 0 }
+.stack > h3 { margin-top: 8px }
+.note.cap { font-size: 14px; max-width: 74ch }
+/* the map's legend, on the dark plate: the light-page components take the plate's colours */
+.maplegend { --surface: var(--plate2); --line: var(--plate-line); --fg: var(--plate-fg); --fg2: #c3cad2; --muted: var(--plate-muted); --chip: #1b1e24;
+  display: grid; gap: 12px; margin-top: 22px; min-width: 0 }
+.maplegend h3 { color: var(--plate-fg) }
+.maplegend .eyebrow { color: var(--plate-muted) }
+.maplegend .tbl { max-height: min(560px, 70vh); overflow: auto }   /* the 40 categories scroll inside the legend */
+.maplegend thead th { position: sticky; top: 0; background: var(--surface); z-index: 1 }
 .facts { margin: 0; padding-left: 1.15em; display: grid; gap: 9px; max-width: 74ch; color: var(--fg2); font-size: 15px }
 .facts b { color: var(--fg) }
 .figure.fit { overflow: hidden }
@@ -329,7 +341,7 @@ footer .wrap { display: grid; gap: 8px }
 </style>
 </head>
 <body>
-<nav id="toc" aria-label="Contents" data-reserve="1" data-plate=".step, .explore" data-sel="h1.toc-none" data-sel2=".read > .wrap > h2" data-skip=".reference .read"></nav>
+<nav id="toc" aria-label="Contents" data-reserve="1" data-plate=".step, .explore" data-sel="h1.toc-none" data-sel2=".read > .wrap > h2" data-skip=".fold, .howmade"></nav>
 __TOC__
 
 <!-- icl:begin -->
@@ -490,6 +502,11 @@ __TOC__
     <li>The rule circuit carries pattern completion too (continuing a nonsense pattern), but not made-up grammar (invented word endings; <span data-v="hero.rule_half.F1|sgn3">−.002</span>).</li>
   </ul>
   <div class="mapbtns"><button class="mapbtn" type="button" data-circuit="rule" style="color:var(--rule)"><i></i><span style="color:var(--fg)">Show the rule circuit on the map</span></button><button class="mapbtn" type="button" data-circuit="recall" style="color:var(--recall)"><i></i><span style="color:var(--fg)">Show the recall circuit on the map</span></button></div>
+  <div class="stack">
+    <h3 id="fluidh" hidden>Rule learning, item by item</h3>
+    <p class="prose note" id="t-fluid"></p>
+    <div class="fluidgrid" id="figFluid"></div>
+  </div>
 </div></section>
     <div class="chapter" id="ch-loop" data-toc="Second pass">
     <div class="step" data-step="2a"><div class="card">
@@ -512,6 +529,16 @@ __TOC__
     <div class="card2"><span class="eyebrow">second pass, damage controlled</span><span class="big"><span data-v="loop.L2.pass2|sgn3">−.065</span></span><p>Rule-learning loss beyond the recall loss, against the first pass. 95% interval <span data-v="loop.L2.lo|sgn3">−.093</span> to <span data-v="loop.L2.hi|sgn3">−.036</span>.</p></div>
     <div class="card2"><span class="eyebrow">outside the loop, damage controlled</span><span class="big"><span data-v="loop.L2.outside|sgn3">+.014</span></span><p>The same measure for heads outside the loop, also against the first pass.</p></div>
   </div>
+<!-- icl:end -->
+  <div class="stack" id="passes">
+    <h3>One neuron, two passes</h3>
+    <p class="prose note">Neuron 3306 at layer 19 is a causal hub against attribute binding on the first pass. Setting it alone to its average raises the attribute margin by <b>+.57 nats</b> with balanced worked examples, and by +.34 on bare items. Ten random single neurons at the same layer move it by .013 or less. With balanced examples, removing it slightly lowers the dialogue and code-variable margins (−.014 and −.016). Layers 19–38 and 39–58 run the same weights, so every neuron of the middle block has one copy on each pass. The second-pass copy at layer 39 (the same weights as layer 19) has no measurable effect: it moves each task's margin by <b>.013 or less</b>. Attribution had ranked both copies among the neurons with the strongest links to later neurons, and the knock-out separates the two.</p>
+    <div class="cards">
+      <div class="card2"><span class="eyebrow">first pass · layer 19 · removed</span><span class="big">+.57</span><p>nats on the attribute margin, with balanced worked examples</p></div>
+      <div class="card2"><span class="eyebrow">second pass · layer 39 · removed</span><span class="big">≤ .013</span><p>nats on any task's margin: no measurable effect</p></div>
+    </div>
+  </div>
+<!-- icl:begin -->
 </div></section>
     <div class="chapter" id="ch-static-you" data-toc="“You”, still">
     <div class="step" data-step="4a"><div class="card">
@@ -545,6 +572,12 @@ __TOC__
   </ul>
   <div class="figure fit" id="figStatic"></div>
   <div class="mapbtns"><button class="mapbtn" type="button" data-circuit="you_interf" style="color:var(--ember-ink)"><i></i><span style="color:var(--fg)">Show the interferers on the map</span></button><button class="mapbtn" type="button" data-circuit="you_supp" style="color:var(--ice-ink)"><i></i><span style="color:var(--fg)">Show the supporters on the map</span></button></div>
+<!-- icl:end -->
+  <div class="stack" id="scenes">
+    <h3>Who said what, in held-out scenes</h3>
+    <p class="prose note">Removing 702 interferers moves who said what in held-out multi-speaker scenes. The margin for the right speaker rises by <b>+.33 nats</b> (95% interval +.16 to +.50). The 702 are the union of the interferer sets chosen on bare items of ten binding tasks. Random sets of the same size move the margin by under .02. Random sets 8 to 15 times larger, matched to the union's damage at half dose, reach at most +.08 at full dose. At half dose the union's effect is small (+.05), and one of those large random sets matches it.</p>
+  </div>
+<!-- icl:begin -->
 </div></section>
     <div class="chapter" id="ch-dynamic-you" data-toc="“You”, moving">
     <div class="step" data-step="3a"><div class="card">
@@ -577,6 +610,11 @@ __TOC__
   <div class="figure fit" id="figDyn"></div>
   <div class="strip" id="figDynBands"></div>
   <div class="mapbtns"><button class="mapbtn" type="button" data-circuit="dyn_you" style="color:var(--ice-ink)"><i></i><span style="color:var(--fg)">Show this circuit on the map</span></button></div>
+  <div class="stack">
+    <h3 id="genh" hidden>In long generated dialogue</h3>
+    <p class="prose note" id="t-gen"></p>
+    <div class="figure" id="figGen"></div>
+  </div>
 </div></section>
     <div class="chapter" id="ch-exploratory" data-toc="Readability">
     <div class="step" data-step="x1"><div class="card">
@@ -617,11 +655,52 @@ __TOC__
     <div class="step" data-step="5b"><div class="card">
       <span class="eyebrow" style="color:var(--plate-muted)">earlier binding circuits · 2 of 2</span>
       
-      <p>Removing the interferers sharpens the binding the model already does; removing the supporters breaks it. The sections below hold the cell-by-cell evidence.</p>
+      <p>Removing the interferers sharpens the binding the model already does; removing the supporters breaks it. The evidence below goes cell by cell.</p>
       <div class="keyrow"><span><i style="background:var(--ice)"></i>supporters</span><span><i style="background:var(--ember)"></i>interferers</span></div>
     </div></div>
     </div>
 <!-- icl:end -->
+<section class="read fold" id="knockouts"><div class="wrap">
+  <span class="eyebrow">Earlier binding circuits · the evidence</span>
+  <h2>Knock-outs on held-out items</h2>
+  <p class="prose note">Each circuit was chosen on training items and tested on held-out ones. Removing a task's interferers sharpens the binding the model already does, cell by cell, and removing its supporters breaks it. Binding is many circuits, not one.</p>
+  <div class="stack">
+    <div class="figure" id="figMatrix"></div>
+    <p class="note cap" id="t-method"></p>
+    <div class="cards" id="koCards"></div>
+  </div>
+  <div class="stack" id="cells">
+    <h3>Attribute binding, cell by cell: every cell moves the same way</h3>
+    <div class="figure" id="figCells"></div>
+    <p class="note cap" id="t-cells"></p>
+  </div>
+  <div class="stack" id="fixes" hidden>
+    <h3>On the standard tests, it sharpens the binding the model already does</h3>
+    <p class="note cap" id="t-fixes"></p>
+    <div class="fixgrid" id="figFixes"></div>
+    <h3 id="doseh" hidden>How the effect grows with the dose</h3>
+    <p class="note cap" id="t-dose"></p>
+    <div class="figure" id="figDose"></div>
+  </div>
+  <div class="stack" id="circuits" hidden>
+    <h3>Ten tasks, ten maps: binding is many circuits, not one</h3>
+    <p class="note cap" id="t-circ"></p>
+    <div class="twocol">
+      <div class="heat" id="figHeat"></div>
+      <div style="display:grid;gap:14px;min-width:0">
+        <div class="figure" id="figTransfer"></div>
+        <div class="figure" id="figWithin"></div>
+      </div>
+    </div>
+    <p class="note cap" id="t-circ2"></p>
+  </div>
+  <div class="stack" id="where">
+    <h3>Where they sit</h3>
+    <p class="note cap">All eight binding families put their attribution at the same depths of the 72 layers (below), and in each item the question tokens at the end carry most of it, while the names themselves carry little.</p>
+    <div class="figure" id="figWhere"></div>
+    <p class="note cap" id="pos8"></p>
+  </div>
+</div></section>
 <section class="read" id="core"><div class="wrap">
   <span class="eyebrow">Across prompt formats</span>
   <h2>246 neurons hold their place across prompt formats</h2>
@@ -727,94 +806,26 @@ __TOC__
       </div>
       <aside class="panel" id="panel" aria-live="polite"></aside>
     </div>
+    <div class="maplegend" id="taxonomy">
+      <span class="eyebrow">The map's legend</span>
+      <h3>9 families, 40 categories, 400 groups</h3>
+      <p class="note" id="summary"></p>
+      <div class="tbl"><table id="cats"><thead><tr><th data-k="fam">Family</th><th data-k="name">Category</th><th data-k="n">Neurons</th><th data-k="high">Readings agree</th></tr></thead><tbody></tbody></table></div>
+    </div>
+    <div class="maplegend" id="known">
+      <span class="eyebrow">A check on the map</span>
+      <h3>Hand-validated neurons, and where the map put them</h3>
+      <p class="note">These neurons were characterised by hand before the map existed: their strongest firings, steering them, and how steering shifts the odds of specific next words. The map was built without those results. Most of them are levers: steering one changes the text toward its theme. A few, such as neuron 975, are detectors: they fire on their passages, but steering them does not cleanly change the text.</p>
+      <p class="note">The loop gives a free test: a neuron's two passes share weights, so if the map tracks function, the two copies should land in the same group. A loop neuron's two passes fire on the same kinds of passages almost as consistently as two halves of its own examples do: 80% as often at the 400 groups, and 91% at the 9 families. The map's groups also weigh the words from all three readings (the words it fires on, promotes and brings out when steered), which shift with depth, so on the full map fewer pairs share a group: 6 of the 18 hand-checked loop neurons below do. Each card gives the hand-made label, then the map's group on each pass.</p>
+      <div class="cards" id="knownCards"></div>
+    </div>
   </div>
 </div>
 </div>
 
-<details class="reference" id="reference" data-toc="Reference">
-<summary><div class="wrap"><span class="eyebrow">Reference</span><span class="h">Earlier analyses and methods</span><span class="note">The attribute-binding knock-outs cell by cell, ten tasks, one neuron on two passes, layer 8, where and when, the compendium, the hand-validated check and the method. Open to read.</span></div></summary>
-<section class="read" id="knockouts"><div class="wrap">
-  <span class="eyebrow">The evidence</span>
-  <h2>Knock-outs on held-out items</h2>
-  <p class="prose note" id="t-method"></p>
-  <div class="figure" id="figMatrix"></div>
-  <div class="cards" id="koCards"></div>
-</div></section>
-<section class="read" id="cells"><div class="wrap">
-  <span class="eyebrow">Attribute binding, cell by cell</span>
-  <h2>Every cell of the battery moves the same way</h2>
-  <p class="prose note" id="t-cells"></p>
-  <div class="figure" id="figCells"></div>
-</div></section>
-<section class="read" id="fixes" hidden><div class="wrap">
-  <span class="eyebrow">What the knock-out fixes</span>
-  <h2>It sharpens the binding the model already does</h2>
-  <p class="prose note" id="t-fixes"></p>
-  <div class="fixgrid" id="figFixes"></div>
-  <h3 id="fluidh" hidden>Rule learning, item by item</h3>
-  <p class="prose note" id="t-fluid"></p>
-  <div class="fluidgrid" id="figFluid"></div>
-  <h3 id="doseh" hidden>How the effect grows with the dose</h3>
-  <p class="prose note" id="t-dose"></p>
-  <div class="figure" id="figDose"></div>
-  <h3>Who said what, in held-out scenes</h3>
-  <p class="prose note">Removing 702 interferers moves who said what in held-out multi-speaker scenes. The margin for the right speaker rises by <b>+.33 nats</b> (95% interval +.16 to +.50). The 702 are the union of the interferer sets chosen on bare items of ten binding tasks. Random sets of the same size move the margin by under .02. Random sets 8 to 15 times larger, matched to the union's damage at half dose, reach at most +.08 at full dose. At half dose the union's effect is small (+.05), and one of those large random sets matches it.</p>
-  <h3 id="genh" hidden>In long generated dialogue</h3>
-  <p class="prose note" id="t-gen"></p>
-  <div class="figure" id="figGen"></div>
-</div></section>
-<section class="read" id="circuits" hidden><div class="wrap">
-  <span class="eyebrow">Ten tasks, ten maps</span>
-  <h2>Binding is many circuits, not one</h2>
-  <p class="prose note" id="t-circ"></p>
-  <div class="twocol">
-    <div class="heat" id="figHeat"></div>
-    <div style="display:grid;gap:14px;min-width:0">
-      <div class="figure" id="figTransfer"></div>
-      <div class="figure" id="figWithin"></div>
-    </div>
-  </div>
-  <p class="prose note" id="t-circ2"></p>
-</div></section>
-<section class="read" id="passes"><div class="wrap">
-  <span class="eyebrow">The middle block</span>
-  <h2>One neuron, two passes</h2>
-  <p class="prose note">Neuron 3306 at layer 19 is a causal hub against attribute binding on pass 1. Setting it alone to its average raises the attribute margin by <b>+.57 nats</b> with balanced worked examples, and by +.34 on bare items. Ten random single neurons at the same layer move it by .013 or less. With balanced examples, removing it slightly lowers the dialogue and code-variable margins (−.014 and −.016). Layers 19–38 and 39–58 run the same weights, so every neuron of the middle block has one copy on each pass. The pass-2 copy at layer 39 (the same weights as layer 19) has no measurable effect: it moves each task's margin by <b>.013 or less</b>. Attribution had ranked both copies among the neurons with the strongest links to later neurons, and the knock-out separates the two.</p>
-  <div class="cards">
-    <div class="card2"><span class="eyebrow">pass 1 · layer 19 · removed</span><span class="big">+.57</span><p>nats on the attribute margin, with balanced worked examples</p></div>
-    <div class="card2"><span class="eyebrow">pass 2 · layer 39 · removed</span><span class="big">≤ .013</span><p>nats on any task's margin: no measurable effect</p></div>
-  </div>
-</div></section>
-<section class="read" id="pos8" hidden><div class="wrap">
-  <span class="eyebrow">Layer 8</span>
-  <h2 id="pos8h"></h2>
-  <p class="prose note" id="t-pos8"></p>
-  <div class="figure" id="figPos8"></div>
-  <div class="figure" id="figSplit"></div>
-</div></section>
-<section class="read" id="where"><div class="wrap">
-  <span class="eyebrow">Where and when</span>
-  <h2>All eight binding families use the same depths</h2>
-  <p class="prose note">Share of each family's attribution at each of the 72 layers. Layers 19–38 and 39–58 are the same weights run twice. The question tokens at the end of each item carry most of the attribution; the names themselves carry little.</p>
-  <div class="figure" id="figWhere"></div>
-  <div class="figure" id="figWhen"></div>
-</div></section>
-<section class="read" id="taxonomy"><div class="wrap">
-  <span class="eyebrow">The compendium</span>
-  <h2>9 families, 40 categories, 400 groups</h2>
-  <p class="prose note" id="summary"></p>
-  <div class="tbl"><table id="cats"><thead><tr><th data-k="fam">Family</th><th data-k="name">Category</th><th data-k="n">Neurons</th><th data-k="high">Readings agree</th></tr></thead><tbody></tbody></table></div>
-</div></section>
-<section class="read" id="known"><div class="wrap">
-  <span class="eyebrow">A check on the map</span>
-  <h2>Hand-validated neurons, and where the map put them</h2>
-  <p class="prose note">These neurons were characterised by hand before the map existed: their strongest firings, steering them, and how steering shifts the odds of specific next words. The map was built without those results. Most of them are levers: steering one changes the text toward its theme. A few, such as neuron 975, are detectors: they fire on their passages, but steering them does not cleanly change the text.</p>
-  <p class="prose note">The loop gives a free test: a neuron's two passes share weights, so if the map tracks function, the two copies should land in the same group. A loop neuron's two passes fire on the same kinds of passages almost as consistently as two halves of its own examples do: 80% as often at the 400 groups, and 91% at the 9 families. The map's groups also weigh the words from all three readings (the words it fires on, promotes and brings out when steered), which shift with depth, so on the full map fewer pairs share a group: 6 of the 18 hand-checked loop neurons below do. Each card gives the hand-made label, then the map's group on each pass.</p>
-  <div class="cards" id="knownCards"></div>
-</div></section>
-<section class="read" id="method"><div class="wrap">
-  <span class="eyebrow">Method, and what to trust</span>
-  <h2>How it was made</h2>
+<details class="howmade" id="method">
+<summary><div class="wrap"><span class="eyebrow">Method, and what to trust</span><span class="h">How it was made</span></div></summary>
+<div class="wrap">
   <div class="steps2">
     <div><b>Firing pass</b><span>24M tokens of the model's training data through all 72 × 4,096 neurons; the 24 strongest and weakest firings of each, and running means.</span></div>
     <div><b>Three readings</b><span>Sentence embeddings of each neuron's firing contexts; the tokens that its output vector promotes (read directly, and through the later layers with the J-lens<span class="cite"><button type="button" class="cite-mk" aria-expanded="false" aria-label="Reference: the J-lens">1</button><span class="cite-leaf" role="note">Gurnee et al., <a href="https://transformer-circuits.pub/2026/workspace/index.html"><i>Verbalizable Representations Form a Global Workspace in Language Models</i></a>, Transformer Circuits Thread, 2026.</span></span>); the words that appear when it is steered.</span></div>
@@ -823,7 +834,7 @@ __TOC__
     <div><b>Knock-outs</b><span>Sets chosen on training items, tested on held-out items: each neuron's activation replaced by its corpus mean. Controls are random neurons at the same layers.</span></div>
   </div>
   <p class="prose note" id="trust"></p>
-</div></section>
+</div>
 </details>
 
 
@@ -1555,21 +1566,8 @@ function figWhere() {
   fams.sort((a, b) => (a in hi) - (b in hi)).forEach(f => { const d = B.families[f].where.map((v, l) => `${l ? 'L' : 'M'}${xs(l).toFixed(1)},${ys(v).toFixed(1)}`).join('');
     s += `<path d="${d}" fill="none" stroke="${hi[f] || 'var(--muted)'}" stroke-width="${hi[f] ? 2.2 : 1}" opacity="${hi[f] ? 1 : .5}"><title>${FAMLABEL[f]}: battery accuracy ${pct(B.families[f].acc)}</title></path>`; });
   s += '</svg>';
-  const leg = ['attr', 'dialogue', 'deixis'].map(f => `<span><span class="dot" style="background:${hi[f]}"></span>${FAMLABEL[f]}</span>`).join('') + `<span><span class="dot" style="background:var(--muted)"></span>the other five</span>`;
+  const leg = ['attr', 'dialogue', 'deixis'].map(f => `<span><span class="dot" style="background:${hi[f]}"></span>${FAMLABEL[f]}</span>`).join('') + `<span><span class="dot" style="background:var(--muted)"></span>the other five</span><span>share of each family's attribution at each layer</span>`;
   document.getElementById('figWhere').innerHTML = s + `<div style="display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;margin-top:8px;color:var(--fg2)">${leg}</div>`;
-  // when: token roles
-  const roles = [['question', 'question tokens'], ['candidate', 'candidate names'], ['pronoun', 'pronouns'], ['newline', 'line breaks'], ['colon', 'speaker colons'], ['other', 'everything else']];
-  const shade = ['var(--fg)', 'var(--ember-ink)', 'var(--ice-ink)', 'var(--fg2)', 'var(--muted)', 'var(--line)'];
-  const order = Object.keys(B.when).sort((a, b) => B.when[b].question - B.when[a].question);
-  const rh = 26, w2 = 1100, lw = 150, h2 = order.length * rh + 40;
-  let t = `<svg viewBox="0 0 ${w2} ${h2}" role="img" aria-label="Share of attribution by token role, per family">`;
-  order.forEach((f, r) => { let x = lw; const y = r * rh + 4;
-    t += `<text x="0" y="${y + 15}" font-size="12" fill="currentColor">${FAMLABEL[f]}</text>`;
-    roles.forEach(([k, name], j) => { const v = B.when[f][k] || 0, ww = v * (w2 - lw - 10);
-      if (ww > 0.5) t += `<rect x="${x}" y="${y}" width="${Math.max(0, ww - 2)}" height="${rh - 8}" fill="${shade[j]}"><title>${FAMLABEL[f]}: ${name} ${pct(v)}</title></rect>`;
-      if (ww > 34) t += `<text x="${x + 6}" y="${y + 13}" font-size="10.5" fill="${j < 3 ? 'var(--surface)' : 'var(--fg)'}">${pct(v)}</text>`; x += ww; }); });
-  t += '</svg>';
-  document.getElementById('figWhen').innerHTML = t + `<div style="display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;margin-top:8px;color:var(--fg2)">${roles.map(([, n], j) => `<span><span class="dot" style="background:${shade[j]}"></span>${n}</span>`).join('')}</div>`;
 }
 
 function figFixes() {
@@ -1633,7 +1631,7 @@ function figFluid() {
     F3: ['Rebinding', 'Containers or variables are filled, then reassigned; which value is current? The stale (previous) value is the trap.'],
     F4: ['Pattern completion', 'Continue a made-up pattern from three examples. A control: it needs no binding.'] };
   const tot = k => Object.values(F).reduce((s, v) => s + v[k], 0);
-  document.getElementById('t-fluid').innerHTML = `Every rule-learning item scored before and after the knock-out (all ${B.suite.all_neg.n_neurons} interferers). Items that flip from wrong to right are counted as fixed, from right to wrong as broken. The two families that need binding flip mostly toward the right answer (made-up operators ${F.F2.fixed} fixed, ${F.F2.broken} broken; rebinding ${F.F3.fixed} to ${F.F3.broken}). The two that do not need binding flip both ways about equally, which is what noise looks like here. The examples are the first and a middle fixed item of each family, as the battery generated them${Object.values(F).some(v => !v.examples.length) ? '; pattern completion has none shown' : ''}.`;
+  document.getElementById('t-fluid').innerHTML = `Removing the ${B.suite.all_neg.n_neurons} interferers of three binding tasks (attribute, dialogue and who-is-you; see <a href="#knockouts">earlier binding circuits</a>) also moves rule learning. Every rule-learning item was scored before and after that knock-out. Items that flip from wrong to right are counted as fixed, from right to wrong as broken. The two families that need binding flip mostly toward the right answer (made-up operators ${F.F2.fixed} fixed, ${F.F2.broken} broken; rebinding ${F.F3.fixed} to ${F.F3.broken}). The two that do not need binding flip both ways about equally, which is what noise looks like here. The examples are the first and a middle fixed item of each family, as the battery generated them${Object.values(F).some(v => !v.examples.length) ? '; pattern completion has none shown' : ''}.`;
   const lad = (f, v) => { const keys = Object.keys(v.ladder[X.base]).sort((a, b) => a - b), w = 520, h = 120, m = { l: 34, r: 8, t: 8, b: 22 };
     const xs = k => m.l + (keys.indexOf(k) + 0.5) / keys.length * (w - m.l - m.r), ys = y => m.t + (1 - y) * (h - m.t - m.b);
     let t = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="${info[f][0]}: accuracy per rung, before and after the knock-out">`;
@@ -1663,7 +1661,7 @@ function figGen() {
   const G = B.generative; if (!G || !G.cells) return;
   document.getElementById('genh').hidden = false;
   const c = k => G.cells.find(x => x.cell === k) || {};
-  document.getElementById('t-gen').innerHTML = `The same edit was applied while the model writes 40-turn dialogues, judged blind in pairs against the unedited model (Bradley–Terry score: 0 = judged no different from the unedited model, negative = judged worse; 90% intervals). Here it reads like generic damage. Removing all ${c('all_neg').neurons} interferers scores ${c('all_neg').bt.toFixed(2)}, and random neurons that cost the same next-token loss reach ${c('damage_matched_all_neg_s0').bt.toFixed(2)} and ${c('damage_matched_all_neg_s1').bt.toFixed(2)}. Random neurons of the same number read like the original, as do the 100 dialogue interferers alone. The gains show on the batteries and the in-context tasks; in free-running dialogue they do not stand out from damage.`;
+  document.getElementById('t-gen').innerHTML = `The same knock-out (the ${c('all_neg').neurons} interferers of three binding tasks; see <a href="#knockouts">earlier binding circuits</a>) was applied while the model writes 40-turn dialogues, judged blind in pairs against the unedited model (Bradley–Terry score: 0 = judged no different from the unedited model, negative = judged worse; 90% intervals). Here it reads like generic damage. Removing all ${c('all_neg').neurons} interferers scores ${c('all_neg').bt.toFixed(2)}, and random neurons that cost the same next-token loss reach ${c('damage_matched_all_neg_s0').bt.toFixed(2)} and ${c('damage_matched_all_neg_s1').bt.toFixed(2)}. Random neurons of the same number read like the original, as do the 100 dialogue interferers alone. The gains show on the batteries and the in-context tasks; in free-running dialogue they do not stand out from damage.`;
   const w = 1100, rh = 32, top = 34, left = 300, h = top + G.cells.length * rh + 30, lo = -1.4, hi = 0.9;
   const x = v => left + (v - lo) / (hi - lo) * (w - left - 150);
   let t = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Blind-read score of generated dialogue for each edit, with 90% intervals">`;
@@ -1737,51 +1735,11 @@ function figCircuits() {
 }
 
 function figPos8() {
-  const P8 = B.pos8; if (!P8 || !Object.keys(P8).length) return;
-  document.getElementById('pos8').hidden = false;
-  {
-    const d = (t, k) => P8[t] && P8[t][k] ? P8[t][k].d : 0, nl = k => P8.attr[k].dnll, pts = v => Math.round(v * 100);
-    const s8 = ['attr_pos100', 'attr_neg100', 'dialogue_pos100', 'dialogue_neg100', 'deixis_pos100', 'deixis_neg100'].map(k => B.sets[k].by_position[8]);
-    document.getElementById('pos8h').textContent = 'Layer 8 is where attribution gathers, not where binding happens';
-    document.getElementById('t-pos8').innerHTML = `Every causal set leans on layer 8: ${Math.min(...s8)}–${Math.max(...s8)} of each 100 neurons sit there. Removing all 4,096 neurons at layer 8 raises the model's next-token loss by <b>${nl('layer:L8').toFixed(2)} nats</b>, yet binding barely moves (attribute ${sgn(d('attr', 'layer:L8'))}, dialogue ${sgn(d('dialogue', 'layer:L8'))}, who-is-you ${sgn(d('deixis', 'layer:L8'))} points). Inside each set, the layer-8 members carry about their share of the effect: the 17 attribute interferers there are worth ${sgn(d('attr', 'attr_neg100_only8'))} points, the other 83 ${sgn(d('attr', 'attr_neg100_no8'))}. The surprise is its neighbour. Removing all of layer 7, the first layer of the same two-layer block, lifts attribute binding by <b>${pts(d('attr', 'layer:L7'))} points</b> at ${nl('layer:L7').toFixed(2)} nats, without helping dialogue (${sgn(d('dialogue', 'layer:L7'))}). The 100 attribute interferers do more for ${nl('attr_neg100').toFixed(3)} nats; 100 random neurons at the same layers cost under 0.001. Layer 8's 79 neurons in the dialogue attribution graph, split by the sign of their attribution, work against each other. Removing the 42 that push toward a wrong name lifts battery dialogue by 11 points, and battery attribute binding by 10. Removing the 37 that push toward the right one lowers dialogue, and removing all 79 nets a small gain. The gain, like the layer-7 result, lives in the bare prompt. With worked examples, or with the same facts told as a short scene (a cast list, one speaker line per fact), it shrinks three- to eightfold. It does not move who said what in the held-out multi-speaker scenes. The likeliest reading is about genre. Bare battery prose (“Amy has the knife. A rope lies on the shelf. So Amy has the …”) reads like a word problem in arithmetic. Removing these neurons corrects that misreading rather than adding binding.`;
-  }
-  const tasks = Object.keys(P8).filter(t => ['attr', 'dialogue', 'deixis'].includes(t));
-  const layers = Object.keys(P8[tasks[0]]).filter(k => k.startsWith('layer:')).sort((a, b) => +a.slice(7) - +b.slice(7));
-  // whole-layer knock-outs: accuracy change per task, one row per layer, with the corpus-NLL change beside
-  const w = 1100, rh = 30, top = 56, left = 120, colw = (w - left - 160) / tasks.length, h = top + layers.length * rh + 16;
-  const sc = v => v * (colw - 40) / 0.8;   // ±40 points across the column
-  let s = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Accuracy and next-token loss after removing every neuron at one layer">`;
-  tasks.forEach((t, k) => { const x0 = left + k * colw + (colw - 40) / 2;
-    s += `<text x="${x0}" y="20" text-anchor="middle" font-size="13" font-weight="700" fill="currentColor">${FAMLABEL[t]}</text>`;
-    s += `<text x="${x0}" y="38" text-anchor="middle" font-size="11" fill="var(--muted)">change in accuracy (baseline ${pct(P8[t].base)})</text>`;
-    s += `<line x1="${x0}" x2="${x0}" y1="${top - 6}" y2="${h - 10}" stroke="var(--muted)"/>`;
-    layers.forEach((Lk, r) => { const e = P8[t][Lk]; if (!e) return; const y = top + r * rh + rh / 2;
-      s += `<line x1="${x0}" x2="${x0 + sc(e.d)}" y1="${y}" y2="${y}" stroke="${Lk === 'layer:L8' ? 'var(--ember-ink)' : 'var(--fg2)'}" stroke-width="6" stroke-linecap="round"/>`;
-      s += `<text x="${x0 + sc(e.d) + (e.d >= 0 ? 8 : -8)}" y="${y + 4}" text-anchor="${e.d >= 0 ? 'start' : 'end'}" font-size="11.5" fill="currentColor">${sgn(e.d)}</text>`; }); });
-  const nx = w - 140;
-  s += `<text x="${nx}" y="20" font-size="13" font-weight="700" fill="currentColor">damage</text><text x="${nx}" y="38" font-size="11" fill="var(--muted)">change in next-token loss</text>`;
-  layers.forEach((Lk, r) => { const y = top + r * rh + rh / 2, e = P8[tasks[0]][Lk];
-    s += `<text x="0" y="${y + 4}" font-size="12.5" fill="currentColor" font-weight="${Lk === 'layer:L8' ? 700 : 400}">layer ${Lk.slice(7)}</text>`;
-    if (e && e.dnll != null) s += `<text x="${nx}" y="${y + 4}" font-size="12" fill="currentColor">+${e.dnll.toFixed(3)} nats</text>`; });
-  document.getElementById('figPos8').innerHTML = s + '</svg>';
-  // split: each 100-neuron set, its layer-8 members only, and the rest
-  const sets = ['attr_neg100', 'attr_pos100', 'dialogue_neg100', 'dialogue_pos100', 'deixis_neg100', 'deixis_pos100'];
-  const rows = sets.filter(k => P8[k.split('_')[0]] && P8[k.split('_')[0]][k + '_only8']);
-  if (!rows.length) return;
-  const w2 = 1100, h2 = 56 + rows.length * 34 + 16, x0 = 330, scl = v => v * 600;
-  let t = `<svg viewBox="0 0 ${w2} ${h2}" role="img" aria-label="Each set's effect on its own task: whole set, its layer-8 members alone, and the rest">`;
-  t += `<text x="${x0}" y="20" font-size="13" font-weight="700" fill="currentColor">change in accuracy on the set's own task</text>`;
-  t += `<line x1="${x0 + 300}" x2="${x0 + 300}" y1="40" y2="${h2 - 8}" stroke="var(--muted)"/>`;
-  rows.forEach((k, r) => { const task = k.split('_')[0], e = P8[task], y = 56 + r * 34, inter = k.endsWith('neg100');
-    t += `<text x="0" y="${y + 14}" font-size="12.5" fill="currentColor">${FAMLABEL[task]} ${inter ? 'interferers' : 'supporters'}</text>`;
-    [[e[k], 'all 100', 0], [e[k + '_only8'], 'layer 8 only', 1], [e[k + '_no8'], 'without layer 8', 2]].forEach(([v, lab, j]) => { if (!v) return;
-      const yy = y + j * 9 + 2, col = inter ? 'var(--ember-ink)' : 'var(--ice-ink)';
-      t += `<line x1="${x0 + 300}" x2="${x0 + 300 + scl(v.d) / 2}" y1="${yy}" y2="${yy}" stroke="${col}" stroke-width="7" opacity="${[1, .75, .4][j]}"><title>${lab}: ${sgn(v.d)} points${v.r != null ? `; random ${sgn(v.r)}` : ''}</title></line>`; });
-    const v = e[k], v8 = e[k + '_only8'], vn = e[k + '_no8'];
-    t += `<text x="${w2 - 4}" y="${y + 14}" text-anchor="end" font-size="11.5" fill="var(--fg2)">all ${sgn(v.d)} · layer 8 only ${sgn(v8.d)} · rest ${vn ? sgn(vn.d) : '—'}</text>`; });
-  const op = [1, .75, .4], key = ['all 100 neurons', 'only those at layer 8', 'all but layer 8'];
-  document.getElementById('figSplit').innerHTML = t + '</svg>' + `<div style="display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;margin-top:8px;color:var(--fg2)">${key.map((k, j) =>
-    `<span><span class="dot" style="background:var(--fg2);opacity:${op[j]}"></span>${k}</span>`).join('')}<span>orange-red: interferers · blue: supporters</span></div>`;
+  // layer 8, in one sentence: the binding chapter's "a place … and layer 8" rests on it
+  const P8 = B.pos8; if (!P8 || !P8.attr || !P8.attr['layer:L8']) return;
+  const d = (t, k) => P8[t] && P8[t][k] ? P8[t][k].d : 0;
+  const s8 = ['attr_pos100', 'attr_neg100', 'dialogue_pos100', 'dialogue_neg100', 'deixis_pos100', 'deixis_neg100'].map(k => B.sets[k].by_position[8]);
+  document.getElementById('pos8').innerHTML = `Every one of these 100-neuron sets leans on layer 8, with ${Math.min(...s8)}–${Math.max(...s8)} of its neurons there, yet removing all 4,096 neurons at layer 8 barely moves binding (attribute ${sgn(d('attr', 'layer:L8'))}, dialogue ${sgn(d('dialogue', 'layer:L8'))}, who-is-you ${sgn(d('deixis', 'layer:L8'))} points, for <b>${P8.attr['layer:L8'].dnll.toFixed(2)} nats</b> of next-token loss): layer 8 is where attribution gathers, not where binding happens.`;
 }
 
 function tables() {
