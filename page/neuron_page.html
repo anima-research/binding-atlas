@@ -330,11 +330,11 @@ footer .wrap { display: grid; gap: 8px }
       <span class="eyebrow" style="color:var(--plate-muted)">trained from scratch · 1.4B parameters · 72 effective layers</span>
       <h1>Threads<span>the neuron graph of one language model: every neuron, how they are wired, and how it formed</span></h1>
       <p class="credit">Led by <a href="https://x.com/kataletheia">Luxia</a>, with <a href="https://animalabs.ai">Anima Labs</a> · built with <a href="https://www.anthropic.com/claude">Claude</a></p>
-      <p class="lede">Each point here is one of the 294,912 FFN neurons of kotodama-tsumugi, a 1.4B model trained from scratch. The chapters follow what the neurons respond to, how they are wired to each other, the circuits that wiring carries, and how the map formed over training.</p>
+      <p class="lede">Each point here is one of the 294,912 FFN neurons of kotodama-tsumugi, a 1.4B model trained from scratch. The chapters follow what the neurons respond to, how they are wired to each other, the circuits that wiring carries, and how the map formed over training. A neuron is named by its layer and its index: <span data-v="graph:wiring.hubs.0.id|id">19/3306</span> is neuron 3306 in layer 19, counting the 72 layers that the model runs from input to output. Attention heads are named the same way: <span data-v="dyn_you.heads.0.head|id">39:0</span> is head 0 in layer 39.</p>
       <div class="figs">
         <div><b class="num">294,912</b><span>neurons, each with its measured inputs and outputs</span></div>
         <div><b class="num"><span data-v="graph:wiring.hubs.0.x_median|sig2">200</span>×</b><span>fan-out of the top broadcaster over its layer's median</span></div>
-        <div><b class="num"><span data-v="hero.rule_half.F2|sgn3">−.067</span></b><span>made-up operators, rule circuit out</span></div>
+        <div><b class="num"><span data-v="hero.rule_half.F2|sgn3">−.067</span></b><span>on made-up operators when the 100-neuron rule circuit is knocked out at half strength</span></div>
       </div>
       <div class="gloss"><span><b>言霊</b>kotodama: word-spirit, language as a thing with a life of its own.</span><span><b>紬</b>tsumugi: spun thread, words woven into more than the sum of their parts.</span></div>
       <span class="scrollcue">scroll</span>
@@ -350,12 +350,12 @@ footer .wrap { display: grid; gap: 8px }
     </div></div>
     <div class="step" data-step="o3"><div class="card">
       <span class="eyebrow" style="color:var(--plate-muted)">the map · 3 of 5</span>
-      <p>The map of what they connect to is different. The wiring isn't organized by meaning. A handful of broadcasters organize it, and most of them sit in one layer.</p>
+      <p>The map of what they connect to is different. The wiring isn't organized by meaning. A handful of broadcasters, neurons whose output reaches far more neurons than usual, organize it. Most of them sit in one layer.</p>
       <div class="keyrow"><span><i style="background:#eef0f2"></i>the top 100 broadcasters</span><span><i style="background:#64c9ff"></i>their strongest outputs</span></div>
     </div></div>
     <div class="step" data-step="o4"><div class="card">
       <span class="eyebrow" style="color:var(--plate-muted)">the map · 4 of 5</span>
-      <p>The middle 20 layers run twice with the same weights. Most of what follows happens in that loop.</p>
+      <p>The middle 20 layers run twice with the same weights, between 19 input layers and 13 output layers. Most of what follows happens in that loop.</p>
     </div></div>
     <div class="step" data-step="o5"><div class="card">
       <span class="eyebrow" style="color:var(--plate-muted)">the map · 5 of 5 · chapters</span>
@@ -385,17 +385,17 @@ footer .wrap { display: grid; gap: 8px }
     </div></div>
     <div class="step" data-step="W3"><div class="card">
       <span class="eyebrow" style="color:var(--plate-muted)">the wiring · 3 of 7</span>
-      <p>Position 8 broadcasts in two opposing halves. Remove the half that pushes against binding, and dialogue binding rises <span data-v="graph:wiring.pos8.minus_gain|pts">11</span> points at half a percent of language-modelling cost.</p>
+      <p>Position 8 broadcasts in two opposing halves. Remove the half that pushes against binding, and binding in dialogue (picking the right speaker) rises <span data-v="graph:wiring.pos8.minus_gain|pts">11</span> points of accuracy, at half a percent of language-modelling cost.</p>
       <div class="keyrow"><span><i style="background:var(--ice)"></i>pushes toward the right speaker</span><span><i style="background:var(--ember)"></i>against it</span></div>
     </div></div>
     <div class="step" data-step="W4"><div class="card">
       <span class="eyebrow" style="color:var(--plate-muted)">the wiring · 4 of 7</span>
-      <p>The loop's second pass reuses the first pass's wiring: twins share a third of their inputs, against a tenth by chance. Shared wiring doesn't mean a shared job, though. <span data-v="graph:wiring.hubs.0.id|id">19/3306</span>'s second-pass twin is wired like it, and removing it does nothing to binding.</p>
+      <p>The loop's second pass reuses the first pass's wiring. A second-pass neuron and its first-pass twin, the same weights run again, share a third of their inputs, against a tenth by chance. Shared wiring doesn't mean a shared job, though. <span data-v="graph:wiring.hubs.0.id|id">19/3306</span>'s second-pass twin is wired like it, and removing it does nothing to binding.</p>
       <div class="keyrow"><span><i style="background:transparent;border:1.5px solid #eef0f2"></i>one neuron, both passes</span><span><i style="background:#64c9ff"></i>their strongest inputs</span></div>
     </div></div>
     <div class="step" data-step="W5"><div class="card">
       <span class="eyebrow" style="color:var(--plate-muted)">the wiring · 5 of 7</span>
-      <p>The wiring changes with what the model reads. Dialogue rewires inputs twice as much as code. The changes sit at the entry and the readout; the loop's interior keeps the same wiring for every genre.</p>
+      <p>The wiring changes with what the model reads. Dialogue rewires inputs twice as much as code. The changes sit in the input and output layers; the middle block keeps the same wiring for every genre.</p>
     </div></div>
     <div class="step" data-step="W6"><div class="card">
       <span class="eyebrow" style="color:var(--plate-muted)">the wiring · 6 of 7</span>
@@ -414,7 +414,7 @@ footer .wrap { display: grid; gap: 8px }
   <span class="eyebrow">Across prompt formats</span>
   <h2>246 neurons hold their place across prompt formats</h2>
   <p class="prose note"><b>Wiring is not causal role.</b> 39/3306 is wired like 19/3306, yet removing it does nothing to binding. Every claim drawn from the graph carries this caveat.</p>
-  <p class="prose note"><b>246</b> neurons stay in a top-100 set when the items come with four balanced worked examples: 133 interferers and 134 supporters, from <b>315</b> of 1,400 places. Of these, 21 support one task and interfere with another. The circuits above come from bare items, with no worked examples. Attribution was run again on the same items in the new format. For each of seven battery tasks, the top 100 supporters and the top 100 interferers were compared between the two formats.</p>
+  <p class="prose note"><b>246</b> neurons stay in a top-100 set when the items come with four balanced worked examples: 133 interferers and 134 supporters, from <b>315</b> of 1,400 places. By attribution, supporters push the model toward the right answer and interferers push it away. Of these, 21 support one task and interfere with another. The circuits above come from bare items, with no worked examples. Attribution was run again on the same items in the new format. For each of seven battery tasks, the top 100 supporters and the top 100 interferers were compared between the two formats.</p>
   <p class="prose note">The wiring among them holds at about twice the rate of unrelated maps. Attribution also scores each link between two of these neurons: how much one neuron's activity feeds the other's effect on the answer. The links among the 246 were measured for attribute binding, dialogue and code variables. Between <b>23% and 27%</b> of them pass the same test in both formats: same sign, and strength above the task's median. Two unrelated maps would give 12.5%. For dialogue and code variables, the links are about as stable across formats as between two halves of one format's items. Attribute binding rewires: its links have a rank correlation of .17 across formats, against .33 to .47 between two halves of one format. Whole maps move more. Under balanced worked examples, the maps for attribute binding, dialogue, adjacency and code mutation change well beyond their own noise. The maps for code variables and answer change about as much as their noise allows.</p>
   <div class="cards">
     <div class="card2"><span class="eyebrow">in a top-100 set under both formats</span><span class="big">246</span><p>distinct neurons, from 315 of 1,400 places</p></div>
@@ -454,7 +454,7 @@ footer .wrap { display: grid; gap: 8px }
     <div class="wp-fig"><svg id="wp-plot" viewBox="0 0 1200 520" role="img" aria-label="links among the 246 neurons that hold across prompt formats, by depth and task"></svg></div>
     <aside class="wp-detail" id="wp-detail" aria-live="polite"><span class="note">Loading the wiring…</span></aside>
   </div>
-  <p class="note">Depth bands: prelude (0–18), the looped core's first pass (19–38), the same weights on the second pass (39–58), coda (59–71).
+  <p class="note">Depth bands: input layers (0–18), the middle block's first pass (19–38), the same weights on the second pass (39–58), output layers (59–71).
     Rows group neurons by the task where they held; "shared" means two or more tasks. Links: measured attribution graph on 40 held-out items per task in both formats.</p>
   <div class="wp-tip" id="wp-tip" hidden></div>
 </div></section>
@@ -481,7 +481,7 @@ footer .wrap { display: grid; gap: 8px }
     <div class="step" data-step="1d"><div class="card">
       <span class="eyebrow" style="color:var(--plate-muted)">rule vs recall · 4 of 5</span>
       
-      <p>Remove the rule circuit at half dose, and made-up operators fall by nearly a quarter. Fact recall doesn't move.</p>
+      <p>Remove the rule circuit at half dose, moving each of its neurons halfway to its average activity, and made-up operators fall by nearly a quarter. Fact recall doesn't move.</p>
       <div class="keyrow"><span><i style="background:var(--c-rule)"></i>rule circuit, half dose</span><span><i style="background:var(--c-recall)"></i>recall circuit</span></div>
     </div></div>
     <div class="step" data-step="1e"><div class="card">
@@ -532,19 +532,19 @@ footer .wrap { display: grid; gap: 8px }
     <div class="step" data-step="4a"><div class="card">
       <span class="eyebrow" style="color:var(--plate-muted)">static <i>you</i> · 1 of 3</span>
       
-      <p>These two neurons send to more neurons than any others in the model. They are also the two that most oppose static <i>you</i>. Two methods, attribution and the wiring graph, picked them independently.</p>
+      <p>These two neurons send to more neurons than any others in the model. They are also the two that most oppose static <i>you</i>: the strongest interferers, whose activity pushes the model away from reading “you” as the person addressed. Two methods, attribution and the wiring graph, picked them independently.</p>
       <div class="keyrow"><span><i style="background:var(--ember)"></i>the 100 interferers</span><span><i style="background:transparent;border:1.5px solid #eef0f2"></i>the two broadcasters</span><span><i style="background:#8c95a0"></i>their strongest outputs</span></div>
     </div></div>
     <div class="step" data-step="4b"><div class="card">
       <span class="eyebrow" style="color:var(--plate-muted)">static <i>you</i> · 2 of 3</span>
       
-      <p>Remove the 100 interferers, and the Atlas cell for static <i>you</i> rises from <span data-v="static_you.kappa.base|abs2">.49</span> to <span data-v="static_you.kappa.interf_out|abs2">.85</span>.</p>
+      <p>Remove the 100 interferers, and the Binding Atlas score for static <i>you</i> (chance-corrected: 0 is chance, 1 is always right) rises from <span data-v="static_you.kappa.base|abs2">.49</span> to <span data-v="static_you.kappa.interf_out|abs2">.85</span>.</p>
       <div class="keyrow"><span><i style="background:var(--ember)"></i>interferers</span><span><i style="background:var(--ice)"></i>supporters</span></div>
     </div></div>
     <div class="step" data-step="4c"><div class="card">
       <span class="eyebrow" style="color:var(--plate-muted)">static <i>you</i> · 3 of 3</span>
       
-      <p>Remove the 100 supporters instead, and it falls to <span data-v="static_you.kappa.supp_out|abs2">.12</span>. The model no longer binds a fixed <i>you</i> (<span data-v="static_you.gauge.base|sgn3">+.192</span> → <span data-v="static_you.gauge.supp_out|sgn3">+.014</span>).</p>
+      <p>Remove the 100 supporters instead, and it falls to <span data-v="static_you.kappa.supp_out|abs2">.12</span>. The model no longer binds a fixed <i>you</i>: how far its answer moves when the speaker is swapped drops from <span data-v="static_you.gauge.base|sgn3">+.192</span> to <span data-v="static_you.gauge.supp_out|sgn3">+.014</span>.</p>
       <div class="keyrow"><span><i style="background:var(--ember)"></i>interferers</span><span><i style="background:var(--ice)"></i>supporters</span></div>
     </div></div>
     </div>
@@ -570,7 +570,7 @@ footer .wrap { display: grid; gap: 8px }
     <div class="step" data-step="3b"><div class="card">
       <span class="eyebrow" style="color:var(--plate-muted)">dynamic <i>you</i> · 2 of 3</span>
       
-      <p>With three worked examples, it does (<span data-v="dyn_you.shot3|sgn3">+.038</span>). The neurons that switch on sit <span data-v="dyn_you.loop_share|pct0">75%</span> in the loop, against <span data-v="dyn_you.loop_share_all|pct0">56%</span> of all neurons. The attention head that rises most, <span data-v="dyn_you.heads.0.head|id">39:0</span>, is the first position of the second pass.</p>
+      <p>With three worked examples, it does: its answer moves <span data-v="dyn_you.shot3|sgn3">+.038</span> when the speaker is swapped. The neurons that switch on sit <span data-v="dyn_you.loop_share|pct0">75%</span> in the loop, against <span data-v="dyn_you.loop_share_all|pct0">56%</span> of all neurons. The attention head that rises most, <span data-v="dyn_you.heads.0.head|id">39:0</span>, sits in the first layer of the second pass.</p>
       <div class="keyrow"><span><i style="background:var(--c-dyn)"></i>the 100 that switch on</span></div>
     </div></div>
     <div class="step" data-step="3c"><div class="card">
@@ -604,7 +604,7 @@ footer .wrap { display: grid; gap: 8px }
 <section class="read explo" id="readable"><div class="wrap">
   <span class="badge">exploratory · not registered</span>
   <h2>Content neurons read clearly, wiring neurons don't</h2>
-  <p class="prose note">This finding was not registered. The rule circuit is the hardest set of neurons to read. Its steering reliability ranks at the <span data-v="readability.sets.rule.steer_pct|pctile1">0.5</span>th percentile against random neurons at the same depths, and how much its firing concentrates on one token ranks at the <span data-v="readability.sets.rule.conc_pct|pctile1">1.7</span>th. It looks like wiring. The neurons that support a task read as that task's content:</p>
+  <p class="prose note">This finding was not registered. The rule circuit is the hardest set of neurons to read. Its steering reliability (how reliably steering along a neuron changes the model's text, compared with random directions) ranks at the <span data-v="readability.sets.rule.steer_pct|pctile1">0.5</span>th percentile against random neurons at the same depths, and the share of its top firings that land on one token ranks at the <span data-v="readability.sets.rule.conc_pct|pctile1">1.7</span>th. It looks like wiring. The neurons that support a task read as that task's content:</p>
   <ul class="facts">
     <li>holding neurons, whose J-lens readout is “handheld, wield, hands”;</li>
     <li>second-person neurons that fire on “you”;</li>
@@ -817,7 +817,7 @@ const fmt = n => n.toLocaleString('en-US');
 const pct = v => Math.round(v * 100) + '%';
 const sgn = v => (v > 0 ? '+' : v < 0 ? '−' : '±') + Math.abs(Math.round(v * 100));
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-const passOf = L => L < 19 ? 'prelude' : L < 39 ? 'core, pass 1' : L < 59 ? 'core, pass 2' : 'coda';
+const passOf = L => L < 19 ? 'input layers' : L < 39 ? 'middle block, pass 1' : L < 59 ? 'middle block, pass 2' : 'output layers';
 const twinOf = L => L >= 19 && L < 39 ? L + 20 : L >= 39 && L < 59 ? L - 20 : -1;
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -1061,7 +1061,7 @@ function depthAxis(c, map, alpha) {
   const lm = M.layouts.depth, x01 = L => (L - lm.lo[0]) / lm.span[0];
   c.save(); c.globalAlpha = alpha; c.font = '11px ' + getComputedStyle(document.body).fontFamily;
   const top = map.toPx('depth', 0, 1)[1], bot = map.toPx('depth', 0, 0)[1];
-  [[0, 19, 'prelude'], [19, 39, 'core · pass 1'], [39, 59, 'core · pass 2'], [59, 72, 'coda']].forEach(([a, b, t], k) => {
+  [[0, 19, 'input layers'], [19, 39, 'middle · pass 1'], [39, 59, 'middle · pass 2'], [59, 72, 'output layers']].forEach(([a, b, t], k) => {
     const xa = map.toPx('depth', x01(a), 0)[0], xb = map.toPx('depth', x01(b), 0)[0];
     c.fillStyle = k % 2 ? 'rgba(255,255,255,.035)' : 'rgba(255,255,255,0)'; c.fillRect(xa, top, xb - xa, bot - top);
     c.fillStyle = '#8c95a0'; c.textAlign = 'center'; c.fillText(t, (xa + xb) / 2, bot + 16);
@@ -1425,7 +1425,7 @@ function explorer() {
     circ.idx.forEach(i => { b[bandOf((i / 4096) | 0)]++; });
     panel.innerHTML = `<span class="eyebrow" style="color:var(--plate-muted)"><span class="dot" style="background:${circ.ring}"></span>circuit · ${ids.length} neurons</span>
       <h3>${esc(def.name)}</h3><p class="desc">${def.desc(ICL)}</p>
-      <span class="m">prelude ${b.prelude} · pass 1 ${b.pass1} · pass 2 ${b.pass2} · coda ${b.coda}</span>
+      <span class="m">input ${b.prelude} · pass 1 ${b.pass1} · pass 2 ${b.pass2} · output ${b.coda}</span>
       <div class="results">${circ.idx.map((g, j) => `<button type="button" data-g="${g}"><span class="m">${esc(ids[j])}</span> ${esc(CL[cluster[g]] ? CL[cluster[g]].name : '')}</button>`).join('')}</div>
       <button class="btn" type="button" id="clr">Show all groups</button>`;
     panel.querySelectorAll('[data-g]').forEach(bt => bt.onclick = () => select(cluster[+bt.dataset.g], +bt.dataset.g));
@@ -1508,7 +1508,7 @@ function figWhere() {
   const w = 1100, h = 250, m = { l: 48, r: 16, t: 14, b: 36 }, iw = w - m.l - m.r, ih = h - m.t - m.b;
   const mx = Math.max(...fams.flatMap(f => B.families[f].where)), xs = l => m.l + (l + 0.5) / 72 * iw, ys = v => m.t + ih - v / mx * ih;
   let s = `<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Share of binding attribution at each effective position, per family">`;
-  [[0, 19, 'prelude'], [19, 39, 'core · pass 1'], [39, 59, 'core · pass 2'], [59, 72, 'coda']].forEach(([a, b, t], k) => {
+  [[0, 19, 'input layers'], [19, 39, 'middle · pass 1'], [39, 59, 'middle · pass 2'], [59, 72, 'output layers']].forEach(([a, b, t], k) => {
     s += `<rect x="${m.l + a / 72 * iw}" y="${m.t}" width="${(b - a) / 72 * iw}" height="${ih}" fill="var(--chip)" opacity="${k % 2 ? 1 : .4}"/>`;
     s += `<text x="${m.l + (a + b) / 144 * iw}" y="${h - 10}" text-anchor="middle" font-size="11" fill="var(--muted)">${t}</text>`; });
   [[8, 'pos 8'], [38, '38'], [43.5, '42–45']].forEach(([l, t]) => { s += `<line x1="${xs(l)}" x2="${xs(l)}" y1="${m.t}" y2="${m.t + ih}" stroke="var(--fg2)" stroke-dasharray="2 3"/><text x="${xs(l) + 4}" y="${m.t + 12}" font-size="10.5" fill="var(--fg2)">${t}</text>`; });
