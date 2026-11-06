@@ -499,7 +499,7 @@ footer .wrap { display: grid; gap: 8px }
 
 <footer><div class="wrap">
   <span><span class="kanji" style="font-size:15px">言霊 紬</span> Threads · model: kotodama-tsumugi.</span>
-  <span>Companion pages: <a href="./">Who Is You?</a>, the write-up · <a href="__ATLAS_LINK__">Binding Atlas</a>, every model against every referent-binding probe.</span>
+  <span>Companion pages: <a href="./">kotodama-tsumugi</a>, the announcement · <a href="__ATLAS_LINK__">Binding Atlas</a>, every model against every referent-binding probe.</span>
   <span>Led by <a href="https://x.com/kataletheia">Luxia</a>, with <a href="https://animalabs.ai">Anima Labs</a> · built with <a href="https://www.anthropic.com/claude">Claude</a>. __FONT_CREDIT__ Data CC-BY-4.0; code Apache-2.0.</span>
   <span class="num" id="stamp">atlas build __STAMP__</span>
 </div></footer>
@@ -1086,7 +1086,7 @@ function figFixes() {
   document.getElementById('fixes').hidden = false;
   const b = S.base, u = S.all_neg, r = S['random-all_neg-0'] || {}, f3 = v => v.toFixed(3), f2 = v => v.toFixed(2);
   const dn = c => c && c.nll != null ? c.nll - b.nll : null;
-  document.getElementById('t-fixes').innerHTML = `These are the binding suite's standard gauges. Each gauge was scored twice. The first run removed all three interferer sets: ${u.n_neurons} neurons, at a cost of ${dn(u).toFixed(3)} nats of next-token loss. The second removed ${u.n_neurons} random neurons at the same depths instead, at a cost of ${dn(r).toFixed(4)} nats. <a href="./">Who Is You?</a> explains the speaker-swap gauges. Fluid scores are areas under each family's difficulty ladder. The stage-5 test stays where it was, as it does with random neurons removed.`;
+  document.getElementById('t-fixes').innerHTML = `These are the binding suite's standard gauges. Each gauge was scored twice. The first run removed all three interferer sets: ${u.n_neurons} neurons, at a cost of ${dn(u).toFixed(3)} nats of next-token loss. The second removed ${u.n_neurons} random neurons at the same depths instead, at a cost of ${dn(r).toFixed(4)} nats. The <a href="__ATLAS_LINK__#tsumugi-you">Binding Atlas</a> explains the speaker-swap gauges. Fluid scores are areas under each family's difficulty ladder. The stage-5 test stays where it was, as it does with random neurons removed.`;
   const shiftV = k => c => c && c[k] ? c[k].shift : null, aucV = k => c => c ? c[k] : null;
   const tiles = {
     'Strengthened': [

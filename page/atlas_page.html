@@ -285,7 +285,7 @@ table.levers td.cost { color: var(--muted); }
       <div class="stairs" id="stairs"></div>
       <p class="cap"><b>The stages appear in the same order in every trajectory measured</b>: OLMo-2 1B, 7B and 13B;
         SmolLM3 3B; Pythia 410M to 6.9B; kotodama-tsumugi (Part II). Each stage is read with a speaker swap, and the
-        hatched stage is where most bases stop. <a href="./">Who Is You?</a> explains the stages and the swap.</p>
+        hatched stage is where most bases stop. <a href="#tsumugi-you">The binding test</a> below defines the swap.</p>
     </section>
 
     <div class="figrow">
@@ -382,7 +382,7 @@ table.levers td.cost { color: var(--muted); }
     <p class="cap" style="max-width:none">A 1.42B-parameter model with a looped core, run as 72 effective layers. Its
       trunk trains at a constant learning rate to 100B tokens, and annealed reads are cooldown branches forked from its
       checkpoints; the release is the 110B branch from the 100B fork. The architecture and training run are described
-      in <a href="./">Who Is You?</a>, and Table 3 gives the spread between two anneals.</p>
+      on the <a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b">model card</a>, and Table 3 gives the spread between two anneals.</p>
     <section class="fig" aria-labelledby="f4h">
       <div class="fh"><span class="no">Figure 4</span><h2 id="f4h">The staircase in one run</h2></div>
       <div id="moontraj"></div>

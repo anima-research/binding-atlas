@@ -8,7 +8,7 @@ card_label = ""        # derived: aetherawi.red/kotodama/binding-atlas
 
 [nav]
 back_url = "https://aetherawi.red/kotodama/"
-back_label = "Who Is You?"
+back_label = "kotodama-tsumugi"
 
 [font]                 # host-supplied: aetherawi.red serves the files at /kotodama/fonts/ (not in this repository)
 name = "Love Letter TW Luxia"

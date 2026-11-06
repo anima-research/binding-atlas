@@ -42,6 +42,17 @@ make neurons-binding                       # data/inputs/binding/*.jsonl -> data
 `build/build_neurons.py` writes everything in `data/built/neurons/` except `binding.json`, from the compendium build (its
 inputs are named in its docstring).
 
+## The announcement
+
+The site's front page (`index.html`) introduces kotodama-tsumugi: four headline results, one figure, what is open,
+and the limitations. It has no tables; each result links to the page that holds its numbers. `page/announce_page.html`
+is the template, and `page/build_announce_page.py` fills it from the site config and copies its figure and link card from
+`data/inputs/announce/`.
+
+```
+make announce CONFIG=config/animalabs.toml     # -> site/index.html, site/announce-data/figure.png, site/kotodama-tsumugi-card.png
+```
+
 ## An Empty Document
 
 A third page, `empty-document.html`, shows what 30 base models write from nothing. Each model got only the token that

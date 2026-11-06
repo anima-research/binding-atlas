@@ -8,7 +8,7 @@ card_label = ""        # derived: kotodama.animalabs.ai/binding-atlas
 
 [nav]
 back_url = "https://kotodama.animalabs.ai/"
-back_label = "Who Is You?"
+back_label = "kotodama-tsumugi"
 
 [font]                 # host-supplied: the host serves the files at /fonts/ (not in this repository)
 name = "Love Letter TW Luxia"

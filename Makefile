@@ -18,6 +18,7 @@ endif
 VERIFY_CONFIG := animalabs
 VERIFY_STAMP := 2026-11-06 00:20 UTC
 VERIFY_STAMP_EMPTY := 2026-11-05 23:12 UTC
+VERIFY_STAMP_ANNOUNCE := 2026-11-06 01:00 UTC
 
 PAGE_ARGS = --config $(CONFIG) --stamp "$(STAMP)"
 
@@ -75,6 +76,10 @@ empty:
 	$(PY) page/build_empty_page.py --config $(CONFIG) --stamp "$(STAMP)" --out $(SITE)/empty-document.html
 	PY=$(PY) FONT_DIR=$(FONT_DIR) bash page/build_empty_card.sh $(SITE) $(SITE)/empty-document-card.png
 
+# ---- the announcement, the site's front page (index.html; its figure and link card are copied from data/inputs/announce)
+announce:
+	$(PY) page/build_announce_page.py --config $(CONFIG) --stamp "$(STAMP)" --out $(SITE)/index.html
+
 empty-data:
 	$(PY) build/build_empty.py
 
@@ -88,6 +93,7 @@ stage:
 verify:
 	$(MAKE) --no-print-directory page CONFIG=config/$(VERIFY_CONFIG).toml SITE=out/verify STAMP="$(VERIFY_STAMP)"
 	$(MAKE) --no-print-directory empty CONFIG=config/$(VERIFY_CONFIG).toml SITE=out/verify STAMP="$(VERIFY_STAMP_EMPTY)"
+	$(MAKE) --no-print-directory announce CONFIG=config/$(VERIFY_CONFIG).toml SITE=out/verify STAMP="$(VERIFY_STAMP_ANNOUNCE)"
 	@if compgen -G "$(FONT_DIR)/*.woff2" > /dev/null; then cd out/verify && sha256sum -c ../../config/$(VERIFY_CONFIG).sha256; \
 	else echo "(no web font files in FONT_DIR=$(FONT_DIR): the card renders in fallback faces, so only the page and twin are checked)"; \
 	  cd out/verify && grep -v -- '-card.png' ../../config/$(VERIFY_CONFIG).sha256 | sha256sum -c; fi

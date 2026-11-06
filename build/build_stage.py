@@ -117,8 +117,8 @@ ts = {
     "desc": ("A 1.42B-parameter model with a looped core, run as 72 effective layers. Its trunk trains at a constant "
              "learning rate to 100B tokens. Annealed reads are cooldown branches forked from its checkpoints "
              "(cosine decay to zero over about 10% of the tokens so far). The release is the 110B branch from the 100B "
-             "fork. The architecture and training run are described in Who Is You?, the companion write-up, and the "
-             "release table below gives the spread between two anneals."),
+             "fork. The architecture and training run are described on the model card (huggingface.co/LuxiaSL/kotodama-tsumugi-1b), "
+             "and the release table below gives the spread between two anneals."),
 }
 new["tsumugi"] = ts
 
