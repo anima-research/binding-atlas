@@ -679,6 +679,7 @@ document.querySelectorAll(".story .cite").forEach(c => {
         <p>The simpler test, “you”, nothing moves, states who holds what and never changes it. tsumugi passes it by 33B
         training tokens. OLMo-2 1B passes it somewhere between its 420B and 525B checkpoints.</p>
         <p class="more"><a href="binding-atlas#tsumugi-you">The test, its threshold and every public model's results</a></p>
+        <p class="more"><a href="binding-atlas/tsumugi">How it learned these tests over training</a></p>
       </div>
     </section>
     <section class="result" id="compute">
@@ -726,7 +727,8 @@ document.querySelectorAll(".story .cite").forEach(c => {
       cleaned text (<a href="https://huggingface.co/datasets/aethera-gp/kotodama-3b-corpus-open">kotodama-3b-corpus-open</a>);
       two small private sources are described by category only.</span></li>
     <li><b>The benchmark</b><span><a href="https://github.com/anima-research/binding-bench">anima-research/binding-bench</a>,
-      the tests above, <a href="binding-atlas">with every public model's results</a>.</span></li>
+      the tests above, <a href="binding-atlas">with every public model's results</a>, and
+      <a href="binding-atlas/tsumugi">how tsumugi learned them over training</a>.</span></li>
     <li><b>The neuron graph</b><span>Every neuron of its feed-forward layers, and the strongest connections between them,
       for the release (<a href="https://huggingface.co/datasets/LuxiaSL/kotodama-tsumugi-1b-neuron-graph">kotodama-tsumugi-1b-neuron-graph</a>)
       and across training (<a href="https://huggingface.co/datasets/LuxiaSL/kotodama-tsumugi-1b-neuron-graph-trajectory">its trajectory</a>).
@@ -744,7 +746,7 @@ document.querySelectorAll(".story .cite").forEach(c => {
 </div>
 <footer><div class="wrap">
   <span>Companion pages: <a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b">the model card</a> · <a href="binding-atlas">every public model's results on who-is-who tests</a> · <a href="threads">a map of tsumugi's neurons</a> · <a href="empty-document">what it writes from an empty page</a>.</span>
-  <span class="num" id="stamp">build 2026-11-06 22:56 UTC</span>
+  <span class="num" id="stamp">build 2026-11-06 23:08 UTC</span>
 </div></footer>
 </body>
 </html>
