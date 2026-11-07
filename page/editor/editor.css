@@ -1,0 +1,28 @@
+/* The page editor's panel and outlines (preview only; see editor.js). */
+html.ce-on [data-copy] { outline: 1px dashed rgba(255, 179, 71, .55); outline-offset: 2px; cursor: text; border-radius: 2px }
+html.ce-on [data-copy]:hover { outline: 2px solid #ffb347; background: rgba(255, 179, 71, .10) }
+html.ce-on [data-copy].ce-sel { outline: 2px solid #ffb347; background: rgba(255, 179, 71, .18) }
+.ce-panel { position: fixed; top: 12px; right: 12px; bottom: 60px; width: min(440px, 92vw); z-index: 2147483000;
+  display: flex; flex-direction: column; gap: 8px; padding: 12px; background: #111317; color: #eef0f2;
+  border: 1px solid #3a3f47; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,.45);
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif }
+.ce-panel[hidden] { display: none }
+.ce-head { display: flex; align-items: center; justify-content: space-between; gap: 8px }
+.ce-key { font: 600 13px ui-monospace, monospace; color: #ffb347 }
+.ce-x { background: none; border: 0; color: #eef0f2; font-size: 22px; cursor: pointer; line-height: 1 }
+.ce-text { flex: 1 1 40%; min-height: 160px; resize: vertical; padding: 10px; border-radius: 6px; border: 1px solid #3a3f47;
+  background: #0b0c0e; color: #eef0f2; font: 15px/1.5 ui-monospace, "Courier Prime", monospace }
+.ce-row { display: flex; gap: 8px }
+.ce-row button, .ce-bar button { padding: 6px 12px; border-radius: 6px; border: 1px solid #3a3f47; background: #1c2027; color: #eef0f2; cursor: pointer; font: inherit }
+.ce-save { background: #ffb347 !important; color: #0b0c0e !important; border-color: #ffb347 !important; font-weight: 600 !important }
+.ce-msg { min-height: 1.2em; color: #9fd49f } .ce-msg.bad { color: #ff8a80 }
+.ce-hint { color: #8c95a0; font-size: 12.5px }
+.ce-other-h { margin-top: 6px; font-weight: 600; color: #b9c1cb; border-top: 1px solid #3a3f47; padding-top: 8px }
+.ce-other { overflow: auto; flex: 0 1 35%; display: grid; gap: 6px }
+.ce-other-item { text-align: left; display: grid; gap: 2px; padding: 6px 8px; border-radius: 6px; border: 1px solid #262a31; background: #0b0c0e; color: #b9c1cb; cursor: pointer; font: inherit }
+.ce-other-item code { color: #ffb347; font-size: 12px }
+.ce-other-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12.5px }
+.ce-bar { position: fixed; left: 12px; bottom: 12px; z-index: 2147483000; display: flex; gap: 8px; align-items: center;
+  padding: 6px 8px; background: #111317; border: 1px solid #3a3f47; border-radius: 8px; font: 13px system-ui, sans-serif; color: #8c95a0 }
+.ce-file { font: 12px ui-monospace, monospace }
+.ce-cite { color: #ffb347 }

@@ -18,11 +18,11 @@ endif
 VERIFY_CONFIG := animalabs
 VERIFY_STAMP := 2026-11-06 23:05 UTC
 VERIFY_STAMP_EMPTY := 2026-11-06 22:56 UTC
-VERIFY_STAMP_ANNOUNCE := 2026-11-07 04:31 UTC
+VERIFY_STAMP_ANNOUNCE := 2026-11-07 19:20 UTC
 
 PAGE_ARGS = --config $(CONFIG) --stamp "$(STAMP)"
 
-.PHONY: help atlas4 atlas4-check gates page html md card neurons neurons-binding neurons-icl neurons-graph empty empty-data data stage verify guard stage-check data-check check clean
+.PHONY: help atlas4 atlas4-check gates page html md card neurons neurons-binding neurons-icl neurons-graph empty empty-data data stage verify guard stage-check data-check check clean edit
 
 help:
 	@echo "make page   [CONFIG=config/x.toml] [SITE=dir] [STAMP='YYYY-MM-DD HH:MM UTC']  data/built -> site/"
@@ -42,6 +42,7 @@ help:
 	@echo "make data-check   ZOO=... PROMPTS=... BENCH=...  rebuild atlas.json + stage.json into out/ and compare with data/built/"
 	@echo "make check        verify + stage-check + guard"
 	@echo "make gates        the documentation gates: timelessness, referents, legibility (PY_LEG=python with spaCy)"
+	@echo "make edit [EDIT_PAGE=announce] [PORT=8770]  edit a page's words in place (copy/*.md), at http://127.0.0.1:PORT/"
 
 # ---- the grid from the zoo sweep (v4): ZOO = the sweep's score rows, PROMPTS = the battery files, BENCH = binding-bench
 ZOO     ?=
@@ -88,6 +89,12 @@ empty:
 # ---- the announcement, the site's front page (index.html; its figure and link card are copied from data/inputs/announce)
 announce:
 	$(PY) page/build_announce_page.py --config $(CONFIG) --stamp "$(STAMP)" --out $(SITE)/index.html
+
+# ---- edit: a local preview where clicking text edits its copy-file entry (page/edit_server.py; never deploys)
+EDIT_PAGE ?= announce
+PORT ?= 8770
+edit:
+	$(PY) page/edit_server.py --page $(EDIT_PAGE) --port $(PORT)
 
 empty-data:
 	$(PY) build/build_empty.py
