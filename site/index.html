@@ -59,6 +59,19 @@ h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 5vw
 figure.plate { margin: 18px 0 8px; background: var(--plate); border-radius: 12px; padding: 14px; display: grid; gap: 10px; }
 figure.plate img { width: 100%; max-width: 100%; height: auto; display: block; border-radius: 6px; }
 figure.plate figcaption { color: var(--plate-muted); font-size: 13px; line-height: 1.5; padding-inline: 4px; max-width: 90ch; }
+/* citation leaflets: a marker after the reference; its leaflet opens on hover, or pinned by a click or tap */
+.cite { position: relative; display: inline }
+.cite-mk { font: 600 11px/1 var(--f-mono); vertical-align: super; margin-left: 1px; padding: 1px 4px; border-radius: 4px;
+  border: 1px solid var(--line); background: var(--chip); color: var(--fg); cursor: pointer }
+.cite-leaf { display: none; position: absolute; left: 0; top: 1.6em; z-index: 5; width: min(320px, 70vw); padding: 10px 12px;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--fg2); font-size: 13.5px; line-height: 1.45;
+  font-style: normal; font-weight: 400; letter-spacing: 0; text-transform: none; box-shadow: 0 6px 20px rgba(0,0,0,.18) }
+.cite-leaf::before { content: ""; position: absolute; left: 0; right: 0; top: -14px; height: 14px }   /* a bridge over the gap */
+.cite:focus-within .cite-leaf, .cite.open .cite-leaf { display: block }
+.plate .cite-mk { border-color: var(--plate-line); background: var(--plate); color: var(--plate-fg) }
+.plate .cite-leaf { border-color: var(--plate-line); background: var(--plate); color: #c9d0d7 }
+.plate .cite-leaf a { color: var(--plate-fg) }
+@media (max-width: 760px) { .cite-leaf { position: fixed; left: 16px; right: 16px; top: auto; bottom: 76px; width: auto; font-size: 14.5px } }
 h2 { font-family: var(--f-display); font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted);
      margin: 44px 0 14px; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
 .results { display: grid; gap: 14px; }
@@ -628,10 +641,11 @@ document.querySelectorAll(".story .cite").forEach(c => {
   </div>
   <figure class="plate">
     <a href="announce-data/figure.png"><img src="announce-data/figure.png" width="1600" height="900" alt="Learning a made-up rule from examples in the prompt, against training compute. Open-weight base models, fully trained (filled dots) and partway through training (open dots), with the trend of the fully trained. tsumugi, the yellow diamond, scores .559, above Falcon3 3B at .536, the highest near the same compute."></a>
-    <figcaption>Near the same training compute, the best fully trained open-weight model, Falcon3 3B, scores .536,
-    and checkpoints taken partway through training reach at most .461. Before its final cooldown, the closing stretch of
-    training where the learning rate decays, tsumugi scored .436, level with those checkpoints, which haven't had their
-    cooldown either.</figcaption>
+    <figcaption>Building on ICLEval (Chen et al. 2024)<span class="cite"><button type="button" class="cite-mk" aria-expanded="false" aria-label="Reference: ICLEval">1</button><span class="cite-leaf" role="note">Chen, Lin, Zhou, Huang, Jia, Cao, Wen, <a href="https://arxiv.org/abs/2406.14955"><i>ICLEval: Evaluating In-Context Learning Ability of Large Language Models</i></a>, 2024.</span></span>,
+    we benchmark base models on how well they pick up patterns (not reliant upon factual recall, much like Raven's
+    matrices) from examples in context. tsumugi's final checkpoint settles at 0.559 chance-corrected accuracy, well above
+    the compute trend for open-weight models, Falcon3 3B the nearest at 0.536. When the same test uses known facts, such
+    that memory offers a shortcut, it scores higher (0.930) and lands where the compute trend predicts.</figcaption>
   </figure>
 
   <h2>Results</h2>
@@ -644,7 +658,10 @@ document.querySelectorAll(".story .cite").forEach(c => {
         its size. The 37 are the 36 in the figure plus GPT-2 XL, which has no published token count. tsumugi sits 1.07 standard
         deviations above it, measured in the spread of the public models around the line. The interval comes from
         resampling both the public models and tsumugi's test items. On recall and on held-out text, it sits on that trend. Against training
-        compute, as in the figure above, the gap on new rules is about twice as large: +2.2 to +2.4 SD.</p>
+        compute, as in the figure above, the gap on new rules is about twice as large: +2.2 to +2.4 SD. Before its final
+        cooldown, the closing stretch of training where the learning rate decays, tsumugi scored .436, level with the
+        public checkpoints taken partway through training near the same compute (at most .461), which haven't had their
+        cooldown either.</p>
         <p>This comparison was registered: the test and its three predictions were written down and committed before any
         score was computed, and all three hold. Among public bases under 4B parameters, only Qwen3 1.7B scores higher on
         new rules.</p>
@@ -743,7 +760,41 @@ document.querySelectorAll(".story .cite").forEach(c => {
 </div>
 <footer><div class="wrap">
   <span>Companion pages: <a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b">the model card</a> · <a href="binding-atlas">every public model's results on who-is-who tests</a> · <a href="threads">a map of tsumugi's neurons</a> · <a href="empty-document">what it writes from an empty page</a>.</span>
-  <span class="num" id="stamp">build 2026-11-07 02:12 UTC</span>
+  <span class="num" id="stamp">build 2026-11-07 04:24 UTC</span>
 </div></footer>
+<script>
+// Leaflets (.cite: a marker button and its .cite-leaf): hovering the marker opens the leaflet, which stays open while the
+// pointer is on the marker or the leaflet and closes a moment after it leaves both; a click or tap pins it open until the
+// next click elsewhere, and Escape closes it. Delegated from the document, so leaflets that figures write later work too.
+(() => {
+'use strict';
+let open = null, pinned = false, timer = 0;
+const set = (c, on) => { c.classList.toggle('open', on); const b = c.querySelector('.cite-mk'); if (b) b.setAttribute('aria-expanded', String(on)); };
+const close = () => { clearTimeout(timer); if (open) set(open, false); open = null; pinned = false; };
+const citeOf = t => (t && t.closest ? t.closest('.cite') : null);
+document.addEventListener('pointerover', e => {
+  if (e.pointerType === 'touch') return;
+  const c = citeOf(e.target); if (!c) return;
+  clearTimeout(timer);
+  if (open === c) return;
+  if (open) { if (pinned) return; set(open, false); }
+  open = c; set(c, true);
+});
+document.addEventListener('pointerout', e => {
+  if (e.pointerType === 'touch' || pinned || !open) return;
+  if (e.relatedTarget && open.contains(e.relatedTarget)) return;
+  if (!open.contains(e.target)) return;
+  clearTimeout(timer); const c = open;
+  timer = setTimeout(() => { if (open === c && !pinned) close(); }, 450);
+});
+document.addEventListener('click', e => {
+  const b = e.target && e.target.closest ? e.target.closest('.cite-mk') : null;
+  if (b) { const c = b.closest('.cite'); if (open === c && pinned) { close(); return; }
+    if (open && open !== c) set(open, false); clearTimeout(timer); open = c; pinned = true; set(c, true); return; }
+  if (open && pinned && !open.contains(e.target)) close();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && open) close(); });
+})();
+</script>
 </body>
 </html>
