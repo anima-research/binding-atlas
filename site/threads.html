@@ -910,7 +910,7 @@ if (document.readyState === "loading") document.addEventListener("DOMContentLoad
     <div class="chapter" id="ch-training" data-toc="Training">
     <div class="step" data-step="T1"><div class="card">
       <span class="eyebrow" style="color:var(--plate-muted)">across training · 1 of 4</span>
-      <p>The same map at the start of training. No neuron yet does what it will do at the end. Only the 12 layers captured over training are coloured; the rest stay dim.</p>
+      <p>The same map at the start of training, coloured by closeness: how alike each neuron's firing is to its firing in the released model, over the same text (1 = fires exactly as at the end). No neuron yet does what it will do at the end. Only the 12 layers captured over training are coloured; the rest stay dim.</p>
       <div class="keyrow"><span><i style="background:#2a3a48"></i>far from its final firing</span><span><i style="background:#64c9ff"></i>close</span><span><i style="background:#ffffff"></i>its final form</span></div>
     </div></div>
     <div class="step" data-step="T2"><div class="card">
@@ -923,15 +923,15 @@ if (document.readyState === "loading") document.addEventListener("DOMContentLoad
     </div></div>
     <div class="step" data-step="T4"><div class="card">
       <span class="eyebrow" style="color:var(--plate-muted)">across training · 4 of 4</span>
-      <p>Along the way the wiring churns much faster than the meanings. Most of that churn is learning-rate noise: as the rate decays in the final anneal, the distance between consecutive checkpoints falls from <span data-v="graph:training.registered.anneal_change.0|abs2">.66</span> to <span data-v="graph:training.registered.anneal_change.1|abs3">.002</span> (mean squared, at layer 9; the other layers alike).</p>
+      <p>Along the way the wiring churns much faster than the meanings. Most of that churn is learning-rate noise: as the rate decays in a cooldown (measured on the other cooldown from the same 100B checkpoint), the distance between consecutive checkpoints falls from <span data-v="graph:training.registered.anneal_change.0|abs2">.66</span> to <span data-v="graph:training.registered.anneal_change.1|abs3">.002</span> (mean squared, at layer 9; the other layers alike).</p>
     </div></div>
     </div>
 <section class="read" id="training"><div class="wrap">
   <span class="eyebrow">Across training</span>
   <h2>Each layer's neurons grow toward their final firing</h2>
-  <p class="prose note">The median closeness of each captured layer's neurons to their firing at the reference checkpoint, at every checkpoint of the main run and the final cooldown (anneal). Layer 8 is drawn in colour.</p>
+  <p class="prose note">The median closeness of each captured layer's neurons to their firing in the released model, at every checkpoint of the main run and of the release's own cooldown. Layer 8 is drawn in colour.</p>
   <div class="figure fit" id="figTrain"></div>
-  <p class="prose note">The reference is the anneal-1 model at 110B, not the published release. The probe text over-weights conversation about 2×. Only 12 of the 72 layers were captured over training.</p>
+  <p class="prose note">The probe text over-weights conversation about 2×. Only 12 of the 72 layers were captured over training.</p>
 </div></section>
 <!-- icl:end -->
   </div>
@@ -999,7 +999,7 @@ if (document.readyState === "loading") document.addEventListener("DOMContentLoad
   <span><span class="kanji" style="font-size:15px">言霊 紬</span> Threads · model: kotodama-tsumugi.</span>
   <span>Companion pages: <a href="./">the kotodama-tsumugi announcement</a> · <a href="binding-atlas">every public model's results on who-is-who tests</a>.</span>
   <span>Led by <a href="https://x.com/kataletheia">Luxia</a>, with <a href="https://animalabs.ai">Anima Labs</a> · built with <a href="https://www.anthropic.com/claude">Claude</a>. Set in Love Letter Typewriter (© 1994 Blake Haber, Dixie's Delights) with Courier Prime. Data CC-BY-4.0; code Apache-2.0.</span>
-  <span class="num" id="stamp">atlas build 2026-11-06 23:24 UTC</span>
+  <span class="num" id="stamp">atlas build 2026-11-07 00:54 UTC</span>
 </div></footer>
 
 <script>
@@ -1387,8 +1387,8 @@ function story() {
   function frameCounter(f) {
     const m = GRAPH.training.medians[f.index];
     cTok++; counter.classList.add('on'); shown = null; unit = null;
-    ck.textContent = f.kind === 'final anneal' ? 'training tokens · final anneal' : 'training tokens'; cv.textContent = FMT.tok(f.tokens_B);
-    cs.textContent = `median closeness to the final firing ${fa(Math.min(...m), 2)}–${fa(Math.max(...m), 2)} across the ${m.length} layers`;
+    ck.textContent = f.kind === 'cooldown' ? 'training tokens · cooldown' : 'training tokens'; cv.textContent = FMT.tok(f.tokens_B);
+    cs.textContent = `closeness (1 = fires exactly as at the end): median ${fa(Math.min(...m), 2)}–${fa(Math.max(...m), 2)} across the ${m.length} layers`;
   }
   function train(spec, my) {
     map.setMode('scalar');
@@ -2093,18 +2093,18 @@ function figRead(w) {
 function figTrain(w) {
   const TR = GRAPH.training, C = TR.checkpoints, P = TR.positions, h = 300, m = { t: 16, r: 96, b: 40, l: 40 };
   const xs = tb => m.l + tb / 110 * (w - m.l - m.r), ys = v => m.t + (1 - v) * (h - m.t - m.b);
-  const firstAnneal = C.find(c => c.kind === 'final anneal');
+  const firstCool = C.find(c => c.kind === 'cooldown');
   let s = `<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" role="img" aria-label="Median closeness to the final firing over training, per captured layer">`;
-  if (firstAnneal) s += `<rect x="${xs(100)}" y="${m.t}" width="${xs(110) - xs(100)}" height="${h - m.t - m.b}" fill="var(--chip)"/>` + T(xs(105), h - m.b - 8, 'anneal', { fs: 11, a: 'middle', c: 'var(--muted)' });
+  if (firstCool) s += `<rect x="${xs(100)}" y="${m.t}" width="${xs(110) - xs(100)}" height="${h - m.t - m.b}" fill="var(--chip)"/>` + T(xs(105), h - m.b - 8, 'cooldown', { fs: 11, a: 'middle', c: 'var(--muted)' });
   for (let v = 0; v <= 1.001; v += 0.25) s += `<line x1="${m.l}" x2="${w - m.r}" y1="${ys(v)}" y2="${ys(v)}" stroke="var(--line)"/>` + T(m.l - 8, ys(v) + 4, v === 0 ? '0' : fa(v, 2), { fs: 11, a: 'end', c: 'var(--muted)' });
   for (const tb of [0, 20, 40, 60, 80, 100, 110]) s += T(xs(tb), h - 16, tb + 'B', { fs: 11, a: 'middle', c: 'var(--muted)' });
-  // trunk and anneal as separate lines (the anneal branches off at 100B)
-  const line = (j, kind) => C.map((c, i) => [c, i]).filter(([c]) => c.kind === kind || (kind === 'final anneal' && c.tokens_B === 100 && c.kind === 'trunk'))
+  // main run and cooldown as separate lines (the cooldown branches off at 100B)
+  const line = (j, kind) => C.map((c, i) => [c, i]).filter(([c]) => c.kind === kind || (kind === 'cooldown' && c.tokens_B === 100 && c.kind === 'trunk'))
     .map(([c, i], k) => `${k ? 'L' : 'M'}${xs(c.tokens_B).toFixed(1)},${ys(TR.medians[i][j]).toFixed(1)}`).join('');
   P.forEach((p, j) => { const hi = p === 8;
-    for (const kind of ['trunk', 'final anneal']) s += `<path d="${line(j, kind)}" fill="none" stroke="${hi ? 'var(--ice-ink)' : 'var(--muted)'}" stroke-width="${hi ? 2.5 : 1}" opacity="${hi ? 1 : .55}"><title>layer ${p}</title></path>`;
-    if (hi) s += T(w - m.r + 6, ys(TR.medians[C.findIndex(c => c.kind === 'final anneal') - 1][j]) + 4, 'layer 8', { fs: 12, w: 700 }); });
-  return s + '</svg>' + `<div class="figcap"><span><span class="sw" style="background:var(--ice-ink)"></span>layer 8</span><span><span class="sw" style="background:var(--muted)"></span>the other ${P.length - 1} captured layers</span><span>median Pearson correlation of each neuron's firing with its firing at the reference checkpoint</span></div>`;
+    for (const kind of ['trunk', 'cooldown']) s += `<path d="${line(j, kind)}" fill="none" stroke="${hi ? 'var(--ice-ink)' : 'var(--muted)'}" stroke-width="${hi ? 2.5 : 1}" opacity="${hi ? 1 : .55}"><title>layer ${p}</title></path>`;
+    if (hi) s += T(w - m.r + 6, ys(TR.medians[C.findIndex(c => c.kind === 'cooldown') - 1][j]) + 4, 'layer 8', { fs: 12, w: 700 }); });
+  return s + '</svg>' + `<div class="figcap"><span><span class="sw" style="background:var(--ice-ink)"></span>layer 8</span><span><span class="sw" style="background:var(--muted)"></span>the other ${P.length - 1} captured layers</span><span>median Pearson correlation of each neuron's firing with its firing in the released model</span></div>`;
 }
 
 function iclFigures() {
@@ -2219,7 +2219,7 @@ const STEPS = {
   T1: { layout: 'meaning', train: { at: 0.25 } },
   T2: { layout: 'meaning', train: { sweep: [1, 30], ms: 5000 } },
   T3: { layout: 'meaning', train: { sweep: [80, 100], ms: 2600 } },
-  T4: { layout: 'meaning', train: { sweep: [100, 110], kind: 'final anneal', ms: 3000 } },
+  T4: { layout: 'meaning', train: { sweep: [100, 110], kind: 'cooldown', ms: 3000 } },
 };
 const CHAPTERS = {
   wiring: { first: 'W1', tour: { light: ['broadcasters'], fanout: { from: [HUB], k: 12 }, counter: { value: 'graph:wiring.hubs.0.x_median', fmt: 'sig2x', label: '{graph:wiring.hubs.0.id|id} fan-out', sub: "against its layer's median" } } },
