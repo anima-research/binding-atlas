@@ -12,6 +12,9 @@ only at its source. `{{cite:AttnRes}}` is the numbered citation marker; its leaf
 The easiest way to edit is `make edit` in this repo. To see how a change reads in the video without re-rendering it,
 `build_anim.py --stills DIR` draws one still per beat.
 
+## story.toc
+tsumugi
+
 ## story.arch.title
 Four design choices
 
