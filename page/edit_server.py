@@ -32,7 +32,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent
 sys.path.insert(0, str(HERE))
-from copy_text import COPY_DIR, CopyError, check_text, parse, write_entry  # noqa: E402
+from copy_text import CITE, COPY_DIR, CopyError, add_entry, check_text, parse, write_entry  # noqa: E402
 
 EDITOR_DIR = HERE / "editor"
 OUT = REPO / "out" / "edit"
@@ -142,23 +142,41 @@ class Preview:
             if self._mtime() != self.built_mtime:
                 self.build()
 
-    def save(self, key: str, text: str) -> str | None:
+    def save(self, key: str, text: str, cites: dict[str, str] | None = None) -> str | None:
+        """Write one entry, plus any new citations it introduces (name -> leaflet text, added to the page's own copy
+        file); on any refusal every copy file is put back as it was."""
+        cites = cites or {}
         with self.lock:
             try:
                 text = check_text(key, text)
+                cites = {n: check_text(f"cite.{n}", t) for n, t in cites.items()}
             except CopyError as e:
                 return str(e)
-            problem = html_problem(text)
-            if problem:
-                return f"{key}: {problem}"
+            for k, t in [(key, text)] + [(f"cite.{n}", t) for n, t in cites.items()]:
+                problem = html_problem(t)
+                if problem:
+                    return f"{k}: {problem}"
             f = self.file_of(key)
             if f is None:
                 return f"no entry {key!r}"
-            before = parse(f)[key].text
-            write_entry(f, key, text)
+            for n in cites:
+                if not CITE.fullmatch("{{cite:" + n + "}}"):
+                    return f"citation name {n!r}: use letters, digits, - or _ only"
+                if self.file_of(f"cite.{n}") is not None:
+                    return f"a citation named {n!r} already exists; use {{{{cite:{n}}}}} as it is, or pick another name"
+            snapshot = {c: c.read_text() for c in self.copies}
+            try:
+                for n, t in cites.items():
+                    add_entry(self.copies[0], f"cite.{n}", t)
+                write_entry(f, key, text)
+            except CopyError as e:
+                for c, s in snapshot.items():
+                    c.write_text(s)
+                return str(e)
             err = self.build()
             if err:
-                write_entry(f, key, before)
+                for c, s in snapshot.items():
+                    c.write_text(s)
                 self.build()
                 return f"not saved; the build refused it: {err}"
             return None
@@ -227,9 +245,10 @@ def handler(preview: Preview):
                 n = int(self.headers.get("Content-Length", "0"))
                 req = json.loads(self.rfile.read(n))
                 key, text = str(req["key"]), str(req["text"])
-            except (ValueError, KeyError, TypeError) as e:
+                cites = {str(n): str(t) for n, t in (req.get("cites") or {}).items()}
+            except (ValueError, KeyError, TypeError, AttributeError) as e:
                 return self._json({"error": f"bad request: {e}"}, HTTPStatus.BAD_REQUEST)
-            err = preview.save(key, text)
+            err = preview.save(key, text, cites)
             self._json({"error": err, "version": preview.version}, HTTPStatus.OK if err is None else HTTPStatus.UNPROCESSABLE_ENTITY)
     return H
 

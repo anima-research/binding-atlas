@@ -5,7 +5,7 @@
 (() => {
 'use strict';
 const KEY_SCROLL = 'copy-editor-scroll', KEY_ON = 'copy-editor-on';
-let state = null, current = null, original = '', dirty = false, version = null;
+let state = null, current = null, original = '', dirty = false, version = null, pending = {};
 const on = () => sessionStorage.getItem(KEY_ON) !== '0';
 
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
@@ -15,10 +15,22 @@ close.type = 'button'; close.title = 'Close (Esc)'; head.append(keyName, close);
 const area = el('textarea', 'ce-text'); area.spellcheck = true;
 const msg = el('div', 'ce-msg');
 const row = el('div', 'ce-row'); const save = el('button', 'ce-save', 'Save'); const revert = el('button', 'ce-revert', 'Undo changes');
-save.type = revert.type = 'button'; row.append(save, revert);
+const citeBtn = el('button', 'ce-citebtn', 'Add citation');
+save.type = revert.type = citeBtn.type = 'button'; row.append(save, revert, citeBtn);
+// the citation form: a new reference (short name, authors, title, year, link) or one the page already has
+const cform = el('div', 'ce-cform'); cform.hidden = true;
+const cf = (label, ph) => { const w = el('label', 'ce-cf'); const i = el('input'); i.placeholder = ph; w.append(el('span', null, label), i); cform.append(w); return i; };
+const cExisting = el('select', 'ce-cexist'); const cExistW = el('label', 'ce-cf'); cExistW.append(el('span', null, 'Use one the page has'), cExisting); cform.append(cExistW);
+cform.append(el('div', 'ce-cor', 'or add a new one:'));
+const cName = cf('Short name (the marker)', 'e.g. UncheatableEval'), cAuth = cf('Authors', 'e.g. Tan, Li, Shen'),
+      cTitle = cf('Title', 'the paper\'s title'), cYear = cf('Year', 'e.g. 2026'), cLink = cf('Link', 'https://arxiv.org/abs/…');
+const crow = el('div', 'ce-row'); const cAdd = el('button', 'ce-save', 'Insert at cursor'); const cCancel = el('button', null, 'Cancel');
+cAdd.type = cCancel.type = 'button'; crow.append(cAdd, cCancel); cform.append(crow);
+const cmsg = el('div', 'ce-msg'); cform.append(cmsg);
 const hint = el('div', 'ce-hint', 'Ctrl+Enter saves · Esc closes. Text is HTML: keep tags balanced and placeholders such as __ATLAS_LINK__ as they are.');
 const otherH = el('div', 'ce-other-h', 'Other text (not shown on the page)'); const otherList = el('div', 'ce-other');
-panel.append(head, area, msg, row, hint, otherH, otherList);
+const pick = el('div', 'ce-pick', 'Pick an item below to edit it.'); pick.hidden = true;
+panel.append(head, pick, area, msg, row, cform, hint, otherH, otherList);
 const bar = el('div', 'ce-bar'); const toggle = el('button', 'ce-toggle'); const otherBtn = el('button', 'ce-otherbtn', 'Other text');
 toggle.type = otherBtn.type = 'button'; const file = el('span', 'ce-file'); bar.append(toggle, otherBtn, file);
 document.body.append(panel, bar);
@@ -33,15 +45,16 @@ const say = (t, bad) => { msg.textContent = t || ''; msg.classList.toggle('bad',
 function open(key) {
   if (dirty && current && current !== key && !confirm('Discard the unsaved change to ' + current + '?')) return;
   if (dirty) undo();
-  current = key; original = state.entries[key]; dirty = false;
+  current = key; original = state.entries[key]; dirty = false; pending = {}; showEditor(true); cform.hidden = true;
   keyName.textContent = key + (state.files && state.files[key] ? '  ·  ' + state.files[key] : ''); area.value = original; say(''); panel.hidden = false;
   document.querySelectorAll('[data-copy].ce-sel').forEach(n => n.classList.remove('ce-sel'));
   document.querySelectorAll(`[data-copy="${CSS.escape(key)}"]`).forEach(n => n.classList.add('ce-sel'));
   area.focus();
 }
+function showEditor(on) { [area, row].forEach(n => { n.hidden = !on; }); pick.hidden = on; }
 function undo() {
   if (!current) return;
-  area.value = original; dirty = false;
+  area.value = original; dirty = false; pending = {};
   document.querySelectorAll(`[data-copy="${CSS.escape(current)}"]`).forEach(n => { n.innerHTML = preview(original); });
 }
 function shut() {
@@ -57,7 +70,9 @@ async function doSave() {
   if (!current) return;
   if (!dirty) { say('No changes.'); return; }
   say('Saving…');
-  const r = await fetch('/__save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: current, text: area.value }) });
+  const cites = {};
+  for (const [n, t] of Object.entries(pending)) if (area.value.includes('{{cite:' + n + '}}')) cites[n] = t;
+  const r = await fetch('/__save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: current, text: area.value, cites }) });
   const j = await r.json().catch(() => ({ error: 'no answer from the server' }));
   if (j.error) { say(j.error, true); return; }
   dirty = false; sessionStorage.setItem(KEY_SCROLL, String(window.scrollY)); location.reload();
@@ -74,7 +89,34 @@ document.addEventListener('click', e => {
   if (!t) return;
   e.preventDefault(); e.stopPropagation(); open(t.dataset.copy);
 }, true);
-otherBtn.onclick = () => { panel.hidden = false; if (!current) { keyName.textContent = 'Other text'; area.value = ''; } otherList.scrollIntoView({ block: 'nearest' }); };
+otherBtn.onclick = () => { panel.hidden = false; if (!current) { keyName.textContent = 'Other text'; showEditor(false); } otherList.scrollIntoView({ block: 'nearest' }); };
+
+const esc = t => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+function insertMarker(name) {
+  const a = area.selectionStart ?? area.value.length, b = area.selectionEnd ?? a, m = '{{cite:' + name + '}}';
+  area.value = area.value.slice(0, a) + m + area.value.slice(b);
+  area.focus(); area.selectionStart = area.selectionEnd = a + m.length;
+  area.dispatchEvent(new Event('input'));
+}
+citeBtn.onclick = () => {
+  const names = Object.keys(state.entries).filter(k => k.startsWith('cite.')).map(k => k.slice(5));
+  cExisting.replaceChildren(el('option', null, '—'), ...names.map(n => { const o = el('option', null, n); o.value = n; return o; }));
+  [cName, cAuth, cTitle, cYear, cLink].forEach(i => { i.value = ''; }); cmsg.textContent = ''; cform.hidden = false; cName.focus();
+};
+cCancel.onclick = () => { cform.hidden = true; };
+cExisting.onchange = () => { if (cExisting.value && cExisting.value !== '—') { insertMarker(cExisting.value); cform.hidden = true; } };
+cAdd.onclick = () => {
+  const n = cName.value.trim(), au = cAuth.value.trim(), ti = cTitle.value.trim(), yr = cYear.value.trim(), ln = cLink.value.trim();
+  const bad = t => { cmsg.textContent = t; cmsg.classList.add('bad'); };
+  if (!/^[A-Za-z0-9_-]+$/.test(n)) return bad('The short name can use letters, digits, - and _ only (no spaces).');
+  if (state.entries['cite.' + n] || pending[n]) return bad('That name is taken; pick it from the list above instead.');
+  if (!ti) return bad('A title is needed.');
+  if (ln && !/^https?:\/\//.test(ln)) return bad('The link should start with https://');
+  const title = ln ? `<a href="${esc(ln)}"><i>${esc(ti)}</i></a>` : `<i>${esc(ti)}</i>`;
+  pending[n] = [au && esc(au), title, yr && esc(yr)].filter(Boolean).join(', ') + '.';
+  insertMarker(n); cform.hidden = true;
+  say('Citation "' + n + '" added; it is written to the file when you save.');
+};
 
 async function load() {
   const j = await (await fetch('/__copy')).json();

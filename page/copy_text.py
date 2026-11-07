@@ -81,6 +81,17 @@ def write_entry(path: Path, key: str, text: str) -> None:
     path.write_text("\n".join(lines))
 
 
+def add_entry(path: Path, key: str, text: str) -> None:
+    """Append a new entry at the end of the file; refuses a key the file already has or one the key rules reject."""
+    text = check_text(key, text)
+    if not KEY_LINE.match(f"## {key}"):
+        raise CopyError(f"{key!r} is not a valid key")
+    if key in parse(path):
+        raise CopyError(f"{path.name}: entry {key!r} already exists")
+    s = path.read_text().rstrip("\n")
+    path.write_text(f"{s}\n\n## {key}\n{text}\n")
+
+
 def _inside_tag(page: str, pos: int) -> bool:
     """A slot inside a tag's attributes, or inside <title> (whose text cannot hold markup)."""
     return (page.rfind("<", 0, pos) > page.rfind(">", 0, pos)
