@@ -31,7 +31,7 @@ REPO = Path(__file__).resolve().parent.parent
 N_POS, N_NEURON = 72, 4096
 TOP = 100
 CHECKPOINTS_TB = (0.25, 0.5, 1, 2, 3, 4, 5, 7, 10, 13, 16, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100)
-ANNEAL_TB = (102, 104, 106, 108, 110)
+COOLDOWN_TB = (102, 104, 106, 108, 110)
 READ_AT_TB = (10, 30, 80, 100)
 
 
@@ -125,7 +125,7 @@ def build(inp: Path) -> tuple[dict, bytes]:
         best = min(cand, key=lambda c: abs(c["tokens_B"] - tb))
         return int(best["index"])
 
-    chosen = sorted({pick(t, "trunk") for t in CHECKPOINTS_TB} | {pick(t, "final anneal") for t in ANNEAL_TB})
+    chosen = sorted({pick(t, "trunk") for t in CHECKPOINTS_TB} | {pick(t, "cooldown") for t in COOLDOWN_TB})
     q = np.where(np.isnan(a32[chosen]), 255, np.clip(np.rint((a32[chosen] + 1) / 2 * 254), 0, 254)).astype(np.uint8)
     reads = {}
     for t in READ_AT_TB:
