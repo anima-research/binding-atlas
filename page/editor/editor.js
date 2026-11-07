@@ -83,8 +83,25 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') { e.preventDefault(); shut(); }
   else if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); doSave(); }
 });
+// The contents rail: a label is a heading's text, or a section's data-toc label, whose key the edit build names in
+// data-copy-toc; clicking it opens that key.
+function railKey(a) {
+  const id = decodeURIComponent((a.getAttribute('href') || '').slice(1)), t = id && document.getElementById(id);
+  if (!t) return null;
+  if (t.dataset.copyToc) return t.dataset.copyToc;
+  const inner = t.matches('[data-copy]') ? t : t.querySelector(':scope > [data-copy]');
+  return inner ? inner.dataset.copy : null;
+}
 document.addEventListener('click', e => {
   if (!on() || panel.contains(e.target) || bar.contains(e.target)) return;
+  const a = e.target.closest && e.target.closest('#toc a');
+  if (a) {
+    const k = railKey(a);
+    e.preventDefault(); e.stopPropagation();
+    if (k && state.entries[k] != null) open(k);
+    else { panel.hidden = false; keyName.textContent = a.textContent; showEditor(false); say('This label is not in a copy file yet; ask for it to be added.', true); }
+    return;
+  }
   const t = e.target.closest && e.target.closest('[data-copy]');
   if (!t) return;
   e.preventDefault(); e.stopPropagation(); open(t.dataset.copy);

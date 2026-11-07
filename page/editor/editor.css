@@ -32,3 +32,5 @@ html.ce-on [data-copy].ce-sel { outline: 2px solid #ffb347; background: rgba(255
 .ce-cf input, .ce-cf select { padding: 5px 7px; border-radius: 5px; border: 1px solid #3a3f47; background: #111317; color: #eef0f2; font: 14px system-ui, sans-serif }
 .ce-cor { font-size: 12px; color: #8c95a0; margin-top: 2px }
 .ce-pick { color: #b9c1cb; padding: 8px 0 }
+html.ce-on #toc a { outline: 1px dashed rgba(255, 179, 71, .45); outline-offset: 1px; cursor: text }
+html.ce-on #toc a:hover { outline: 2px solid #ffb347 }
