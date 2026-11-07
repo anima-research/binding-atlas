@@ -97,7 +97,7 @@ On new rules, tsumugi scores .559. A trend line fitted to 37 public base models 
 ## rules.text_2
 This comparison was registered: the test and its three predictions were written down and committed before any score was computed, and all three hold. Among public bases under 4B parameters, only Qwen3 1.7B scores higher on new rules.
 
-## rules.more
+## rules.more_card
 The registered test, its table and checks
 
 ## loop.text_1

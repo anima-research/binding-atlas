@@ -99,7 +99,7 @@
 <script>
 (() => {
 const ARCH_FOCUS = { i: -1, touch: matchMedia("(hover: none)").matches };
-const D = {"cross": [["OLMo-2 1B", 0.7501206757843923, 1.2001930812550279, 1.1691384418040867, "0.8\u20131.2\u00d7"], ["SmolLM2 1.7B", 0, 2.1634320193081256, null, "by 2.2\u00d7 (no earlier checkpoint scored)"], ["Pythia 2.8B", 1.9699308125502817, 2.813995172968624, 2.6516199975271535, "2.0\u20132.8\u00d7"], ["Pythia 6.9B", 3.6126757843925987, 5.904125502815768, 4.953391686675755, "3.6\u20135.9\u00d7"], ["OLMo-1 1B", 5.566918744971843, 10.231761866452132, 6.711253690989331, "5.6\u201310.2\u00d7"], ["Pythia 1.4B", null, null, null, "never: ends at 61.4 after 2.0\u00d7"]], "rule": 0.5585956790123457, "pub": [[0.4612577160493827, "Pythia 2.8B"], [0.4380555555555556, "Pythia 2.8B"], [0.4274922839506173, "Pythia 6.9B"], [0.4270061728395062, "OLMo-2 7B"], [0.42337962962962966, "OLMo-2 1B"], [0.42216049382716053, "Pythia 1.4B"], [0.4213734567901235, "OLMo-2 1B"], [0.4167824074074074, "Pythia 1.4B"], [0.407692901234568, "Pythia 1.4B"], [0.4047376543209877, "Pythia 2.8B"], [0.3951543209876543, "Pythia 1.4B"], [0.3694830246913581, "Pythia 6.9B"], [0.35041666666666677, "OLMo-2 7B"], [0.34717592592592594, "OLMo-2 13B"], [0.3284645061728395, "Pythia 6.9B"]], "final": [[0.5360108024691358, "Falcon3 3B"], [0.3918981481481482, "Pythia 1B"]], "cut": [["2nd pass", -0.13197530864197532], ["1st pass", -0.03500000000000003], ["outside the loop", -0.019243827160493998]], "cut_recall2": -0.024609375000000044, "dyn": [["tsumugi 1.4B", 0.038, true], ["Qwen3 4B", 0.0549, false], ["SmolLM3 3B", 0.0274, false], ["Qwen3 1.7B", 0.0258, false], ["OLMo-2 1B", -0.0185, false], ["Qwen2.5 1.5B", -0.0356, false]], "grid": [{"name": "kotodama-tsumugi", "tok": "110B tokens", "scores": [58.1, 60.5, 62.9, 31.7, 71.4, 92.6, 61.6, 74.0, 64.5], "avg": 64.1, "compute": 1.0}, {"name": "OLMo-2 1B", "tok": "105B tokens", "scores": [54.7, 55.8, 64.3, 31.0, 72.2, 89.0, 56.8, 73.0, 59.2], "avg": 61.8, "compute": 0.7501206757843926}, {"name": "Pythia-1.4B", "tok": "300B tokens", "scores": [51.9, 60.9, 60.8, 28.2, 70.9, 86.8, 57.3, 72.0, 63.3], "avg": 61.4, "compute": 2.041153660498793}, {"name": "Pythia-2.8B", "tok": "300B tokens", "scores": [59.4, 63.9, 64.1, 31.9, 73.8, 88.8, 58.6, 78.0, 63.4], "avg": 64.7, "compute": 4.0244022526146415}], "bench": ["HellaSwag", "LAMBADA", "ARC-e", "ARC-c", "PIQA", "SciQ", "WinoGrande", "COPA", "BoolQ"], "item": [["ta mu", "ta mo"], ["mo mi", "mo mo"], ["du bu", "du bo"], ["se pi", "se po"]], "query": "pe fi", "choices": ["po", "fe", "fu", "fi", "fo"], "gold": "fo", "chat": ["A chat between Steve and Kurt.", "Steve: The battery is in my hand.", "Steve: The shoe is in my hand.", "Kurt: I have the lamp.", "Kurt: Here, take my lamp.", "Steve: My battery is in your hand now."], "p_orig": 0.445, "p_swap": 0.311, "bounds_even": [0, 9, 18, 27, 36, 45, 54, 63], "bounds": [0, 1, 7, 9, 17, 19, 39, 59]}, ARCH = [["Depth", "Its parameters go into depth instead of width: 52 layers of weights, 1,536 wide. That is 19 input layers, a middle block of 20, and 13 output layers.", "1.42B parameters"], ["A looped middle block", "The middle block runs twice with the same weights, so the model computes through 72 layers while storing 52. Each pass keeps its own norms.", "f<sub>39+i</sub> = f<sub>19+i</sub>,  i = 0 \u2026 19"], ["Attention over depth", "A plain residual stream adds every earlier layer with weight 1. Here, each layer reads a learned, input-dependent mix of earlier blocks' outputs (Block Attention Residuals, Moonshot AI).", "plain:  h<sub>l+1</sub> = h<sub>l</sub> + f<sub>l</sub>(h<sub>l</sub>)<br>here:  h<sub>l</sub> = \u03a3<sub>n</sub> \u03b1<sub>n,l</sub> b<sub>n</sub>,  \u03b1<sub>n,l</sub> = softmax<sub>n</sub>( w<sub>l</sub> \u00b7 RMSNorm(b<sub>n</sub>) )<br><span class=\"lab\">b<sub>n</sub>: the summed outputs of block n \u00b7 w<sub>l</sub>: a learned query for layer l</span>"], ["Where the blocks begin", "The original design spaces its blocks evenly. We trained a 52-layer model without them and looked for layers where its attention spread, hidden-state shape and weight rank jump together. Those seams split the input layers into five blocks. They also marked layers 19 to 38 as one long block: that is the middle block that runs twice.", "blocks start at layers 0, 1, 7, 9, 17, 19, 39, 59, counted along the 72 computed layers"]];
+const D = {"cross": [["OLMo-2 1B", 0.7501206757843923, 1.2001930812550279, 1.1691384418040867, "0.8\u20131.2\u00d7"], ["SmolLM2 1.7B", 0, 2.1634320193081256, null, "by 2.2\u00d7 (no earlier checkpoint scored)"], ["Pythia 2.8B", 1.9699308125502817, 2.813995172968624, 2.6516199975271535, "2.0\u20132.8\u00d7"], ["Pythia 6.9B", 3.6126757843925987, 5.904125502815768, 4.953391686675755, "3.6\u20135.9\u00d7"], ["OLMo-1 1B", 5.566918744971843, 10.231761866452132, 6.711253690989331, "5.6\u201310.2\u00d7"], ["Pythia 1.4B", null, null, null, "never: ends at 61.4 after 2.0\u00d7"]], "rule": 0.5585956790123457, "pub": [[0.4612577160493827, "Pythia 2.8B"], [0.4380555555555556, "Pythia 2.8B"], [0.4274922839506173, "Pythia 6.9B"], [0.4270061728395062, "OLMo-2 7B"], [0.42337962962962966, "OLMo-2 1B"], [0.42216049382716053, "Pythia 1.4B"], [0.4213734567901235, "OLMo-2 1B"], [0.4167824074074074, "Pythia 1.4B"], [0.407692901234568, "Pythia 1.4B"], [0.4047376543209877, "Pythia 2.8B"], [0.3951543209876543, "Pythia 1.4B"], [0.3694830246913581, "Pythia 6.9B"], [0.35041666666666677, "OLMo-2 7B"], [0.34717592592592594, "OLMo-2 13B"], [0.3284645061728395, "Pythia 6.9B"]], "final": [[0.5360108024691358, "Falcon3 3B"], [0.3918981481481482, "Pythia 1B"]], "cut": [["2nd pass", -0.13197530864197532], ["1st pass", -0.03500000000000003], ["outside the loop", -0.019243827160493998]], "cut_recall2": -0.024609375000000044, "dyn": [["tsumugi 1.4B", 0.038, true], ["Qwen3 4B", 0.0549, false], ["SmolLM3 3B", 0.0274, false], ["Qwen3 1.7B", 0.0258, false], ["OLMo-2 1B", -0.0185, false], ["Qwen2.5 1.5B", -0.0356, false]], "grid": [{"name": "kotodama-tsumugi", "tok": "110B tokens", "scores": [58.1, 60.5, 62.9, 31.7, 71.4, 92.6, 61.6, 74.0, 64.5], "avg": 64.1, "compute": 1.0}, {"name": "OLMo-2 1B", "tok": "105B tokens", "scores": [54.7, 55.8, 64.3, 31.0, 72.2, 89.0, 56.8, 73.0, 59.2], "avg": 61.8, "compute": 0.7501206757843926}, {"name": "Pythia-1.4B", "tok": "300B tokens", "scores": [51.9, 60.9, 60.8, 28.2, 70.9, 86.8, 57.3, 72.0, 63.3], "avg": 61.4, "compute": 2.041153660498793}, {"name": "Pythia-2.8B", "tok": "300B tokens", "scores": [59.4, 63.9, 64.1, 31.9, 73.8, 88.8, 58.6, 78.0, 63.4], "avg": 64.7, "compute": 4.0244022526146415}], "bench": ["HellaSwag", "LAMBADA", "ARC-e", "ARC-c", "PIQA", "SciQ", "WinoGrande", "COPA", "BoolQ"], "item": [["ta mu", "ta mo"], ["mo mi", "mo mo"], ["du bu", "du bo"], ["se pi", "se po"]], "query": "pe fi", "choices": ["po", "fe", "fu", "fi", "fo"], "gold": "fo", "chat": ["A chat between Steve and Kurt.", "Steve: The battery is in my hand.", "Steve: The shoe is in my hand.", "Kurt: I have the lamp.", "Kurt: Here, take my lamp.", "Steve: My battery is in your hand now."], "p_orig": 0.445, "p_swap": 0.311, "bounds_even": [0, 9, 18, 27, 36, 45, 54, 63], "bounds": [0, 1, 7, 9, 17, 19, 39, 59]}, ARCH = [["Depth", "Its parameters go into depth instead of width: 52 layers of weights, 1,536 wide. That is 19 input layers, a middle block of 20, and 13 output layers.", "1.42B parameters"], ["A looped middle block", "The middle block runs twice with the same weights, so the model computes through 72 layers while storing 52. Each pass keeps its own norms.", "f<sub>39+i</sub> = f<sub>19+i</sub>,  i = 0 \u2026 19"], ["Attention over depth", "A plain residual stream adds every earlier layer with weight 1. Here, each layer reads a learned, input-dependent mix of earlier blocks' outputs (Block Attention Residuals, Moonshot AI).", "plain:  h<sub>l+1</sub> = h<sub>l</sub> + f<sub>l</sub>(h<sub>l</sub>)<br>here:  h<sub>l</sub> = \u03a3<sub>n</sub> \u03b1<sub>n,l</sub> b<sub>n</sub>,  \u03b1<sub>n,l</sub> = softmax<sub>n</sub>( w<sub>l</sub> \u00b7 RMSNorm(b<sub>n</sub>) )<br><span class=\"lab\">b<sub>n</sub>: the summed outputs of block n \u00b7 w<sub>l</sub>: a learned query for layer l</span>"], ["Where the blocks begin", "The original design spaces its blocks evenly. We trained a 52-layer model without them and looked for layers where its attention spread, hidden-state shape and weight rank jump together. Those seams split the input layers into five blocks. They also marked layers 19 to 38 as one long block: that is the middle block that runs twice.", "blocks start at layers 0, 1, 7, 9, 17, 19, 39, 59, counted along the 72 computed layers"]], COPY = {"story.arch.together": "Together: 72 layers of computation from 52 layers of weights, with every layer choosing what to read from the blocks below it.", "story.arch.hint_hover": "Hover over a step to read it again.", "story.arch.hint_tap": "Tap a step to read it again.", "stack.input": "input layers", "stack.input_n": "19", "stack.middle": "middle block", "stack.middle_sub": "20 layers, 1st pass", "stack.middle_again": "middle block, again", "stack.middle_again_sub": "same weights, 2nd pass", "stack.output": "output layers", "stack.output_n": "13", "rules.axis": "rule-learning score · 0 = chance, 1 = perfect", "rules.legend1": "● 15 public checkpoints, partway through training · ○ 2 fully", "rules.legend2": "trained public models: all at the same training compute", "loop.heads_off": "60 random heads off", "loop.cuts_title": "rule learning lost, by where 60 random heads are switched off", "loop.cutnote": "Each cut switches off 60 attention heads chosen at random, a quarter of the 240 in one pass, with five different draws per place. A second-pass cut costs rule learning .132, almost four times a first-pass cut, while fact recall in the same prompts falls only .025. The gap holds after controlling for how much each cut hurts the model's text prediction.", "you.chat_label": "one test chat (after 3 worked examples)", "you.prompt": "Right now you're holding the ___", "you.is_kurt": "“you” = Kurt, who now has the battery", "you.is_steve": "“you” = Steve, who now has the lamp", "you.prob_label": "probability of “battery”", "you.moves": "this chat moves more than most: the average across 180 is .038", "you.bars_title": "average drop, by model", "you.left": "← takes “you” as the speaker", "you.right": "tracks “you” →", "you.claim1": "the smallest public base model whose whole 95% interval", "you.claim2": "clears +.02, a bar fixed before any model was scored", "cheap.avg_lead": "tsumugi averages", "cheap.axis": "training compute, as a multiple of tsumugi's", "cheap.tsumugi_line": "tsumugi, 1×", "cheap.note": "Public checkpoints are taken partway through training, before any final learning-rate decay; tsumugi's 64.1 includes its own."};
 const FG = "#f2f3f5", MUTED = "#9aa3ad", LINE = "#2b3038", NEG = "#5d6672", BG = "#0b0c0e", MONO = "Courier Prime, Nimbus Mono PS, Courier New, monospace";
 const B = [[0.0, 2.6], [2.6, 20.2], [20.2, 28.8], [28.8, 35.2], [35.2, 43.8], [43.8, 49.8], [49.8, 53.8]], NAMES = ["intro", "arch", "rules", "loop", "you", "cheap", "card"], FADE = 0.45;
 const cl = (x) => Math.max(0, Math.min(1, x));
@@ -131,10 +131,10 @@ function stack(opts) {
   const lab = (p0, p1, a, b, o) => { const yy = (y(p0) + y(p1)) / 2;
     return `<g opacity="${o}"><text x="${bx + bw + 28}" y="${yy - 4}" fill="${FG}" font-size="23">${a}</text><text x="${bx + bw + 28}" y="${yy + 21}" fill="${MUTED}" font-size="18">${b}</text></g>`; };
   if (labels) {
-    s += lab(59, 71, "output layers", "13", 1);
-    s += lab(39, 58, "middle block, again", "same weights, 2nd pass", cl(open * 2 - 1));
-    s += lab(19, 38, "middle block", "20 layers, 1st pass", 1);
-    s += lab(0, 18, "input layers", "19", 1);
+    s += lab(59, 71, COPY["stack.output"], COPY["stack.output_n"], 1);
+    s += lab(39, 58, COPY["stack.middle_again"], COPY["stack.middle_again_sub"], cl(open * 2 - 1));
+    s += lab(19, 38, COPY["stack.middle"], COPY["stack.middle_sub"], 1);
+    s += lab(0, 18, COPY["stack.input"], COPY["stack.input_n"], 1);
   }
   if (open > .5) { const o = cl(open * 2 - 1);
     s += `<path d="M${bx - 14},${y(38) - pitch} H${bx - 34} V${y(19)} H${bx - 14}" fill="none" stroke="${FG}" stroke-width="2" opacity="${o}"/>`
@@ -181,8 +181,8 @@ DRAW.arch = (t) => {
        + `<div class="body" style="opacity:${e};max-height:${(e * 220).toFixed(1)}px;margin-top:${(e * 8).toFixed(1)}px;overflow:hidden">${body}</div>`
        + `<div class="f" style="opacity:${fo};max-height:${(fo * 140).toFixed(1)}px;margin-top:${(fo * 10).toFixed(1)}px;overflow:hidden">${f}</div></div>`;
   });
-  h += `<div class="ah" style="${foc >= 0 ? "display:none" : ""};opacity:${ramp(t, t0 + END + .7, t0 + END + 1.2)}"><div class="body" style="color:${FG}">Together: 72 layers of computation from 52 layers of weights, with every layer choosing what to read from the blocks below it.</div></div>`;
-  if (typeof ARCH_FOCUS !== "undefined" && foc < 0) h += `<div class="ahint" style="opacity:${done}">${ARCH_FOCUS.touch ? "Tap" : "Hover over"} a step to read it again.</div>`;
+  h += `<div class="ah" style="${foc >= 0 ? "display:none" : ""};opacity:${ramp(t, t0 + END + .7, t0 + END + 1.2)}"><div class="body" style="color:${FG}">${COPY["story.arch.together"]}</div></div>`;
+  if (typeof ARCH_FOCUS !== "undefined" && foc < 0) h += `<div class="ahint" style="opacity:${done}">${ARCH_FOCUS.touch ? COPY["story.arch.hint_tap"] : COPY["story.arch.hint_hover"]}</div>`;
   $("atext").innerHTML = h;
 };
 
@@ -198,7 +198,7 @@ DRAW.rules = (t) => {
   if (pk) $("query").textContent = `${D.query} → pe ${D.gold}`;
   const s0 = t0 + 5.15;                                                  // a beat after the pick (Luxia)
   const W = 704, x = (v) => 40 + (v - .30) / (.60 - .30) * (W - 80), y0 = 300;
-  let s = `<text x="40" y="40" fill="${MUTED}" font-size="20">rule-learning score · 0 = chance, 1 = perfect</text>`;
+  let s = `<text x="40" y="40" fill="${MUTED}" font-size="20">${COPY["rules.axis"]}</text>`;
   s += `<line x1="40" x2="${W-40}" y1="${y0}" y2="${y0}" stroke="${LINE}" stroke-width="2"/>`;
   for (const v of [.3, .4, .5, .6]) s += `<line x1="${x(v)}" x2="${x(v)}" y1="${y0-6}" y2="${y0+6}" stroke="${MUTED}"/><text x="${x(v)}" y="${y0+34}" text-anchor="middle" fill="${MUTED}" font-size="20" font-family="${MONO}">${v.toFixed(1).replace(/^0/,"")}</text>`;
   const pa = ramp(t, s0, s0 + 1.0), stack_ = {};
@@ -207,8 +207,8 @@ DRAW.rules = (t) => {
   D.final.forEach((p) => { const bin = Math.round(p[0] / .012); stack_[bin] = (stack_[bin] || 0) + 1;
     s += `<circle cx="${x(p[0])}" cy="${y0 - 22 - (stack_[bin] - 1) * 20}" r="7" fill="none" stroke="${MUTED}" stroke-width="2.5" opacity="${pa}"/>`; });
   s += `<text x="${x(D.final[0][0])}" y="${y0+62}" text-anchor="middle" fill="${MUTED}" font-size="19" opacity="${pa}">○ ${D.final[0][1]} ${f3(D.final[0][0])}</text>`;
-  s += `<text x="40" y="${y0+108}" fill="${MUTED}" font-size="21" opacity="${pa}">● 15 public checkpoints, partway through training · ○ 2 fully</text>`;
-  s += `<text x="40" y="${y0+134}" fill="${MUTED}" font-size="21" opacity="${pa}">trained public models: all at the same training compute</text>`;
+  s += `<text x="40" y="${y0+108}" fill="${MUTED}" font-size="21" opacity="${pa}">${COPY["rules.legend1"]}</text>`;
+  s += `<text x="40" y="${y0+134}" fill="${MUTED}" font-size="21" opacity="${pa}">${COPY["rules.legend2"]}</text>`;
   const d = ramp(t, s0 + 1.4, s0 + 2.0), yd = y0 - 40 - (1 - d) * 160;
   s += `<g opacity="${d}"><rect x="${x(D.rule)-12}" y="${yd-12}" width="24" height="24" fill="${FG}" transform="rotate(45 ${x(D.rule)} ${yd})"/>`
      + `<text x="${x(D.rule)}" y="${yd-34}" text-anchor="middle" fill="${FG}" font-size="40" font-weight="700" font-family="${MONO}">${f3(D.rule)}</text>`
@@ -220,52 +220,50 @@ DRAW.loop = (t) => {
   const t0 = T0("loop");
   const lit = 72 * ramp(t, t0 + .5, t0 + 1.6), dim = ramp(t, t0 + 1.9, t0 + 2.3);
   let s = stack({ lit, dim });
-  s += `<text x="238" y="262" fill="#64c9ff" font-size="18" font-family="${MONO}" opacity="${dim}">60 random heads off</text>`;
+  s += `<text x="238" y="262" fill="#64c9ff" font-size="18" font-family="${MONO}" opacity="${dim}">${COPY["loop.heads_off"]}</text>`;
   $("spire").innerHTML = s;
   const g0 = t0 + 2.5, g1 = t0 + 3.3, gr = ramp(t, g0, g1), lab = ramp(t, g1, g1 + .3), sc = 2600;
-  let c = `<text x="0" y="24" fill="${MUTED}" font-size="21">rule learning lost, by where 60 random heads are switched off</text>`;
+  let c = `<text x="0" y="24" fill="${MUTED}" font-size="21">${COPY["loop.cuts_title"]}</text>`;
   D.cut.forEach(([name, v], i) => { const y = 54 + i * 78, w = Math.abs(v) * sc * gr, hi = i === 0;
     c += `<text x="0" y="${y + 30}" fill="${hi ? FG : MUTED}" font-size="26">${name}</text>`
        + `<rect x="270" y="${y + 6}" width="${w}" height="34" fill="${hi ? FG : NEG}"/>`
        + `<text x="${280 + Math.abs(v) * sc}" y="${y + 34}" fill="${hi ? FG : MUTED}" font-size="30" font-weight="700" font-family="${MONO}" opacity="${lab}">${f3(v)}</text>`; });
   $("cuts").innerHTML = c;
   $("cutnote").style.opacity = ramp(t, g0, g1);
-  $("cutnote").innerHTML = `<span style="color:${MUTED}">Each cut switches off 60 attention heads chosen at random, a quarter of the 240 in one pass, `
-    + `with five different draws per place. A second-pass cut costs rule learning ${f3(Math.abs(D.cut[0][1]))}, almost four times a first-pass cut, `
-    + `while fact recall in the same prompts falls only ${f3(Math.abs(D.cut_recall2))}. The gap holds after controlling for how much each cut hurts the model's text prediction.</span>`;
+  $("cutnote").innerHTML = `<span style="color:${MUTED}">${COPY["loop.cutnote"]}</span>`;
 };
 
 DRAW.you = (t) => {
   const t0 = T0("you"), sw = ramp(t, t0 + 3.4, t0 + 4.2), pb = ramp(t, t0 + 4.3, t0 + 5.0);
   const ln = (txt, a, st) => `<div class="line" style="font-size:24px;line-height:1.45;opacity:${ramp(t, a, a + .3)};${st||""}">${txt}</div>`;
-  let h = `<div class="lab" style="margin-bottom:10px">one test chat (after 3 worked examples)</div>`;
+  let h = `<div class="lab" style="margin-bottom:10px">${COPY["you.chat_label"]}</div>`;
   D.chat.forEach((c, i) => { h += ln(c, t0 + .4 + i * .18, i === 0 ? "color:" + MUTED : ""); });
   // the swap: the old speaker floats up and out while the new one floats in
   const name = (who, o, dy, dx) => `<span class="spk" style="opacity:${o};transform:translate(${dx}px, ${dy}px)">${who}</span>`;
   const spk = `<span style="position:relative;display:inline-block;width:5.2ch">${name("Steve:", 1 - sw, 0, -60 * sw)}`
             + `<span style="position:absolute;left:0;top:0">${name("Kurt:", sw, 0, 60 * (1 - sw))}</span></span>`;
-  h += `<div class="line" style="font-size:24px;line-height:1.45;font-weight:700;opacity:${ramp(t, t0 + 1.6, t0 + 1.9)}">${spk} Right now you're holding the ___</div>`;
+  h += `<div class="line" style="font-size:24px;line-height:1.45;font-weight:700;opacity:${ramp(t, t0 + 1.6, t0 + 1.9)}">${spk} ${COPY["you.prompt"]}</div>`;
   h += `<div style="position:relative;height:34px;opacity:${ramp(t, t0 + 1.8, t0 + 2.1)}">`
-     + `<div class="line" style="position:absolute;opacity:${cl(1 - 2 * sw)};font-size:21px;color:${MUTED}">“you” = Kurt, who now has the battery</div>`
-     + `<div class="line" style="position:absolute;opacity:${cl(2 * sw - 1)};font-size:21px;color:${MUTED}">“you” = Steve, who now has the lamp</div></div>`;
+     + `<div class="line" style="position:absolute;opacity:${cl(1 - 2 * sw)};font-size:21px;color:${MUTED}">${COPY["you.is_kurt"]}</div>`
+     + `<div class="line" style="position:absolute;opacity:${cl(2 * sw - 1)};font-size:21px;color:${MUTED}">${COPY["you.is_steve"]}</div></div>`;
   const p = D.p_orig + (D.p_swap - D.p_orig) * pb;
-  h += `<div style="margin-top:22px;opacity:${ramp(t, t0 + 2.0, t0 + 2.3)}"><span class="lab">probability of “battery”</span>`
+  h += `<div style="margin-top:22px;opacity:${ramp(t, t0 + 2.0, t0 + 2.3)}"><span class="lab">${COPY["you.prob_label"]}</span>`
      + `<div style="display:flex;align-items:center;gap:14px;margin-top:8px"><div style="height:26px;width:${p*600}px;background:${FG}"></div>`
      + `<span class="mono" style="font-size:28px;font-weight:700">${p.toFixed(3).replace(/^0/,"")}</span></div>`
-     + `<div class="lab dup" style="margin-top:8px;opacity:${ramp(t, t0+5.1, t0+5.4)}">this chat moves more than most: the average across 180 is ${f3(D.dyn[0][1])}</div></div>`;
+     + `<div class="lab dup" style="margin-top:8px;opacity:${ramp(t, t0+5.1, t0+5.4)}">${COPY["you.moves"]}</div></div>`;
   $("chat").innerHTML = h;
   const W = 604, lw = 160, x0 = lw + (W - lw - 60) / 2, sc = (W - lw - 60) / 2 / .1;
   const g0 = t0 + 5.6, g1 = t0 + 6.4, gr = ramp(t, g0, g1), lab = ramp(t, g1, g1 + .3);
-  let s = `<text x="0" y="-6" fill="${MUTED}" font-size="21">average drop, by model</text>`;
+  let s = `<text x="0" y="-6" fill="${MUTED}" font-size="21">${COPY["you.bars_title"]}</text>`;
   D.dyn.forEach(([nm, v, ours], i) => { const y = 30 + i * 34, w = Math.abs(v) * sc * gr;
     s += `<text x="${lw-12}" y="${y+21}" text-anchor="end" fill="${ours ? FG : MUTED}" font-size="20" font-family="${MONO}" font-weight="${ours ? 700 : 400}">${nm}</text>`
        + `<rect x="${v < 0 ? x0 - w : x0}" y="${y+4}" width="${w}" height="22" fill="${ours ? FG : NEG}"/>`
        + `<text x="${v < 0 ? x0 + 8 : x0 + Math.abs(v) * sc + 8}" y="${y+21}" fill="${ours ? FG : MUTED}" font-size="19" font-family="${MONO}" opacity="${lab}">${f3(v, true)}</text>`; });
   const yb = 30 + D.dyn.length * 34 + 10, c = ramp(t, g1 + .4, g1 + .8);
   s += `<line x1="${x0}" x2="${x0}" y1="28" y2="${yb}" stroke="${FG}" stroke-width="2"/>`
-     + `<text x="${x0-8}" y="${yb+28}" text-anchor="end" fill="${MUTED}" font-size="19">← takes “you” as the speaker</text><text x="${x0+8}" y="${yb+28}" fill="${MUTED}" font-size="19">tracks “you” →</text>`
-     + `<text class="dup" x="0" y="${yb+76}" fill="${FG}" font-size="22" opacity="${c}">the smallest public base model whose whole 95% interval</text>`
-     + `<text class="dup" x="0" y="${yb+104}" fill="${FG}" font-size="22" opacity="${c}">clears +.02, a bar fixed before any model was scored</text>`;
+     + `<text x="${x0-8}" y="${yb+28}" text-anchor="end" fill="${MUTED}" font-size="19">${COPY["you.left"]}</text><text x="${x0+8}" y="${yb+28}" fill="${MUTED}" font-size="19">${COPY["you.right"]}</text>`
+     + `<text class="dup" x="0" y="${yb+76}" fill="${FG}" font-size="22" opacity="${c}">${COPY["you.claim1"]}</text>`
+     + `<text class="dup" x="0" y="${yb+104}" fill="${FG}" font-size="22" opacity="${c}">${COPY["you.claim2"]}</text>`;
   $("dyn").innerHTML = s;
 };
 
@@ -275,14 +273,14 @@ DRAW.cheap = (t) => {
   const t0 = T0("cheap"), phone = !!document.querySelector(".story-frame") && matchMedia("(max-width: 760px)").matches;
   const fs = phone ? 1.5 : 1, lw = phone ? 270 : 260, W = phone ? 960 : 1300, XM = 11, x = (v) => lw + v / XM * (W - lw - (phone ? 190 : 260));
   const top = (phone ? 132 : 92) * fs, rh = (phone ? 80 : 66);
-  const avg = `tsumugi averages <tspan fill="${FG}" font-weight="700">${D.grid[0].avg.toFixed(1)}</tspan>`;
+  const avg = `${COPY["cheap.avg_lead"]} <tspan fill="${FG}" font-weight="700">${D.grid[0].avg.toFixed(1)}</tspan>`;
   let s = phone   // the nine benchmarks, then the average: one line on a wide screen, three on a phone
     ? `<text x="0" y="0" fill="${MUTED}" font-size="${20 * fs}"><tspan x="0" dy="${26 * fs}">HellaSwag · LAMBADA · ARC-e · ARC-c</tspan><tspan x="0" dy="${28 * fs}">PIQA · SciQ · WinoGrande · COPA · BoolQ</tspan><tspan x="0" dy="${28 * fs}">${avg}</tspan></text>`
     : `<text x="0" y="${30 * fs}" fill="${MUTED}" font-size="${20 * fs}">HellaSwag · LAMBADA · ARC-e · ARC-c · PIQA · SciQ · WinoGrande · COPA · BoolQ: ${avg}</text>`;
   const ax = ramp(t, t0 + .3, t0 + .8), yb = top + D.cross.length * rh + 10;
   for (const v of [0, 2, 4, 6, 8, 10]) s += `<line x1="${x(v)}" x2="${x(v)}" y1="${top - 10}" y2="${yb}" stroke="${LINE}" opacity="${ax}"/>`
      + `<text x="${x(v)}" y="${yb + 30 * fs}" text-anchor="middle" fill="${MUTED}" font-size="${18 * fs}" font-family="${MONO}" opacity="${ax}">${v}×</text>`;
-  s += `<text x="${x(XM / 2)}" y="${yb + 62 * fs}" text-anchor="middle" fill="${MUTED}" font-size="${18 * fs}" opacity="${ax}">training compute, as a multiple of tsumugi's</text>`;
+  s += `<text x="${x(XM / 2)}" y="${yb + 62 * fs}" text-anchor="middle" fill="${MUTED}" font-size="${18 * fs}" opacity="${ax}">${COPY["cheap.axis"]}</text>`;
   D.cross.forEach(([name, lo, hi, mid, txt], i) => {
     const y = top + i * rh, a = t0 + 1.0 + i * .35, gr = ramp(t, a, a + .6), lb = ramp(t, a + .5, a + .8);
     s += `<text x="${lw - 20}" y="${y + 28 * fs}" text-anchor="end" fill="${FG}" font-size="${22 * fs}" opacity="${ramp(t, a - .2, a + .1)}">${name}</text>`;
@@ -297,9 +295,9 @@ DRAW.cheap = (t) => {
   });
   const tl = ramp(t, t0 + .6, t0 + 1.0);
   s += `<line x1="${x(1)}" x2="${x(1)}" y1="${top - 18}" y2="${yb}" stroke="${FG}" stroke-width="3" opacity="${tl}"/>`
-     + `<text x="${x(1) + 8}" y="${top - 26}" fill="${FG}" font-size="${20 * fs}" font-weight="700" opacity="${tl}">tsumugi, 1×</text>`;
+     + `<text x="${x(1) + 8}" y="${top - 26}" fill="${FG}" font-size="${20 * fs}" font-weight="700" opacity="${tl}">${COPY["cheap.tsumugi_line"]}</text>`;
   if (!phone) { const co = ramp(t, t0 + 1.0 + D.cross.length * .35 + .6, t0 + 1.0 + D.cross.length * .35 + 1.0);
-    s += `<text x="0" y="${yb + 110}" fill="${MUTED}" font-size="19" opacity="${co}">Public checkpoints are taken partway through training, before any final learning-rate decay; tsumugi's 64.1 includes its own.</text>`; }
+    s += `<text x="0" y="${yb + 110}" fill="${MUTED}" font-size="19" opacity="${co}">${COPY["cheap.note"]}</text>`; }
   $("grid").innerHTML = s;
 };
 

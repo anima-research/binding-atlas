@@ -34,7 +34,7 @@ function open(key) {
   if (dirty && current && current !== key && !confirm('Discard the unsaved change to ' + current + '?')) return;
   if (dirty) undo();
   current = key; original = state.entries[key]; dirty = false;
-  keyName.textContent = key; area.value = original; say(''); panel.hidden = false;
+  keyName.textContent = key + (state.files && state.files[key] ? '  ·  ' + state.files[key] : ''); area.value = original; say(''); panel.hidden = false;
   document.querySelectorAll('[data-copy].ce-sel').forEach(n => n.classList.remove('ce-sel'));
   document.querySelectorAll(`[data-copy="${CSS.escape(key)}"]`).forEach(n => n.classList.add('ce-sel'));
   area.focus();
@@ -85,6 +85,7 @@ async function load() {
     b.onclick = () => open(k); return b;
   }));
   if (j.error) say('The last build failed: ' + j.error, true);
+  else if (j.warning) say(j.warning, true);
 }
 async function poll() {
   try {

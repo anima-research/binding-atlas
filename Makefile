@@ -16,13 +16,17 @@ STAMP := $(shell date -u '+%Y-%m-%d %H:%M UTC')
 endif
 # the build the kotodama.animalabs.ai deployment serves (config/animalabs.sha256)
 VERIFY_CONFIG := animalabs
+# machine-local settings, not tracked (STORY_BUILDER: the card builder that writes the story fragment)
+-include config/local.mk
+STORY_BUILDER ?=
+
 VERIFY_STAMP := 2026-11-06 23:05 UTC
 VERIFY_STAMP_EMPTY := 2026-11-06 22:56 UTC
-VERIFY_STAMP_ANNOUNCE := 2026-11-07 19:20 UTC
+VERIFY_STAMP_ANNOUNCE := 2026-11-07 19:36 UTC
 
 PAGE_ARGS = --config $(CONFIG) --stamp "$(STAMP)"
 
-.PHONY: help atlas4 atlas4-check gates page html md card neurons neurons-binding neurons-icl neurons-graph empty empty-data data stage verify guard stage-check data-check check clean edit
+.PHONY: help atlas4 atlas4-check gates page html md card neurons neurons-binding neurons-icl neurons-graph empty empty-data data stage verify guard stage-check data-check check clean edit story-check
 
 help:
 	@echo "make page   [CONFIG=config/x.toml] [SITE=dir] [STAMP='YYYY-MM-DD HH:MM UTC']  data/built -> site/"
@@ -43,6 +47,7 @@ help:
 	@echo "make check        verify + stage-check + guard"
 	@echo "make gates        the documentation gates: timelessness, referents, legibility (PY_LEG=python with spaCy)"
 	@echo "make edit [EDIT_PAGE=announce] [PORT=8770]  edit a page's words in place (copy/*.md), at http://127.0.0.1:PORT/"
+	@echo "make story-check  rebuild the story fragment from copy/story.md (the lab's card builder) and compare with data/inputs/announce/"
 
 # ---- the grid from the zoo sweep (v4): ZOO = the sweep's score rows, PROMPTS = the battery files, BENCH = binding-bench
 ZOO     ?=
@@ -94,7 +99,12 @@ announce:
 EDIT_PAGE ?= announce
 PORT ?= 8770
 edit:
-	$(PY) page/edit_server.py --page $(EDIT_PAGE) --port $(PORT)
+	KOTODAMA_STORY_BUILDER="$(STORY_BUILDER)" $(PY) page/edit_server.py --page $(EDIT_PAGE) --port $(PORT)
+
+# ---- story-check: the committed story fragment must be what copy/story.md builds (run before deploying the announcement)
+story-check:
+	@test -n "$(STORY_BUILDER)" || { echo "story-check: set STORY_BUILDER (the card builder's path) in config/local.mk"; exit 1; }
+	mkdir -p out/story-check && FACTS_CURRENT_BINDING=$(CURDIR)/data/inputs/synthesis.jsonl $(PY) $(STORY_BUILDER) out/story-check/video.html data/inputs/announce/card.png out/story-check/story.html --copy-dir copy >/dev/null && cmp out/story-check/story.html data/inputs/announce/story.html && echo "story-check ok: copy/story.md builds data/inputs/announce/story.html"
 
 empty-data:
 	$(PY) build/build_empty.py

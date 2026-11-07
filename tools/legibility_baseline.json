@@ -29,7 +29,6 @@
       "words": 1604
     },
     "copy/announce.md": {
-      "accepted_regression": "copy/announce.md is the live announcement's text, moved out of the template unchanged (whitespace-equivalent build); release-page words are Luxia's and are fact-checked, not rewritten to a metric",
       "dep_len": 2.5954,
       "rates": {
         "denominal": 0.0,
@@ -42,6 +41,36 @@
       },
       "sentences": 109,
       "words": 1717
+    },
+    "copy/card.md": {
+      "accepted_regression": "copy/story.md and copy/card.md are the live story's, video's and card's text, moved out of the builders unchanged (story-check rebuilds the committed fragment byte-equal; visible text identical at 24 scroll positions); release-page words are fact-checked, not rewritten to a metric",
+      "dep_len": 2.9248,
+      "rates": {
+        "denominal": 0.0,
+        "inanimate": 0.0,
+        "long": 0.0,
+        "orc": 0.0,
+        "orc_all": 3.3113,
+        "orc_reduced": 3.3113,
+        "stacked": 9.9338
+      },
+      "sentences": 30,
+      "words": 302
+    },
+    "copy/story.md": {
+      "accepted_regression": "copy/story.md and copy/card.md are the live story's, video's and card's text, moved out of the builders unchanged (story-check rebuilds the committed fragment byte-equal; visible text identical at 24 scroll positions); release-page words are fact-checked, not rewritten to a metric",
+      "dep_len": 2.9154,
+      "rates": {
+        "denominal": 0.7746,
+        "inanimate": 2.3238,
+        "long": 5.4222,
+        "orc": 0.0,
+        "orc_all": 3.0984,
+        "orc_reduced": 3.0984,
+        "stacked": 6.1967
+      },
+      "sentences": 87,
+      "words": 1291
     },
     "site/binding-atlas.md": {
       "dep_len": 2.7991,

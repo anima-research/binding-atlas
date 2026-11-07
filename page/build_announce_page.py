@@ -40,9 +40,10 @@ def main() -> None:
     ap.add_argument("--stamp", default=None)
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--edit", action="store_true", help="build the editor's preview (never deployed)")
+    ap.add_argument("--story", type=Path, default=SRC / STORY, help="the story fragment to inline (the editor passes its edit build)")
     a = ap.parse_args()
     cfg = load_config(a.config)
-    for f in (SRC / FIGURE, SRC / "card.png", SRC / STORY, COPY):
+    for f in (SRC / FIGURE, SRC / "card.png", a.story, COPY):
         if not f.exists():
             raise SystemExit(f"missing input: {f}")
     canonical = cfg.base_url or ""
@@ -60,7 +61,7 @@ def main() -> None:
                 .replace("__CARD_LINK__", MODEL_CARD)
                 .replace("__FIGURE__", f"{DATA_DIR}/{FIGURE}")
                 .replace("__STAMP__", build_stamp(a.stamp))
-                .replace("__STORY__", (SRC / STORY).read_text()))
+                .replace("__STORY__", a.story.read_text()))
     left = sorted({w for w in page.split("__")[1::2] if w.isupper() and w.replace("_", "").isalpha()})
     if left:
         raise SystemExit(f"unfilled placeholders: {left}")
