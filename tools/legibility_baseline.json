@@ -29,18 +29,18 @@
       "words": 1604
     },
     "copy/announce.md": {
-      "dep_len": 2.6122,
+      "dep_len": 2.6065,
       "rates": {
         "denominal": 0.0,
-        "inanimate": 3.3841,
-        "long": 2.8201,
-        "orc": 0.564,
-        "orc_all": 1.128,
-        "orc_reduced": 0.564,
-        "stacked": 3.3841
+        "inanimate": 4.0188,
+        "long": 2.6792,
+        "orc": 0.0,
+        "orc_all": 0.6698,
+        "orc_reduced": 0.6698,
+        "stacked": 2.6792
       },
-      "sentences": 111,
-      "words": 1773
+      "sentences": 96,
+      "words": 1493
     },
     "copy/card.md": {
       "dep_len": 2.9248,
@@ -58,18 +58,18 @@
     },
     "copy/story.md": {
       "accepted_regression": "copy/*.md hold Luxia's drafts in her own words while she writes the pages; she evaluates legibility once, at the end, across all of them",
-      "dep_len": 2.8523,
+      "dep_len": 2.8454,
       "rates": {
-        "denominal": 0.6978,
-        "inanimate": 2.0935,
-        "long": 5.5827,
-        "orc": 0.6978,
-        "orc_all": 2.0935,
-        "orc_reduced": 1.3957,
-        "stacked": 7.6762
+        "denominal": 0.6506,
+        "inanimate": 1.9519,
+        "long": 5.8556,
+        "orc": 0.6506,
+        "orc_all": 1.9519,
+        "orc_reduced": 1.3012,
+        "stacked": 9.1087
       },
-      "sentences": 92,
-      "words": 1433
+      "sentences": 100,
+      "words": 1537
     },
     "site/binding-atlas.md": {
       "dep_len": 2.7991,

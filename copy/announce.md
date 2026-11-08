@@ -50,15 +50,6 @@ Led by <a href="https://x.com/kataletheia">Luxia</a>, with <a href="https://anim
 ## header.links
 <a href="https://github.com/anima-research/kotodama">code on GitHub</a> · <a href="__CARD_LINK__">weights on Hugging Face</a> · <a href="__ATLAS_LINK__">benchmark results</a> · <a href="__THREADS_LINK__">neuron graphs</a>
 
-## figure.intro
-The figure below compares tsumugi with open-weight base models on learning a made-up rule from examples in the prompt, against the compute that each spent in training. Compute is about 6 × parameters × tokens, with tsumugi's repeated layers counted twice. The prompt shows worked examples of an invented rule, such as an invented word ending, invented operators or a nonsense pattern. The model then picks the answer to a new case. The score runs from 0 (guessing) to 1 (always right). Two controls, scored the same way, appear in the results below. <b>Recall:</b> questions about real facts, in the same worked-example format. <b>Held-out text:</b> how well a model predicts text published after its training data was collected, in bits per byte; lower is better.
-
-## figure.alt
-Learning a made-up rule from examples in the prompt, against training compute. Open-weight base models, fully trained (filled dots) and partway through training (open dots), with the trend of the fully trained. tsumugi, the yellow diamond, scores .559, above Falcon3 3B at .536, the highest near the same compute.
-
-## figure.caption
-Base models are evaluated on how well they pick up patterns (not reliant upon factual recall, much like Raven's matrices) from examples in context, following ICLEval (Chen et al. 2024){{cite:ICLEval}}. tsumugi's final checkpoint settles at 0.559 chance-corrected accuracy, well above the compute trend for open-weight models, Falcon3 3B the nearest at 0.536. When the same test uses known facts, such that memory offers a shortcut, it scores higher (0.930) and lands where the compute trend predicts.
-
 ## results.heading
 results
 
@@ -208,9 +199,6 @@ It is one cooldown of one seed (seed 17), and its training data is mostly Englis
 
 ## footer.companions
 Companion pages: <a href="__CARD_LINK__">the model card</a> · <a href="__ATLAS_LINK__">every public model's results on who-is-who tests</a> · <a href="__THREADS_LINK__">a map of tsumugi's neurons</a> · <a href="__EMPTY_LINK__">what it writes from an empty page</a>.
-
-## cite.ICLEval
-Chen, Lin, Zhou, Huang, Jia, Cao, Wen, <a href="https://arxiv.org/abs/2406.14955"><i>ICLEval: Evaluating In-Context Learning Ability of Large Language Models</i></a>, 2024.
 
 ## cite.UncheatableEval
 Tan, Li, Shen, <a href="https://arxiv.org/abs/2609.27510"><i>Uncheatable Eval: Dynamic Compression-Based Evaluation of Language Models</i></a>, 2026.

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import html
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -31,6 +32,21 @@ SRC = REPO / "data" / "inputs" / "announce"
 COPY = COPY_DIR / "announce.md"
 EDITOR = '<link rel="stylesheet" href="/__editor/editor.css"><script src="/__editor/editor.js" defer></script>\n'
 STORY = "story.html"   # the scroll-driven four-result story (generated with the animated card; same beats, same numbers)
+
+
+CITE_MK = re.compile(r'(<button type="button" class="cite-mk"[^>]*>)\d+(</button><span class="cite-leaf" role="note">)(.*?)(</span></span>)', re.S)
+
+
+def renumber_citations(page: str) -> str:
+    """Number citation markers across the whole page (the page's own and the story's), in order of first appearance;
+    markers whose leaflets hold the same reference share a number."""
+    numbers: dict[str, int] = {}
+
+    def one(m: re.Match[str]) -> str:
+        n = numbers.setdefault(re.sub(r"\s+", " ", m.group(3)).strip(), len(numbers) + 1)
+        button = re.sub(r'aria-label="Reference \d+"', f'aria-label="Reference {n}"', m.group(1))
+        return f"{button}{n}{m.group(2)}{m.group(3)}{m.group(4)}"
+    return CITE_MK.sub(one, page)
 
 
 def main() -> None:
@@ -62,6 +78,7 @@ def main() -> None:
                 .replace("__FIGURE__", f"{DATA_DIR}/{FIGURE}")
                 .replace("__STAMP__", build_stamp(a.stamp))
                 .replace("__STORY__", a.story.read_text()))
+    page = renumber_citations(page)
     left = sorted({w for w in page.split("__")[1::2] if w.isupper() and w.replace("_", "").isalpha()})
     if left:
         raise SystemExit(f"unfilled placeholders: {left}")

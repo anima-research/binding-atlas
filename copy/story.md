@@ -121,7 +121,7 @@ Worked examples of an invented rule, then a new word to apply it to.
 in-context learning
 
 ## story.rules.step
-The prompt shows worked examples of an invented rule, here a made-up plural, and the model picks the answer for a new word. On these tests it scores {{n:rule}}, where 0 is chance and 1 is always right. Public models that spent the same training compute score lower: checkpoints taken partway through training reach at most {{n:pub_max}}, and the best fully trained one, {{n:best_final}}, {{n:best_final_score}}. Of {{n:n_small}} fully trained public base models up to 3.3B parameters, only {{n:above}}, trained on 36T tokens, scores higher ({{n:above_score}}).
+We evaluated base models on how well they pick up patterns (not reliant upon factual recall, much like Raven's matrices) from examples in context, following ICLEval (Chen et al. 2024){{cite:ICLEval}}. Answers are scored using log-probabilities: of a fixed set of answers, the model's pick is the one it gives the highest probability. tsumugi's final checkpoint settles at {{n:rule}} chance-corrected accuracy, well above the compute trend for open-weight models, Falcon3 3B the nearest at {{n:best_final_score}}. When the same test uses known facts, such that factual knowledge offers a shortcut, it scores higher ({{n:cryst}}) and lands where the compute trend predicts. Of {{n:n_small}} fully trained public base models up to 3.3B parameters, only {{n:above}}, trained on 36T tokens, scores higher ({{n:above_score}}).
 
 ## rules.item_label
 pattern recognition test
@@ -130,7 +130,7 @@ pattern recognition test
 … 4 more examples …
 
 ## rules.pick
-the model picks the answer it finds most likely
+using logprobs over a fixed set, the model picks the answer it finds most likely
 
 ## rules.axis
 rule-learning score · 0 = chance, 1 = perfect
@@ -242,3 +242,27 @@ Instead of uniform blocks, we read the layer geometry of the same 52 layers trai
 
 ## story.arch.4.video
 The fit found a 20-layer block starting at layer 19. It runs twice with the same weights, so the model computes through 72 layers while storing 52.
+
+## cite.ICLEval
+Chen, Lin, Zhou, Huang, Jia, Cao, Wen, <a href="https://arxiv.org/abs/2406.14955"><i>ICLEval: Evaluating In-Context Learning Ability of Large Language Models</i></a>, 2024.
+
+## rules.hero_y
+chance-corrected accuracy (0 = guessing, 1 = always right)
+
+## rules.hero_x
+training compute (FLOPs)
+
+## rules.hero_best
+highest near same compute
+
+## rules.hero_legend_t
+tsumugi
+
+## rules.hero_legend_full
+open-weight base models, fully trained
+
+## rules.hero_legend_mid
+open-weight base models, partway through training
+
+## rules.hero_legend_trend
+trend of the fully trained
