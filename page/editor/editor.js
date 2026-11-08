@@ -75,7 +75,23 @@ async function doSave() {
   const r = await fetch('/__save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: current, text: area.value, cites }) });
   const j = await r.json().catch(() => ({ error: 'no answer from the server' }));
   if (j.error) { say(j.error, true); return; }
-  dirty = false; sessionStorage.setItem(KEY_SCROLL, String(window.scrollY)); location.reload();
+  version = j.version;                     // our own save: the poll must not reload for it
+  if (Object.keys(cites).length) {         // a new citation can renumber markers anywhere: reload once
+    dirty = false; sessionStorage.setItem(KEY_SCROLL, String(window.scrollY)); location.reload(); return;
+  }
+  // Swap in only the edited text, as the rebuilt page renders it (numbers, citations, links filled in); the rest of
+  // the page, and any animation, keeps running.
+  const key = current, text = area.value;
+  try {
+    const doc = new DOMParser().parseFromString(await (await fetch('/', { cache: 'no-store' })).text(), 'text/html');
+    const fresh = [...doc.querySelectorAll(`[data-copy="${CSS.escape(key)}"]`)];
+    const live = [...document.querySelectorAll(`[data-copy="${CSS.escape(key)}"]`)];
+    if (fresh.length && fresh.length === live.length) live.forEach((n, i) => { n.innerHTML = fresh[i].innerHTML; });
+  } catch (_) { /* the live preview already shows the text */ }
+  state.entries[key] = text; original = text; dirty = false;
+  const item = [...otherList.querySelectorAll('.ce-other-item')].find(b => b.firstChild.textContent === key);
+  if (item) item.lastChild.textContent = text;
+  say('Saved.');
 }
 save.onclick = doSave; revert.onclick = () => { undo(); say('Back to the saved text.'); }; close.onclick = shut;
 document.addEventListener('keydown', e => {
