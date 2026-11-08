@@ -11,7 +11,7 @@ when it changes. Files the preview does not build (fonts, other pages) are serve
 publishing still goes through the gates.
 
 The story's fragment is built by the card builder named in ``$KOTODAMA_STORY_BUILDER`` (``make edit`` passes
-STORY_BUILDER from config/local.mk); without it, the preview inlines the committed story and its words are not
+STORY_BUILDER from the machine-local make settings); without it, the preview inlines the committed story and its words are not
 editable here.
 """
 from __future__ import annotations

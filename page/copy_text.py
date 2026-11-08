@@ -1,8 +1,8 @@
 """Page copy: the words of a page live in a copy file, one keyed entry per string, and the template holds slots.
 
 Copy file (``copy/<page>.md``): anything before the first ``## `` line is notes for the editor and is ignored. Each
-entry is a ``## key`` line followed by its text, up to the next ``## `` line; surrounding blank lines are trimmed. A line
-break inside an entry reads as a space, and a blank line starts a new paragraph (``paragraphs``). Text is an HTML fragment: links, ``<i>``, ``<b>``
+entry is a ``## key`` line followed by its text, up to the next ``## `` line; surrounding blank lines are trimmed and
+line breaks inside an entry are kept (HTML treats them as spaces). Text is an HTML fragment: links, ``<i>``, ``<b>``
 and the site's link placeholders (``__ATLAS_LINK__`` …) work as in the template.
 
 Template slots:
@@ -92,14 +92,6 @@ def add_entry(path: Path, key: str, text: str) -> None:
     path.write_text(f"{s}\n\n## {key}\n{text}\n")
 
 
-PARA = re.compile(r"\n[ \t]*\n\s*")
-
-
-def paragraphs(text: str, html_text: bool = True) -> str:
-    """An entry's blank lines as paragraph breaks: ``<br><br>`` in page text, a space inside a tag's attribute."""
-    return PARA.sub("<br><br>" if html_text else " ", text)
-
-
 def _inside_tag(page: str, pos: int) -> bool:
     """A slot inside a tag's attributes, or inside <title> (whose text cannot hold markup)."""
     return (page.rfind("<", 0, pos) > page.rfind(">", 0, pos)
@@ -138,9 +130,8 @@ def fill(template: str, path: Path, edit: bool = False) -> tuple[str, list[str]]
         key = m.group(1)
         used.add(key)
         parts.append(template[last:m.start()])
-        inside = _inside_tag(template, m.start())
-        text = cites(key, paragraphs(texts[key], html_text=not inside))
-        if inside:
+        text = cites(key, texts[key])
+        if _inside_tag(template, m.start()):
             if "<" in text or '"' in text:
                 raise CopyError(f"{key}: text used inside a tag may not contain '<' or '\"'")
             in_tags.append(key)
