@@ -29,21 +29,20 @@
       "words": 1604
     },
     "copy/announce.md": {
-      "dep_len": 2.5954,
+      "dep_len": 2.6122,
       "rates": {
         "denominal": 0.0,
-        "inanimate": 3.4945,
-        "long": 2.3296,
-        "orc": 0.5824,
-        "orc_all": 0.5824,
-        "orc_reduced": 0.0,
-        "stacked": 2.9121
+        "inanimate": 3.3841,
+        "long": 2.8201,
+        "orc": 0.564,
+        "orc_all": 1.128,
+        "orc_reduced": 0.564,
+        "stacked": 3.3841
       },
-      "sentences": 109,
-      "words": 1717
+      "sentences": 111,
+      "words": 1773
     },
     "copy/card.md": {
-      "accepted_regression": "copy/story.md and copy/card.md are the live story's, video's and card's text, moved out of the builders unchanged (story-check rebuilds the committed fragment byte-equal; visible text identical at 24 scroll positions); release-page words are fact-checked, not rewritten to a metric",
       "dep_len": 2.9248,
       "rates": {
         "denominal": 0.0,
@@ -58,19 +57,19 @@
       "words": 302
     },
     "copy/story.md": {
-      "accepted_regression": "copy/story.md and copy/card.md are the live story's, video's and card's text, moved out of the builders unchanged (story-check rebuilds the committed fragment byte-equal; visible text identical at 24 scroll positions); release-page words are fact-checked, not rewritten to a metric",
-      "dep_len": 2.9154,
+      "accepted_regression": "copy/*.md hold Luxia's drafts in her own words while she writes the pages; she evaluates legibility once, at the end, across all of them",
+      "dep_len": 2.8523,
       "rates": {
-        "denominal": 0.7746,
-        "inanimate": 2.3238,
-        "long": 5.4222,
-        "orc": 0.0,
-        "orc_all": 3.0984,
-        "orc_reduced": 3.0984,
-        "stacked": 6.1967
+        "denominal": 0.6978,
+        "inanimate": 2.0935,
+        "long": 5.5827,
+        "orc": 0.6978,
+        "orc_all": 2.0935,
+        "orc_reduced": 1.3957,
+        "stacked": 7.6762
       },
-      "sentences": 87,
-      "words": 1291
+      "sentences": 92,
+      "words": 1433
     },
     "site/binding-atlas.md": {
       "dep_len": 2.7991,

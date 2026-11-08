@@ -9,15 +9,15 @@ Instead of uniform blocks, we pretrained the same model without AttnRes and read
 
 This fit found a 20-layer contiguous block starting from layer 19, which we selected to run twice with the same weights, such that the end result has 72 logical layers (each pass with its own norms).
 <br><br>
-Our belief is that the composition is key; each accentuates a theoretical strength of the others. In tsumugi's run, both seeds (7 and 17) scored higher on set binding by 11B tokens than any of nine runs of a standard 28-layer model at 10B.</p></div><div class="story-step" id="story-rules" data-beat="rules" data-toc="in-context learning" data-toc-level="2"><div class="h" role="heading" aria-level="3">Learns made-up rules from the prompt</div><p>The prompt shows worked examples of an invented rule, here a made-up plural, and the model picks the answer for a new word. On these tests it scores .559, where 0 is chance and 1 is always right. Public models that spent the same training compute score lower: checkpoints taken partway through training reach at most .461, and the best fully trained one, Falcon3 3B, .536. Of 23 fully trained public base models up to 3.3B parameters, only Qwen3 1.7B, trained on 36T tokens, scores higher (.563).</p></div><div class="story-step" id="story-loop" data-beat="loop" data-toc="the second block" data-toc-level="2"><div class="h" role="heading" aria-level="3">Rule learning leans on the second pass</div><p>On the benchmark's published test items, where tsumugi scores .546 (the .559 above uses freshly drawn items of the same tests), switching off 60 random attention heads in the second pass, a quarter of them, drops its score to .414. The same cut costs .035 in the first pass and .019 in the layers before and after the loop. The damage is specific: fact recall in the same format falls only .025, from .919, and the gap holds after accounting for how much each cut hurts text prediction.</p></div><div class="story-step" id="story-you" data-beat="you" data-toc="Tracking “you”" data-toc-level="2"><div class="h" role="heading" aria-level="3">Tracks who “you” is as objects change hands</div><p>The test “you”, after hand-offs: on the last line of this chat, “you” is Kurt, who now has the battery. Swap who says that line, and “you” is Steve, who has the lamp, so the battery should lose probability. Here it falls from .445 to .311, a larger move than most. Averaged over 180 chats the drop is .038, and tsumugi is the smallest public base model whose drop clears +.02, a bar fixed before any model was scored, across its whole 95% interval.</p></div><div class="story-step" id="story-cheap" data-beat="cheap" data-toc="Benchmarks at its compute" data-toc-level="2"><div class="h" role="heading" aria-level="3">Ahead of Pythia 1.4B–6.9B and OLMo-1 1B at its compute</div><p>On nine standard benchmarks (HellaSwag, LAMBADA, ARC-Easy, ARC-Challenge, PIQA, SciQ, WinoGrande, COPA and BoolQ), with no examples in the prompt, tsumugi averages 64.1% correct. Public models released checkpoints from partway through training, which show how much compute each needed to reach that score. Pythia 2.8B needed about 2.7× tsumugi's compute, Pythia 6.9B about 5× and OLMo-1 1B about 7×; Pythia 1.4B never got there. OLMo-2 1B got there at about the same compute as tsumugi.</p></div></div>
+Our belief is that the composition is key; each accentuates a theoretical strength of the others. In tsumugi's run, both seeds (7 and 17) scored higher on set binding by 11B tokens than any of nine runs of a standard 28-layer model at 10B.</p></div><div class="story-step" id="story-rules" data-beat="rules" data-toc="in-context learning" data-toc-level="2"><div class="h" role="heading" aria-level="3">in-context learning</div><p>The prompt shows worked examples of an invented rule, here a made-up plural, and the model picks the answer for a new word. On these tests it scores .559, where 0 is chance and 1 is always right. Public models that spent the same training compute score lower: checkpoints taken partway through training reach at most .461, and the best fully trained one, Falcon3 3B, .536. Of 23 fully trained public base models up to 3.3B parameters, only Qwen3 1.7B, trained on 36T tokens, scores higher (.563).</p></div><div class="story-step" id="story-loop" data-beat="loop" data-toc="the second block" data-toc-level="2"><div class="h" role="heading" aria-level="3">Rule learning leans on the second pass</div><p>On the benchmark's published test items, where tsumugi scores .546 (the .559 above uses freshly drawn items of the same tests), switching off 60 random attention heads in the second pass, a quarter of them, drops its score to .414. The same cut costs .035 in the first pass and .019 in the layers before and after the loop. The damage is specific: fact recall in the same format falls only .025, from .919, and the gap holds after accounting for how much each cut hurts text prediction.</p></div><div class="story-step" id="story-you" data-beat="you" data-toc="Tracking “you”" data-toc-level="2"><div class="h" role="heading" aria-level="3">Tracks who “you” is as objects change hands</div><p>The test “you”, after hand-offs: on the last line of this chat, “you” is Kurt, who now has the battery. Swap who says that line, and “you” is Steve, who has the lamp, so the battery should lose probability. Here it falls from .445 to .311, a larger move than most. Averaged over 180 chats the drop is .038, and tsumugi is the smallest public base model whose drop clears +.02, a bar fixed before any model was scored, across its whole 95% interval.</p></div><div class="story-step" id="story-cheap" data-beat="cheap" data-toc="Benchmarks at its compute" data-toc-level="2"><div class="h" role="heading" aria-level="3">Ahead of Pythia 1.4B–6.9B and OLMo-1 1B at its compute</div><p>On nine standard benchmarks (HellaSwag, LAMBADA, ARC-Easy, ARC-Challenge, PIQA, SciQ, WinoGrande, COPA and BoolQ), with no examples in the prompt, tsumugi averages 64.1% correct. Public models released checkpoints from partway through training, which show how much compute each needed to reach that score. Pythia 2.8B needed about 2.7× tsumugi's compute, Pythia 6.9B about 5× and OLMo-1 1B about 7×; Pythia 1.4B never got there. OLMo-2 1B got there at about the same compute as tsumugi.</p></div></div>
 <div class="story-stage" aria-hidden="true"><div class="story-frame"><div id="Larch" class="layer"><div class="rule"></div>
   <div class="title">design spec</div><div class="sub">Added one at a time.</div>
   <svg class="panel" id="aspire" style="left:96px;top:205px" width="520" height="660"></svg>
   <div class="panel" id="atext" style="left:700px;top:230px;width:800px"></div></div>
 <div id="Lrules" class="layer"><div class="rule"></div>
-  <div class="title">Learns made-up rules from the prompt</div><div class="sub">Worked examples of an invented rule, then a new word to apply it to.</div>
+  <div class="title">in-context learning</div><div class="sub">Worked examples of an invented rule, then a new word to apply it to.</div>
   <div class="panel" style="left:96px;width:640px">
-    <div class="lab" style="margin-bottom:14px">a test item: an invented plural</div>
+    <div class="lab" style="margin-bottom:14px">pattern recognition test</div>
     <div id="items"></div>
     <div class="line" id="more" style="color:#9aa3ad;font-size:26px">… 4 more examples …</div>
     <div class="line" id="query" style="font-weight:700"></div>
@@ -122,29 +122,42 @@ const T0 = (n) => B[NAMES.indexOf(n)][0];
 // the layer stack, shared by the architecture and loop beats. open = how far the second pass has opened (0..1),
 // lit = how many of the 72 positions are lit, dim = second-pass dimming, bnd = block-boundary ticks to draw
 function stack(opts) {
-  const { open = 1, lit = 72, dim = 0, bnd = null, bndOp = 0, arc = 0, arcAt = 50, labels = 1 } = opts;
+  // sections: the prelude / core / coda reading (gaps, the core's highlight, the labels); 0 = one plain stack.
+  // shade + blocks: alternating tones per AttnRes block (block starts in `blocks`), before the sections exist
+  const { open = 1, lit = 72, dim = 0, bnd = null, bndOp = 0, arc = 0, arcAt = 50, labels = 1,
+          sections = 1, shade = 0, blocks = null } = opts;
+  const sc = cl(sections), sh = cl(shade);
+  const mix = (a, b, f) => f <= 0 ? a : f >= 1 ? b : "#" + [1, 3, 5].map((i) =>
+    Math.round(parseInt(a.slice(i, i + 2), 16) * (1 - f) + parseInt(b.slice(i, i + 2), 16) * f).toString(16).padStart(2, "0")).join("");
+  const bs = blocks ? blocks.slice().sort((a, b) => a - b) : null;
+  const tone = (p) => { let n = 0; for (const b0 of bs) if (p >= b0 - 1e-6) n++; return n % 2 ? "#8a939e" : "#56606b"; };
   const H = 600, pitch = 7.6, bx = 120, bw = 90, gap = 6;
+  const g = gap * sc;   // the section gaps grow in with the sections
   const sec = (p) => p < 19 ? 0 : p < 39 ? 1 : p < 59 ? 2 : 3;
   const y = (p) => {   // bottom edge of position p; the second pass has height `open`
     let off = p; if (p >= 39) off = 39 + Math.min(p - 39, 20) * open + (p >= 59 ? p - 59 : 0);
-    return H - 10 - off * pitch - Math.min(sec(p), 1) * gap - (p >= 39 ? gap * open : 0) - (p >= 59 ? gap : 0);
+    return H - 10 - off * pitch - Math.min(sec(p), 1) * g - (p >= 39 ? g * open : 0) - (p >= 59 ? g : 0);
   };
   let s = "";
   for (let p = 0; p < 72; p++) {
     const k = sec(p); if (k === 2 && open < .02) continue;
     const on = p < lit, hh = pitch * .66 * (k === 2 ? open : 1);
     let fill = (k === 1 || k === 2) ? (on ? FG : "#3a414b") : (on ? "#8a939e" : "#2b3038");
+    if (sc < 1 || sh > 0) {   // before the sections: one grey stack, toned per block while the blocks are shown
+      const plain = on ? (bs && sh > 0 ? mix("#8a939e", tone(p), sh) : "#8a939e") : "#2b3038";
+      fill = mix(plain, fill, sc);
+    }
     const op = k === 2 ? (1 - .55 * dim) * cl(open * 1.5) : 1;
     if (k === 2) s += `<rect x="${bx + .6}" y="${(y(p) - hh).toFixed(1)}" width="${bw - 1.2}" height="${hh.toFixed(1)}" fill="none" stroke="${fill}" stroke-width="1.1" opacity="${op}"/>`;
     else s += `<rect x="${bx}" y="${(y(p) - hh).toFixed(1)}" width="${bw}" height="${hh.toFixed(1)}" fill="${fill}"/>`;
   }
   const lab = (p0, p1, a, b, o) => { const yy = (y(p0) + y(p1)) / 2;
     return `<g opacity="${o}"><text x="${bx + bw + 28}" y="${yy - 4}" fill="${FG}" font-size="23">${a}</text><text x="${bx + bw + 28}" y="${yy + 21}" fill="${MUTED}" font-size="18">${b}</text></g>`; };
-  if (labels) {
-    s += lab(59, 71, COPY["stack.output"], COPY["stack.output_n"], 1);
-    s += lab(39, 58, COPY["stack.middle_again"], COPY["stack.middle_again_sub"], cl(open * 2 - 1));
-    s += lab(19, 38, COPY["stack.middle"], open < .5 ? COPY["stack.middle_sub_closed"] : COPY["stack.middle_sub"], 1);
-    s += lab(0, 18, COPY["stack.input"], COPY["stack.input_n"], 1);
+  if (labels && sc > 0) {
+    s += lab(59, 71, COPY["stack.output"], COPY["stack.output_n"], sc);
+    s += lab(39, 58, COPY["stack.middle_again"], COPY["stack.middle_again_sub"], cl(open * 2 - 1) * sc);
+    s += lab(19, 38, COPY["stack.middle"], open < .5 ? COPY["stack.middle_sub_closed"] : COPY["stack.middle_sub"], sc);
+    s += lab(0, 18, COPY["stack.input"], COPY["stack.input_n"], sc);
   }
   if (open > .5) { const o = cl(open * 2 - 1);
     s += `<path d="M${bx - 14},${y(38) - pitch} H${bx - 34} V${y(19)} H${bx - 14}" fill="none" stroke="${FG}" stroke-width="2" opacity="${o}"/>`
@@ -178,11 +191,18 @@ DRAW.arch = (t) => {
   // Step 2 reads longest (the formula); step 4 breathes after the loop opens (Luxia m6fb623)
   const P = [[.3, 2.7], [2.9, 6.4], [6.6, 10.6], [10.8, 15.9]], END = P[3][1];
   const lit = 72 * ramp(t, t0 + .4, t0 + 2.0), bndOp = ramp(t, t0 + 3.1, t0 + 3.6);
-  const slide = ramp(t, t0 + 6.8, t0 + 8.3), open = ramp(t, t0 + 11.0, t0 + 12.5);
-  const bnd = D.bounds_even.map((b0, i) => b0 + (D.bounds[i] - b0) * slide).concat([[D.bound_loop, ramp(t, t0 + 12.0, t0 + 12.6)]]);
+  const open = ramp(t, t0 + 11.0, t0 + 12.5);
+  // step 1 is one plain stack; step 2 tones it per block; step 3 moves the blocks to the fit from the bottom up, one
+  // after another; only step 4, with the loop, brings the input / middle / output reading (gaps, highlight, labels)
+  const sections = ramp(t, t0 + 12.4, t0 + 13.2), shade = ramp(t, t0 + 3.1, t0 + 3.8) * (1 - sections);
+  const sl = (i) => ramp(t, t0 + 6.8 + .22 * i, t0 + 7.6 + .22 * i);
+  const loopOp = ramp(t, t0 + 12.0, t0 + 12.6);
+  const moved = D.bounds_even.map((b0, i) => b0 + (D.bounds[i] - b0) * sl(i));
+  const bnd = moved.concat([[D.bound_loop, loopOp]]);
+  const blocks = loopOp > .5 ? moved.concat([D.bound_loop]) : moved;
   // the arcs draw with the even boundaries, while step 2's text is read, then fade before the slide
   const arc = ramp(t, t0 + 3.3, t0 + 4.2) * (1 - ramp(t, t0 + 6.3, t0 + 6.7));
-  $("aspire").innerHTML = stack({ open, lit, bnd, bndOp, arc, arcAt: 62 });
+  $("aspire").innerHTML = stack({ open, lit, bnd, bndOp, arc, arcAt: 62, sections, shade, blocks });
   const done = ramp(t, t0 + END + .2, t0 + END + .8);              // every step's formula, eased in
   const foc = done >= 1 && typeof ARCH_FOCUS !== "undefined" ? ARCH_FOCUS.i : -1;   // story only: a step brought back
   let h = "";

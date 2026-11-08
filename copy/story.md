@@ -112,7 +112,7 @@ output layers
 13
 
 ## story.rules.title
-Learns made-up rules from the prompt
+in-context learning
 
 ## story.rules.sub
 Worked examples of an invented rule, then a new word to apply it to.
@@ -124,7 +124,7 @@ in-context learning
 The prompt shows worked examples of an invented rule, here a made-up plural, and the model picks the answer for a new word. On these tests it scores {{n:rule}}, where 0 is chance and 1 is always right. Public models that spent the same training compute score lower: checkpoints taken partway through training reach at most {{n:pub_max}}, and the best fully trained one, {{n:best_final}}, {{n:best_final_score}}. Of {{n:n_small}} fully trained public base models up to 3.3B parameters, only {{n:above}}, trained on 36T tokens, scores higher ({{n:above_score}}).
 
 ## rules.item_label
-a test item: an invented plural
+pattern recognition test
 
 ## rules.more
 … 4 more examples …
