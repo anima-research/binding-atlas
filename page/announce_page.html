@@ -45,7 +45,12 @@ a { color: var(--link); text-underline-offset: 2px; }
         padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 header.top { padding-block: 52px 18px; display: grid; gap: 14px; }
 .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
-.kanji { font-family: var(--f-kanji); font-weight: 700; font-size: clamp(44px, 9vw, 84px); line-height: 1; letter-spacing: .08em; margin: 0; }
+/* the name in the background: 言霊 紬 set vertically behind the header, fading out as the story reaches the screen */
+.bg-kanji { position: fixed; inset: 0; z-index: 0; pointer-events: none; user-select: none; }
+.bg-kanji span { position: absolute; top: 48px; right: var(--bgk-right, 16px); font-family: var(--f-kanji); font-weight: 700;
+  writing-mode: vertical-rl; line-height: 1; letter-spacing: .12em; font-size: clamp(120px, 21vh, 230px); color: var(--fg); opacity: var(--bgk, .07); transition: opacity .15s linear; }
+body > .wrap, body > footer { position: relative; z-index: 1; }
+@media (max-width: 680px) { .bg-kanji span { font-size: clamp(96px, 30vw, 150px); top: 24px; } }
 h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 5vw, 46px); line-height: 1.08; margin: 0; text-wrap: balance; }
 .lede { margin: 0; max-width: 64ch; color: var(--fg2); font-size: 18px; line-height: 1.55; }
 .byline { font-size: 13px; color: var(--muted); }
@@ -100,12 +105,11 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: s
 </style>
 </head>
 <body>
+<div class="bg-kanji" aria-hidden="true"><span lang="ja">言霊 紬</span></div>
 <nav id="toc" aria-label="Contents" data-reserve="1"></nav>
 __TOC__
 <div class="wrap">
   <header class="top">
-    <div class="kicker">{{copy:header.kicker}}</div>
-    <p class="kanji" lang="ja">言霊 紬</p>
     <div class="gloss"><span><b lang="ja">言霊</b> {{copy:header.gloss_kotodama}}</span>
       <span><b lang="ja">紬</b> {{copy:header.gloss_tsumugi}}</span></div>
     <h1>{{copy:header.title}}</h1>
@@ -227,6 +231,30 @@ document.addEventListener('click', e => {
   if (open && pinned && !open.contains(e.target)) close();
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && open) close(); });
+})();
+</script>
+<script>
+// The background name sits just left of the contents rail (or at the header's right edge without one) and fades out as the story's top
+// rises from the bottom of the screen to its middle.
+(() => {
+  const k = document.querySelector('.bg-kanji span'), story = document.getElementById('story'), head = document.querySelector('header.top');
+  if (!k || !story || !head) return;
+  const toc = document.getElementById('toc');
+  const place = () => {
+    const t = toc ? toc.getBoundingClientRect() : null, rail = t && t.width > 0 && t.left > innerWidth / 2;
+    const edge = rail ? t.left - 40 : head.getBoundingClientRect().right;
+    k.style.setProperty('--bgk-right', Math.max(16, innerWidth - edge) + 'px');
+  };
+  let raf = 0;
+  const update = () => { raf = 0;
+    const top = story.getBoundingClientRect().top, h = window.innerHeight;
+    const f = Math.min(1, Math.max(0, (top - h * 0.5) / (h * 0.5)));
+    k.style.setProperty('--bgk', (0.07 * f).toFixed(4));
+  };
+  addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(update); }, { passive: true });
+  addEventListener('resize', () => { place(); update(); }); place(); update();
+  addEventListener('load', place);   // the contents rail is filled in by its own script
+  if (toc && 'ResizeObserver' in window) new ResizeObserver(place).observe(toc);
 })();
 </script>
 </body>

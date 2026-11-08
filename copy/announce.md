@@ -22,9 +22,6 @@ Open weights, every checkpoint, the training stack and the benchmark. Registered
 ## meta.twitter_title
 kotodama-tsumugi
 
-## header.kicker
-Model release · open weights
-
 ## header.gloss_kotodama
 kotodama — word-spirit: language as a thing with a life of its own. It names the training project.
 
@@ -32,10 +29,20 @@ kotodama — word-spirit: language as a thing with a life of its own. It names t
 tsumugi — spun thread: words woven into more than the sum of their parts. It names this model.
 
 ## header.title
-kotodama-tsumugi
+tsumugi
 
 ## header.lede
-A 1.4B-parameter base model, trained on 110B tokens with kotodama, our open pretraining stack: trainer, evaluation and serving in one package. Shown a few worked examples of a made-up rule, tsumugi applies the rule to a new case better than public models of its size. In a two-person chat, it keeps track of who “you” is, like larger models trained on 40 to 300 times more data. Its weights, training checkpoints, data recipe, code and benchmark are all open.
+A 1.4B-parameter looped depth base model, trained on 110B tokens using kotodama, our open pretraining stack: trainer, evaluation and serving in one package. 
+<br>
+tsumugi performs in-context learning (ICL) on par with models up to 5x larger & trained with far more compute, while scoring at or above where its compute predicts on standard benchmarks like HellaSwag and on Uncheatable Eval{{cite:UncheatableEval}}.
+<br>
+tsumugi also tracks who “you” refers to in two-person chats, like models trained with hundreds of times more compute.
+<br>
+Binding (keeping track of who is who) and ICL are the two things we set out to study with this model.
+<br>
+Synthetic & distillation datasets were explicitly omitted, with an estimated 0.5–1% residual contamination from generated text.
+<br>
+Weights, checkpoints, data recipe, code, and the benchmark are all available.
 
 ## header.byline
 Led by <a href="https://x.com/kataletheia">Luxia</a>, with <a href="https://animalabs.ai">Anima Labs</a> · built with <a href="https://www.anthropic.com/claude">Claude</a>
@@ -53,7 +60,7 @@ Learning a made-up rule from examples in the prompt, against training compute. O
 Base models are evaluated on how well they pick up patterns (not reliant upon factual recall, much like Raven's matrices) from examples in context, following ICLEval (Chen et al. 2024){{cite:ICLEval}}. tsumugi's final checkpoint settles at 0.559 chance-corrected accuracy, well above the compute trend for open-weight models, Falcon3 3B the nearest at 0.536. When the same test uses known facts, such that memory offers a shortcut, it scores higher (0.930) and lands where the compute trend predicts.
 
 ## results.heading
-Results
+results
 
 ## rules.number
 +1.07 SD
@@ -134,7 +141,7 @@ What it writes from an empty page
 Its training text was curated to leave out assistant replies and machine-written text, and it shows. Given only the start-of-document token, 128 times, tsumugi writes no chatbot transcripts, assistant replies or machine-made training data; many modern base models do. Claude sorted every run, after agreeing with 300 hand-labelled runs 98.7% of the time. All 128 runs <a href="__EMPTY_LINK__">can be read on their own page</a>.
 
 ## architecture.heading
-Architecture
+architecture
 
 ## architecture.text_1
 tsumugi is a Llama-style decoder with <a href="https://arxiv.org/abs/2603.15031">Block Attention Residuals</a>. Each layer reads a learned mixture of earlier blocks' outputs, and the block boundaries were fitted to the network's own layer geometry. Its 52 layers of weights run as 72: 19 input layers, a 20-layer middle block run twice with shared weights, and 13 output layers. Its hidden matrices were trained with the <a href="https://kellerjordan.github.io/posts/muon/">Muon</a> optimizer. It was trained on 110B tokens with the SmolLM2 tokenizer, and ended with a cooldown: the closing stretch of training, where the learning rate decays.
@@ -143,7 +150,7 @@ tsumugi is a Llama-style decoder with <a href="https://arxiv.org/abs/2603.15031"
 The training data, the full architecture and how to run it are on the <a href="__CARD_LINK__">model card</a>. A technical report will follow.
 
 ## open.heading
-What is open
+release
 
 ## open.1.label
 Weights
@@ -182,7 +189,7 @@ The neuron graph
 Every neuron of its feed-forward layers, and the strongest connections between them, for the release (<a href="https://huggingface.co/datasets/LuxiaSL/kotodama-tsumugi-1b-neuron-graph">kotodama-tsumugi-1b-neuron-graph</a>) and across training (<a href="https://huggingface.co/datasets/LuxiaSL/kotodama-tsumugi-1b-neuron-graph-trajectory">its trajectory</a>). <a href="__THREADS_LINK__">Explore it in your browser</a>.
 
 ## limits.heading
-Limitations
+limitations
 
 ## limits.1
 It is a base model, with no instruction, preference or safety tuning. It continues text and does not follow instructions.
@@ -204,3 +211,6 @@ Companion pages: <a href="__CARD_LINK__">the model card</a> · <a href="__ATLAS_
 
 ## cite.ICLEval
 Chen, Lin, Zhou, Huang, Jia, Cao, Wen, <a href="https://arxiv.org/abs/2406.14955"><i>ICLEval: Evaluating In-Context Learning Ability of Large Language Models</i></a>, 2024.
+
+## cite.UncheatableEval
+Tan, Li, Shen, <a href="https://arxiv.org/abs/2609.27510"><i>Uncheatable Eval: Dynamic Compression-Based Evaluation of Language Models</i></a>, 2026.

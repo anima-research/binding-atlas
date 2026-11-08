@@ -16,16 +16,26 @@ The easiest way to edit is `make edit` in this repo. To see how a change reads i
 tsumugi
 
 ## story.arch.title
-Four design choices
+design spec
 
 ## story.arch.sub
 Added one at a time.
 
 ## story.arch.toc
-Four design choices
+design spec
 
 ## story.arch.step
-Four design choices went into tsumugi's architecture. We spent its 1.4B parameters on depth instead of width: 52 layers, 1,536 wide. A block of 20 layers in the middle runs twice with the same weights, so the model computes through 72 layers. Then we added Moonshot AI's Attention Residuals{{cite:AttnRes}}, so each layer reads a learned mix of earlier blocks' outputs instead of a plain running sum. Finally, we pretrained a model without them and read its layer geometry (at snapshots through training, how spread out each layer's attention is, how uneven its hidden states are and how many directions its weights use) to find the natural seams where one block should end and the next begin.
+At each step of the process, we performed ablations to test four levers towards enhancing binding.
+<br><br>
+Depth was prioritized for serial operations; 52 layers and 1536d wide, vs 16-28 layers and mostly 2048d wide for other open models near this param count.
+
+Moonshot AI's Attention Residuals{{cite:AttnRes}} (AttnRes) are used to allow each layer to read a learned mix of prior blocks' outputs instead of a typical running sum.
+
+Instead of uniform blocks, we pretrained the same model without AttnRes and read layer geometry to identify natural seams and place blocks to maintain inter-layer circuitry.
+
+This fit found a 20-layer contiguous block starting from layer 19, which we selected to run twice with the same weights, such that the end result has 72 logical layers (each pass with its own norms).
+<br><br>
+Our belief is that the composition is key; each accentuates a theoretical strength of the others. In tsumugi's run, both seeds (7 and 17) scored higher on set binding by 11B tokens than any of nine runs of a standard 28-layer model at 10B.
 
 ## cite.AttnRes
 Kimi Team (Moonshot AI), <a href="https://arxiv.org/abs/2603.15031"><i>Attention Residuals</i></a>, arXiv:2603.15031, 2026.
@@ -34,40 +44,39 @@ Kimi Team (Moonshot AI), <a href="https://arxiv.org/abs/2603.15031"><i>Attention
 Depth
 
 ## story.arch.1.body
-Its parameters go into depth instead of width: 52 layers of weights, 1,536 wide. That is 19 input layers, a middle block of 20, and 13 output layers.
+Ablations compared 52 layers × 1,536 against 28 × 2,048: within 4B training tokens, the deeper model formed early binding on all three seeds, the wider one on none.
 
 ## story.arch.1.formula
-1.42B parameters
 
 ## story.arch.2.head
-A looped middle block
+Attention Residuals
 
 ## story.arch.2.body
-The middle block runs twice with the same weights, so the model computes through 72 layers while storing 52. Each pass keeps its own norms.
+Typical residual streams give every earlier layer weight 1. Here, weights are learned and depend on the input.
 
 ## story.arch.2.formula
-f<sub>39+i</sub> = f<sub>19+i</sub>,  i = 0 … 19
-
-## story.arch.3.head
-Attention over depth
-
-## story.arch.3.body
-A plain residual stream adds every earlier layer with weight 1. Here, each layer reads a learned, input-dependent mix of earlier blocks' outputs (Block Attention Residuals, Moonshot AI).
-
-## story.arch.3.formula
 plain:  h<sub>l+1</sub> = h<sub>l</sub> + f<sub>l</sub>(h<sub>l</sub>)<br>here:  h<sub>l</sub> = Σ<sub>n</sub> α<sub>n,l</sub> b<sub>n</sub>,  α<sub>n,l</sub> = softmax<sub>n</sub>( w<sub>l</sub> · RMSNorm(b<sub>n</sub>) )<br><span class="lab">b<sub>n</sub>: the summed outputs of block n · w<sub>l</sub>: a learned query for layer l</span>
 
+## story.arch.3.head
+Fitted Boundaries
+
+## story.arch.3.body
+A seam is a layer where attention spread, hidden-state shape and weight rank jump together. The seams gave five input blocks and one long block from layer 19.
+
+## story.arch.3.formula
+blocks start at layers 0, 1, 7, 9, 17, 19, 39 of the 52
+
 ## story.arch.4.head
-Where the blocks begin
+Looped Core
 
 ## story.arch.4.body
-The original design spaces its blocks evenly. We trained a 52-layer model without them and looked for layers where its attention spread, hidden-state shape and weight rank jump together. Those seams split the input layers into five blocks. They also marked layers 19 to 38 as one long block: that is the middle block that runs twice.
+Because the second pass is its own block, every later layer can weigh what each pass wrote against the other.
 
 ## story.arch.4.formula
-blocks start at layers 0, 1, 7, 9, 17, 19, 39, 59, counted along the 72 computed layers
+f<sub>39+i</sub> = f<sub>19+i</sub>,  i = 0 … 19<br>blocks start at layers 0, 1, 7, 9, 17, 19, 39, 59 of the 72
 
 ## story.arch.together
-Together: 72 layers of computation from 52 layers of weights, with every layer choosing what to read from the blocks below it.
+72 layers of computation from 52 layers of weights, with every layer choosing what to read from the blocks below it.
 
 ## story.arch.hint_hover
 Hover over a step to read it again.
@@ -86,6 +95,9 @@ middle block
 
 ## stack.middle_sub
 20 layers, 1st pass
+
+## stack.middle_sub_closed
+20 layers
 
 ## stack.middle_again
 middle block, again
@@ -106,7 +118,7 @@ Learns made-up rules from the prompt
 Worked examples of an invented rule, then a new word to apply it to.
 
 ## story.rules.toc
-Rules from the prompt
+in-context learning
 
 ## story.rules.step
 The prompt shows worked examples of an invented rule, here a made-up plural, and the model picks the answer for a new word. On these tests it scores {{n:rule}}, where 0 is chance and 1 is always right. Public models that spent the same training compute score lower: checkpoints taken partway through training reach at most {{n:pub_max}}, and the best fully trained one, {{n:best_final}}, {{n:best_final_score}}. Of {{n:n_small}} fully trained public base models up to 3.3B parameters, only {{n:above}}, trained on 36T tokens, scores higher ({{n:above_score}}).
@@ -136,7 +148,7 @@ Rule learning leans on the second pass
 The same 20 layers run twice. Cutting attention in the second pass costs rule learning most.
 
 ## story.loop.toc
-The second pass
+the second block
 
 ## story.loop.step
 On the benchmark's published test items, where tsumugi scores {{n:loop_base}} (the {{n:rule}} above uses freshly drawn items of the same tests), switching off 60 random attention heads in the second pass, a quarter of them, drops its score to {{n:loop_cut2_score}}. The same cut costs {{n:cut1}} in the first pass and {{n:cut_out}} in the layers before and after the loop. The damage is specific: fact recall in the same format falls only {{n:recall_cut2}}, from {{n:recall_base}}, and the gap holds after accounting for how much each cut hurts text prediction.
@@ -218,3 +230,15 @@ tsumugi, 1×
 
 ## cheap.note
 Public checkpoints are taken partway through training, before any final learning-rate decay; tsumugi's {{n:avg9}} includes its own.
+
+## story.arch.1.video
+Depth was prioritized for serial operations: 52 layers, 1,536 wide. At the same 1.42B parameters, it formed set binding within 4B training tokens on all three seeds; 28 layers × 2,048 did on none.
+
+## story.arch.2.video
+Each layer reads a learned, input-dependent mix of prior blocks' outputs instead of a typical running sum (Moonshot AI's Attention Residuals).
+
+## story.arch.3.video
+Instead of uniform blocks, we read the layer geometry of the same 52 layers trained without AttnRes and placed blocks at its natural seams, where attention spread, hidden-state shape and weight rank jump together.
+
+## story.arch.4.video
+The fit found a 20-layer block starting at layer 19. It runs twice with the same weights, so the model computes through 72 layers while storing 52.
