@@ -121,16 +121,20 @@ Worked examples of an invented rule, then a new word to apply it to.
 in-context learning
 
 ## story.rules.step
-We evaluated base models on how well they pick up patterns (not reliant upon factual recall, much like Raven's matrices) from examples in context, following ICLEval (Chen et al. 2024){{cite:ICLEval}}. Answers are scored using log-probabilities: of a fixed set of answers, the model's pick is the one it gives the highest probability. tsumugi's final checkpoint settles at {{n:rule}} chance-corrected accuracy, well above the compute trend for open-weight models, Falcon3 3B the nearest at {{n:best_final_score}}. When the same test uses known facts, such that factual knowledge offers a shortcut, it scores higher ({{n:cryst}}) and lands where the compute trend predicts. Of {{n:n_small}} fully trained public base models up to 3.3B parameters, only {{n:above}}, trained on 36T tokens, scores higher ({{n:above_score}}).
+We evaluated base models on how well they pick up patterns (not reliant upon factual recall, much like Raven's matrices) from examples in context, following ICLEval (Chen et al. 2024){{cite:ICLEval}}. An item is scored right when the model ranks the correct answer the highest from a fixed set. Accuracy is then corrected for chance, where 0 is guessing & 1 is perfect, and averaged over nine levels of difficulty per test.
+<br><br>
+tsumugi's final checkpoint settles at {{n:rule}}, well above the compute trend for open-weight models, Falcon3 3B being the nearest at {{n:best_final_score}}. When the same test uses known facts, such that knowledge offers a shortcut, tsumugi scores higher ({{n:cryst}}), as every model does, landing where the compute trend predicts. 
+<br><br>
+<b>Of the {{n:n_final}} fully trained open-weight models we measured, none scores higher until about {{n:cross_mult}} times tsumugi's training compute; the first, {{n:cross_model}}, used {{n:cross_flops}} FLOPs.</b>
 
 ## rules.item_label
-pattern recognition test
+a pattern recognition test
 
 ## rules.more
 … 4 more examples …
 
 ## rules.pick
-using logprobs over a fixed set, the model picks the answer it finds most likely
+1 right answer, 5 options
 
 ## rules.axis
 rule-learning score · 0 = chance, 1 = perfect
