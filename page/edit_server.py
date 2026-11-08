@@ -2,7 +2,7 @@
 
     python3 page/edit_server.py [--page announce] [--port 8770]      # or: make edit
 
-It builds the page's editing preview into out/edit/ and serves it at http://127.0.0.1:PORT/ (this machine only).
+It builds the page's editing preview into a git-ignored scratch folder and serves it at http://127.0.0.1:PORT/ (this machine only).
 Clicking outlined text opens it in a side panel; saving writes that one entry to the copy file that holds it, rebuilds
 and reloads. A page can draw on several copy files (the announcement: its own words and the story's), so a key may
 appear in only one of them. Text that never shows on the page (alt text, link-preview titles, citation leaflets,

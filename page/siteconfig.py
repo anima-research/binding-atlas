@@ -60,6 +60,32 @@ DEFAULT_FONT_CREDIT = "Set in Courier Prime."
 _CSS_SAFE = re.compile(r"^[\w .:/@%+-]*$")      # values that go into CSS strings / url()
 
 
+# site.wip: a striped "WIP" band fixed to the top of the viewport, its words scrolling sideways (static under reduced
+# motion); the page is pushed down by the band's height so nothing is hidden under it. A page opened at #card (the
+# link-card screenshots) leaves it out.
+WIP_BANNER = """<div class="wip-band" role="note" aria-label="Work in progress: this page is still being written">
+<div class="wip-track" aria-hidden="true">""" + "<span>WIP</span>" * 48 + """</div></div>
+<style>
+:root { --wip-h: 26px; }
+body { padding-top: var(--wip-h) !important; }
+html { scroll-padding-top: calc(var(--wip-h) + 8px); }
+.wip-band { position: fixed; top: 0; left: 0; right: 0; height: var(--wip-h); z-index: 2147483600; overflow: hidden;
+  background: repeating-linear-gradient(-45deg, #ffd400 0 14px, #111 14px 28px); background-size: 39.6px 39.6px;
+  animation: wip-stripes 1.2s linear infinite; border-bottom: 2px solid #111; pointer-events: none; }
+.wip-track { display: flex; gap: 22px; width: max-content; height: 100%; align-items: center; padding-left: 22px;
+  animation: wip-roll 18s linear infinite; }
+.wip-track span { font: 800 14px/1 system-ui, -apple-system, "Segoe UI", sans-serif; letter-spacing: .14em; color: #111;
+  background: #ffd400; padding: 3px 8px; border: 2px solid #111; border-radius: 3px; }
+@keyframes wip-stripes { to { background-position: 39.6px 0; } }
+@keyframes wip-roll { to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .wip-band, .wip-track { animation: none; } }
+@media print { .wip-band { display: none; } body { padding-top: 0 !important; } }
+html.wip-off .wip-band { display: none; } html.wip-off body { padding-top: 0 !important; }
+</style>
+<script>if (location.hash === "#card") document.documentElement.classList.add("wip-off");</script>
+"""
+
+
 class ConfigError(ValueError):
     pass
 
@@ -70,6 +96,7 @@ class SiteConfig:
     base_url: str = ""
     clean_urls: bool = True
     card_label: str = ""
+    wip: bool = False          # a fixed "work in progress" banner across the top of every page
     back_url: str = ""
     back_label: str = ""
     font_name: str = ""
@@ -103,13 +130,13 @@ class SiteConfig:
         site, nav, font = raw.pop("site", {}), raw.pop("nav", {}), raw.pop("font", {})
         if raw:
             raise ConfigError(f"{path}: unknown sections {sorted(raw)} (expected [site], [nav], [font])")
-        known_site, known_nav = {"name", "base_url", "clean_urls", "card_label"}, {"back_url", "back_label"}
+        known_site, known_nav = {"name", "base_url", "clean_urls", "card_label", "wip"}, {"back_url", "back_label"}
         known_font = {"name", "family", "url", "stem", "meta", "credit"}
         bad = sorted(set(site) - known_site) + sorted(set(nav) - known_nav) + sorted(set(font) - known_font)
         if bad:
             raise ConfigError(f"{path}: unknown keys {bad}")
         for k, v in (site | nav | {f"font.{k}": v for k, v in font.items()}).items():
-            if not isinstance(v, bool if k == "clean_urls" else str):
+            if not isinstance(v, bool if k in ("clean_urls", "wip") else str):
                 raise ConfigError(f"{path}: {k} has the wrong type ({type(v).__name__})")
         return cls(**site, **nav, **{f"font_{k}": v for k, v in font.items()})
 
@@ -179,4 +206,9 @@ def render_hosting(template: str, cfg: SiteConfig, overrides: dict[str, str] | N
         if not drop:
             out.append(line)
     page = "".join(out)
-    return page.replace("__TOC__", TOC.read_text()) if "__TOC__" in page else page
+    page = page.replace("__TOC__", TOC.read_text()) if "__TOC__" in page else page
+    if cfg.wip:
+        if page.count("</body>") != 1:
+            raise ConfigError("site.wip: the page needs exactly one </body> for the banner")
+        page = page.replace("</body>", WIP_BANNER + "</body>")
+    return page

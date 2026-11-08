@@ -5,6 +5,7 @@ name = "kotodama.animalabs.ai"
 base_url = "https://kotodama.animalabs.ai/"
 clean_urls = true
 card_label = ""        # derived: kotodama.animalabs.ai/binding-atlas
+wip = true             # the "work in progress" banner on every page
 
 [nav]
 back_url = "https://kotodama.animalabs.ai/"
