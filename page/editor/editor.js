@@ -39,7 +39,7 @@ const setOn = v => { sessionStorage.setItem(KEY_ON, v ? '1' : '0'); document.doc
 toggle.onclick = () => setOn(!on());
 setOn(on());
 
-const preview = t => t.replace(/\{\{cite:([A-Za-z0-9_-]+)\}\}/g, '<sup class="ce-cite">[$1]</sup>').replace(/__[A-Z_]+_LINK__/g, '#');
+const preview = t => t.replace(/\n[ \t]*\n\s*/g, '<br><br>').replace(/\{\{cite:([A-Za-z0-9_-]+)\}\}/g, '<sup class="ce-cite">[$1]</sup>').replace(/__[A-Z_]+_LINK__/g, '#');
 const say = (t, bad) => { msg.textContent = t || ''; msg.classList.toggle('bad', !!bad); };
 
 function open(key) {
