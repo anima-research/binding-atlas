@@ -44,6 +44,8 @@ a { color: var(--link); text-underline-offset: 2px; }
 .wrap { max-width: 1080px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px));
         padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 header.top { padding-block: 52px 18px; display: grid; gap: 14px; }
+/* desktop: the header fills the first screen, so the story's first step starts below the fold */
+@media (min-width: 761px) { header.top { min-height: 100vh; box-sizing: border-box; align-content: start; } }
 .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
 /* the name in the background: 言霊 紬 set vertically behind the header, fading out as the story reaches the screen */
 .bg-kanji { position: fixed; inset: 0; z-index: 0; pointer-events: none; user-select: none; }
