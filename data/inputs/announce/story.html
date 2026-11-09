@@ -1,4 +1,4 @@
-<section class="story" id="story" data-toc="tsumugi" aria-label="How kotodama-tsumugi is built, and its four results, step by step">
+<section class="story" id="story" data-toc="tsumugi" aria-label="How kotodama-tsumugi is built, and its three results and its data, step by step">
 <div class="story-steps"><div class="story-step" id="story-arch" data-beat="arch" data-toc="design spec" data-toc-level="2"><div class="h" role="heading" aria-level="3">design spec</div><p>At each step of the process, we performed ablations to test four levers towards enhancing binding.
 <br><br>
 Depth was prioritized for serial operations; 52 layers and 1536d wide, vs 16-28 layers and mostly 2048d wide for other open models near this param count.
@@ -11,9 +11,9 @@ This fit found a 20-layer contiguous block starting from layer 19, which we sele
 <br><br>
 Our belief is that the composition is key; each accentuates a theoretical strength of the others. In tsumugi's run, both seeds (7 and 17) scored higher on set binding by 11B tokens than any of nine runs of a standard 28-layer model at 10B.</p></div><div class="story-step" id="story-rules" data-beat="rules" data-toc="in-context learning" data-toc-level="2"><div class="h" role="heading" aria-level="3">in-context learning</div><p>We evaluated base models on how well they pick up patterns (not reliant upon factual recall, much like Raven's matrices) from examples in context, following ICLEval (Chen et al. 2024)<span class="cite"><button type="button" class="cite-mk" aria-expanded="false" aria-label="Reference 2">2</button><span class="cite-leaf" role="note">Chen, Lin, Zhou, Huang, Jia, Cao, Wen, <a href="https://arxiv.org/abs/2406.14955"><i>ICLEval: Evaluating In-Context Learning Ability of Large Language Models</i></a>, 2024.</span></span>. An item is scored right when the model ranks the correct answer the highest from a fixed set. Accuracy is then corrected for chance, where 0 is guessing & 1 is perfect, and averaged over nine levels of difficulty per test.
 <br><br>
-tsumugi's final checkpoint settles at .559, well above the compute trend for open-weight models, Falcon3 3B being the nearest at .536. When the same test uses known facts, such that knowledge offers a shortcut, tsumugi scores higher (.930), as every model does, landing where the compute trend predicts. 
+tsumugi's final checkpoint settles at .559, well above the compute trend for open-weight models, Falcon3 3B being the nearest at .536 (pruned and distilled from Falcon3 7B; <a href="#data">more below</a>). When the same test uses known facts, such that knowledge offers a shortcut, tsumugi scores higher (.930), as every model does, landing where the compute trend predicts. 
 <br><br>
-<b>Of the 36 fully trained open-weight models we measured, none scores higher until about 150 times tsumugi's training compute; the first, OLMo-2 7B, used 1.8 × 10²³ FLOPs.</b></p></div><div class="story-step" id="story-loop" data-beat="loop" data-toc="the second block" data-toc-level="2"><div class="h" role="heading" aria-level="3">Rule learning leans on the second pass</div><p>On the benchmark's published test items, where tsumugi scores .546 (the .559 above uses freshly drawn items of the same tests), switching off 60 random attention heads in the second pass, a quarter of them, drops its score to .414. The same cut costs .035 in the first pass and .019 in the layers before and after the loop. The damage is specific: fact recall in the same format falls only .025, from .919, and the gap holds after accounting for how much each cut hurts text prediction.</p></div><div class="story-step" id="story-you" data-beat="you" data-toc="Tracking “you”" data-toc-level="2"><div class="h" role="heading" aria-level="3">Tracks who “you” is as objects change hands</div><p>The test “you”, after hand-offs: on the last line of this chat, “you” is Kurt, who now has the battery. Swap who says that line, and “you” is Steve, who has the lamp, so the battery should lose probability. Here it falls from .445 to .311, a larger move than most. Averaged over 180 chats the drop is .038, and tsumugi is the smallest public base model whose drop clears +.02, a bar fixed before any model was scored, across its whole 95% interval.</p></div><div class="story-step" id="story-cheap" data-beat="cheap" data-toc="Benchmarks at its compute" data-toc-level="2"><div class="h" role="heading" aria-level="3">Ahead of Pythia 1.4B–6.9B and OLMo-1 1B at its compute</div><p>On nine standard benchmarks (HellaSwag, LAMBADA, ARC-Easy, ARC-Challenge, PIQA, SciQ, WinoGrande, COPA and BoolQ), with no examples in the prompt, tsumugi averages 64.1% correct. Public models released checkpoints from partway through training, which show how much compute each needed to reach that score. Pythia 2.8B needed about 2.7× tsumugi's compute, Pythia 6.9B about 5× and OLMo-1 1B about 7×; Pythia 1.4B never got there. OLMo-2 1B got there at about the same compute as tsumugi.</p></div></div>
+<b>Of the 36 fully trained open-weight models we measured, none scores higher until about 150 times tsumugi's training compute; the first, OLMo-2 7B, used 1.8 × 10²³ FLOPs.</b></p></div><div class="story-step" id="story-you" data-beat="you" data-toc="Tracking “you”" data-toc-level="2"><div class="h" role="heading" aria-level="3">Tracks who “you” is as objects change hands</div><p>The test “you”, after hand-offs: on the last line of this chat, “you” is Kurt, who now has the battery. Swap who says that line, and “you” is Steve, who has the lamp, so the battery should lose probability. Here it falls from .445 to .311, a larger move than most. Averaged over 180 chats the drop is .038, and tsumugi is the smallest public base model whose drop clears +.02, a bar fixed before any model was scored, across its whole 95% interval.</p></div><div class="story-step" id="story-cheap" data-beat="cheap" data-toc="Benchmarks at its compute" data-toc-level="2"><div class="h" role="heading" aria-level="3">Ahead of Pythia 1.4B–6.9B and OLMo-1 1B at its compute</div><p>On nine standard benchmarks (HellaSwag, LAMBADA, ARC-Easy, ARC-Challenge, PIQA, SciQ, WinoGrande, COPA and BoolQ), with no examples in the prompt, tsumugi averages 64.1% correct. Public models released checkpoints from partway through training, which show how much compute each needed to reach that score. Pythia 2.8B needed about 2.7× tsumugi's compute, Pythia 6.9B about 5× and OLMo-1 1B about 7×; Pythia 1.4B never got there. OLMo-2 1B got there at about the same compute as tsumugi.</p></div><div class="story-step" id="story-data" data-beat="data" data-toc="data" data-toc-level="2"><div class="h" role="heading" aria-level="3">data</div><p></p><p><a href="__EMPTY_LINK__">Read all 128 runs →</a></p></div></div>
 <div class="story-stage" aria-hidden="true"><div class="story-frame"><div id="Larch" class="layer"><div class="rule"></div>
   <div class="title">design spec</div><div class="sub">Added one at a time.</div>
   <svg class="panel" id="aspire" style="left:96px;top:205px" width="520" height="660"></svg>
@@ -28,18 +28,18 @@ tsumugi's final checkpoint settles at .559, well above the compute trend for ope
     <div id="chips" style="margin-top:18px;opacity:0"></div>
     <div class="lab" id="pick" style="margin-top:14px;opacity:0">1 right answer, 5 options</div></div>
   <svg class="panel" id="strip" style="left:800px" width="704" height="600"></svg></div>
-<div id="Lloop" class="layer"><div class="rule"></div>
-  <div class="title">Rule learning leans on the second pass</div><div class="sub">The same 20 layers run twice. Cutting attention in the second pass costs rule learning most.</div>
-  <svg class="panel" id="spire" style="left:96px;top:215px" width="520" height="640"></svg>
-  <svg class="panel" id="cuts" style="left:700px;top:240px" width="800" height="300"></svg>
-  <div class="panel" id="cutnote" style="left:700px;top:560px;width:790px;font-size:21px;line-height:1.5;opacity:0"></div></div>
 <div id="Lyou" class="layer"><div class="rule"></div>
   <div class="title">Tracks who “you” is as objects change hands</div><div class="sub">Swap who says the last line and “you” is the other person, so the old answer should lose probability.</div>
   <div class="panel" id="chat" style="left:96px;width:720px"></div>
   <svg class="panel" id="dyn" style="left:900px;top:300px;overflow:visible" width="604" height="330"></svg></div>
 <div id="Lcheap" class="layer"><div class="rule"></div>
   <div class="title">Ahead of Pythia 1.4B–6.9B and OLMo-1 1B at its compute</div><div class="sub">Level with OLMo-2 1B. Each bar: the training compute a model needed to reach tsumugi's average on nine standard benchmarks.</div>
-  <svg class="panel" id="grid" style="left:96px;top:205px" width="1408" height="660"></svg></div></div></div>
+  <svg class="panel" id="grid" style="left:96px;top:205px" width="1408" height="660"></svg></div>
+<div id="Ldata" class="layer"><div class="rule"></div>
+  <div class="title">data</div><div class="sub">what it writes from an empty document</div>
+  <svg class="panel" id="dtiles" style="left:96px;top:215px" width="700" height="380"></svg>
+  <div class="panel" id="dkinds" style="left:96px;top:610px;width:700px;font-size:19px;line-height:1.7"></div>
+  <div class="panel" id="druns" style="left:850px;top:215px;width:654px"></div></div></div></div>
 </section>
 <style>
 .story { display: grid; grid-template-columns: minmax(0, 400px) minmax(0, 1fr); gap: 32px; margin: 26px 0 10px;
@@ -102,10 +102,10 @@ tsumugi's final checkpoint settles at .559, well above the compute trend for ope
   #Lrules div.panel, #Lyou div.panel { top: 24px !important; }
   #Lrules svg.panel { top: 578px !important; left: 6px !important; }
   #Lyou svg.panel { top: 600px !important; left: 40px !important; }
-  #Lloop svg#spire { top: 0 !important; transform: scale(.62); transform-origin: 0 0; }
-  #Lloop svg#cuts { top: 410px !important; }
-  #Lloop #cutnote { top: 700px !important; width: 700px !important; font-size: 24px !important; }
   #Lcheap svg#grid { top: 20px !important; transform: scale(.78); transform-origin: 0 0; }
+  #Ldata svg#dtiles { top: 24px !important; }
+  #Ldata #dkinds { top: 405px !important; font-size: 22px !important; }
+  #Ldata #druns { top: 520px !important; width: 700px !important; }
   .story-frame .lab { font-size: 27px; }
   .story-frame svg text[font-size="19"], .story-frame svg text[font-size="20"], .story-frame svg text[font-size="21"] { font-size: 25px; }
   #Lyou .line { font-size: 28px !important; }
@@ -115,9 +115,9 @@ tsumugi's final checkpoint settles at .559, well above the compute trend for ope
 (() => {
 const ARCH_FOCUS = { i: -1, touch: matchMedia("(hover: none)").matches };
 const IN_STORY = true;   // the page's own beats (the rules beat draws the hero chart)
-const D = {"cross": [["OLMo-2 1B", 0.7501206757843923, 1.2001930812550279, 1.1691384418040867, "0.8\u20131.2\u00d7"], ["SmolLM2 1.7B", 0, 2.1634320193081256, null, "by 2.2\u00d7 (no earlier checkpoint scored)"], ["Pythia 2.8B", 1.9699308125502817, 2.813995172968624, 2.6516199975271535, "2.0\u20132.8\u00d7"], ["Pythia 6.9B", 3.6126757843925987, 5.904125502815768, 4.953391686675755, "3.6\u20135.9\u00d7"], ["OLMo-1 1B", 5.566918744971843, 10.231761866452132, 6.711253690989331, "5.6\u201310.2\u00d7"], ["Pythia 1.4B", null, null, null, "never: ends at 61.4 after 2.0\u00d7"]], "rule": 0.5585956790123457, "pub": [[0.4612577160493827, "Pythia 2.8B"], [0.4380555555555556, "Pythia 2.8B"], [0.4274922839506173, "Pythia 6.9B"], [0.4270061728395062, "OLMo-2 7B"], [0.42337962962962966, "OLMo-2 1B"], [0.42216049382716053, "Pythia 1.4B"], [0.4213734567901235, "OLMo-2 1B"], [0.4167824074074074, "Pythia 1.4B"], [0.407692901234568, "Pythia 1.4B"], [0.4047376543209877, "Pythia 2.8B"], [0.3951543209876543, "Pythia 1.4B"], [0.3694830246913581, "Pythia 6.9B"], [0.35041666666666677, "OLMo-2 7B"], [0.34717592592592594, "OLMo-2 13B"], [0.3284645061728395, "Pythia 6.9B"]], "final": [[0.5360108024691358, "Falcon3 3B"], [0.3918981481481482, "Pythia 1B"]], "cut": [["2nd pass", -0.13197530864197532], ["1st pass", -0.03500000000000003], ["outside the loop", -0.019243827160493998]], "cut_recall2": -0.024609375000000044, "dyn": [["tsumugi 1.4B", 0.038, true], ["Qwen3 4B", 0.0549, false], ["SmolLM3 3B", 0.0274, false], ["Qwen3 1.7B", 0.0258, false], ["OLMo-2 1B", -0.0185, false], ["Qwen2.5 1.5B", -0.0356, false]], "grid": [{"name": "kotodama-tsumugi", "tok": "110B tokens", "scores": [58.1, 60.5, 62.9, 31.7, 71.4, 92.6, 61.6, 74.0, 64.5], "avg": 64.1, "compute": 1.0}, {"name": "OLMo-2 1B", "tok": "105B tokens", "scores": [54.7, 55.8, 64.3, 31.0, 72.2, 89.0, 56.8, 73.0, 59.2], "avg": 61.8, "compute": 0.7501206757843926}, {"name": "Pythia-1.4B", "tok": "300B tokens", "scores": [51.9, 60.9, 60.8, 28.2, 70.9, 86.8, 57.3, 72.0, 63.3], "avg": 61.4, "compute": 2.041153660498793}, {"name": "Pythia-2.8B", "tok": "300B tokens", "scores": [59.4, 63.9, 64.1, 31.9, 73.8, 88.8, 58.6, 78.0, 63.4], "avg": 64.7, "compute": 4.0244022526146415}], "bench": ["HellaSwag", "LAMBADA", "ARC-e", "ARC-c", "PIQA", "SciQ", "WinoGrande", "COPA", "BoolQ"], "item": [["ta mu", "ta mo"], ["mo mi", "mo mo"], ["du bu", "du bo"], ["se pi", "se po"]], "query": "pe fi", "choices": ["po", "fe", "fu", "fi", "fo"], "gold": "fo", "chat": ["A chat between Steve and Kurt.", "Steve: The battery is in my hand.", "Steve: The shoe is in my hand.", "Kurt: I have the lamp.", "Kurt: Here, take my lamp.", "Steve: My battery is in your hand now."], "p_orig": 0.445, "p_swap": 0.311, "bounds_even": [0, 7, 15, 22, 30, 37, 65], "bounds": [0, 1, 7, 9, 17, 19, 59], "bound_loop": 39, "hero": {"pub": [[23.2599, 0.31722222222222224], [21.8929, 0.4439814814814815], [22.447, 0.45937500000000003], [22.447, 0.5279475308641975], [22.6743, 0.5444290123456791], [23.7373, 0.6119675925925926], [23.4033, 0.551332304526749], [21.2871, 0.5360108024691358], [23.7968, 0.5624614197530864], [22.6543, 0.4740200617283951], [23.4877, 0.5891141975308641], [22.4965, 0.5191666666666667], [23.647, 0.6080092592592593], [23.859, 0.6405015432098766], [23.859, 0.6349228395061729], [22.8244, 0.4742978395061728], [23.8628, 0.5459336419753087], [22.3697, 0.48597993827160496], [22.5573, 0.4614506172839506], [23.2595, 0.5808487654320987], [21.4357, 0.43381944444444437], [20.5837, 0.22611779835390947], [21.2883, 0.3918981481481482], [21.719, 0.48307098765432094], [21.719, 0.4801234567901235], [22.0999, 0.4641589506172839], [22.7272, 0.45284722222222235], [23.2221, 0.4685596707818931], [23.5228, 0.5360570987654322], [23.9152, 0.5942438271604938], [23.1097, 0.5154706790123457], [23.5702, 0.5634259259259259], [23.9389, 0.6002546296296297], [23.0628, 0.2915586419753087], [23.0528, 0.46858024691358025], [21.9389, 0.4614583333333333]], "mid": [[20.8585, 0.407692901234568], [20.96, 0.3951543209876543], [21.0849, 0.4167824074074074], [21.2788, 0.42216049382716053], [20.8647, 0.4047376543209877], [21.0822, 0.4380555555555556], [21.2626, 0.4612577160493827], [20.8473, 0.3284645061728395], [21.0904, 0.3694830246913581], [21.3592, 0.4274922839506173], [20.9725, 0.42337962962962966], [21.2736, 0.4213734567901235], [20.9637, 0.35041666666666677], [21.2647, 0.4270061728395062], [21.1453, 0.34717592592592594]], "trend": [[19.5, 0.2808377458071907], [24.4, 0.6064817737313888]], "best": [21.287084776433677, 0.5360108024691358], "t": [21.094471128641644, 0.5585956790123457], "xr": [19.477121254719663, 24.397940008672037], "yr": [0.2, 0.68], "accent": "#ffb347"}}, ARCH = [["Depth", "Ablations compared 52 layers \u00d7 1,536 against 28 \u00d7 2,048: within 4B training tokens, the deeper model formed early binding on all three seeds, the wider one on none.", ""], ["Attention Residuals", "Typical residual streams give every earlier layer weight 1. Here, weights are learned and depend on the input.", "plain:  h<sub>l+1</sub> = h<sub>l</sub> + f<sub>l</sub>(h<sub>l</sub>)<br>here:  h<sub>l</sub> = \u03a3<sub>n</sub> \u03b1<sub>n,l</sub> b<sub>n</sub>,  \u03b1<sub>n,l</sub> = softmax<sub>n</sub>( w<sub>l</sub> \u00b7 RMSNorm(b<sub>n</sub>) )<br><span class=\"lab\">b<sub>n</sub>: the summed outputs of block n \u00b7 w<sub>l</sub>: a learned query for layer l</span>"], ["Fitted Boundaries", "A seam is a layer where attention spread, hidden-state shape and weight rank jump together. The seams gave five input blocks and one long block from layer 19.", "blocks start at layers 0, 1, 7, 9, 17, 19, 39 of the 52"], ["Looped Core", "Because the second pass is its own block, every later layer can weigh what each pass wrote against the other.", "f<sub>39+i</sub> = f<sub>19+i</sub>,  i = 0 \u2026 19<br>blocks start at layers 0, 1, 7, 9, 17, 19, 39, 59 of the 72"]], COPY = {"story.arch.together": "72 layers of computation from 52 layers of weights, with every layer choosing what to read from the blocks below it.", "story.arch.hint_hover": "Hover over a step to read it again.", "story.arch.hint_tap": "Tap a step to read it again.", "stack.input": "input layers", "stack.input_n": "19", "stack.middle": "middle block", "stack.middle_sub": "20 layers, 1st pass", "stack.middle_sub_closed": "20 layers", "stack.middle_again": "middle block, again", "stack.middle_again_sub": "same weights, 2nd pass", "stack.output": "output layers", "stack.output_n": "13", "rules.axis": "rule-learning score · 0 = chance, 1 = perfect", "rules.legend1": "● 15 public checkpoints, partway through training · ○ 2 fully", "rules.legend2": "trained public models: all at the same training compute", "loop.heads_off": "60 random heads off", "loop.cuts_title": "rule learning lost, by where 60 random heads are switched off", "loop.cutnote": "Each cut switches off 60 attention heads chosen at random, a quarter of the 240 in one pass, with five different draws per place. A second-pass cut costs rule learning .132, almost four times a first-pass cut, while fact recall in the same prompts falls only .025. The gap holds after controlling for how much each cut hurts the model's text prediction.", "you.chat_label": "one test chat (after 3 worked examples)", "you.prompt": "Right now you're holding the ___", "you.is_kurt": "“you” = Kurt, who now has the battery", "you.is_steve": "“you” = Steve, who now has the lamp", "you.prob_label": "probability of “battery”", "you.moves": "this chat moves more than most: the average across 180 is .038", "you.bars_title": "average drop, by model", "you.left": "← takes “you” as the speaker", "you.right": "tracks “you” →", "you.claim1": "the smallest public base model whose whole 95% interval", "you.claim2": "clears +.02, a bar fixed before any model was scored", "rules.hero_y": "chance-corrected accuracy (0 = guessing, 1 = always right)", "rules.hero_x": "training compute (FLOPs)", "rules.hero_best": "highest near same compute", "rules.hero_legend_t": "tsumugi", "rules.hero_legend_full": "open-weight base models, fully trained", "rules.hero_legend_mid": "open-weight base models, partway through training", "rules.hero_legend_trend": "trend of the fully trained", "cheap.avg_lead": "tsumugi averages", "cheap.axis": "training compute, as a multiple of tsumugi's", "cheap.tsumugi_line": "tsumugi, 1×", "cheap.note": "Public checkpoints are taken partway through training, before any final learning-rate decay; tsumugi's 64.1 includes its own."};
-const FG = "#f2f3f5", MUTED = "#9aa3ad", LINE = "#2b3038", NEG = "#5d6672", BG = "#0b0c0e", MONO = "Courier Prime, Nimbus Mono PS, Courier New, monospace";
-const B = [[0.0, 2.6], [2.6, 20.2], [20.2, 28.8], [28.8, 35.2], [35.2, 43.8], [43.8, 49.8], [49.8, 53.8]], NAMES = ["intro", "arch", "rules", "loop", "you", "cheap", "card"], FADE = 0.45;
+const D = {"cross": [["OLMo-2 1B", 0.7501206757843923, 1.2001930812550279, 1.1691384418040867, "0.8\u20131.2\u00d7"], ["SmolLM2 1.7B", 0, 2.1634320193081256, null, "by 2.2\u00d7 (no earlier checkpoint scored)"], ["Pythia 2.8B", 1.9699308125502817, 2.813995172968624, 2.6516199975271535, "2.0\u20132.8\u00d7"], ["Pythia 6.9B", 3.6126757843925987, 5.904125502815768, 4.953391686675755, "3.6\u20135.9\u00d7"], ["OLMo-1 1B", 5.566918744971843, 10.231761866452132, 6.711253690989331, "5.6\u201310.2\u00d7"], ["Pythia 1.4B", null, null, null, "never: ends at 61.4 after 2.0\u00d7"]], "rule": 0.5585956790123457, "pub": [[0.4612577160493827, "Pythia 2.8B"], [0.4380555555555556, "Pythia 2.8B"], [0.4274922839506173, "Pythia 6.9B"], [0.4270061728395062, "OLMo-2 7B"], [0.42337962962962966, "OLMo-2 1B"], [0.42216049382716053, "Pythia 1.4B"], [0.4213734567901235, "OLMo-2 1B"], [0.4167824074074074, "Pythia 1.4B"], [0.407692901234568, "Pythia 1.4B"], [0.4047376543209877, "Pythia 2.8B"], [0.3951543209876543, "Pythia 1.4B"], [0.3694830246913581, "Pythia 6.9B"], [0.35041666666666677, "OLMo-2 7B"], [0.34717592592592594, "OLMo-2 13B"], [0.3284645061728395, "Pythia 6.9B"]], "final": [[0.5360108024691358, "Falcon3 3B"], [0.3918981481481482, "Pythia 1B"]], "cut": [["2nd pass", -0.13197530864197532], ["1st pass", -0.03500000000000003], ["outside the loop", -0.019243827160493998]], "cut_recall2": -0.024609375000000044, "dyn": [["tsumugi 1.4B", 0.038, true], ["Qwen3 4B", 0.0549, false], ["SmolLM3 3B", 0.0274, false], ["Qwen3 1.7B", 0.0258, false], ["OLMo-2 1B", -0.0185, false], ["Qwen2.5 1.5B", -0.0356, false]], "grid": [{"name": "kotodama-tsumugi", "tok": "110B tokens", "scores": [58.1, 60.5, 62.9, 31.7, 71.4, 92.6, 61.6, 74.0, 64.5], "avg": 64.1, "compute": 1.0}, {"name": "OLMo-2 1B", "tok": "105B tokens", "scores": [54.7, 55.8, 64.3, 31.0, 72.2, 89.0, 56.8, 73.0, 59.2], "avg": 61.8, "compute": 0.7501206757843926}, {"name": "Pythia-1.4B", "tok": "300B tokens", "scores": [51.9, 60.9, 60.8, 28.2, 70.9, 86.8, 57.3, 72.0, 63.3], "avg": 61.4, "compute": 2.041153660498793}, {"name": "Pythia-2.8B", "tok": "300B tokens", "scores": [59.4, 63.9, 64.1, 31.9, 73.8, 88.8, 58.6, 78.0, 63.4], "avg": 64.7, "compute": 4.0244022526146415}], "bench": ["HellaSwag", "LAMBADA", "ARC-e", "ARC-c", "PIQA", "SciQ", "WinoGrande", "COPA", "BoolQ"], "item": [["ta mu", "ta mo"], ["mo mi", "mo mo"], ["du bu", "du bo"], ["se pi", "se po"]], "query": "pe fi", "choices": ["po", "fe", "fu", "fi", "fo"], "gold": "fo", "chat": ["A chat between Steve and Kurt.", "Steve: The battery is in my hand.", "Steve: The shoe is in my hand.", "Kurt: I have the lamp.", "Kurt: Here, take my lamp.", "Steve: My battery is in your hand now."], "p_orig": 0.445, "p_swap": 0.311, "bounds_even": [0, 7, 15, 22, 30, 37, 65], "bounds": [0, 1, 7, 9, 17, 19, 59], "bound_loop": 39, "hero": {"pub": [[23.2599, 0.31722222222222224, 0], [21.8929, 0.4439814814814815, 0], [22.447, 0.45937500000000003, 0], [22.447, 0.5279475308641975, 0], [22.6743, 0.5444290123456791, 0], [23.7373, 0.6119675925925926, 0], [23.4033, 0.551332304526749, 0], [21.2871, 0.5360108024691358, 1], [23.7968, 0.5624614197530864, 0], [22.6543, 0.4740200617283951, 0], [23.4877, 0.5891141975308641, 0], [22.4965, 0.5191666666666667, 1], [23.647, 0.6080092592592593, 1], [23.859, 0.6405015432098766, 0], [23.859, 0.6349228395061729, 0], [22.8244, 0.4742978395061728, 1], [23.8628, 0.5459336419753087, 0], [22.3697, 0.48597993827160496, 0], [22.5573, 0.4614506172839506, 0], [23.2595, 0.5808487654320987, 0], [21.4357, 0.43381944444444437, 0], [20.5837, 0.22611779835390947, 0], [21.2883, 0.3918981481481482, 0], [21.719, 0.48307098765432094, 0], [21.719, 0.4801234567901235, 0], [22.0999, 0.4641589506172839, 0], [22.7272, 0.45284722222222235, 0], [23.2221, 0.4685596707818931, 0], [23.5228, 0.5360570987654322, 0], [23.9152, 0.5942438271604938, 0], [23.1097, 0.5154706790123457, 0], [23.5702, 0.5634259259259259, 0], [23.9389, 0.6002546296296297, 0], [23.0628, 0.2915586419753087, 0], [23.0528, 0.46858024691358025, 0], [21.9389, 0.4614583333333333, 0]], "mid": [[20.8585, 0.407692901234568], [20.96, 0.3951543209876543], [21.0849, 0.4167824074074074], [21.2788, 0.42216049382716053], [20.8647, 0.4047376543209877], [21.0822, 0.4380555555555556], [21.2626, 0.4612577160493827], [20.8473, 0.3284645061728395], [21.0904, 0.3694830246913581], [21.3592, 0.4274922839506173], [20.9725, 0.42337962962962966], [21.2736, 0.4213734567901235], [20.9637, 0.35041666666666677], [21.2647, 0.4270061728395062], [21.1453, 0.34717592592592594]], "trend": [[19.5, 0.2808377458071907], [24.4, 0.6064817737313888]], "t": [21.094471128641644, 0.5585956790123457], "xr": [19.477121254719663, 24.397940008672037], "yr": [0.2, 0.68], "accent": "#ffb347"}, "data": {"rows": [{"label": "kotodama-tsumugi 1.4B", "n": 128, "era": 0, "tiles": ["p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p"]}, {"label": "Falcon3 3B Base", "n": 128, "era": 50, "tiles": ["v", "v", "v", "v", "v", "v", "v", "v", "v", "v", "v", "v", "v", "v", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "x", "h", "h", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p", "p"]}], "runs": [{"label": "kotodama-tsumugi 1.4B", "c": "p", "text": [["", "It was bad then. I didn&#x27;t know it was bad. I, too, had trouble with it and I, too, had sprained ankles.\n\nI explaining my disappointment is, like, eye opening memetic tommyginology to new people."]]}, {"label": "Falcon3 3B Base", "c": "v", "text": [["v", "Certainly! Here are some mathematical questions and detailed"], ["", " answers based on the extract provided:\n\n### Question 1: What is the formula to find the number when a percentage and the value are known?\n**Answer:**\nThe formula to find the number when a percentage and the value are known is:\n\\[ x = \\frac{\\text{value} \\times 100}{\\text{percentage}} \\]\nIn the given problem, the value is 30 and the percentage is 20%.\u2026"]]}], "colors": {"s": "#64c9ff", "v": "#ff5a36", "x": "#b48cff", "h": "#59616b", "p": "#2a2f37", "w": "#000000"}}}, ARCH = [["Depth", "Ablations compared 52 layers \u00d7 1,536 against 28 \u00d7 2,048: within 4B training tokens, the deeper model formed early binding on all three seeds, the wider one on none.", ""], ["Attention Residuals", "Typical residual streams give every earlier layer weight 1. Here, weights are learned and depend on the input.", "plain:  h<sub>l+1</sub> = h<sub>l</sub> + f<sub>l</sub>(h<sub>l</sub>)<br>here:  h<sub>l</sub> = \u03a3<sub>n</sub> \u03b1<sub>n,l</sub> b<sub>n</sub>,  \u03b1<sub>n,l</sub> = softmax<sub>n</sub>( w<sub>l</sub> \u00b7 RMSNorm(b<sub>n</sub>) )<br><span class=\"lab\">b<sub>n</sub>: the summed outputs of block n \u00b7 w<sub>l</sub>: a learned query for layer l</span>"], ["Fitted Boundaries", "A seam is a layer where attention spread, hidden-state shape and weight rank jump together. The seams gave five input blocks and one long block from layer 19.", "blocks start at layers 0, 1, 7, 9, 17, 19, 39 of the 52"], ["Looped Core", "Because the second pass is its own block, every later layer can weigh what each pass wrote against the other.", "f<sub>39+i</sub> = f<sub>19+i</sub>,  i = 0 \u2026 19<br>blocks start at layers 0, 1, 7, 9, 17, 19, 39, 59 of the 72"]], COPY = {"story.arch.together": "72 layers of computation from 52 layers of weights, with every layer choosing what to read from the blocks below it.", "story.arch.hint_hover": "Hover over a step to read it again.", "story.arch.hint_tap": "Tap a step to read it again.", "stack.input": "input layers", "stack.input_n": "19", "stack.middle": "middle block", "stack.middle_sub": "20 layers, 1st pass", "stack.middle_sub_closed": "20 layers", "stack.middle_again": "middle block, again", "stack.middle_again_sub": "same weights, 2nd pass", "stack.output": "output layers", "stack.output_n": "13", "rules.axis": "rule-learning score · 0 = chance, 1 = perfect", "rules.legend1": "● 15 public checkpoints, partway through training · ○ 2 fully", "rules.legend2": "trained public models: all at the same training compute", "you.chat_label": "one test chat (after 3 worked examples)", "you.prompt": "Right now you're holding the ___", "you.is_kurt": "“you” = Kurt, who now has the battery", "you.is_steve": "“you” = Steve, who now has the lamp", "you.prob_label": "probability of “battery”", "you.moves": "this chat moves more than most: the average across 180 is .038", "you.bars_title": "average drop, by model", "you.left": "← takes “you” as the speaker", "you.right": "tracks “you” →", "you.claim1": "the smallest public base model whose whole 95% interval", "you.claim2": "clears +.02, a bar fixed before any model was scored", "rules.hero_y": "chance-corrected accuracy (0 = guessing, 1 = always right)", "rules.hero_x": "training compute (FLOPs)", "rules.hero_legend_t": "tsumugi", "rules.hero_legend_full": "final checkpoints", "rules.hero_legend_mid": "in-training checkpoints", "rules.hero_legend_trend": "trend of the fully trained", "rules.hero_legend_distilled": "distilled from a larger model", "cheap.avg_lead": "tsumugi averages", "cheap.axis": "training compute, as a multiple of tsumugi's", "cheap.tsumugi_line": "tsumugi, 1×", "cheap.note": "Public checkpoints are taken partway through training, before any final learning-rate decay; tsumugi's 64.1 includes its own.", "data.tiles_title": "128 runs from an empty document, one square per run", "data.era": "assistant-era runs", "data.start": "[start of document]", "data.k_s": "chat transcript", "data.k_v": "assistant voice", "data.k_x": "synthetic instruction data", "data.k_h": "human-written Q&amp;A", "data.k_p": "ordinary text"};
+const FG = "#f2f3f5", MUTED = "#9aa3ad", LINE = "#2b3038", NEG = "#5d6672", BG = "#0b0c0e", MONO = "Courier Prime, Nimbus Mono PS, Courier New, monospace", SURF = "#15181c";
+const B = [[0.0, 2.6], [2.6, 20.2], [20.2, 28.8], [28.8, 37.4], [37.4, 43.4], [43.4, 50.4], [50.4, 54.4]], NAMES = ["intro", "arch", "rules", "you", "cheap", "data", "card"], FADE = 0.45;
 const cl = (x) => Math.max(0, Math.min(1, x));
 const ease = (x) => { x = cl(x); return x < .5 ? 2*x*x : 1 - Math.pow(-2*x + 2, 2)/2; };
 const ramp = (t, a, b) => ease((t - a) / (b - a));
@@ -229,16 +229,38 @@ DRAW.arch = (t) => {
 };
 
 // the hero chart (page only): open-weight base models against training compute, fully trained filled, partway open,
-// the trend of the fully trained dashed, Falcon3 3B circled, tsumugi's diamond with its number; drawn in that order
+// the trend of the fully trained dashed, the models distilled from a larger one marked by an asterisk in place of the
+// dot, tsumugi's diamond with its number; drawn in that order
+// a distilled model's marker: a six-armed asterisk, the dot's colour and size class
+function heroStar(cx, cy, r) {
+  let p = "";
+  for (const a of [90, 30, 150]) { const dx = r * Math.cos(a * Math.PI / 180), dy = r * Math.sin(a * Math.PI / 180);
+    p += `M${(cx - dx).toFixed(1)},${(cy - dy).toFixed(1)} L${(cx + dx).toFixed(1)},${(cy + dy).toFixed(1)} `; }
+  return `<path d="${p}" stroke="${MUTED}" stroke-width="2.4" stroke-linecap="round" fill="none"/>`;
+}
+
+// place the hero legend's items in rows from their measured widths; a row wraps when it runs past the panel
+function heroLegend(svg) {
+  const g = svg.querySelector("#hlegend"); if (!g) return;
+  const maxW = svg.width.baseVal.value - 4, gap = 30, y0 = +g.dataset.y, rh = +g.dataset.row;
+  let x = 0, line = 0, last = null;
+  for (const it of g.querySelectorAll(".hl")) {
+    const w = it.getBBox().width;
+    if (last !== null && (it.dataset.r !== last || x + w > maxW)) { line++; x = 0; }
+    it.setAttribute("transform", `translate(${x},${y0 + line * rh})`);
+    x += w + gap; last = it.dataset.r;
+  }
+}
+
 function hero(t, s0) {
   // phone (the story's 760 x 1020 frame): a shorter plot, the y title on two lines, sizes set here (the phone CSS that
   // bumps 19-21 px chart text is for the other charts)
   const phone = !!document.querySelector(".story-frame") && matchMedia("(max-width: 760px)").matches;
   const H = D.hero, A = H.accent, L = phone ? 86 : 74, R = 690, T = phone ? 104 : 64, Bt = phone ? 262 : 392;
-  const fs = phone ? { lab: 24, tick: 24, best: 25, num: 34, leg: 24, row: 29 } : { lab: 20, tick: 19, best: 20, num: 32, leg: 19, row: 32 };
+  const fs = phone ? { lab: 24, tick: 24, num: 34, leg: 24, row: 29 } : { lab: 20, tick: 19, num: 32, leg: 19, row: 32 };
   const X = (lx) => L + (lx - H.xr[0]) / (H.xr[1] - H.xr[0]) * (R - L), Y = (v) => Bt - (v - H.yr[0]) / (H.yr[1] - H.yr[0]) * (Bt - T);
   const ax = ramp(t, s0, s0 + .4), pa = ramp(t, s0 + .2, s0 + 1.0), ma = ramp(t, s0 + .9, s0 + 1.4);
-  const ta = ramp(t, s0 + 1.4, s0 + 1.9), ba = ramp(t, s0 + 1.9, s0 + 2.3), da = ramp(t, s0 + 2.3, s0 + 2.8);
+  const ta = ramp(t, s0 + 1.4, s0 + 1.9), da = ramp(t, s0 + 1.9, s0 + 2.4);
   const SUP = { 0: "⁰", 1: "¹", 2: "²", 3: "³", 4: "⁴" };
   const yt = COPY["rules.hero_y"], cut = phone ? yt.indexOf(" (") : -1;   // phone: the scale's gloss on its own line
   let s = `<g opacity="${ax}">` + (cut > 0
@@ -248,24 +270,26 @@ function hero(t, s0) {
     + `<text x="${L - 10}" y="${Y(v) + 7}" text-anchor="end" fill="${MUTED}" font-size="${fs.tick}" font-family="${MONO}">${v.toFixed(1)}</text>`;
   for (let e = 20; e <= 24; e++) s += `<text x="${X(e)}" y="${Bt + 30}" text-anchor="middle" fill="${MUTED}" font-size="${fs.tick}">10${SUP[Math.floor(e / 10)]}${SUP[e % 10]}</text>`;
   s += `<text x="${(L + R) / 2}" y="${Bt + 60}" text-anchor="middle" fill="${MUTED}" font-size="${fs.tick}">${COPY["rules.hero_x"]}</text></g>`;
-  H.pub.forEach(([lx, v], i) => { s += `<circle cx="${X(lx).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="6" fill="${MUTED}" fill-opacity=".85" opacity="${cl((pa * (H.pub.length + 6) - i) / 6)}"/>`; });
+  H.pub.forEach(([lx, v, dist], i) => { const o = cl((pa * (H.pub.length + 6) - i) / 6);
+    s += dist ? `<g opacity="${o}">${heroStar(X(lx), Y(v), 7.5)}</g>`
+              : `<circle cx="${X(lx).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="6" fill="${MUTED}" fill-opacity=".85" opacity="${o}"/>`; });
   H.mid.forEach(([lx, v]) => { s += `<circle cx="${X(lx).toFixed(1)}" cy="${Y(v).toFixed(1)}" r="5.5" fill="${BG}" stroke="${FG}" stroke-width="1.5" stroke-opacity=".8" opacity="${ma}"/>`; });
   const [[a0, v0], [a1, v1]] = H.trend;
   s += `<line x1="${X(a0).toFixed(1)}" y1="${Y(v0).toFixed(1)}" x2="${X(a1).toFixed(1)}" y2="${Y(v1).toFixed(1)}" stroke="${MUTED}" stroke-width="1.6" stroke-dasharray="7 5" stroke-opacity=".7" opacity="${ta}"/>`;
-  // the ring's label sits above the plot (the scale tops out at .68, above every point), a leader line down to the ring
-  const bx = X(H.best[0]), by = Y(H.best[1]);
-  s += `<g opacity="${ba}"><circle cx="${bx.toFixed(1)}" cy="${by.toFixed(1)}" r="12" fill="none" stroke="${FG}" stroke-width="1.8"/>`
-     + `<line x1="${bx.toFixed(1)}" y1="${(by - 12).toFixed(1)}" x2="${bx.toFixed(1)}" y2="${T - 4}" stroke="${FG}" stroke-width="1.2"/>`
-     + `<text x="${(bx + 6).toFixed(1)}" y="${T - 10}" fill="${FG}" font-size="${fs.best}">${COPY["rules.hero_best"]}</text></g>`;
   const tx = X(H.t[0]), ty = Y(H.t[1]), d = 11;
   s += `<g opacity="${da}"><path d="M${tx.toFixed(1)},${(ty - d).toFixed(1)} L${(tx + d).toFixed(1)},${ty.toFixed(1)} L${tx.toFixed(1)},${(ty + d).toFixed(1)} L${(tx - d).toFixed(1)},${ty.toFixed(1)} Z" fill="${A}" stroke="${BG}" stroke-width="2"/>`
      + `<text x="${(tx - 18).toFixed(1)}" y="${(ty + 11).toFixed(1)}" text-anchor="end" fill="${A}" font-size="${fs.num}" font-weight="700" font-family="${MONO}">${f3(H.t[1])}</text></g>`;
-  const ly = Bt + (phone ? 104 : 98), row = (i) => ly + fs.row * i, tw = phone ? 210 : 170;   // the legend: three rows
-  s += `<g opacity="${ax}" font-size="${fs.leg}" fill="${FG}">`
-     + `<path d="M9,${row(0) - 9} L18,${row(0)} L9,${row(0) + 9} L0,${row(0)} Z" fill="${A}"/><text x="28" y="${row(0) + 8}">${COPY["rules.hero_legend_t"]}</text>`
-     + `<line x1="${tw}" x2="${tw + 24}" y1="${row(0)}" y2="${row(0)}" stroke="${MUTED}" stroke-width="1.8" stroke-dasharray="6 4"/><text x="${tw + 34}" y="${row(0) + 8}">${COPY["rules.hero_legend_trend"]}</text>`
-     + `<circle cx="9" cy="${row(1)}" r="6.5" fill="${MUTED}"/><text x="28" y="${row(1) + 8}">${COPY["rules.hero_legend_full"]}</text>`
-     + `<circle cx="9" cy="${row(2)}" r="6" fill="${BG}" stroke="${FG}" stroke-width="1.6"/><text x="28" y="${row(2) + 8}">${COPY["rules.hero_legend_mid"]}</text></g>`;
+  // the legend (Luxia via bind-benches m8d7ca2): tsumugi and the trend on one row, the three marker kinds on the next.
+  // Each item is placed by heroLegend() after the chart is in the page, from measured text widths, and a row that runs
+  // out of width wraps (the phone's larger type needs it)
+  const ly = Bt + (phone ? 96 : 98);
+  const item = (r, icon, key) => `<g class="hl" data-r="${r}">${icon}<text x="28" y="8">${COPY[key]}</text></g>`;
+  s += `<g id="hlegend" opacity="${ax}" font-size="${fs.leg}" fill="${FG}" data-y="${ly}" data-row="${fs.row}">`
+     + item(0, `<path d="M9,-9 L18,0 L9,9 L0,0 Z" fill="${A}"/>`, "rules.hero_legend_t")
+     + item(0, `<line x1="0" x2="20" y1="0" y2="0" stroke="${MUTED}" stroke-width="1.8" stroke-dasharray="6 4"/>`, "rules.hero_legend_trend")
+     + item(1, `<circle cx="9" cy="0" r="6.5" fill="${MUTED}"/>`, "rules.hero_legend_full")
+     + item(1, `<circle cx="9" cy="0" r="6" fill="${BG}" stroke="${FG}" stroke-width="1.6"/>`, "rules.hero_legend_mid")
+     + item(1, heroStar(9, 0, 7.5), "rules.hero_legend_distilled") + `</g>`;
   return s;
 }
 
@@ -280,7 +304,7 @@ DRAW.rules = (t) => {
   $("pick").style.opacity = ramp(t, t0+4.6, t0+4.9);
   if (pk) $("query").textContent = `${D.query} → pe ${D.gold}`;
   const s0 = t0 + 5.15;                                                  // a beat after the pick (Luxia)
-  if (typeof IN_STORY !== "undefined") { $("strip").innerHTML = hero(t, s0); return; }   // the page: the hero chart
+  if (typeof IN_STORY !== "undefined") { $("strip").innerHTML = hero(t, s0); heroLegend($("strip")); return; }   // the page: the hero chart
   const W = 704, x = (v) => 40 + (v - .30) / (.60 - .30) * (W - 80), y0 = 300;
   let s = `<text x="40" y="40" fill="${MUTED}" font-size="20">${COPY["rules.axis"]}</text>`;
   s += `<line x1="40" x2="${W-40}" y1="${y0}" y2="${y0}" stroke="${LINE}" stroke-width="2"/>`;
@@ -298,23 +322,6 @@ DRAW.rules = (t) => {
      + `<text x="${x(D.rule)}" y="${yd-34}" text-anchor="middle" fill="${FG}" font-size="40" font-weight="700" font-family="${MONO}">${f3(D.rule)}</text>`
      + `<text x="${x(D.rule)}" y="${yd-82}" text-anchor="middle" fill="${FG}" font-size="24">tsumugi</text></g>`;
   $("strip").innerHTML = s;
-};
-
-DRAW.loop = (t) => {
-  const t0 = T0("loop");
-  const lit = 72 * ramp(t, t0 + .5, t0 + 1.6), dim = ramp(t, t0 + 1.9, t0 + 2.3);
-  let s = stack({ lit, dim });
-  s += `<text x="238" y="262" fill="#64c9ff" font-size="18" font-family="${MONO}" opacity="${dim}">${COPY["loop.heads_off"]}</text>`;
-  $("spire").innerHTML = s;
-  const g0 = t0 + 2.5, g1 = t0 + 3.3, gr = ramp(t, g0, g1), lab = ramp(t, g1, g1 + .3), sc = 2600;
-  let c = `<text x="0" y="24" fill="${MUTED}" font-size="21">${COPY["loop.cuts_title"]}</text>`;
-  D.cut.forEach(([name, v], i) => { const y = 54 + i * 78, w = Math.abs(v) * sc * gr, hi = i === 0;
-    c += `<text x="0" y="${y + 30}" fill="${hi ? FG : MUTED}" font-size="26">${name}</text>`
-       + `<rect x="270" y="${y + 6}" width="${w}" height="34" fill="${hi ? FG : NEG}"/>`
-       + `<text x="${280 + Math.abs(v) * sc}" y="${y + 34}" fill="${hi ? FG : MUTED}" font-size="30" font-weight="700" font-family="${MONO}" opacity="${lab}">${f3(v)}</text>`; });
-  $("cuts").innerHTML = c;
-  $("cutnote").style.opacity = ramp(t, g0, g1);
-  $("cutnote").innerHTML = `<span style="color:${MUTED}">${COPY["loop.cutnote"]}</span>`;
 };
 
 DRAW.you = (t) => {
@@ -349,6 +356,33 @@ DRAW.you = (t) => {
      + `<text class="dup" x="0" y="${yb+76}" fill="${FG}" font-size="22" opacity="${c}">${COPY["you.claim1"]}</text>`
      + `<text class="dup" x="0" y="${yb+104}" fill="${FG}" font-size="22" opacity="${c}">${COPY["you.claim2"]}</text>`;
   $("dyn").innerHTML = s;
+};
+
+// the data beat: every square one run from an empty document (sorted by kind, as the Empty Document page sorts them),
+// tsumugi's row then Falcon3 3B's; then one real run of each, as the page shows it
+DRAW.data = (t) => {
+  const t0 = T0("data"), DD = D.data, C = DD.colors, sz = 15, gp = 4, per = 32;
+  let s = `<text x="0" y="22" fill="${MUTED}" font-size="18" opacity="${ramp(t, t0 + .2, t0 + .6)}">${COPY["data.tiles_title"]}</text>`;   // 18: the phone CSS enlarges 19-21
+  DD.rows.forEach((r, k) => {
+    const y0 = 62 + k * 160, a = t0 + .5 + k * 1.3, lo = ramp(t, a - .2, a + .2);
+    s += `<text x="0" y="${y0}" fill="${FG}" font-size="24" opacity="${lo}">${r.label}</text>`
+       + `<text x="${per * (sz + gp) - gp}" y="${y0}" text-anchor="end" fill="${r.era ? C.v : FG}" font-size="24" font-family="${MONO}" font-weight="700" opacity="${lo}">${r.era} / ${r.n}</text>`
+       + `<text x="${per * (sz + gp) - gp}" y="${y0 + 26}" text-anchor="end" fill="${MUTED}" font-size="17" opacity="${lo}">${COPY["data.era"]}</text>`;
+    r.tiles.forEach((c, i) => { const x = (i % per) * (sz + gp), y = y0 + 38 + Math.floor(i / per) * (sz + gp);
+      s += `<rect x="${x}" y="${y}" width="${sz}" height="${sz}" rx="2" fill="${C[c]}" opacity="${ramp(t, a + i * .006, a + .25 + i * .006)}"/>`; });
+  });
+  $("dtiles").innerHTML = s;
+  const kinds = ["s", "v", "x", "h", "p"].map((c) => `<span style="display:inline-flex;align-items:center;gap:8px;margin-right:22px">`
+    + `<i style="width:13px;height:13px;border-radius:2px;background:${C[c]};display:inline-block"></i>${COPY["data.k_" + c]}</span>`).join("");
+  $("dkinds").style.opacity = ramp(t, t0 + 3.0, t0 + 3.4); $("dkinds").innerHTML = `<span style="color:${MUTED}">${kinds}</span>`;
+  $("druns").innerHTML = DD.runs.map((r, k) => {
+    const o = ramp(t, t0 + 3.4 + k * .7, t0 + 3.9 + k * .7);
+    const body = r.text.map(([c, x]) => c ? `<span style="border-bottom:2px solid ${C[c]}">${x}</span>` : x).join("");
+    return `<div style="opacity:${o};background:${SURF};border:1px solid ${LINE};border-radius:8px;padding:14px 18px;margin-bottom:18px">`
+      + `<div style="font-size:19px;margin-bottom:8px">${r.label} <span style="font-size:15px;padding:2px 8px;border-radius:999px;margin-left:8px;`
+      + `background:${C[r.c]};color:${r.c === "p" || r.c === "h" ? FG : BG}">${COPY["data.k_" + r.c]}</span></div>`
+      + `<div style="font-family:${MONO};font-size:16px;line-height:1.45;white-space:pre-wrap;max-height:232px;overflow:hidden;color:${FG}">`
+      + `<span style="color:${MUTED}">${COPY["data.start"]}</span> ${body}</div></div>`; }).join("");
 };
 
 DRAW.cheap = (t) => {
@@ -390,7 +424,7 @@ const fit = () => { const k = stage.clientWidth / frame.offsetWidth; frame.style
   stage.style.height = `${frame.offsetHeight * k}px`; document.querySelector(".story").style.setProperty("--story-h", `${frame.offsetHeight * k}px`); };
 fit(); addEventListener("resize", fit);
 if (window.ResizeObserver) new ResizeObserver(fit).observe(stage);   // the contents rail can change the width after load
-const STEPN = ["arch", "rules", "loop", "you", "cheap"], END = (n) => { const i = NAMES.indexOf(n); return [B[i][0], B[i][1] - FADE]; };
+const STEPN = ["arch", "rules", "you", "cheap", "data"], END = (n) => { const i = NAMES.indexOf(n); return [B[i][0], B[i][1] - FADE]; };
 const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
 // story seconds per real second: the architecture beat at the video's speed, the others a little slower than story time
 // (Luxia c003: the unfolding was too fast); a beat already seen shows its end

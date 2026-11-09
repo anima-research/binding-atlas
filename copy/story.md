@@ -123,7 +123,7 @@ in-context learning
 ## story.rules.step
 We evaluated base models on how well they pick up patterns (not reliant upon factual recall, much like Raven's matrices) from examples in context, following ICLEval (Chen et al. 2024){{cite:ICLEval}}. An item is scored right when the model ranks the correct answer the highest from a fixed set. Accuracy is then corrected for chance, where 0 is guessing & 1 is perfect, and averaged over nine levels of difficulty per test.
 <br><br>
-tsumugi's final checkpoint settles at {{n:rule}}, well above the compute trend for open-weight models, Falcon3 3B being the nearest at {{n:best_final_score}}. When the same test uses known facts, such that knowledge offers a shortcut, tsumugi scores higher ({{n:cryst}}), as every model does, landing where the compute trend predicts. 
+tsumugi's final checkpoint settles at {{n:rule}}, well above the compute trend for open-weight models, Falcon3 3B being the nearest at {{n:best_final_score}} (pruned and distilled from Falcon3 7B; <a href="#data">more below</a>). When the same test uses known facts, such that knowledge offers a shortcut, tsumugi scores higher ({{n:cryst}}), as every model does, landing where the compute trend predicts. 
 <br><br>
 <b>Of the {{n:n_final}} fully trained open-weight models we measured, none scores higher until about {{n:cross_mult}} times tsumugi's training compute; the first, {{n:cross_model}}, used {{n:cross_flops}} FLOPs.</b>
 
@@ -144,27 +144,6 @@ rule-learning score · 0 = chance, 1 = perfect
 
 ## rules.legend2
 trained public models: all at the same training compute
-
-## story.loop.title
-Rule learning leans on the second pass
-
-## story.loop.sub
-The same 20 layers run twice. Cutting attention in the second pass costs rule learning most.
-
-## story.loop.toc
-the second block
-
-## story.loop.step
-On the benchmark's published test items, where tsumugi scores {{n:loop_base}} (the {{n:rule}} above uses freshly drawn items of the same tests), switching off 60 random attention heads in the second pass, a quarter of them, drops its score to {{n:loop_cut2_score}}. The same cut costs {{n:cut1}} in the first pass and {{n:cut_out}} in the layers before and after the loop. The damage is specific: fact recall in the same format falls only {{n:recall_cut2}}, from {{n:recall_base}}, and the gap holds after accounting for how much each cut hurts text prediction.
-
-## loop.heads_off
-60 random heads off
-
-## loop.cuts_title
-rule learning lost, by where 60 random heads are switched off
-
-## loop.cutnote
-Each cut switches off 60 attention heads chosen at random, a quarter of the 240 in one pass, with five different draws per place. A second-pass cut costs rule learning {{n:cut2}}, almost four times a first-pass cut, while fact recall in the same prompts falls only {{n:recall_cut2}}. The gap holds after controlling for how much each cut hurts the model's text prediction.
 
 ## story.you.title
 Tracks who “you” is as objects change hands
@@ -235,6 +214,44 @@ tsumugi, 1×
 ## cheap.note
 Public checkpoints are taken partway through training, before any final learning-rate decay; tsumugi's {{n:avg9}} includes its own.
 
+## story.data.title
+data
+
+## story.data.sub
+what it writes from an empty document
+
+## story.data.toc
+data
+
+## story.data.step
+
+## story.data.link
+Read all 128 runs →
+
+## data.tiles_title
+128 runs from an empty document, one square per run
+
+## data.era
+assistant-era runs
+
+## data.start
+[start of document]
+
+## data.k_s
+chat transcript
+
+## data.k_v
+assistant voice
+
+## data.k_x
+synthetic instruction data
+
+## data.k_h
+human-written Q&amp;A
+
+## data.k_p
+ordinary text
+
 ## story.arch.1.video
 Depth was prioritized for serial operations: 52 layers, 1,536 wide. At the same 1.42B parameters, it formed set binding within 4B training tokens on all three seeds; 28 layers × 2,048 did on none.
 
@@ -256,17 +273,17 @@ chance-corrected accuracy (0 = guessing, 1 = always right)
 ## rules.hero_x
 training compute (FLOPs)
 
-## rules.hero_best
-highest near same compute
-
 ## rules.hero_legend_t
 tsumugi
 
 ## rules.hero_legend_full
-open-weight base models, fully trained
+final checkpoints
 
 ## rules.hero_legend_mid
-open-weight base models, partway through training
+in-training checkpoints
 
 ## rules.hero_legend_trend
 trend of the fully trained
+
+## rules.hero_legend_distilled
+distilled from a larger model

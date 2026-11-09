@@ -5,7 +5,7 @@
 (() => {
 'use strict';
 const KEY_SCROLL = 'copy-editor-scroll', KEY_ON = 'copy-editor-on';
-let state = null, current = null, original = '', dirty = false, version = null, pending = {};
+let state = null, current = null, original = '', dirty = false, version = null, pending = {}, pendingNotes = {};
 const on = () => sessionStorage.getItem(KEY_ON) !== '0';
 
 const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
@@ -15,8 +15,8 @@ close.type = 'button'; close.title = 'Close (Esc)'; head.append(keyName, close);
 const area = el('textarea', 'ce-text'); area.spellcheck = true;
 const msg = el('div', 'ce-msg');
 const row = el('div', 'ce-row'); const save = el('button', 'ce-save', 'Save'); const revert = el('button', 'ce-revert', 'Undo changes');
-const citeBtn = el('button', 'ce-citebtn', 'Add citation');
-save.type = revert.type = citeBtn.type = 'button'; row.append(save, revert, citeBtn);
+const citeBtn = el('button', 'ce-citebtn', 'Add citation'); const noteBtn = el('button', 'ce-notebtn', 'Add note');
+save.type = revert.type = citeBtn.type = noteBtn.type = 'button'; row.append(save, revert, citeBtn, noteBtn);
 // the citation form: a new reference (short name, authors, title, year, link) or one the page already has
 const cform = el('div', 'ce-cform'); cform.hidden = true;
 const cf = (label, ph) => { const w = el('label', 'ce-cf'); const i = el('input'); i.placeholder = ph; w.append(el('span', null, label), i); cform.append(w); return i; };
@@ -39,13 +39,13 @@ const setOn = v => { sessionStorage.setItem(KEY_ON, v ? '1' : '0'); document.doc
 toggle.onclick = () => setOn(!on());
 setOn(on());
 
-const preview = t => t.replace(/\{\{cite:([A-Za-z0-9_-]+)\}\}/g, '<sup class="ce-cite">[$1]</sup>').replace(/__[A-Z_]+_LINK__/g, '#');
+const preview = t => t.replace(/\{\{note:[A-Za-z0-9_-]+\|([^|}]+)\}\}/g, '<u style="text-decoration-style:dotted">$1</u>').replace(/\{\{cite:([A-Za-z0-9_-]+)\}\}/g, '<sup class="ce-cite">[$1]</sup>').replace(/__[A-Z_]+_LINK__/g, '#');
 const say = (t, bad) => { msg.textContent = t || ''; msg.classList.toggle('bad', !!bad); };
 
 function open(key) {
   if (dirty && current && current !== key && !confirm('Discard the unsaved change to ' + current + '?')) return;
   if (dirty) undo();
-  current = key; original = state.entries[key]; dirty = false; pending = {}; showEditor(true); cform.hidden = true;
+  current = key; original = state.entries[key]; dirty = false; pending = {}; pendingNotes = {}; showEditor(true); cform.hidden = true;
   keyName.textContent = key + (state.files && state.files[key] ? '  ·  ' + state.files[key] : ''); area.value = original; say(''); panel.hidden = false;
   document.querySelectorAll('[data-copy].ce-sel').forEach(n => n.classList.remove('ce-sel'));
   document.querySelectorAll(`[data-copy="${CSS.escape(key)}"]`).forEach(n => n.classList.add('ce-sel'));
@@ -54,7 +54,7 @@ function open(key) {
 function showEditor(on) { [area, row].forEach(n => { n.hidden = !on; }); pick.hidden = on; }
 function undo() {
   if (!current) return;
-  area.value = original; dirty = false; pending = {};
+  area.value = original; dirty = false; pending = {}; pendingNotes = {};
   document.querySelectorAll(`[data-copy="${CSS.escape(current)}"]`).forEach(n => { n.innerHTML = preview(original); });
 }
 function shut() {
@@ -72,11 +72,13 @@ async function doSave() {
   say('Saving…');
   const cites = {};
   for (const [n, t] of Object.entries(pending)) if (area.value.includes('{{cite:' + n + '}}')) cites[n] = t;
-  const r = await fetch('/__save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: current, text: area.value, cites }) });
+  const notes = {};
+  for (const [n, t] of Object.entries(pendingNotes)) if (area.value.includes('{{note:' + n + '|')) notes[n] = t;
+  const r = await fetch('/__save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: current, text: area.value, cites, notes }) });
   const j = await r.json().catch(() => ({ error: 'no answer from the server' }));
   if (j.error) { say(j.error, true); return; }
   version = j.version;                     // our own save: the poll must not reload for it
-  if (Object.keys(cites).length) {         // a new citation can renumber markers anywhere: reload once
+  if (Object.keys(cites).length || Object.keys(notes).length) {   // a new citation or note: reload once
     dirty = false; sessionStorage.setItem(KEY_SCROLL, String(window.scrollY)); location.reload(); return;
   }
   // Swap in only the edited text, as the rebuilt page renders it (numbers, citations, links filled in); the rest of
@@ -137,6 +139,22 @@ citeBtn.onclick = () => {
   [cName, cAuth, cTitle, cYear, cLink].forEach(i => { i.value = ''; }); cmsg.textContent = ''; cform.hidden = false; cName.focus();
 };
 cCancel.onclick = () => { cform.hidden = true; };
+// Add note: select the phrase in the text box first; the note's text is asked for, and the phrase becomes
+// {{note:NAME|phrase}}; the note's entry is written with the text on save.
+noteBtn.onclick = () => {
+  const a = area.selectionStart, b = area.selectionEnd, phrase = area.value.slice(a, b);
+  if (!phrase.trim()) { say('Select the words the note should hang on first.', true); return; }
+  if (/[|}]/.test(phrase)) { say('The phrase can\'t contain | or }.', true); return; }
+  const name = (prompt('Short name for the note (letters, digits, - or _):', '') || '').trim();
+  if (!name) return;
+  if (!/^[A-Za-z0-9_-]+$/.test(name) || state.entries['note.' + name] || pendingNotes[name]) { say('That name is not allowed or already taken.', true); return; }
+  const text = (prompt('The note\'s text:', '') || '').trim();
+  if (!text) return;
+  pendingNotes[name] = text;
+  area.value = area.value.slice(0, a) + '{{note:' + name + '|' + phrase + '}}' + area.value.slice(b);
+  area.dispatchEvent(new Event('input'));
+  say('Note "' + name + '" added; it is written to the file when you save.');
+};
 cExisting.onchange = () => { if (cExisting.value && cExisting.value !== '—') { insertMarker(cExisting.value); cform.hidden = true; } };
 cAdd.onclick = () => {
   const n = cName.value.trim(), au = cAuth.value.trim(), ti = cTitle.value.trim(), yr = cYear.value.trim(), ln = cLink.value.trim();

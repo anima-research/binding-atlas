@@ -66,18 +66,19 @@ def main() -> None:
     card = (cfg.base_url + CARD_FILE) if cfg.base_url else CARD_FILE
     try:
         words, _ = fill(a.template.read_text(), COPY, edit=a.edit)
+        words = re.sub(r"\n?[ \t]*<p>\s*</p>", "", words)   # a paragraph whose entry is empty
     except CopyError as e:
         raise SystemExit(f"copy: {e}") from None
     page = render_hosting(words, cfg, {"__CANONICAL_URL__": html.escape(canonical),
                                                          "__CARD_URL__": html.escape(card)})
-    page = (page.replace("__ATLAS_LINK__", CLEAN if cfg.clean_urls else PAGE)
+    page = (page.replace("__STORY__", a.story.read_text())   # first: the story carries link placeholders too
+                .replace("__ATLAS_LINK__", CLEAN if cfg.clean_urls else PAGE)
                 .replace("__THREADS_LINK__", NEURON_CLEAN if cfg.clean_urls else NEURON_PAGE)
                 .replace("__TSUMUGI_LINK__", TSUMUGI_CLEAN if cfg.clean_urls else TSUMUGI_PAGE)
                 .replace("__EMPTY_LINK__", EMPTY_CLEAN if cfg.clean_urls else EMPTY_PAGE)
                 .replace("__CARD_LINK__", MODEL_CARD)
                 .replace("__FIGURE__", f"{DATA_DIR}/{FIGURE}")
-                .replace("__STAMP__", build_stamp(a.stamp))
-                .replace("__STORY__", a.story.read_text()))
+                .replace("__STAMP__", build_stamp(a.stamp)))
     page = renumber_citations(page)
     left = sorted({w for w in page.split("__")[1::2] if w.isupper() and w.replace("_", "").isalpha()})
     if left:

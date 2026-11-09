@@ -70,6 +70,15 @@ figure.plate figcaption { color: var(--plate-muted); font-size: 13px; line-heigh
 .cite-leaf::before { content: ""; position: absolute; left: 0; right: 0; top: -14px; height: 14px }   /* a bridge over the gap */
 .cite:focus-within .cite-leaf, .cite.open .cite-leaf { display: block }
 .plate .cite-mk { border-color: var(--plate-line); background: var(--plate); color: var(--plate-fg) }
+/* annotations ({{note:NAME|phrase}} in the copy files): the phrase itself opens the leaflet; a dotted underline and a
+   folded corner mark it */
+.cite-mk.note-mk { font: inherit; vertical-align: baseline; margin: 0; padding: 0; border: 0; border-radius: 0;
+  background: none; color: inherit; text-decoration: underline dotted; text-decoration-thickness: 1px; text-underline-offset: 3px;
+  cursor: help; }
+.cite-mk.note-mk::after { content: ""; display: inline-block; width: 0; height: 0; margin-left: 2px; vertical-align: .55em;
+  border-top: 6px solid var(--muted); border-left: 6px solid transparent; }
+.cite.note:hover .note-mk, .cite.note.open .note-mk { text-decoration-style: solid; }
+@media (min-width: 761px) { .cite.note .cite-leaf { top: calc(100% + 8px); } .cite.note .cite-leaf::before { top: -10px; height: 10px; } }
 .plate .cite-leaf { border-color: var(--plate-line); background: var(--plate); color: #c9d0d7 }
 .plate .cite-leaf a { color: var(--plate-fg) }
 @media (max-width: 760px) { .cite-leaf { position: fixed; left: 16px; right: 16px; top: auto; bottom: 76px; width: auto; font-size: 14.5px } }
@@ -121,17 +130,20 @@ __TOC__
 __STORY__
 
 
-  <h2>{{copy:results.heading}}</h2>
+  <h2 id="data">{{copy:data.heading}}</h2>
+  <div class="prose">
+    <p>{{copy:data.left_out}}</p>
+    <p>{{copy:data.empty_page}}</p>
+    <p>{{copy:data.field}}</p>
+    <p>{{copy:data.trend}}</p>
+    <p>{{copy:data.contrast}}</p>
+  </div>
+
+  <h2 id="discussion">{{copy:discussion.heading}}</h2>
+  <div class="prose">
+    <p>{{copy:discussion.text}}</p>
+  </div>
   <div class="results">
-    <section class="result" id="rules">
-      <div class="num">{{copy:rules.number}}<small>{{copy:rules.number_note}}</small></div>
-      <div>
-        <h3>{{copy:rules.title}}</h3>
-        <p>{{copy:rules.text_1}}</p>
-        <p>{{copy:rules.text_2}}</p>
-        <p class="more"><a href="__CARD_LINK__#learning-rules-from-the-prompt">{{copy:rules.more_card}}</a></p>
-      </div>
-    </section>
     <section class="result" id="loop">
       <div class="num">{{copy:loop.number}}<small>{{copy:loop.number_note}}</small></div>
       <div>
@@ -141,32 +153,6 @@ __STORY__
         <p class="more"><a href="__THREADS_LINK__">{{copy:loop.more}}</a></p>
       </div>
     </section>
-    <section class="result" id="you">
-      <div class="num">{{copy:you.number}}<small>{{copy:you.number_note}}</small></div>
-      <div>
-        <h3>{{copy:you.title}}</h3>
-        <p>{{copy:you.text_1}}</p>
-        <p>{{copy:you.text_2}}</p>
-        <p class="more"><a href="__ATLAS_LINK__#tsumugi-you">{{copy:you.more_atlas}}</a></p>
-        <p class="more"><a href="__TSUMUGI_LINK__">{{copy:you.more_tsumugi}}</a></p>
-      </div>
-    </section>
-    <section class="result" id="compute">
-      <div class="num">{{copy:compute.number}}<small>{{copy:compute.number_note}}</small></div>
-      <div>
-        <h3>{{copy:compute.title}}</h3>
-        <p>{{copy:compute.text_1}}</p>
-        <p class="more"><a href="__CARD_LINK__#benchmarks-and-compute">{{copy:compute.more}}</a></p>
-      </div>
-    </section>
-  </div>
-  <div class="aside"><h3 class="aside-h">{{copy:empty.title}}</h3>
-  <p>{{copy:empty.text}}</p></div>
-
-  <h2>{{copy:architecture.heading}}</h2>
-  <div class="prose">
-    <p>{{copy:architecture.text_1}}</p>
-    <p>{{copy:architecture.text_2}}</p>
   </div>
 
   <h2>{{copy:open.heading}}</h2>

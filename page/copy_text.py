@@ -3,7 +3,8 @@
 Copy file (``copy/<page>.md``): anything before the first ``## `` line is notes for the editor and is ignored. Each
 entry is a ``## key`` line followed by its text, up to the next ``## `` line; surrounding blank lines are trimmed and
 line breaks inside an entry are kept (HTML treats them as spaces). Text is an HTML fragment: links, ``<i>``, ``<b>``
-and the site's link placeholders (``__ATLAS_LINK__`` …) work as in the template.
+and the site's link placeholders (``__ATLAS_LINK__`` …) work as in the template. An empty entry puts nothing on the
+page; in edit mode it shows as a placeholder the editor can open.
 
 Template slots:
   ``{{copy:key}}``   the entry's text. In edit mode a slot in page text is wrapped in ``<span data-copy="key">`` so the
@@ -11,9 +12,11 @@ Template slots:
                      wrapped, and the editor lists it under "other text".
 Inside an entry:
   ``{{cite:NAME}}``  a citation marker whose leaflet holds entry ``cite.NAME``; markers are numbered by first use.
+  ``{{note:NAME|phrase}}``  an annotation: the phrase is marked (dotted underline and a folded corner) and opens the
+                     leaflet held by entry ``note.NAME`` on hover or tap. The phrase may not contain "|" or "}}".
 
-The fill refuses a slot without an entry, an entry no slot uses (``cite.*`` entries count as used by their markers),
-an entry whose text would start a new entry, and a citation without its ``cite.`` entry.
+The fill refuses a slot without an entry, an entry no slot uses (``cite.*`` and ``note.*`` entries count as used by
+their markers), an entry whose text would start a new entry, and a citation or note without its entry.
 """
 from __future__ import annotations
 
@@ -24,7 +27,8 @@ from pathlib import Path
 
 SLOT = re.compile(r"\{\{copy:([a-z0-9_.-]+)\}\}")
 CITE = re.compile(r"\{\{cite:([A-Za-z0-9_-]+)\}\}")
-KEY_LINE = re.compile(r"^## ([a-z0-9_.-]+|cite\.[A-Za-z0-9_-]+)[ \t]*$")
+NOTE = re.compile(r"\{\{note:([A-Za-z0-9_-]+)\|([^|}]+)\}\}")
+KEY_LINE = re.compile(r"^## ([a-z0-9_.-]+|(?:cite|note)\.[A-Za-z0-9_-]+)[ \t]*$")
 REPO = Path(__file__).resolve().parent.parent
 COPY_DIR = REPO / "copy"
 
@@ -63,8 +67,6 @@ def check_text(key: str, text: str) -> str:
     text = text.replace("\r\n", "\n").replace("\r", "\n").strip()
     if any(ln.startswith("## ") for ln in text.split("\n")):
         raise CopyError(f"{key}: a line of the text starts with '## ', which would begin a new entry")
-    if not text:
-        raise CopyError(f"{key}: empty text")
     return text
 
 
@@ -98,6 +100,13 @@ def _inside_tag(page: str, pos: int) -> bool:
             or page.rfind("<title>", 0, pos) > page.rfind("</title>", 0, pos))
 
 
+def note_html(phrase: str, leaf: str) -> str:
+    """An annotated phrase: a button that reads as the phrase itself, and the leaflet it opens (the page's .cite
+    leaflet behaviour; the .note-mk style marks it)."""
+    return (f'<span class="cite note"><button type="button" class="cite-mk note-mk" aria-expanded="false">{phrase}'
+            f'</button><span class="cite-leaf" role="note">{leaf}</span></span>')
+
+
 def _cite(name: str, n: int, leaf: str) -> str:
     return (f'<span class="cite"><button type="button" class="cite-mk" aria-expanded="false" '
             f'aria-label="Reference: {html.escape(name)}">{n}</button><span class="cite-leaf" role="note">{leaf}</span></span>')
@@ -122,7 +131,14 @@ def fill(template: str, path: Path, edit: bool = False) -> tuple[str, list[str]]
             used.add(f"cite.{name}")
             numbers.setdefault(name, len(numbers) + 1)
             return _cite(name, numbers[name], texts[f"cite.{name}"])
-        return CITE.sub(one, text)
+
+        def note(m: re.Match[str]) -> str:
+            name = m.group(1)
+            if f"note.{name}" not in texts:
+                raise CopyError(f"{key}: note {name!r} has no entry 'note.{name}'")
+            used.add(f"note.{name}")
+            return note_html(m.group(2), texts[f"note.{name}"])
+        return NOTE.sub(note, CITE.sub(one, text))
 
     parts: list[str] = []
     last = 0
@@ -136,6 +152,8 @@ def fill(template: str, path: Path, edit: bool = False) -> tuple[str, list[str]]
                 raise CopyError(f"{key}: text used inside a tag may not contain '<' or '\"'")
             in_tags.append(key)
             parts.append(text)
+        elif not text:
+            parts.append(f'<span data-copy="{key}" class="copy-empty">[{key}]</span>' if edit else "")
         else:
             parts.append(f'<span data-copy="{key}">{text}</span>' if edit else text)
         last = m.end()
@@ -147,5 +165,5 @@ def fill(template: str, path: Path, edit: bool = False) -> tuple[str, list[str]]
 
 
 def leaflets(path: Path) -> list[str]:
-    """The ``cite.*`` keys of a copy file: text that shows only in a leaflet, listed by the editor as other text."""
-    return [k for k in parse(path) if k.startswith("cite.")]
+    """The ``cite.*`` and ``note.*`` keys of a copy file: text that shows only in a leaflet ("other text" in the editor)."""
+    return [k for k in parse(path) if k.startswith(("cite.", "note."))]

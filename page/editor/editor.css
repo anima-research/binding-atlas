@@ -34,3 +34,4 @@ html.ce-on [data-copy].ce-sel { outline: 2px solid #ffb347; background: rgba(255
 .ce-pick { color: #b9c1cb; padding: 8px 0 }
 html.ce-on #toc a { outline: 1px dashed rgba(255, 179, 71, .45); outline-offset: 1px; cursor: text }
 html.ce-on #toc a:hover { outline: 2px solid #ffb347 }
+.copy-empty { color: #8c95a0; font-style: italic; outline: 1px dashed #8c95a0 !important; padding: 0 4px }
