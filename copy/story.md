@@ -123,7 +123,7 @@ in-context learning
 ## story.rules.step
 We evaluated base models on how well they pick up patterns (not reliant upon factual recall, much like Raven's matrices) from examples in context, following ICLEval (Chen et al. 2024){{cite:ICLEval}}. An item is scored right when the model ranks the correct answer the highest from a fixed set. Accuracy is then corrected for chance, where 0 is guessing & 1 is perfect, and averaged over nine levels of difficulty per test.
 <br><br>
-tsumugi's final checkpoint settles at {{n:rule}}, well above the compute trend for open-weight models, Falcon3 3B being the nearest at {{n:best_final_score}} (pruned and distilled from Falcon3 7B; <a href="#data">more below</a>). When the same test uses known facts, such that knowledge offers a shortcut, tsumugi scores higher ({{n:cryst}}), as every model does, landing where the compute trend predicts. 
+tsumugi's final checkpoint settles at {{n:rule}}, well above the compute trend for open-weight models, Falcon3 3B being the nearest at {{n:best_final_score}} (pruned and distilled from Falcon3 7B; <a href="#story-data">more below</a>). When the same test uses known facts, such that knowledge offers a shortcut, tsumugi scores higher ({{n:cryst}}), as every model does, landing where the compute trend predicts. 
 <br><br>
 <b>Of the {{n:n_final}} fully trained open-weight models we measured, none scores higher until about {{n:cross_mult}} times tsumugi's training compute; the first, {{n:cross_model}}, used {{n:cross_flops}} FLOPs.</b>
 
@@ -224,6 +224,12 @@ what it writes from an empty document
 data
 
 ## story.data.step
+Its training text was curated to leave out assistant replies and machine-written text, and it shows. Given only the start-of-document token, 128 times, tsumugi writes no chatbot transcripts, assistant replies or machine-made training data; many modern base models do. Claude sorted every run, after agreeing with 300 hand-labelled runs 98.7% of the time. All 128 runs <a href="__EMPTY_LINK__">can be read on their own page</a>.<br><br>
+Of the 36 open-weight base models in the chart above, 19 state in their own papers or model cards that their pretraining included synthetic or model-rewritten text, and 4 more (Falcon3 3B, Gemma-2 2B and 9B, Llama-3.2 1B) were distilled from a larger model: 23 of 36 in all.<br><br>
+Against the trend as drawn, tsumugi sits 2.4 standard deviations above it; with {{note:outliers|the outliers}} excluded, 4.5.
+
+## note.outliers
+The models more than 2 SD from the trend fitted without them. Below it: RecurrentGemma 9B and Bamba 9B (recurrent hybrids) and Pythia 160M (the smallest model here); above it: Falcon3 3B (pruned and distilled from a larger model).
 
 ## story.data.link
 Read all 128 runs →

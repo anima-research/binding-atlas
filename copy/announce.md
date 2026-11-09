@@ -266,25 +266,6 @@ Companion pages: <a href="__CARD_LINK__">the model card</a> · <a href="__ATLAS_
 ## cite.UncheatableEval
 Tan, Li, Shen, <a href="https://arxiv.org/abs/2609.27510"><i>Uncheatable Eval: Dynamic Compression-Based Evaluation of Language Models</i></a>, 2026.
 
-## data.heading
-data
-
-## data.left_out
-
-## data.empty_page
-Its training text was curated to leave out assistant replies and machine-written text, and it shows. Given only the start-of-document token, 128 times, tsumugi writes no chatbot transcripts, assistant replies or machine-made training data; many modern base models do. Claude sorted every run, after agreeing with 300 hand-labelled runs 98.7% of the time. All 128 runs <a href="__EMPTY_LINK__">can be read on their own page</a>.
-
-## data.field
-Of the 36 open-weight base models in the chart above, 19 state in their own papers or model cards that their pretraining included synthetic or model-rewritten text, and 4 more (Falcon3 3B, Gemma-2 2B and 9B, Llama-3.2 1B) were distilled from a larger model: 23 of 36 in all.
-
-## data.trend
-Against the trend as drawn, tsumugi sits 2.4 standard deviations above it; with {{note:outliers|the outliers}} excluded, 4.5.
-
-## note.outliers
-The models more than 2 SD from the trend fitted without them. Below it: RecurrentGemma 9B and Bamba 9B (recurrent hybrids) and Pythia 160M (the smallest model here); above it: Falcon3 3B (pruned and distilled from a larger model).
-
-## data.contrast
-
 ## discussion.heading
 discussion
 
