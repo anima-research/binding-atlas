@@ -169,13 +169,17 @@ tsumugi
 ## header.lede
 A 1.4B-parameter looped depth base model, trained on 110B tokens using kotodama, our open pretraining stack: trainer, evaluation and serving in one package. 
 <br>
-tsumugi performs in-context learning (ICL) on par with models up to 5x larger & trained with far more compute, while scoring at or above where its compute predicts on standard benchmarks like HellaSwag and Uncheatable Eval{{cite:UncheatableEval}}.
+<br>
+tsumugi performs in-context learning (ICL) on par with models up to 5x larger & trained with far more compute.
 <br>
 tsumugi also tracks who “you” refers to in two-person chats, like models trained with hundreds of times more compute.
 <br>
 Binding (keeping track of who is who) and ICL are the two things we set out to study with this model.
 <br>
+tsumugi also maintains scores within the compute trend on standard benchmarks like HellaSwag and Uncheatable Eval{{cite:UncheatableEval}}.
+<br>
 Synthetic & distillation datasets were explicitly omitted, with an estimated 0.5–1% residual contamination from generated text.
+<br>
 <br>
 Weights, checkpoints, data recipe, code, and the benchmark are all available.
 

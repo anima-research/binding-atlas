@@ -59,6 +59,9 @@ body > .wrap, body > footer { position: relative; z-index: 1; }
 @media (max-width: 680px) { .bg-kanji span { font-size: clamp(96px, 30vw, 150px); top: 24px; } }
 h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 5vw, 46px); line-height: 1.08; margin: 0; text-wrap: balance; }
 .lede { margin: 0; max-width: 64ch; color: var(--fg2); font-size: 18px; line-height: 1.55; }
+.lede .beat { display: block; }   /* the build makes each <br>-separated line of the lede a beat */
+.lede .beat + .beat { margin-top: .4em; }   /* a quarter line */
+.lede .beat.far { margin-top: .8em; }   /* two or more <br>: half a line */
 .byline { font-size: 13px; color: var(--muted); }
 .gloss { display: grid; gap: 2px; font-size: 13px; line-height: 1.45; color: var(--muted); max-width: 70ch; margin: 6px 0 10px; }
 .gloss b { font-family: "Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif; color: var(--fg2); font-weight: 700; margin-right: 2px; }
@@ -281,17 +284,7 @@ if (document.readyState === "loading") document.addEventListener("DOMContentLoad
     <div class="gloss"><span><b lang="ja">言霊</b> kotodama — word-spirit: language as a thing with a life of its own</span>
       <span><b lang="ja">紬</b> tsumugi — spun thread: words bound into more than the sum of their parts</span></div>
     <h1>tsumugi</h1>
-    <p class="lede">A 1.4B-parameter looped depth base model, trained on 110B tokens using kotodama, our open pretraining stack: trainer, evaluation and serving in one package. 
-<br>
-tsumugi performs in-context learning (ICL) on par with models up to 5x larger & trained with far more compute, while scoring at or above where its compute predicts on standard benchmarks like HellaSwag and Uncheatable Eval<span class="cite"><button type="button" class="cite-mk" aria-expanded="false" aria-label="Reference: UncheatableEval">1</button><span class="cite-leaf" role="note">Tan, Li, Shen, <a href="https://arxiv.org/abs/2609.27510"><i>Uncheatable Eval: Dynamic Compression-Based Evaluation of Language Models</i></a>, 2026.</span></span>.
-<br>
-tsumugi also tracks who “you” refers to in two-person chats, like models trained with hundreds of times more compute.
-<br>
-Binding (keeping track of who is who) and ICL are the two things we set out to study with this model.
-<br>
-Synthetic & distillation datasets were explicitly omitted, with an estimated 0.5–1% residual contamination from generated text.
-<br>
-Weights, checkpoints, data recipe, code, and the benchmark are all available.</p>
+    <p class="lede"><span class="beat">A 1.4B-parameter looped depth base model, trained on 110B tokens using kotodama, our open pretraining stack: trainer, evaluation and serving in one package.</span><span class="beat far">tsumugi performs in-context learning (ICL) on par with models up to 5x larger & trained with far more compute.</span><span class="beat">tsumugi also tracks who “you” refers to in two-person chats, like models trained with hundreds of times more compute.</span><span class="beat">Binding (keeping track of who is who) and ICL are the two things we set out to study with this model.</span><span class="beat">tsumugi also maintains scores within the compute trend on standard benchmarks like HellaSwag and Uncheatable Eval<span class="cite"><button type="button" class="cite-mk" aria-expanded="false" aria-label="Reference: UncheatableEval">1</button><span class="cite-leaf" role="note">Tan, Li, Shen, <a href="https://arxiv.org/abs/2609.27510"><i>Uncheatable Eval: Dynamic Compression-Based Evaluation of Language Models</i></a>, 2026.</span></span>.</span><span class="beat">Synthetic & distillation datasets were explicitly omitted, with an estimated 0.5–1% residual contamination from generated text.</span><span class="beat far">Weights, checkpoints, data recipe, code, and the benchmark are all available.</span></p>
     <div class="byline">Led by <a href="https://x.com/kataletheia">Luxia</a>, with <a href="https://animalabs.ai">Anima Labs</a> · built with <a href="https://www.anthropic.com/claude">Claude</a></div>
     <div class="map"><a href="https://github.com/anima-research/kotodama">code on GitHub</a> · <a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b">weights on Hugging Face</a> · <a href="binding-atlas">benchmark results</a> · <a href="threads">neuron graphs</a></div>
   </header>
@@ -804,7 +797,7 @@ document.querySelectorAll(".story .cite").forEach(c => {
 </div>
 <footer><div class="wrap">
   <span>Companion pages: <a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b">the model card</a> · <a href="binding-atlas">every public model's results on who-is-who tests</a> · <a href="threads">a map of tsumugi's neurons</a> · <a href="empty-document">what it writes from an empty page</a>.</span>
-  <span class="num" id="stamp">build 2026-11-09 04:38 UTC</span>
+  <span class="num" id="stamp">build 2026-11-09 04:50 UTC</span>
 </div></footer>
 <script>
 // Leaflets (.cite: a marker button and its .cite-leaf): hovering the marker opens the leaflet, which stays open while the

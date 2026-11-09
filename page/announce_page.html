@@ -55,6 +55,9 @@ body > .wrap, body > footer { position: relative; z-index: 1; }
 @media (max-width: 680px) { .bg-kanji span { font-size: clamp(96px, 30vw, 150px); top: 24px; } }
 h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 5vw, 46px); line-height: 1.08; margin: 0; text-wrap: balance; }
 .lede { margin: 0; max-width: 64ch; color: var(--fg2); font-size: 18px; line-height: 1.55; }
+.lede .beat { display: block; }   /* the build makes each <br>-separated line of the lede a beat */
+.lede .beat + .beat { margin-top: .4em; }   /* a quarter line */
+.lede .beat.far { margin-top: .8em; }   /* two or more <br>: half a line */
 .byline { font-size: 13px; color: var(--muted); }
 .gloss { display: grid; gap: 2px; font-size: 13px; line-height: 1.45; color: var(--muted); max-width: 70ch; margin: 6px 0 10px; }
 .gloss b { font-family: "Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif; color: var(--fg2); font-weight: 700; margin-right: 2px; }

@@ -49,6 +49,31 @@ def renumber_citations(page: str) -> str:
     return CITE_MK.sub(one, page)
 
 
+LEDE = re.compile(r'(<p class="lede">)(<span data-copy="[^"]*"[^>]*>)?(.*?)(</span>)?(</p>)', re.S)
+BREAKS = re.compile(r"\s*((?:<br\s*/?>\s*)+)")
+
+
+def lede_beats(words: str) -> str:
+    """The lede's lines as blocks: each run of <br> in its entry starts a new beat, set off by a short gap (one <br>)
+    or a longer one (two or more). The entry keeps plain <br>; an edit build keeps its data-copy wrapper around them."""
+    m = LEDE.search(words)
+    if m is None:
+        raise SystemExit('the template has no <p class="lede">')
+    p_open, wrap_open, inner, wrap_close, p_close = m.groups()
+    if bool(wrap_open) != bool(wrap_close):
+        raise SystemExit("the lede's data-copy wrapper is unbalanced")
+    parts = BREAKS.split(inner.strip())          # [text, breaks, text, breaks, …]
+    beats = [f'<span class="beat">{parts[0]}</span>']
+    for breaks, text in zip(parts[1::2], parts[2::2]):
+        if text.strip():
+            gap = " far" if len(re.findall(r"<br", breaks)) > 1 else ""
+            beats.append(f'<span class="beat{gap}">{text}</span>')
+    body = "".join(beats)
+    if wrap_open:
+        body = f"{wrap_open}{body}{wrap_close}"
+    return words[:m.start()] + p_open + body + p_close + words[m.end():]
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--template", type=Path, default=HERE / "announce_page.html")
@@ -67,6 +92,7 @@ def main() -> None:
     try:
         words, _ = fill(a.template.read_text(), COPY, edit=a.edit)
         words = re.sub(r"\n?[ \t]*<p>\s*</p>", "", words)   # a paragraph whose entry is empty
+        words = lede_beats(words)
     except CopyError as e:
         raise SystemExit(f"copy: {e}") from None
     page = render_hosting(words, cfg, {"__CANONICAL_URL__": html.escape(canonical),
