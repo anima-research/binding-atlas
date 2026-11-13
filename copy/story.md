@@ -35,7 +35,7 @@ Instead of uniform blocks, we pretrained the same model without AttnRes and read
 
 This fit found a 20-layer contiguous block starting from layer 19, which we selected to run twice with the same weights, such that the end result has 72 logical layers (each pass with its own norms).
 <br><br>
-Our belief is that the composition is key; each accentuates a theoretical strength of the others. In tsumugi's run, both seeds (7 and 17) scored higher on set binding by 11B tokens than any of nine runs of a standard 28-layer model at 10B.
+Our belief is that the composition is key; each accentuates a theoretical strength of the other. In tsumugi's run, both seeds (7 and 17) scored higher on set binding by 11B tokens than any of six runs of a standard 28-layer model at 10B.
 
 ## cite.AttnRes
 Kimi Team (Moonshot AI), <a href="https://arxiv.org/abs/2603.15031"><i>Attention Residuals</i></a>, arXiv:2603.15031, 2026.
@@ -146,13 +146,13 @@ rule-learning score · 0 = chance, 1 = perfect
 trained public models: all at the same training compute
 
 ## story.you.title
-Tracks who “you” is as objects change hands
+referent binding
 
 ## story.you.sub
 Swap who says the last line and “you” is the other person, so the old answer should lose probability.
 
 ## story.you.toc
-Tracking “you”
+referent binding
 
 ## story.you.step
 The test “you”, after hand-offs: on the last line of this chat, “you” is Kurt, who now has the battery. Swap who says that line, and “you” is Steve, who has the lamp, so the battery should lose probability. Here it falls from {{n:p_orig}} to {{n:p_swap}}, a larger move than most. Averaged over 180 chats the drop is {{n:dyn_avg}}, and tsumugi is the smallest public base model whose drop clears +.02, a bar fixed before any model was scored, across its whole 95% interval.
@@ -191,13 +191,13 @@ the smallest public base model whose whole 95% interval
 clears +.02, a bar fixed before any model was scored
 
 ## story.cheap.title
-Ahead of Pythia 1.4B–6.9B and OLMo-1 1B at its compute
+benchmarks
 
 ## story.cheap.sub
 Level with OLMo-2 1B. Each bar: the training compute a model needed to reach tsumugi's average on nine standard benchmarks.
 
 ## story.cheap.toc
-Benchmarks at its compute
+benchmarks
 
 ## story.cheap.step
 On nine standard benchmarks (HellaSwag, LAMBADA, ARC-Easy, ARC-Challenge, PIQA, SciQ, WinoGrande, COPA and BoolQ), with no examples in the prompt, tsumugi averages {{n:avg9}}% correct. Public models released checkpoints from partway through training, which show how much compute each needed to reach that score. Pythia 2.8B needed {{n:mult_pythia28}} tsumugi's compute, Pythia 6.9B {{n:mult_pythia69}} and OLMo-1 1B {{n:mult_olmo1}}; Pythia 1.4B never got there. OLMo-2 1B got there at about the same compute as tsumugi.

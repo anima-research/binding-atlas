@@ -49,10 +49,17 @@ header.top { padding-block: 52px 18px; display: grid; gap: 14px; }
 .kicker { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
 /* the name in the background: 言霊 紬 set vertically behind the header, fading out as the story reaches the screen */
 .bg-kanji { position: fixed; inset: 0; z-index: 0; pointer-events: none; user-select: none; }
-.bg-kanji span { position: absolute; top: 48px; right: var(--bgk-right, 16px); font-family: var(--f-kanji); font-weight: 700;
+/* each glyph can be grown by a neural cellular automaton (kanji-nca/): its canvas sits over the text glyph, which stays
+   as the fallback (no script, reduced motion) and is hidden once the canvas starts growing */
+.bg-kanji .k { position: relative; display: inline-block; inline-size: 1em; block-size: 1em; }
+.bg-kanji .k + .k { margin-inline-start: .12em; }
+.bg-kanji .k > span { position: absolute; inset: 0; writing-mode: horizontal-tb; text-align: center; line-height: 1; letter-spacing: 0; }   /* the same placement in every engine */
+.bg-kanji .k canvas { position: absolute; left: 50%; top: 50%; width: var(--nca-size, 1.47em); height: var(--nca-size, 1.47em);
+  transform: translate(-50%, -50%); color: inherit; }
+.bg-kanji > span { position: absolute; top: 48px; right: var(--bgk-right, 16px); font-family: var(--f-kanji); font-weight: 700;
   writing-mode: vertical-rl; line-height: 1; letter-spacing: .12em; font-size: clamp(120px, 21vh, 230px); color: var(--fg); opacity: var(--bgk, .07); transition: opacity .15s linear; }
 body > .wrap, body > footer { position: relative; z-index: 1; }
-@media (max-width: 680px) { .bg-kanji span { font-size: clamp(96px, 30vw, 150px); top: 24px; } }
+@media (max-width: 680px) { .bg-kanji > span { font-size: clamp(96px, 30vw, 150px); top: 24px; } }
 h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 5vw, 46px); line-height: 1.08; margin: 0; text-wrap: balance; }
 .lede { margin: 0; max-width: 64ch; color: var(--fg2); font-size: 18px; line-height: 1.55; }
 .lede .beat { display: block; }   /* the build makes each <br>-separated line of the lede a beat */
@@ -119,7 +126,7 @@ footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: s
 </style>
 </head>
 <body>
-<div class="bg-kanji" aria-hidden="true"><span lang="ja">言霊 紬</span></div>
+<div class="bg-kanji" aria-hidden="true"><span lang="ja"><span class="k"><span>言</span><canvas data-nca="8a00"></canvas></span><span class="k"><span>霊</span><canvas data-nca="970a"></canvas></span> <span class="k"><span>紬</span><canvas data-nca="7d2c"></canvas></span></span></div>
 <nav id="toc" aria-label="Contents" data-reserve="1"></nav>
 __TOC__
 <div class="wrap">
@@ -212,7 +219,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && open) clos
 // The background name sits just left of the contents rail (or at the header's right edge without one) and fades out as the story's top
 // rises from the bottom of the screen to its middle.
 (() => {
-  const k = document.querySelector('.bg-kanji span'), story = document.getElementById('story'), head = document.querySelector('header.top');
+  const k = document.querySelector('.bg-kanji > span'), story = document.getElementById('story'), head = document.querySelector('header.top');
   if (!k || !story || !head) return;
   const toc = document.getElementById('toc');
   const place = () => {
@@ -225,12 +232,25 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && open) clos
     const top = story.getBoundingClientRect().top, h = window.innerHeight;
     const f = Math.min(1, Math.max(0, (top - h * 0.5) / (h * 0.5)));
     k.style.setProperty('--bgk', (0.07 * f).toFixed(4));
+    k.style.visibility = f > 0 ? '' : 'hidden';   // faded out: the grown kanji take no input and do no work
   };
   addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(update); }, { passive: true });
   addEventListener('resize', () => { place(); update(); }); place(); update();
   addEventListener('load', place);   // the contents rail is filled in by its own script
   if (toc && 'ResizeObserver' in window) new ResizeObserver(place).observe(toc);
 })();
+</script>
+<script src="kanji-nca/kanji-nca.js" defer></script>
+<script>
+// Grow the background kanji with their neural cellular automata. Any failure leaves the text glyphs as they are.
+addEventListener('DOMContentLoaded', () => {
+  const NCA = window.KanjiNCA, cvs = [...document.querySelectorAll('.bg-kanji canvas[data-nca]')];
+  if (!NCA || !cvs.length || !window.fetch) return;
+  Promise.all(cvs.map(c => fetch('kanji-nca/nca-' + c.dataset.nca + '.json').then(r => r.ok ? r.json() : null).catch(() => null)))
+    .then(ws => NCA.attachAll(cvs.map((c, i) => ({ canvas: c, weights: ws[i], textEl: c.previousElementSibling })),
+                              { workerUrl: 'kanji-nca/kanji-nca.js' }))
+    .catch(e => console.warn('kanji-nca:', e));
+});
 </script>
 </body>
 </html>

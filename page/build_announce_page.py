@@ -3,7 +3,8 @@
 Usage: python page/build_announce_page.py --out site/index.html [--config config/default.toml] [--stamp "YYYY-MM-DD HH:MM UTC"] [--edit]
 The words come from copy/announce.md (page/copy_text.py fills the template's slots). --edit builds the preview that
 page/edit_server.py serves: each piece of page text is marked with its key, and the editor's script is loaded.
-The figure (announce-data/figure.png) and the link card (kotodama-tsumugi-card.png) are copied from
+The figure (announce-data/figure.png), the link card (kotodama-tsumugi-card.png) and the background kanji's
+growing-cell runtime and weights (kanji-nca/: the script and one nca-<code point>.json per glyph) are copied from
 data/inputs/announce/, and the scroll-driven story (story.html there) is inlined at __STORY__. Refuses to write if the page contains an internal hostname or path (public-page law).
 """
 from __future__ import annotations
@@ -27,6 +28,9 @@ from forbidden import FORBIDDEN  # noqa: E402
 from siteconfig import CLEAN, PAGE, TSUMUGI_CLEAN, TSUMUGI_PAGE, render_hosting  # noqa: E402
 
 CARD_FILE, DATA_DIR, FIGURE = "kotodama-tsumugi-card.png", "announce-data", "figure.png"
+# The background kanji (言 霊 紬) grown by neural cellular automata: the runtime and one weights file per glyph.
+KANJI_DIR, KANJI_FILES = "kanji-nca", ("kanji-nca.js", "nca-8a00.json", "nca-970a.json", "nca-7d2c.json")
+KANJI_MAX_BYTES = 40_000   # each file; the page fetches all four on load
 MODEL_CARD = "https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b"
 SRC = REPO / "data" / "inputs" / "announce"
 COPY = COPY_DIR / "announce.md"
@@ -119,7 +123,15 @@ def main() -> None:
     (a.out.parent / DATA_DIR).mkdir(exist_ok=True)
     shutil.copyfile(SRC / FIGURE, a.out.parent / DATA_DIR / FIGURE)
     shutil.copyfile(SRC / "card.png", a.out.parent / CARD_FILE)
-    print(f"wrote {a.out} ({len(page) / 1e3:.0f} kB), {DATA_DIR}/{FIGURE} and {CARD_FILE}")
+    (a.out.parent / KANJI_DIR).mkdir(exist_ok=True)
+    for name in KANJI_FILES:
+        src = SRC / KANJI_DIR / name
+        if not src.is_file():
+            raise SystemExit(f"missing {src}")
+        if src.stat().st_size > KANJI_MAX_BYTES:
+            raise SystemExit(f"REFUSING: {src} is {src.stat().st_size} bytes, over {KANJI_MAX_BYTES}")
+        shutil.copyfile(src, a.out.parent / KANJI_DIR / name)
+    print(f"wrote {a.out} ({len(page) / 1e3:.0f} kB), {DATA_DIR}/{FIGURE}, {CARD_FILE} and {KANJI_DIR}/")
 
 
 if __name__ == "__main__":
