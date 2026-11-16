@@ -35,7 +35,7 @@ Instead of uniform blocks, we pretrained the same model without AttnRes and read
 
 This fit found a 20-layer contiguous block starting from layer 19, which we selected to run twice with the same weights, such that the end result has 72 logical layers (each pass with its own norms).
 <br><br>
-Our belief is that the composition is key; each accentuates a theoretical strength of the other. In tsumugi's run, both seeds (7 and 17) scored higher on set binding by 11B tokens than any of six runs of a standard 28-layer model at 10B.
+Our finding is that each piece synergizes with another, accentuating or unlocking benefits. For example, AttnRes (only with fitted boundaries, not uniform) composes with depth to unlock strong early {{note:set-bind|set binding}}; looped depth provides the same as more layers for free in weights on ICL & binding.
 
 ## cite.AttnRes
 Kimi Team (Moonshot AI), <a href="https://arxiv.org/abs/2603.15031"><i>Attention Residuals</i></a>, arXiv:2603.15031, 2026.
@@ -125,7 +125,7 @@ We evaluated base models on how well they pick up patterns (not reliant upon fac
 <br><br>
 tsumugi's final checkpoint settles at {{n:rule}}, well above the compute trend for open-weight models, Falcon3 3B being the nearest at {{n:best_final_score}} (pruned and distilled from Falcon3 7B; <a href="#story-data">more below</a>). When the same test uses known facts, such that knowledge offers a shortcut, tsumugi scores higher ({{n:cryst}}), as every model does, landing where the compute trend predicts. 
 <br><br>
-<b>Of the {{n:n_final}} fully trained open-weight models we measured, none scores higher until about {{n:cross_mult}} times tsumugi's training compute; the first, {{n:cross_model}}, used {{n:cross_flops}} FLOPs.</b>
+<b>Of the {{n:n_final}} fully trained open-weight models we measured, none scores higher until about {{n:cross_mult}} times tsumugi's training compute; the first, {{n:cross_model}}, used {{n:cross_flops}} FLOPs. tsumugi sits 2.4 SD above the trend; with {{note:outliers|outliers}} excluded, 4.5.</b>
 
 ## rules.item_label
 a pattern recognition test
@@ -161,7 +161,7 @@ When personal pronouns such as "I/you/me" are used, this task becomes harder; th
 <br><br>
 The figure is a test for that case; possession & speakers change, with clear statements of ownership. A model must predict what "you" is holding. We then also swap who speaks the last line, so that "you" becomes the other speaker, dropping the probability of the prior answer.
 <br><br>
-On this test, tsumugi's average drop in probability is {{n:dyn_avg}}, with a 95% CI clearing {{note:bar|+.02}}. tsumugi is the smallest public base model to achieve this; the next is Qwen3 4B. Scale also doesn't guarantee this capability; OLMo-2 7B and 13B don’t pass, nor do GLM-4 32B or Qwen2.5 72B.
+On this test, tsumugi's average drop in probability is {{n:dyn_avg}}, with a 95% CI clearing {{note:bar|+.02}}. <b>tsumugi is the smallest public base model to achieve this;</b> the next is Qwen3 4B. Scale also doesn't guarantee this capability; OLMo-2 7B and 13B don’t pass, nor do GLM-4 32B or Qwen2.5 72B.
 
 ## note.bar
 +.02 = two pp drop on average, with the whole 95% interval above that line. The bar simply shows that the model moves the right way at all, not how well it does so. The value was arbitrary & fixed before any scoring occurred; an improved test derives it from “null twin” chats, where swapping speakers won’t change the answer, and puts the bar where noise alone stops.
@@ -206,21 +206,21 @@ the smallest public base model whose whole 95% interval
 clears +.02, a bar fixed before any model was scored
 
 ## story.cheap.title
-benchmarks
+world knowledge evals
 
 ## story.cheap.sub
-What it knows with no examples, beside models trained with 2 to 300× its compute.
+
 
 ## story.cheap.toc
-benchmarks
+world knowledge evals
 
 ## story.cheap.step
-On nine standard benchmarks (HellaSwag, LAMBADA, ARC-Easy, ARC-Challenge, PIQA, SciQ, WinoGrande, COPA and BoolQ), tsumugi's zero-shot average is {{n:avg9}}% correct. On Uncheatable Eval{{cite:UncheatableEval}}, which evaluates compression on unseen human text, tsumugi scores .768 bits per byte, 1.39 SD better than the trend. tsumugi's score here shows that the enhancements in binding & ICL come at little to no cost on knowledge work: it scores ahead of Pythia 1.4B, trained with twice its compute, and within a point of Pythia 2.8B, trained with four times as much, most likely attributable to either more modern architecture or the data mix.
+On nine standard benchmarks (HellaSwag, LAMBADA, ARC-Easy, ARC-Challenge, PIQA, SciQ, WinoGrande, COPA and BoolQ), tsumugi's zero-shot average is {{n:avg9}}% correct. On Uncheatable Eval{{cite:UncheatableEval}}, which evaluates compression on unseen human text, tsumugi scores .768 bits per byte, 0.9 SD better than the trend. tsumugi's score here shows that the enhancements in binding & ICL come at little to no cost on knowledge work: it scores ahead of Pythia 1.4B, trained with twice its compute, and within a point of Pythia 2.8B, trained with four times as much, most likely attributable to either more modern architecture or the data mix.
 <br><br>
 Given the prior results with binding & ICL, and the knowledge-based benchmarks here, tsumugi operates <i>in context</i> like a model much larger; while having <i>world knowledge</i> expected for its compute.
 
 ## cheap.grid_title
-standard benchmarks, 0-shot | accuracy (%)
+0-shot accuracy (%)
 
 ## cheap.avg
 average
@@ -229,48 +229,53 @@ average
 compute, × tsumugi’s
 
 ## cheap.foot
-compute = 6 × parameters used per token × tokens; * distilled from larger model
+* distilled
 
 ## cheap.bpb_title
-compression of unseen human text
+Uncheatable Eval: bits per byte, lower is better
 
 ## cheap.bpb_y
-bits per byte (lower is better)
+
 
 ## cheap.bpb_x
-training compute (FLOPs)
+training FLOPs
 
 ## cheap.models
-open-weight base models, fully trained
+base models, fully trained
 
 ## cheap.trend
-trend of the fully trained
+trend
 
 ## story.data.title
-data
+blank document completions
 
 ## story.data.sub
-what it writes from an empty document
+only &lt;start_of_document&gt; or equivalents are given; sampled for 256 tokens
 
 ## story.data.toc
 data
 
 ## story.data.step
-Its training text was curated to leave out assistant replies and machine-written text, and it shows. Given only the start-of-document token, 128 times, tsumugi writes no chatbot transcripts, assistant replies or machine-made training data; many modern base models do. Claude sorted every run, after agreeing with 300 hand-labelled runs 98.7% of the time. All 128 runs <a href="__EMPTY_LINK__">can be read on their own page</a>.<br><br>
-Of the 36 open-weight base models in the chart above, 19 state in their own papers or model cards that their pretraining included synthetic or model-rewritten text, and 4 more (Falcon3 3B, Gemma-2 2B and 9B, Llama-3.2 1B) were distilled from a larger model: 23 of 36 in all.<br><br>
-Against the trend as drawn, tsumugi sits 2.4 standard deviations above it; with {{note:outliers|the outliers}} excluded, 4.5.
+tsumugi's training data was sourced specifically to avoid as much synthetic or otherwise LLM-generated or altered text as possible. This is explicitly to make it a "true" base with no distillation involved, and therefore a cleaner bar for understanding architectural differences & benchmark trends. 
+<br><br>
+Of the 36 models shown in the ICL chart above, 19 report their pretraining included synthetic or LLM-generated/altered text, and 4 more are distilled from a larger model; 23 in total.
+<br><br>
+Compute estimates for these models are rough; we don't calculate how much compute went into generating the non-human data nor the compute that went into training the teacher/previous model. An example of this is Falcon3 3B, which was created via pruning the larger Falcon3 7B, then trained on 100B tokens with a distillation objective.
 
 ## note.outliers
-The models more than 2 SD from the trend fitted without them. Below it: RecurrentGemma 9B and Bamba 9B (recurrent hybrids) and Pythia 160M (the smallest model here); above it: Falcon3 3B (pruned and distilled from a larger model).
+Trend w/ models more than 2 SD away excluded & refitted. Below: RecurrentGemma 9B and Bamba 9B (recurrent hybrids) and Pythia 160M (the smallest model here); above: Falcon3 3B.
 
-## story.data.link
+## data.link
 Read all 128 runs →
+
+## data.more
+oldest first: runs of 128 with signs of synthetic or LLM data
 
 ## data.tiles_title
 128 runs from an empty document, one square per run
 
 ## data.era
-assistant-era runs
+with signs of synthetic or LLM-generated data
 
 ## data.start
 [start of document]
@@ -328,3 +333,6 @@ trend of the fully trained
 
 ## rules.hero_legend_distilled
 distilled from a larger model
+
+## note.set-bind
+Whether the model keeps track of which items belong to which group, measured at 4B tokens of training.
