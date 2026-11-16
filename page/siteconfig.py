@@ -62,7 +62,7 @@ _CSS_SAFE = re.compile(r"^[\w .:/@%+-]*$")      # values that go into CSS string
 
 # site.wip: a striped "WIP" band fixed to the top of the viewport, its words scrolling sideways (static under reduced
 # motion); the page is pushed down by the band's height so nothing is hidden under it. A page opened at #card (the
-# link-card screenshots) leaves it out.
+# link-card screenshots) or with ?nowip in its address (a clean view to show someone) leaves it out.
 WIP_BANNER = """<div class="wip-band" role="note" aria-label="Work in progress: this page is still being written">
 <div class="wip-track" aria-hidden="true">""" + "<span>WIP</span>" * 48 + """</div></div>
 <style>
@@ -82,7 +82,7 @@ html { scroll-padding-top: calc(var(--wip-h) + 8px); }
 @media print { .wip-band { display: none; } body { padding-top: 0 !important; } }
 html.wip-off .wip-band { display: none; } html.wip-off body { padding-top: 0 !important; }
 </style>
-<script>if (location.hash === "#card") document.documentElement.classList.add("wip-off");</script>
+<script>if (location.hash === "#card" || /[?&]nowip(=|&|$)/.test(location.search)) document.documentElement.classList.add("wip-off");</script>
 """
 
 

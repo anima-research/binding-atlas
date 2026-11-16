@@ -149,13 +149,22 @@ trained public models: all at the same training compute
 referent binding
 
 ## story.you.sub
-Swap who says the last line and “you” is the other person, so the old answer should lose probability.
+Tracking who is being referred to, and what belongs to them.
 
 ## story.you.toc
 referent binding
 
 ## story.you.step
-The test “you”, after hand-offs: on the last line of this chat, “you” is Kurt, who now has the battery. Swap who says that line, and “you” is Steve, who has the lamp, so the battery should lose probability. Here it falls from {{n:p_orig}} to {{n:p_swap}}, a larger move than most. Averaged over 180 chats the drop is {{n:dyn_avg}}, and tsumugi is the smallest public base model whose drop clears +.02, a bar fixed before any model was scored, across its whole 95% interval.
+Referent binding in prose is the task of tracking who is being referred to, and what belongs to them. A simple test of this capability is the following: "John is holding a bat. Jane is holding a flower. They swap items. John is holding the ______", where flower is the answer.
+<br><br>
+When personal pronouns such as "I/you/me" are used, this task becomes harder; the referent depends on perspective, who the active speaker is, and context clues. This capability is acquired in stages, in trajectories we've analyzed. First, "I" binds cleanly, then "you" when state doesn't shift, and finally "you"  while the state changes.
+<br><br>
+The figure is a test for that case; possession & speakers change, with clear statements of ownership. A model must predict what "you" is holding. We then also swap who speaks the last line, so that "you" becomes the other speaker, dropping the probability of the prior answer.
+<br><br>
+On this test, tsumugi's average drop in probability is {{n:dyn_avg}}, with a 95% CI clearing {{note:bar|+.02}}. tsumugi is the smallest public base model to achieve this; the next is Qwen3 4B. Scale also doesn't guarantee this capability; OLMo-2 7B and 13B don’t pass, nor do GLM-4 32B or Qwen2.5 72B.
+
+## note.bar
++.02 = two pp drop on average, with the whole 95% interval above that line. The bar simply shows that the model moves the right way at all, not how well it does so. The value was arbitrary & fixed before any scoring occurred; an improved test derives it from “null twin” chats, where swapping speakers won’t change the answer, and puts the bar where noise alone stops.
 
 ## you.chat_label
 one test chat (after 3 worked examples)
@@ -184,6 +193,12 @@ average drop, by model
 ## you.right
 tracks “you” →
 
+## you.zero
+0: ignores who’s speaking
+
+## you.bar
++.02 bar
+
 ## you.claim1
 the smallest public base model whose whole 95% interval
 
@@ -194,25 +209,42 @@ clears +.02, a bar fixed before any model was scored
 benchmarks
 
 ## story.cheap.sub
-Level with OLMo-2 1B. Each bar: the training compute a model needed to reach tsumugi's average on nine standard benchmarks.
+What it knows with no examples, beside models trained with 2 to 300× its compute.
 
 ## story.cheap.toc
 benchmarks
 
 ## story.cheap.step
-On nine standard benchmarks (HellaSwag, LAMBADA, ARC-Easy, ARC-Challenge, PIQA, SciQ, WinoGrande, COPA and BoolQ), with no examples in the prompt, tsumugi averages {{n:avg9}}% correct. Public models released checkpoints from partway through training, which show how much compute each needed to reach that score. Pythia 2.8B needed {{n:mult_pythia28}} tsumugi's compute, Pythia 6.9B {{n:mult_pythia69}} and OLMo-1 1B {{n:mult_olmo1}}; Pythia 1.4B never got there. OLMo-2 1B got there at about the same compute as tsumugi.
+On nine standard benchmarks (HellaSwag, LAMBADA, ARC-Easy, ARC-Challenge, PIQA, SciQ, WinoGrande, COPA and BoolQ), tsumugi's zero-shot average is {{n:avg9}}% correct. On Uncheatable Eval{{cite:UncheatableEval}}, which evaluates compression on unseen human text, tsumugi scores .768 bits per byte, 1.39 SD better than the trend. tsumugi's score here shows that the enhancements in binding & ICL come at little to no cost on knowledge work: it scores ahead of Pythia 1.4B, trained with twice its compute, and within a point of Pythia 2.8B, trained with four times as much, most likely attributable to either more modern architecture or the data mix.
+<br><br>
+Given the prior results with binding & ICL, and the knowledge-based benchmarks here, tsumugi operates <i>in context</i> like a model much larger; while having <i>world knowledge</i> expected for its compute.
 
-## cheap.avg_lead
-tsumugi averages
+## cheap.grid_title
+standard benchmarks, 0-shot | accuracy (%)
 
-## cheap.axis
-training compute, as a multiple of tsumugi's
+## cheap.avg
+average
 
-## cheap.tsumugi_line
-tsumugi, 1×
+## cheap.compute
+compute, × tsumugi’s
 
-## cheap.note
-Public checkpoints are taken partway through training, before any final learning-rate decay; tsumugi's {{n:avg9}} includes its own.
+## cheap.foot
+compute = 6 × parameters used per token × tokens; * distilled from larger model
+
+## cheap.bpb_title
+compression of unseen human text
+
+## cheap.bpb_y
+bits per byte (lower is better)
+
+## cheap.bpb_x
+training compute (FLOPs)
+
+## cheap.models
+open-weight base models, fully trained
+
+## cheap.trend
+trend of the fully trained
 
 ## story.data.title
 data
@@ -269,6 +301,9 @@ Instead of uniform blocks, we read the layer geometry of the same 52 layers trai
 
 ## story.arch.4.video
 The fit found a 20-layer block starting at layer 19. It runs twice with the same weights, so the model computes through 72 layers while storing 52.
+
+## cite.UncheatableEval
+Tan, Li, Shen, <a href="https://arxiv.org/abs/2609.27510"><i>Uncheatable Eval: Dynamic Compression-Based Evaluation of Language Models</i></a>, 2026.
 
 ## cite.ICLEval
 Chen, Lin, Zhou, Huang, Jia, Cao, Wen, <a href="https://arxiv.org/abs/2406.14955"><i>ICLEval: Evaluating In-Context Learning Ability of Large Language Models</i></a>, 2024.

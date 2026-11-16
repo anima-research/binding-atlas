@@ -723,6 +723,6 @@ html { scroll-padding-top: calc(var(--wip-h) + 8px); }
 @media print { .wip-band { display: none; } body { padding-top: 0 !important; } }
 html.wip-off .wip-band { display: none; } html.wip-off body { padding-top: 0 !important; }
 </style>
-<script>if (location.hash === "#card") document.documentElement.classList.add("wip-off");</script>
+<script>if (location.hash === "#card" || /[?&]nowip(=|&|$)/.test(location.search)) document.documentElement.classList.add("wip-off");</script>
 </body>
 </html>
