@@ -5,7 +5,7 @@ The words come from copy/announce.md (page/copy_text.py fills the template's slo
 page/edit_server.py serves: each piece of page text is marked with its key, and the editor's script is loaded.
 The figure (announce-data/figure.png), the link card (kotodama-tsumugi-card.png) and the background kanji's
 growing-cell runtime and weights (kanji-nca/: the script and one nca-<code point>.json per glyph) are copied from
-data/inputs/announce/, and the scroll-driven story (story.html there) is inlined at __STORY__. Refuses to write if the page contains an internal hostname or path (public-page law).
+data/inputs/announce/; a normal build also writes the plain-text twin next to the page (index.md, page/build_announce_md.py); and the scroll-driven story (story.html there) is inlined at __STORY__. Refuses to write if the page contains an internal hostname or path (public-page law).
 """
 from __future__ import annotations
 
@@ -26,6 +26,7 @@ from build_empty_page import EMPTY_CLEAN, EMPTY_PAGE  # noqa: E402
 from build_neuron_page import NEURON_CLEAN, NEURON_PAGE  # noqa: E402
 from forbidden import FORBIDDEN  # noqa: E402
 from siteconfig import CLEAN, PAGE, TSUMUGI_CLEAN, TSUMUGI_PAGE, render_hosting  # noqa: E402
+from build_announce_md import announce_md  # noqa: E402
 
 CARD_FILE, DATA_DIR, FIGURE = "kotodama-tsumugi-card.png", "announce-data", "figure.png"
 # The background kanji (言 霊 紬) grown by neural cellular automata: the runtime and one weights file per glyph.
@@ -116,10 +117,15 @@ def main() -> None:
     bad = sorted({m.group(0) for m in FORBIDDEN.finditer(page)})
     if bad:
         raise SystemExit(f"REFUSING: internal names in the public page: {bad}")
+    twin = None if a.edit else announce_md(page, cfg.base_url or "", build_stamp(a.stamp))
+    if twin is not None and (bad := sorted({m.group(0) for m in FORBIDDEN.finditer(twin)})):
+        raise SystemExit(f"REFUSING: internal names in the plain-text twin: {bad}")
     if a.edit:
         page = page.replace("</body>", EDITOR + "</body>", 1)
     a.out.parent.mkdir(parents=True, exist_ok=True)
     a.out.write_text(page)
+    if twin is not None:
+        a.out.with_suffix(".md").write_text(twin)
     (a.out.parent / DATA_DIR).mkdir(exist_ok=True)
     shutil.copyfile(SRC / FIGURE, a.out.parent / DATA_DIR / FIGURE)
     shutil.copyfile(SRC / "card.png", a.out.parent / CARD_FILE)
@@ -131,7 +137,8 @@ def main() -> None:
         if src.stat().st_size > KANJI_MAX_BYTES:
             raise SystemExit(f"REFUSING: {src} is {src.stat().st_size} bytes, over {KANJI_MAX_BYTES}")
         shutil.copyfile(src, a.out.parent / KANJI_DIR / name)
-    print(f"wrote {a.out} ({len(page) / 1e3:.0f} kB), {DATA_DIR}/{FIGURE}, {CARD_FILE} and {KANJI_DIR}/")
+    print(f"wrote {a.out} ({len(page) / 1e3:.0f} kB)" + (f", {a.out.with_suffix('.md').name} ({len(twin) / 1e3:.0f} kB)" if twin else "")
+          + f", {DATA_DIR}/{FIGURE}, {CARD_FILE} and {KANJI_DIR}/")
 
 
 if __name__ == "__main__":

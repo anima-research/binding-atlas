@@ -265,6 +265,9 @@ It is one cooldown of one seed (seed 17), and its training data is mostly Englis
 ## footer.companions
 Companion pages: <a href="__CARD_LINK__">the model card</a> · <a href="__ATLAS_LINK__">every public model's results on who-is-who tests</a> · <a href="__THREADS_LINK__">a map of tsumugi's neurons</a> · <a href="__EMPTY_LINK__">what it writes from an empty page</a>.
 
+## footer.md
+A <a href="index.md">plain-text version of this page</a>, for language models: the same words, with every note expanded and every figure described.
+
 ## cite.UncheatableEval
 Tan, Li, Shen, <a href="https://arxiv.org/abs/2609.27510"><i>Uncheatable Eval: Dynamic Compression-Based Evaluation of Language Models</i></a>, 2026.
 

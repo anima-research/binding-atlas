@@ -29,19 +29,18 @@
       "words": 1604
     },
     "copy/announce.md": {
-      "accepted_regression": "copy/*.md hold Luxia's own drafts and working notes; legibility is skipped on them at her request",
-      "dep_len": 2.7053,
+      "dep_len": 2.6808,
       "rates": {
-        "denominal": 1.1201,
-        "inanimate": 4.2005,
-        "long": 7.0008,
+        "denominal": 1.1713,
+        "inanimate": 4.3924,
+        "long": 6.735,
         "orc": 0.0,
-        "orc_all": 0.8401,
-        "orc_reduced": 0.8401,
-        "stacked": 3.9205
+        "orc_all": 0.8785,
+        "orc_reduced": 0.8785,
+        "stacked": 3.8067
       },
-      "sentences": 195,
-      "words": 3571
+      "sentences": 188,
+      "words": 3415
     },
     "copy/card.md": {
       "dep_len": 2.9248,
@@ -58,19 +57,18 @@
       "words": 302
     },
     "copy/story.md": {
-      "accepted_regression": "copy/*.md hold Luxia's own drafts and working notes; legibility is skipped on them at her request",
-      "dep_len": 2.8122,
+      "dep_len": 2.6972,
       "rates": {
-        "denominal": 0.7189,
-        "inanimate": 2.1567,
-        "long": 6.4702,
-        "orc": 0.7189,
-        "orc_all": 2.8756,
-        "orc_reduced": 2.1567,
-        "stacked": 8.6269
+        "denominal": 0.5479,
+        "inanimate": 0.5479,
+        "long": 7.1233,
+        "orc": 0.5479,
+        "orc_all": 2.7397,
+        "orc_reduced": 2.1918,
+        "stacked": 8.2192
       },
-      "sentences": 100,
-      "words": 1391
+      "sentences": 126,
+      "words": 1825
     },
     "site/binding-atlas.md": {
       "dep_len": 2.7991,
@@ -85,6 +83,21 @@
       },
       "sentences": 200,
       "words": 2503
+    },
+    "site/index.md": {
+      "accepted_regression": "site/index.md is the announcement's generated plain-text twin: Luxia's own copy (legibility skipped on it at her request) plus figure descriptions generated from the page's data; its arc length matches copy/story.md and copy/announce.md",
+      "dep_len": 2.6823,
+      "rates": {
+        "denominal": 0.774,
+        "inanimate": 0.774,
+        "long": 9.2879,
+        "orc": 0.387,
+        "orc_all": 1.935,
+        "orc_reduced": 1.548,
+        "stacked": 1.935
+      },
+      "sentences": 134,
+      "words": 2584
     }
   },
   "parser": "en_core_web_trf",
