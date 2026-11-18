@@ -21,7 +21,7 @@ The figure is a test for that case; possession & speakers change, with clear sta
 <br><br>
 On this test, tsumugi's average drop in probability is .038, with a 95% CI clearing <span class="cite note"><button type="button" class="cite-mk note-mk" aria-expanded="false">+.02</button><span class="cite-leaf" role="note">+.02 = two pp drop on average, with the whole 95% interval above that line. The bar simply shows that the model moves the right way at all, not how well it does so. The value was arbitrary & fixed before any scoring occurred; an improved test derives it from “null twin” chats, where swapping speakers won’t change the answer, and puts the bar where noise alone stops.</span></span>. <b>tsumugi is the smallest public base model to achieve this;</b> the next is Qwen3 4B. Scale also doesn't guarantee this capability; OLMo-2 7B and 13B don’t pass, nor do GLM-4 32B or Qwen2.5 72B.</p></div><div class="story-step" id="story-cheap" data-beat="cheap" data-toc="world knowledge evals" data-toc-level="2"><div class="h" role="heading" aria-level="3">world knowledge evals</div><p>On nine standard benchmarks (HellaSwag, LAMBADA, ARC-Easy, ARC-Challenge, PIQA, SciQ, WinoGrande, COPA and BoolQ), tsumugi's zero-shot average is 64.1% correct. On Uncheatable Eval<span class="cite"><button type="button" class="cite-mk" aria-expanded="false" aria-label="Reference 3">3</button><span class="cite-leaf" role="note">Tan, Li, Shen, <a href="https://arxiv.org/abs/2609.27510"><i>Uncheatable Eval: Dynamic Compression-Based Evaluation of Language Models</i></a>, 2026.</span></span>, which evaluates compression on unseen human text, tsumugi scores .768 bits per byte, 0.9 SD better than the trend. tsumugi's score here shows that the enhancements in binding & ICL come at little to no cost on knowledge work: it scores ahead of Pythia 1.4B, trained with twice its compute, and within a point of Pythia 2.8B, trained with four times as much, most likely attributable to either more modern architecture or the data mix.
 <br><br>
-Given the prior results with binding & ICL, and the knowledge-based benchmarks here, tsumugi operates <i>in context</i> like a model much larger; while having <i>world knowledge</i> expected for its compute.</p></div><div class="story-step" id="story-data" data-beat="data" data-toc="data" data-toc-level="2"><div class="h" role="heading" aria-level="3">blank document completions</div><p>tsumugi's training data was sourced specifically to avoid as much synthetic or otherwise LLM-generated or altered text as possible. This is explicitly to make it a "true" base with no distillation involved, and therefore a cleaner bar for understanding architectural differences & benchmark trends. 
+Given the prior results with binding & ICL, and the knowledge-based benchmarks here, tsumugi operates <i>in context</i> like a model much larger; while having <i>world knowledge</i> expected for its compute.</p></div><div class="story-step" id="story-data" data-beat="data" data-toc="null completions" data-toc-level="2"><div class="h" role="heading" aria-level="3">null completions</div><p>tsumugi's training data was sourced specifically to avoid as much synthetic or otherwise LLM-generated or altered text as possible. This is explicitly to make it a "true" base with no distillation involved, and therefore a cleaner bar for understanding architectural differences & benchmark trends. 
 <br><br>
 Of the 36 models shown in the ICL chart above, 19 report their pretraining included synthetic or LLM-generated/altered text, and 4 more are distilled from a larger model; 23 in total.
 <br><br>
@@ -49,7 +49,7 @@ Compute estimates for these models are rough; we don't calculate how much comput
   <svg class="panel" id="grid" style="left:96px;top:205px;overflow:visible" width="880" height="660"></svg>
   <svg class="panel" id="bpb" style="left:1000px;top:205px;overflow:visible" width="504" height="640"></svg></div>
 <div id="Ldata" class="layer"><div class="rule"></div>
-  <div class="title">blank document completions</div><div class="sub">only &lt;start_of_document&gt; or equivalents are given; sampled for 256 tokens</div>
+  <div class="title">null completions</div><div class="sub">only &lt;start_of_document&gt; or equivalents are given; sampled for 256 tokens</div>
   <svg class="panel" id="dtiles" style="left:96px;top:215px" width="700" height="380"></svg>
   <div class="panel" id="dkinds" style="left:96px;top:610px;width:700px;font-size:19px;line-height:1.7"></div>
   <div class="panel" id="druns" style="left:850px;top:215px;width:654px"></div></div></div></div>
@@ -453,8 +453,18 @@ DRAW.data = (t) => {
   $("dtiles").innerHTML = s;
   const kinds = ["s", "v", "x", "h", "p"].map((c) => `<span style="display:inline-flex;align-items:center;gap:8px;margin-right:22px">`
     + `<i style="width:13px;height:13px;border-radius:2px;background:${C[c]};display:inline-block"></i>${COPY["data.k_" + c]}</span>`).join("");
-  $("dkinds").style.setProperty("top", `${$("dtiles").offsetTop + Math.max(H, comp > 0 ? H : 380) + 12}px`, "important");
+  // the legend sits under the list as drawn, in the frame's own px (the page scales the frame). #dtiles is an <svg>, so it
+  // has no offsetTop: its top comes from its box. The list's measured bottom covers a data.more that the page font wraps
+  // onto a second line where the video's does not; H (the computed list height) is the floor.
+  const kp = $("dkinds").offsetParent || $("dkinds").parentElement, kr = kp.getBoundingClientRect(), kk = kr.width / kp.offsetWidth || 1;
+  const dtop = ($("dtiles").getBoundingClientRect().top - kr.top) / kk;
+  const lbot = [...$("dtiles").querySelectorAll("text,rect")].map((e) => e.getBoundingClientRect()).filter((b) => b.height > 0)
+    .reduce((m, b) => Math.max(m, b.bottom), -Infinity);
+  const ktop = Math.max(dtop + Math.max(H, comp > 0 ? H : 380) + 12, isFinite(lbot) ? (lbot - kr.top) / kk + 14 : 0);
+  if (isFinite(ktop) && kr.width > 0) $("dkinds").style.setProperty("top", `${ktop}px`, "important");
   $("dkinds").style.opacity = ramp(t, t0 + 4.3, t0 + 4.7); $("dkinds").innerHTML = `<span style="color:${MUTED}">${kinds}</span>`;
+  // on the phone the example runs sit under the legend: keep them below its measured bottom
+  if (ph) $("druns").style.setProperty("top", `${Math.max(630, $("dkinds").offsetTop + $("dkinds").offsetHeight + 16)}px`, "important");
   const R = ph ? { fs: 20, mh: 96, hf: 22, gap: 12 } : pg ? { fs: 20, mh: 200, hf: 22, gap: 18 } : { fs: 16, mh: 232, hf: 19, gap: 18 };
   $("druns").innerHTML = DD.runs.map((r, k) => {
     const o = ramp(t, t0 + 1.0 + k * 1.3, t0 + 1.5 + k * 1.3);   // each example arrives with its model's tile row

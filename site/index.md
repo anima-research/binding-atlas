@@ -1,4 +1,4 @@
-<!-- kotodama-tsumugi: plain-text version of https://kotodama.animalabs.ai/ for language models and screen readers. The same words as the page; every note and reference is expanded where it appears, and every figure is described in text from the data it draws. Build 2026-11-16 07:58 UTC. -->
+<!-- kotodama-tsumugi: plain-text version of https://kotodama.animalabs.ai/ for language models and screen readers. The same words as the page; every note and reference is expanded where it appears, and every figure is described in text from the data it draws. Build 2026-11-18 18:16 UTC. -->
 
 **言霊** kotodama — word-spirit: language as a thing with a life of its own
 
@@ -141,7 +141,7 @@ Left, 0-shot accuracy (%), one column per model in order of training compute (ce
 
 Right, Uncheatable Eval: bits per byte, lower is better, against training FLOPs (log scale): 26 base models, fully trained (dots, from 0.548 to 0.810 bits per byte) and their trend (a dashed least-squares line on log compute, fitted after dropping any model more than 2 SD from it, which drops Pythia 160M). tsumugi is a highlighted diamond labelled .768 at 1.2e21 FLOPs, below the line, which gives .805 at that compute.
 
-### blank document completions
+### null completions
 
 tsumugi's training data was sourced specifically to avoid as much synthetic or otherwise LLM-generated or altered text as possible. This is explicitly to make it a "true" base with no distillation involved, and therefore a cleaner bar for understanding architectural differences & benchmark trends.
 
@@ -254,4 +254,4 @@ Companion pages: [the model card](https://huggingface.co/LuxiaSL/kotodama-tsumug
 
 A [plain-text version of this page](https://kotodama.animalabs.ai/index.md), for language models: the same words, with every note expanded and every figure described.
 
-build 2026-11-16 07:58 UTC
+build 2026-11-18 18:16 UTC

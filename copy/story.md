@@ -247,13 +247,13 @@ base models, fully trained
 trend
 
 ## story.data.title
-blank document completions
+null completions
 
 ## story.data.sub
 only &lt;start_of_document&gt; or equivalents are given; sampled for 256 tokens
 
 ## story.data.toc
-data
+null completions
 
 ## story.data.step
 tsumugi's training data was sourced specifically to avoid as much synthetic or otherwise LLM-generated or altered text as possible. This is explicitly to make it a "true" base with no distillation involved, and therefore a cleaner bar for understanding architectural differences & benchmark trends. 
