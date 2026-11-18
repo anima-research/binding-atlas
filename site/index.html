@@ -708,6 +708,7 @@ DRAW.you = (t) => {
 
 // the data beat: every square one run from an empty document (sorted by kind, as the Empty Document page sorts them),
 // tsumugi's row then Falcon3 3B's; then one real run of each, as the page shows it
+const dataNameExtra = {};   // per font size: px the data list's name column needs beyond its preset width
 DRAW.data = (t) => {
   // three stages: tsumugi's 128 runs as tiles; then Falcon3 3B's; then every model compact (a stacked bar of its exact
   // counts per kind, oldest first), the two tile rows giving way to it. Sizes per surface, as the other page figures.
@@ -735,21 +736,28 @@ DRAW.data = (t) => {
   if (comp > 0) {   // the compact stage: two columns, down the first then the second
     const ft = pg ? Z.f : 18, more = wrap(COPY["data.more"], ft, 2 * Z.cw), rows = Math.ceil(DD.all.length / 2), top = 52 + (more.length - 1) * (ft + 6);
     more.forEach((ln, j) => { s += `<text x="0" y="${22 + j * (ft + 6)}" fill="${MUTED}" font-size="${ft}" opacity="${cl(2 * comp - 1)}">${ln}</text>`; });
+    // the name column fits its longest name as drawn (measured below); the bar gives up the difference
+    const LW = Z.lw + (dataNameExtra[Z.f] || 0), BW = Math.max(40, Z.bw - (dataNameExtra[Z.f] || 0));
     DD.all.forEach((m, k) => {
       const col = Math.floor(k / rows), row = k % rows, x0 = col * Z.cw, y = top + row * Z.rh;
       const o = ramp(t, t0 + 3.3 + k * .03, t0 + 3.6 + k * .03) * (m.hero ? 1 : 1), fc = m.hero ? FG : MUTED, fw = m.hero ? 700 : 400;
-      const bx = x0 + Z.yw + Z.lw, bh = Math.max(8, Z.rh * .42), by = y - Z.f * .35 - bh / 2;
+      const bx = x0 + Z.yw + LW, bh = Math.max(8, Z.rh * .42), by = y - Z.f * .35 - bh / 2;
       s += `<g opacity="${o}"><text x="${x0}" y="${y}" fill="${MUTED}" font-size="${Z.f}" font-family="${MONO}">${m.year}</text>`
-         + `<text x="${x0 + Z.yw}" y="${y}" fill="${fc}" font-size="${Z.f}" font-weight="${fw}">${m.label}</text>`
-         + `<rect x="${bx}" y="${by}" width="${Z.bw}" height="${bh}" rx="2" fill="${C.p}"/>`;
+         + `<text class="dname" x="${x0 + Z.yw}" y="${y}" fill="${fc}" font-size="${Z.f}" font-weight="${fw}">${m.label}</text>`
+         + `<rect x="${bx}" y="${by}" width="${BW}" height="${bh}" rx="2" fill="${C.p}"/>`;
       let cx = bx;
-      for (const kd of ["s", "v", "x", "h"]) { const w = (m.counts[kd] || 0) / m.n * Z.bw;
+      for (const kd of ["s", "v", "x", "h"]) { const w = (m.counts[kd] || 0) / m.n * BW;
         if (w > 0) { s += `<rect x="${cx}" y="${by}" width="${w}" height="${bh}" fill="${C[kd]}"/>`; cx += w; } }
-      s += `<text x="${bx + Z.bw + 8}" y="${y}" fill="${m.era ? C.v : fc}" font-size="${Z.f}" font-family="${MONO}" font-weight="${fw}">${m.era}</text></g>`;
+      s += `<text x="${bx + BW + 8}" y="${y}" fill="${m.era ? C.v : fc}" font-size="${Z.f}" font-family="${MONO}" font-weight="${fw}">${m.era}</text></g>`;
     });
     H = top + rows * Z.rh;
   }
   $("dtiles").innerHTML = s;
+  if (comp > 0) {   // measure the names once per font size; a name that reaches its bar widens the column next frame
+    const need = Math.max(0, ...[...$("dtiles").querySelectorAll("text.dname")].map((e) => { try { return e.getComputedTextLength(); } catch (_) { return 0; } }));
+    const extra = Math.max(0, Math.ceil(need + 10 - Z.lw));
+    if (need > 0 && extra !== (dataNameExtra[Z.f] || 0)) { dataNameExtra[Z.f] = extra; return DRAW.data(t); }
+  }
   const kinds = ["s", "v", "x", "h", "p"].map((c) => `<span style="display:inline-flex;align-items:center;gap:8px;margin-right:22px">`
     + `<i style="width:13px;height:13px;border-radius:2px;background:${C[c]};display:inline-block"></i>${COPY["data.k_" + c]}</span>`).join("");
   // the legend sits under the list as drawn, in the frame's own px (the page scales the frame). #dtiles is an <svg>, so it
@@ -939,7 +947,7 @@ document.querySelectorAll(".story .cite").forEach(c => {
 <footer><div class="wrap">
   <span>Companion pages: <a href="https://huggingface.co/LuxiaSL/kotodama-tsumugi-1b">the model card</a> · <a href="binding-atlas">every public model's results on who-is-who tests</a> · <a href="threads">a map of tsumugi's neurons</a> · <a href="empty-document">what it writes from an empty page</a>.</span>
   <span>A <a href="index.md">plain-text version of this page</a>, for language models: the same words, with every note expanded and every figure described.</span>
-  <span class="num" id="stamp">build 2026-11-18 18:16 UTC</span>
+  <span class="num" id="stamp">build 2026-11-18 18:18 UTC</span>
 </div></footer>
 <script>
 // Leaflets (.cite: a marker button and its .cite-leaf): hovering the marker opens the leaflet, which stays open while the

@@ -1,4 +1,4 @@
-<!-- kotodama-tsumugi: plain-text version of https://kotodama.animalabs.ai/ for language models and screen readers. The same words as the page; every note and reference is expanded where it appears, and every figure is described in text from the data it draws. Build 2026-11-18 18:16 UTC. -->
+<!-- kotodama-tsumugi: plain-text version of https://kotodama.animalabs.ai/ for language models and screen readers. The same words as the page; every note and reference is expanded where it appears, and every figure is described in text from the data it draws. Build 2026-11-18 18:18 UTC. -->
 
 **言霊** kotodama — word-spirit: language as a thing with a life of its own
 
@@ -254,4 +254,4 @@ Companion pages: [the model card](https://huggingface.co/LuxiaSL/kotodama-tsumug
 
 A [plain-text version of this page](https://kotodama.animalabs.ai/index.md), for language models: the same words, with every note expanded and every figure described.
 
-build 2026-11-18 18:16 UTC
+build 2026-11-18 18:18 UTC
