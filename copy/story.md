@@ -215,7 +215,7 @@ world knowledge evals
 world knowledge evals
 
 ## story.cheap.step
-On nine standard benchmarks (HellaSwag, LAMBADA, ARC-Easy, ARC-Challenge, PIQA, SciQ, WinoGrande, COPA and BoolQ), tsumugi's zero-shot average is {{n:avg9}}% correct. On Uncheatable Eval{{cite:UncheatableEval}}, which evaluates compression on unseen human text, tsumugi scores .768 bits per byte, 0.9 SD better than the trend. tsumugi's score here shows that the enhancements in binding & ICL come at little to no cost on knowledge work: it scores ahead of Pythia 1.4B, trained with twice its compute, and within a point of Pythia 2.8B, trained with four times as much, most likely attributable to either more modern architecture or the data mix.
+On nine standard benchmarks (HellaSwag, LAMBADA, ARC-Easy, ARC-Challenge, PIQA, SciQ, WinoGrande, COPA and BoolQ), tsumugi's zero-shot average is {{n:avg9}}% correct. On Uncheatable Eval{{cite:Uncheatable}}, which evaluates compression on unseen human text, tsumugi scores .768 bits per byte, 0.9 SD better than the trend. tsumugi's score here shows that the enhancements in binding & ICL come at little to no cost on knowledge work: it scores ahead of Pythia 1.4B, trained with twice its compute, and within a point of Pythia 2.8B, trained with four times as much, most likely attributable to either more modern architecture or the data mix.
 <br><br>
 Given the prior results with binding & ICL, and the knowledge-based benchmarks here, tsumugi operates <i>in context</i> like a model much larger; while having <i>world knowledge</i> expected for its compute.
 
@@ -307,7 +307,7 @@ Instead of uniform blocks, we read the layer geometry of the same 52 layers trai
 ## story.arch.4.video
 The fit found a 20-layer block starting at layer 19. It runs twice with the same weights, so the model computes through 72 layers while storing 52.
 
-## cite.UncheatableEval
+## cite.Uncheatable
 Tan, Li, Shen, <a href="https://arxiv.org/abs/2609.27510"><i>Uncheatable Eval: Dynamic Compression-Based Evaluation of Language Models</i></a>, 2026.
 
 ## cite.ICLEval
